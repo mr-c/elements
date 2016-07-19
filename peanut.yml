@@ -1,0 +1,14 @@
+apiversion: v2
+kind: package
+name: github.com/antha-lang/elements
+version: 0.0.2
+build:
+  morelines:
+  - RUN apt-get update && apt-get install -y libglpk-dev libsqlite3-dev libopencv-dev
+modules:
+  golang:
+    deploypackage: github.com/antha-lang/elements/cmd/antharun
+    dependson:
+    - github.com/antha-lang/antha
+    testpackages:
+    - ~vendor
