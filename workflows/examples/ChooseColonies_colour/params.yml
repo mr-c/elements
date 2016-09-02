@@ -1,0 +1,13 @@
+{
+  "Parameters": {
+    "ChooseColonies": {
+	  "Imagefile": "Plate1.png",
+	  "Setplateperimeterfirst": true,
+	  "Rotate": false,
+	  "NumbertoPick":5,
+	  "ExportFileName":"test.csv",
+	  "PlateForCoordinates":"Agarplateforpicking1536_riser"
+		
+    }
+  }
+}
