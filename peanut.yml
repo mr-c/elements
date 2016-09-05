@@ -12,3 +12,6 @@ modules:
     - github.com/antha-lang/antha
     testpackages:
     - ~vendor
+    image:
+      copyhostpaths:
+      - github.com/antha-lang/elements:workflows/examples:/root/examples
