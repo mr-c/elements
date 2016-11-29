@@ -1,0 +1,19 @@
+{
+	"comment": "",
+	"ignore": "",
+	"package": [
+		{
+			"checksumSHA1": "EERshlSOEO5Q1IgtlqxMTbef5Eg=",
+			"path": "github.com/cloudfoundry-incubator/candiedyaml",
+			"revision": "5cef21e2e4f0fd147973b558d4db7395176bcd95",
+			"revisionTime": "2016-03-22T20:50:45Z"
+		},
+		{
+			"checksumSHA1": "3ypU277NhQN6yOxC9AlwgBbK1+M=",
+			"path": "github.com/ghodss/yaml",
+			"revision": "1a6f069841556a7bcaff4a397ca6e8328d266c2f",
+			"revisionTime": "2016-03-07T21:52:05Z"
+		}
+	],
+	"rootPath": "github.com/antha-lang/elements"
+}
