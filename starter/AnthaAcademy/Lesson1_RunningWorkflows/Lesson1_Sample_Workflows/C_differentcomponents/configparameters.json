@@ -1,0 +1,29 @@
+{
+  "Config": {
+    "InputPlateType": [
+      "pcrplate_skirted_riser"
+    ],
+    "OutputPlateType": [
+      "greiner384_riser"
+    ]
+  },
+  "Parameters": {
+    "sample": {
+      "SampleVolume": "15ul",
+      "Solution": "water"
+    },
+    "sampleAll": {
+      "Sampleall": true
+    },
+    "sampleTotal": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "150ul"
+    },
+    "samplealone": {
+      "SampleVolume": "20ul",
+      "Solution": "water"
+    }
+  }
+}

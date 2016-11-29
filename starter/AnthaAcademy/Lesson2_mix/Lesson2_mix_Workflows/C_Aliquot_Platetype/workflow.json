@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "AliquotParams3": {
+      "component": "Aliquot_PlateType"
+    }
+  }
+}

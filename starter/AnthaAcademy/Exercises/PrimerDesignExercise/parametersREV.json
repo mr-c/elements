@@ -1,0 +1,49 @@
+{
+  "Parameters": {
+    "REVPrimerOri": {
+      "DNASeqfile": "pSEVA521.gb",
+      "FlankTargetSequence": true,
+      "Maxgc": 0.6,
+      "Maxlength": 30,
+      "Maxtemp": "65C",
+      "Minlength": 18,
+      "Mintemp": "50C",
+      "PermittednucleotideOverlapBetweenPrimers": 10,
+      "Plasmid": true,
+      "RegionSequenceString": "ctagcgtttgcaatgcaccaggtcatcattgacccaggcgtgttccaccaggccgctgcctcgcaactcttcgcaggcttcgccgacctgctcgcgccacttcttcacgcgggtggaatccgatccgcacatgaggcggaaggtttccagcttgagcgggtacggctcccggtgcgagctgaaatagtcgaacatccgtcgggccgtcggcgacagcttgcggtacttctcccatatgaatttcgtgtagtggtcgccagcaaacagcacgacgatttcctcgtcgatcaggacctggcaacgggacgttttcttgccacggtccaggacgcggaagcggtgcagcagcgacaccgattccaggtgcccaacgcggtcggacgtgaagcccatcgccgtcgcctgtaggcgcgacaggcattcctcggccttcgtgtaataccggccattgatcgaccagcccaggtcctggcaaagctcgtagaacgtgaaggtgatcggctcgccgataggggtgcgcttcgcgtactccaacacctgctgccacaccagttcgtcatcgtcggcccgcagctcgacgccggtgtaggtgatcttcacgtccttgttgacgtggaaaatgaccttgttttgcagcgcctcgcgcgggattttcttgttgcgcgtggtgaacagggcagagcgggccgtgtcgtttggcatcgctcgcatcgtgtccggccacggcgcaatatcgaacaaggaaagctgcatttccttgatctgctgcttcgtgtgtttcagcaacgcggcctgcttggcttcgctgacctgttttgccaggtcctcgccggcggtttttcgcttcttggtcgtcatagttcctcgcgtgtcgatggtcatcgacttcgccaaacctgccgcctcctgttcgagacgacgcgaacgctccacggcggccgatggcgcgggcagggcagggggagccagttgcacgctgtcgcgctcgatcttggccgtagcttgctggactatcgagccgacggactggaaggtttcgcggggcgcacgcatgacggtgcggcttgcgatggtttcggcatcctcggcggaaaaccccgcgtcgatcagttcttgcctgtatgccttccggtcaaacgtccgattcat",
+      "Seqstoavoid": [
+        ""
+      ]
+    },
+    "REVPrimerOriRevComp": {
+      "DNASeqfile": "pSEVA521.gb",
+      "FlankTargetSequence": true,
+      "Maxgc": 0.6,
+      "Maxlength": 30,
+      "Maxtemp": "65C",
+      "Minlength": 18,
+      "Mintemp": "50C",
+      "PermittednucleotideOverlapBetweenPrimers": 10,
+      "Plasmid": true,
+      "RegionSequenceString": "atgaatcggacgtttgaccggaaggcatacaggcaagaactgatcgacgcggggttttccgccgaggatgccgaaaccatcgcaagccgcaccgtcatgcgtgcgccccgcgaaaccttccagtccgtcggctcgatagtccagcaagctacggccaagatcgagcgcgacagcgtgcaactggctccccctgccctgcccgcgccatcggccgccgtggagcgttcgcgtcgtctcgaacaggaggcggcaggtttggcgaagtcgatgaccatcgacacgcgaggaactatgacgaccaagaagcgaaaaaccgccggcgaggacctggcaaaacaggtcagcgaagccaagcaggccgcgttgctgaaacacacgaagcagcagatcaaggaaatgcagctttccttgttcgatattgcgccgtggccggacacgatgcgagcgatgccaaacgacacggcccgctctgccctgttcaccacgcgcaacaagaaaatcccgcgcgaggcgctgcaaaacaaggtcattttccacgtcaacaaggacgtgaagatcacctacaccggcgtcgagctgcgggccgacgatgacgaactggtgtggcagcaggtgttggagtacgcgaagcgcacccctatcggcgagccgatcaccttcacgttctacgagctttgccaggacctgggctggtcgatcaatggccggtattacacgaaggccgaggaatgcctgtcgcgcctacaggcgacggcgatgggcttcacgtccgaccgcgttgggcacctggaatcggtgtcgctgctgcaccgcttccgcgtcctggaccgtggcaagaaaacgtcccgttgccaggtcctgatcgacgaggaaatcgtcgtgctgtttgctggcgaccactacacgaaattcatatgggagaagtaccgcaagctgtcgccgacggcccgacggatgttcgactatttcagctcgcaccgggagccgtacccgctcaagctggaaaccttccgcctcatgtgcggatcggattccacccgcgtgaagaagtggcgcgagcaggtcggcgaagcctgcgaagagttgcgaggcagcggcctggtggaacacgcctgggtcaatgatgacctggtgcattgcaaacgctag",
+      "Seqstoavoid": [
+        ""
+      ]
+    },
+    "REVPrimerTetA": {
+      "DNASeqfile": "pSEVA521.gb",
+      "FlankTargetSequence": true,
+      "Maxgc": 0.6,
+      "Maxlength": 30,
+      "Maxtemp": "65C",
+      "Minlength": 18,
+      "Mintemp": "50C",
+      "PermittednucleotideOverlapBetweenPrimers": 10,
+      "Plasmid": true,
+      "RegionSequenceString": "atgccggtactgccgggcctcttgcgggatatcgtccattccgacagcatcgccagtcactatggcgtgctgctagcgctatatgcgttgatgcaatttctatgcgcacccgttctcggagcactgtccgaccgctttggccgccgcccagtcctgctcgcttcgctacttggagccactatcgactacgcgatcatggcgaccacacccgtcctgtggattctctacgccggacgcatcgtggccggcatcaccggcgccacaggtgcggttgctggcgcctatatcgccgacatcaccgatggggaagatcgggctcgccacttcgggctcatgagcgcttgtttcggcgtgggtatggtggcaggccccgtggccgggggactgttgggcgccatctccctgcacgcaccattccttgcggcggcggtgctcaacggcctcaacctactactgggctgcttcctaatgcaggagtcgcataagggagagcgccgtccgatgcccttgagagccttcaacccagtcagctccttccggtgggcgcggggcatgaccattgtggccgcacttatgactgtcttctttatcatgcaactcgtaggacaggtgccggcagcgctctgggtcattttcggcgaggaccgctttcgctggagcgcgacgatgatcggcctgtcgcttgcggtattcggaatcttgcacgccctcgctcaagccttcgtcactggtcccgccaccaaacgtttcggcgagaagcaggccattatcgccggcatggcggccgacgcgctgggctacgtcttgctggcgttcgcgacgcgaggctggatggccttccccattatgattcttctcgcttccggcggcatcgggatgcccgcgttgcaggccatgctgtccaggcaggtagatgacgaccatcagggacagcttcaaggatcgctcgcggctcttaccagcctaacttcgatcactggaccgctgatcgtcacggcgatttatgccgcctcggcgagcacatggaacgggttggcatggattgtaggcgccgccctataccttgtctgcctccccgcgttgcgtcgcggtgcatggagccgggccacctcgacctga",
+      "Seqstoavoid": [
+        ""
+      ]
+    }
+  }
+}
