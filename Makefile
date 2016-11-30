@@ -7,7 +7,7 @@ gen_comp:
 	gofmt -w -s lib
 
 test: gen_comp
-	go test -v `go list ./... | grep -v vendor`
+	go test `go list ./... | grep -v vendor`
 
 check: check_json check_elements
 
