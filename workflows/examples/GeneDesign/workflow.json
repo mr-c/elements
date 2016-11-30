@@ -1,28 +1,25 @@
 {
-    "processes": {
-        "Design1": { "component": "GeneDesign_seq" },
-        "Synthesis1": { "component": "Synthesis" },
-		"Mix1": { "component": "ReactionMix" }
-       
+  "connections": [
+    {
+      "src": {
+        "port": "Components",
+        "process": "Synthesis1"
+      },
+      "tgt": {
+        "port": "Components",
+        "process": "Mix1"
+      }
+    }
+  ],
+  "processes": {
+    "Design1": {
+      "component": "GeneDesign_seq"
     },
-    "connections": [
-        {
-            "src": {
-                "process": "Design1",
-                "port": "PartsWithOverhangs"
-            },
-            "tgt": {
-                "process": "Synthesis1",
-                "port": "PartsWithOverhangs"
-            },
-			"src": {
-				"process": "Synthesis1",
-				"port": "Components"
-			},
-			"tgt": {
-				"process": "Mix1",
-				"port": "Components"
-			}
-        }
-    ]
+    "Mix1": {
+      "component": "ReactionMix"
+    },
+    "Synthesis1": {
+      "component": "Synthesis"
+    }
+  }
 }

@@ -1,12 +1,7 @@
-{
-    "Parameters": {
-		"addplate": {
-             "InputCSVfile":"inputplate.csv"
-	 },
-	"transfer": {
-             "Liquidname":"testliquid",
-			"LiquidVolume":"10ul",
-			"Startingsolution":"10g/Lglycerol"
-	 }
-    }
-}
+Parameters:
+  addplate:
+    InputCSVfile: inputplate.csv
+  transfer:
+    LiquidVolume: 10ul
+    Liquidname: testliquid
+    Startingsolution: 10g/Lglycerol

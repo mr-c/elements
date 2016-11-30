@@ -1,25 +1,19 @@
-{
-    "Parameters": {
-        "xml": {
-            "ID": "accD",
-			"Filename": "",
-			"ReturnType": "xml",
-			"MaxReturns":10,
-			"Database":"nucleotide"
-        },
-        "fasta": {
-            "ID": "opuntia[ORGN] accD",
-			"Filename": "accD.fasta",
-			"ReturnType": "fasta",
-			"MaxReturns":3,
-			"Database":"nucleotide"
-        },
-        "genbank": {
-            "ID": "opuntia[ORGN] accD",
-			"Filename": "accD.gb",
-			"ReturnType": "gb",
-			"MaxReturns":3,
-			"Database":"nucleotide"
-        }
-    }
-}
+Parameters:
+  fasta:
+    Database: nucleotide
+    Filename: accD.fasta
+    ID: opuntia[ORGN] accD
+    MaxReturns: 3
+    ReturnType: fasta
+  genbank:
+    Database: nucleotide
+    Filename: accD.gb
+    ID: opuntia[ORGN] accD
+    MaxReturns: 3
+    ReturnType: gb
+  xml:
+    Database: nucleotide
+    Filename: ""
+    ID: accD
+    MaxReturns: 10
+    ReturnType: xml

@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Plotdataparams": {
-            "component": "Plotdata"
-        }
+  "connections": [],
+  "processes": {
+    "Plotdataparams": {
+      "component": "Plotdata"
     }
+  }
 }

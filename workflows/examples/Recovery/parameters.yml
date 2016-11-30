@@ -1,12 +1,8 @@
-{
-    "Parameters": {
-       "Recovery": {
-			"TransformedcellVolume":"50ul",
-            "Recoverymedium": "LB",
-            "Recoverytemp": "25C",
-            "Recoverytime": "57600s",
-            "Recoveryvolume": "500ul",
-            "Transformedcells": "neb5compcells"
-        }
-    }
-}
+Parameters:
+  Recovery:
+    Recoverymedium: LB
+    Recoverytemp: 25C
+    Recoverytime: 57600s
+    Recoveryvolume: 500ul
+    TransformedcellVolume: 50ul
+    Transformedcells: neb5compcells

@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PlateOut": {
-            "component": "PlateOut"
-        }
+  "connections": [],
+  "processes": {
+    "PlateOut": {
+      "component": "PlateOut"
     }
+  }
 }

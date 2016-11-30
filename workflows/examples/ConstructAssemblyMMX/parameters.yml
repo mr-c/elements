@@ -1,25 +1,26 @@
-{
-    "Parameters": {
-        "AssemblyMMX": {
-            "OutPlate": "pcrplate_with_cooler",
-            "PartNames": [ 
-               "vector_1", "promoter_1", "rbs_1", "cds_1" 
-            ],
-            "PartVols": [
-               "1ul", "1ul", "1ul", "1ul" 
-            ],
-            "Parts": [
-               "dna_part", "dna_part", "dna_part", "dna_part" 
-            ],
-            "ReactionTemp": "25C",
-            "ReactionTime": "1800s",
-            "ReactionVolume": "20ul",
-			"OutputReactionName":"MMX",
-			"OutputLocation":"",
-			"OutputPlateNum":1,
-			"LHPolicyName":"dna",
-			"MasterMix":"mastermix_sapI"
-           
-        }
-    }
-}
+Parameters:
+  AssemblyMMX:
+    LHPolicyName: dna
+    MasterMix: mastermix_sapI
+    OutPlate: pcrplate_with_cooler
+    OutputLocation: ""
+    OutputPlateNum: 1
+    OutputReactionName: MMX
+    PartNames:
+    - vector_1
+    - promoter_1
+    - rbs_1
+    - cds_1
+    PartVols:
+    - 1ul
+    - 1ul
+    - 1ul
+    - 1ul
+    Parts:
+    - dna_part
+    - dna_part
+    - dna_part
+    - dna_part
+    ReactionTemp: 25C
+    ReactionTime: 1800s
+    ReactionVolume: 20ul

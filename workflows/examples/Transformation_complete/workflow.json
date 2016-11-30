@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Transformation_complete": {
-            "component": "Transformation_complete"
-        }
+  "connections": [],
+  "processes": {
+    "Transformation_complete": {
+      "component": "Transformation_complete"
     }
+  }
 }

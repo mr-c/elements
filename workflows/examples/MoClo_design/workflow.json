@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "MoClo_design": {
-            "component": "MoClo_design"
-        }
+  "connections": [],
+  "processes": {
+    "MoClo_design": {
+      "component": "MoClo_design"
     }
+  }
 }

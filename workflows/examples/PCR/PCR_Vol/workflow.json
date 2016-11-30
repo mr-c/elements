@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PCR": {
-            "component": "PCR_vol"
-        }
+  "connections": [],
+  "processes": {
+    "PCR": {
+      "component": "PCR_vol"
     }
+  }
 }

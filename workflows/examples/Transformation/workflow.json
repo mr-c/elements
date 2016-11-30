@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Transformation": {
-            "component": "Transformation"
-        }
+  "connections": [],
+  "processes": {
+    "Transformation": {
+      "component": "Transformation"
     }
+  }
 }

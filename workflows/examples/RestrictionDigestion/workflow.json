@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Standarddigestparams": {
-            "component": "RestrictionDigestion"
-        }
+  "connections": [],
+  "processes": {
+    "Standarddigestparams": {
+      "component": "RestrictionDigestion"
     }
+  }
 }

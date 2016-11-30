@@ -1,23 +1,16 @@
-{
-    "Parameters": {
-        "MediaPrep1": {
-            "YeastExtractConc": "30g/l",
-            "TryptoneConc": "18g/l",
-            "GlycerolConc": "2g/l",
-            "TotalVolume": "480ul",
-            "OutputPlateType": "DSW96",
-            "YeastExtract": "Yeast extract",
-            "Tryptone": "Tryptone",
-            "Glycerol": "Glycerol",
-            "BaseMedium": "LB"
-        }
-    },
-    "Config": {
-        "InputPlateType": [
-            "pcrplate_skirted_riser"
-        ],
-        "OutputPlateType": [
-            "pcrplate_skirted_riser"
-        ]
-    }
-}
+Config:
+  InputPlateType:
+  - pcrplate_skirted_riser
+  OutputPlateType:
+  - pcrplate_skirted_riser
+Parameters:
+  MediaPrep1:
+    BaseMedium: LB
+    Glycerol: Glycerol
+    GlycerolConc: 2g/l
+    OutputPlateType: DSW96
+    TotalVolume: 480ul
+    Tryptone: Tryptone
+    TryptoneConc: 18g/l
+    YeastExtract: Yeast extract
+    YeastExtractConc: 30g/l

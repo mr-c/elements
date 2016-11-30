@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Thawtime": {
-            "component": "Thawtime"
-        }
+  "connections": [],
+  "processes": {
+    "Thawtime": {
+      "component": "Thawtime"
     }
+  }
 }

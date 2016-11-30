@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PipetteImage": {
-            "component": "PipetteImage_CMYK_OneByOne"
-        }
+  "connections": [],
+  "processes": {
+    "PipetteImage": {
+      "component": "PipetteImage_CMYK_OneByOne"
     }
+  }
 }

@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PipetteImage": {
-            "component": "MakePalette_OneByOne"
-        }
+  "connections": [],
+  "processes": {
+    "PipetteImage": {
+      "component": "MakePalette_OneByOne"
     }
+  }
 }

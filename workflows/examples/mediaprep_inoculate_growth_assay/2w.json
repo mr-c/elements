@@ -1,22 +1,22 @@
 {
-    "Connections": [
-        {
-            "src": {
-                "port": "GrowthMedium",
-                "process": "MediaPrep1"
-            },
-            "tgt": {
-                "port": "Medium",
-                "process": "InoculateOvernightGrowth1"
-            }
-        }
-    ],
-    "Processes": {
-        "MediaPrep1": {
-            "Component": "DOEMediaPrep"
-        },
-        "InoculateOvernightGrowth1": {
-            "Component": "InoculateDOE"
-        }
+  "Connections": [
+    {
+      "src": {
+        "port": "GrowthMedium",
+        "process": "MediaPrep1"
+      },
+      "tgt": {
+        "port": "Medium",
+        "process": "InoculateOvernightGrowth1"
+      }
     }
+  ],
+  "Processes": {
+    "InoculateOvernightGrowth1": {
+      "Component": "InoculateDOE"
+    },
+    "MediaPrep1": {
+      "Component": "DOEMediaPrep"
+    }
+  }
 }

@@ -1,15 +1,14 @@
 {
-    "connections": [
-    ],
-    "processes": {
-        "xml": {
-            "component": "EntrezLookup"
-        },
-        "fasta": {
-            "component": "EntrezLookup"
-        },
-        "genbank": {
-            "component": "EntrezLookup"
-        }
-	}
+  "connections": [],
+  "processes": {
+    "fasta": {
+      "component": "EntrezLookup"
+    },
+    "genbank": {
+      "component": "EntrezLookup"
+    },
+    "xml": {
+      "component": "EntrezLookup"
+    }
+  }
 }

@@ -1,20 +1,22 @@
 {
-    "processes": {
-        "NewDNASequenceandBlast1": { "component": "NewDNASequence" },
-        "Blastsearch_params": { "component": "BlastSearch_wtype" }
-       
+  "connections": [
+    {
+      "src": {
+        "port": "DNA",
+        "process": "NewDNASequenceandBlast1"
+      },
+      "tgt": {
+        "port": "DNA",
+        "process": "Blastsearch_params"
+      }
+    }
+  ],
+  "processes": {
+    "Blastsearch_params": {
+      "component": "BlastSearch_wtype"
     },
-    "connections": [
-        {
-            "src": {
-                "process": "NewDNASequenceandBlast1",
-                "port": "DNA"
-            },
-            "tgt": {
-                "process": "Blastsearch_params",
-                "port": "DNA"
-            }
-        }
-    ]
+    "NewDNASequenceandBlast1": {
+      "component": "NewDNASequence"
+    }
+  }
 }
-

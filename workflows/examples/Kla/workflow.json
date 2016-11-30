@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Kla": {
-            "component": "Kla"
-        }
+  "connections": [],
+  "processes": {
+    "Kla": {
+      "component": "Kla"
     }
+  }
 }

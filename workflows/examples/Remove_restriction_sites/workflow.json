@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "RemoveRestrictionSites": {
-            "component": "RemoveRestrictionSites"
-        }
+  "connections": [],
+  "processes": {
+    "RemoveRestrictionSites": {
+      "component": "RemoveRestrictionSites"
     }
+  }
 }

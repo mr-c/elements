@@ -1,3 +1,4 @@
+connections: []
 parameters:
   ConstructAssembly1:
     Atp: ATP
@@ -61,7 +62,6 @@ parameters:
     Vector: standard_cloning_vector_mark_1
     VectorVol: 3ul
     Water: water
-connections: []
 processes:
   ConstructAssembly1:
     component: TypeIISConstructAssembly

@@ -1,20 +1,14 @@
-{
-    "Parameters": {
-        "Mastermix": {
-            "NumberofReactions": 50,
-            "ComponentVolumesperReaction": [
-                "2ul",
-                "1ul",
-                "1ul",
-                "1ul"
-            ],
-            "Components": [
-                "CutsmartBuffer",
-                "T4Ligase",
-                "SapI",
-                "ATP"
-            ],
-            "OutPlate": "pcrplate_skirted_riser"
-        }
-    }
-}
+Parameters:
+  Mastermix:
+    ComponentVolumesperReaction:
+    - 2ul
+    - 1ul
+    - 1ul
+    - 1ul
+    Components:
+    - CutsmartBuffer
+    - T4Ligase
+    - SapI
+    - ATP
+    NumberofReactions: 50
+    OutPlate: pcrplate_skirted_riser

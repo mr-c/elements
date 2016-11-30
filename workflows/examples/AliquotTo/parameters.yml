@@ -1,15 +1,10 @@
-{
-    "Parameters": {
-        "AliquotParams": {
-            "NumberofAliquots": 3,
-            "OutPlate": "nunc1536_riser",
-            "Solutions": [
-			"water",
-			"fluorescein"
-			],
-			"ByRow": false,
-            "SolutionVolume": "4000ul",
-            "VolumePerAliquot": "5ul"
-        }
-    }
-}
+Parameters:
+  AliquotParams:
+    ByRow: false
+    NumberofAliquots: 3
+    OutPlate: nunc1536_riser
+    SolutionVolume: 4000ul
+    Solutions:
+    - water
+    - fluorescein
+    VolumePerAliquot: 5ul

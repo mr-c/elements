@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Scarfree_siteremove_orfcheck": {
-            "component": "Scarfree_siteremove_orfcheck"
-        }
+  "connections": [],
+  "processes": {
+    "Scarfree_siteremove_orfcheck": {
+      "component": "Scarfree_siteremove_orfcheck"
     }
+  }
 }

@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "DiluteBuffer": {
-            "component": "DiluteBuffer"
-        }
+  "connections": [],
+  "processes": {
+    "DiluteBuffer": {
+      "component": "DiluteBuffer"
     }
+  }
 }

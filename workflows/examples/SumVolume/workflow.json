@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "SumVolume": {
-            "component": "SumVolume"
-        }
+  "connections": [],
+  "processes": {
+    "SumVolume": {
+      "component": "SumVolume"
     }
+  }
 }

@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PreProcess": {
-            "component": "PreProcessImage"
-        }
+  "connections": [],
+  "processes": {
+    "PreProcess": {
+      "component": "PreProcessImage"
     }
+  }
 }

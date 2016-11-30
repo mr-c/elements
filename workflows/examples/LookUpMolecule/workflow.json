@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "LookUpMolecule": {
-            "component": "LookUpMolecule"
-        }
+  "connections": [],
+  "processes": {
+    "LookUpMolecule": {
+      "component": "LookUpMolecule"
     }
+  }
 }

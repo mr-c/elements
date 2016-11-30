@@ -1,14 +1,10 @@
-{
-    "Parameters": {
-        "PrimerDesign": {
-            "Dirname": "sequences",
-            "Maxtemp": "60C",
-            "Mintemp": "55C",
-            "Maxgc": 0.6,
-            "Minlength": 20,
-			"Maxlength":25,
-			"PermittednucleotideOverlapBetweenPrimers":20,
-			"ExportToFile":true
-        }
-    }
-}
+Parameters:
+  PrimerDesign:
+    Dirname: sequences
+    ExportToFile: true
+    Maxgc: 0.6
+    Maxlength: 25
+    Maxtemp: 60C
+    Minlength: 20
+    Mintemp: 55C
+    PermittednucleotideOverlapBetweenPrimers: 20

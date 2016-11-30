@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Mastermix_reaction": {
-            "component": "Mastermix_reactions"
-        }
+  "connections": [],
+  "processes": {
+    "Mastermix_reaction": {
+      "component": "Mastermix_reactions"
     }
+  }
 }

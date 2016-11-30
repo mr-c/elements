@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "LoadGel1": {
-            "component": "LoadGel_multi"
-        }
+  "connections": [],
+  "processes": {
+    "LoadGel1": {
+      "component": "LoadGel_multi"
     }
+  }
 }

@@ -1,31 +1,24 @@
-{
-  "Parameters": {
-    "MakePalette1": {
-		"Imagefilename":"cmyk3.jpg",
-		"Rotate": false,
-		"AutoRotate": true,
-		"PosterizeImage":false,
-		"PosterizeLevels":2,
-      "Cyan": "Cyan",
-	"Magenta": "Magenta",
-	"Yellow": "Yellow_ink",
-	"Black": "Black",
-      "OutPlate": "greiner384_riser",
-	  "PalettePlate": "DSW96_riser",
-      "VolumeForFullcolour": "300ul"
-    },
-	"Pipette1": {
-       "VolumePerWell": "20ul",
-	   "Imagefilename":"cmyk3.jpg",
-	   "OnlythisColour": "",
-	   "NotthisColour": "",
-	   "Rotate": false,
-	   "AutoRotate": true,
-	"PosterizeImage":false,
-	"PosterizeLevels":2,
-       "OutPlate": "greiner384_riser"
-		}
-  }
-}
-
-
+Parameters:
+  MakePalette1:
+    AutoRotate: true
+    Black: Black
+    Cyan: Cyan
+    Imagefilename: cmyk3.jpg
+    Magenta: Magenta
+    OutPlate: greiner384_riser
+    PalettePlate: DSW96_riser
+    PosterizeImage: false
+    PosterizeLevels: 2
+    Rotate: false
+    VolumeForFullcolour: 300ul
+    Yellow: Yellow_ink
+  Pipette1:
+    AutoRotate: true
+    Imagefilename: cmyk3.jpg
+    NotthisColour: ""
+    OnlythisColour: ""
+    OutPlate: greiner384_riser
+    PosterizeImage: false
+    PosterizeLevels: 2
+    Rotate: false
+    VolumePerWell: 20ul

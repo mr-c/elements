@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "newparams": {
-            "component": "Transfer"
-        }
+  "connections": [],
+  "processes": {
+    "newparams": {
+      "component": "Transfer"
     }
+  }
 }

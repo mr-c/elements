@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "StockBuffer": {
-            "component": "MakeMedia"
-        }
+  "connections": [],
+  "processes": {
+    "StockBuffer": {
+      "component": "MakeMedia"
     }
+  }
 }

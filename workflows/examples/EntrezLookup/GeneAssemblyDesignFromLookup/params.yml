@@ -1,16 +1,11 @@
-{
-      "Parameters": {
-	"Design1": {
-	            "Parts": [
-					"U28422.1",
-					"EF208560"	
-				],
-				"Vector": "HQ398611.1",
-				"RE": "SapI",
-				"EndsAlreadyAdded":false,
-				"SynthesisProvider":"GenScript",
-				"ConstructName":"Construct_test",
-				"ExporttoFastaFile":false
-			}
-		}
-}
+Parameters:
+  Design1:
+    ConstructName: Construct_test
+    EndsAlreadyAdded: false
+    ExporttoFastaFile: false
+    Parts:
+    - U28422.1
+    - EF208560
+    RE: SapI
+    SynthesisProvider: GenScript
+    Vector: HQ398611.1

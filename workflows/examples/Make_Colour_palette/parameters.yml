@@ -1,17 +1,11 @@
-{
-  "Parameters": {
-    "PipetteImage": {
-		"Imagefilename":"cmyk2.jpg",
-		"Rotate": false,
-		"AutoRotate": true,
-      "Cyan": "Cyan",
-	"Magenta": "Magenta",
-	"Yellow": "Yellow_ink",
-	"Black": "Black",
-      "OutPlate": "greiner384_riser",
-      "VolumeForFullcolour": "150ul"
-    }
-  }
-}
-
-
+Parameters:
+  PipetteImage:
+    AutoRotate: true
+    Black: Black
+    Cyan: Cyan
+    Imagefilename: cmyk2.jpg
+    Magenta: Magenta
+    OutPlate: greiner384_riser
+    Rotate: false
+    VolumeForFullcolour: 150ul
+    Yellow: Yellow_ink

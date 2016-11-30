@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "SerialDilute": {
-            "component": "SerialDilution"
-        }
+  "connections": [],
+  "processes": {
+    "SerialDilute": {
+      "component": "SerialDilution"
     }
+  }
 }

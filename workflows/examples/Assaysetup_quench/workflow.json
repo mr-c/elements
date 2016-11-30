@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "Assay_quench": {
-            "component": "Assay_quench"
-        }
+  "connections": [],
+  "processes": {
+    "Assay_quench": {
+      "component": "Assay_quench"
     }
+  }
 }

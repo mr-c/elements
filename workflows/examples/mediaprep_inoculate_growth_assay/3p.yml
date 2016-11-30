@@ -1,43 +1,33 @@
-{
-    "Parameters": {
-        "Growth1": {
-            "Growthtemp": "25C",
-            "Growthtime": "3600s",
-            "ShakingSpeed": "800/min",
-	"StrainInMedium":"culture"
-        },
-        "MediaPrep1": {
-            "YeastExtractConc": "30g/l",
-            "TryptoneConc": "18g/l",
-            "GlycerolConc": "2g/l",
-            "TotalVolume": "480ul",
-            "OutputPlateType": "DSW96",
-            "YeastExtract": "Yeast extract",
-            "Tryptone": "Tryptone",
-            "Glycerol": "Glycerol",
-            "BaseMedium": "LB"
-        },
-        "InoculateGrowth1": {
-            "InoculumVolume": "20ul"
-        },
-	"Split1": {
-            "Stream1Vol": "50ul",
-            "Stream2Vol": "50ul",
-            "Stream1PlateType": "greinerfb96",
-            "Stream2PlateType": "greinerfb96"
-        },
-        "ProductAssay1": {
-            "ExcitationWavelength": "300nm",
-            "EmissionWavelength": "450nm",
-            "DilutionVolume": "150ul",
-            "Diluent": "water"
-        },
-        "ODAssay1": {
-            "AbsorbanceWavelength": "600nm",
-            "DilutionVolume": "150ul",
-            "Diluent": "water"
-        }
-    },
-    "Config": {
-    }
-}
+Config: {}
+Parameters:
+  Growth1:
+    Growthtemp: 25C
+    Growthtime: 3600s
+    ShakingSpeed: 800/min
+    StrainInMedium: culture
+  InoculateGrowth1:
+    InoculumVolume: 20ul
+  MediaPrep1:
+    BaseMedium: LB
+    Glycerol: Glycerol
+    GlycerolConc: 2g/l
+    OutputPlateType: DSW96
+    TotalVolume: 480ul
+    Tryptone: Tryptone
+    TryptoneConc: 18g/l
+    YeastExtract: Yeast extract
+    YeastExtractConc: 30g/l
+  ODAssay1:
+    AbsorbanceWavelength: 600nm
+    Diluent: water
+    DilutionVolume: 150ul
+  ProductAssay1:
+    Diluent: water
+    DilutionVolume: 150ul
+    EmissionWavelength: 450nm
+    ExcitationWavelength: 300nm
+  Split1:
+    Stream1PlateType: greinerfb96
+    Stream1Vol: 50ul
+    Stream2PlateType: greinerfb96
+    Stream2Vol: 50ul

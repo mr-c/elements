@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "newparams": {
-            "component": "PlateTest3"
-        }
+  "connections": [],
+  "processes": {
+    "newparams": {
+      "component": "PlateTest3"
     }
+  }
 }

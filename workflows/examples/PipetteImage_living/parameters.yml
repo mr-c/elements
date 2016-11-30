@@ -1,36 +1,31 @@
-{
-  "Parameters": {
-    "PipetteImage": {
-		"OnlythisColour":"",
-		"Notthiscolour":"veryblack",
-	  	"Imagefilename": "rainbow1.png",
-		"Rotate": false,
-		"AutoRotate": true,
-		"Palettename":"ProteinPaintboxSubset",
-		"Subset": false,
-		"Subsetnames": [
-				"DreidelTeal",
-				"TinselPurple",
-				"CupidPink",
-				"LeorOrange",
-				"KringleYFP",
-				"DasherGFP",
-				"RudolphRFP",
-				"FresnoRFP",
-				"IvyGFP",
-				"TwinkleCFP",
-				"BlitzenBlue",
-				"YetiYFP",
-				"YukonOFP",
-				"HollyGFP",
-				"CometGFP",
-				"veryblack",
-				"JuniperGFP"
-				],
-		"UseLiquidClass":"water",
-      	"OutPlate": "Agarplateforpicking768_riser",
-		"UVimage":false,
-      	"VolumePerWell": "2ul"
-    }
-  }
-}
+Parameters:
+  PipetteImage:
+    AutoRotate: true
+    Imagefilename: rainbow1.png
+    Notthiscolour: veryblack
+    OnlythisColour: ""
+    OutPlate: Agarplateforpicking768_riser
+    Palettename: ProteinPaintboxSubset
+    Rotate: false
+    Subset: false
+    Subsetnames:
+    - DreidelTeal
+    - TinselPurple
+    - CupidPink
+    - LeorOrange
+    - KringleYFP
+    - DasherGFP
+    - RudolphRFP
+    - FresnoRFP
+    - IvyGFP
+    - TwinkleCFP
+    - BlitzenBlue
+    - YetiYFP
+    - YukonOFP
+    - HollyGFP
+    - CometGFP
+    - veryblack
+    - JuniperGFP
+    UVimage: false
+    UseLiquidClass: water
+    VolumePerWell: 2ul

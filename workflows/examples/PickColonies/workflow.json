@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "PickColonies": {
-            "component": "PickColonies"
-        }
+  "connections": [],
+  "processes": {
+    "PickColonies": {
+      "component": "PickColonies"
     }
+  }
 }
