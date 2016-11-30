@@ -1,0 +1,17 @@
+Plate Height Test:,PlateHeightTest20161104115205
+Time:,2016-11-04 11:52:05.378677397 +0000 GMT
+antha-lang/antha commitID:,cbb715afde4e0cf1a17ee4311572f17af43010bd
+
+TestName,Plate,Liquid name,Liquid type ,Liquid Volume,Well ,Aspirate mm from Bottom of well? ,Dispense mm from Bottom of well? ,Acceptable? ," Comments",plate Z start,Plate Height,lhpolicy aspirate z offset,lhpolicy dispense z offset
+PlateHeightTest20161104115205,pcrplate_skirted_riser40_Platenumber_1,Evian,water,5.000 ul,A1,"  ","  "," "," ",38.5,25.7,<nil>,1
+PlateHeightTest20161104115205,pcrplate_skirted_riser40_Platenumber_1,Evian,dna_mix,5.000 ul,B1,"  ","  "," "," ",38.5,25.7,<nil>,0.5
+PlateHeightTest20161104115205,pcrplate_skirted_riser40_Platenumber_1,Evian,water,100.000ul,C1,"  ","  "," "," ",38.5,25.7,<nil>,1
+PlateHeightTest20161104115205,pcrplate_skirted_riser40_Platenumber_1,Evian,dna_mix,100.000ul,D1,"  ","  "," "," ",38.5,25.7,<nil>,0.5
+PlateHeightTest20161104115205,pcrplate_with_cooler_Platenumber_1,Evian,water,5.000 ul,A1,"  ","  "," "," ",16.5,25.7,<nil>,1
+PlateHeightTest20161104115205,pcrplate_with_cooler_Platenumber_1,Evian,dna_mix,5.000 ul,B1,"  ","  "," "," ",16.5,25.7,<nil>,0.5
+PlateHeightTest20161104115205,pcrplate_with_cooler_Platenumber_1,Evian,water,100.000ul,C1,"  ","  "," "," ",16.5,25.7,<nil>,1
+PlateHeightTest20161104115205,pcrplate_with_cooler_Platenumber_1,Evian,dna_mix,100.000ul,D1,"  ","  "," "," ",16.5,25.7,<nil>,0.5
+PlateHeightTest20161104115205,greiner384_riser40_Platenumber_1,Evian,water,5.000 ul,A1,"  ","  "," "," ",40.5,14,<nil>,1
+PlateHeightTest20161104115205,greiner384_riser40_Platenumber_1,Evian,dna_mix,5.000 ul,B1,"  ","  "," "," ",40.5,14,<nil>,0.5
+PlateHeightTest20161104115205,greiner384_riser40_Platenumber_1,Evian,water,100.000ul,C1,"  ","  "," "," ",40.5,14,<nil>,1
+PlateHeightTest20161104115205,greiner384_riser40_Platenumber_1,Evian,dna_mix,100.000ul,D1,"  ","  "," "," ",40.5,14,<nil>,0.5

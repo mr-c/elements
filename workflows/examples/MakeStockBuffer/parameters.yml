@@ -1,0 +1,10 @@
+{
+    "Parameters": {
+        "StockBuffer": {
+            "Moleculename": "Acid yellow 23",
+            "MassAddedinG": "0.01538g",
+            "Diluent": "water",
+            "TotalVolume": "100ml"
+        }
+    }
+}

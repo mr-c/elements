@@ -1,0 +1,35 @@
+Plate Height Test:,PlateHeightTest20161130183707
+Time:,2016-11-30 18:37:07.966546238 +0000 GMT
+antha-lang/antha commitID:,66cb5ad0e8d0ddaa1db6444bb097be55f52be801
+
+TestName,Plate,Liquid name,Liquid type ,Liquid Volume,Well ,Aspirate mm from Bottom of well? ,Dispense mm from Bottom of well? ,Acceptable? ," Comments",plate Z start,Plate Height,lhpolicy aspirate z offset,lhpolicy dispense z offset
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,water,5.000 ul,A1,"  ","  "," "," ",18.5,15.5,<nil>,1
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,dna_mix,5.000 ul,B1,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,PEG,5.000 ul,C1,"  ","  "," "," ",18.5,15.5,2.5,2.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,dna,5.000 ul,D1,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,PostMix,5.000 ul,E1,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,water,100.000ul,F1,"  ","  "," "," ",18.5,15.5,<nil>,1
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,dna_mix,100.000ul,G1,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,PEG,100.000ul,H1,"  ","  "," "," ",18.5,15.5,2.5,2.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,dna,100.000ul,A2,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,pcrplate_skirted_riser20_Platenumber_1,,PostMix,100.000ul,B2,"  ","  "," "," ",18.5,15.5,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,water,5.000 ul,A1,"  ","  "," "," ",9,20,<nil>,1
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,dna_mix,5.000 ul,B1,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,PEG,5.000 ul,A2,"  ","  "," "," ",9,20,2.5,2.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,dna,5.000 ul,B2,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,PostMix,5.000 ul,A3,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_1,,water,100.000ul,B3,"  ","  "," "," ",9,20,<nil>,1
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_2,,dna_mix,100.000ul,A1,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_2,,PEG,100.000ul,B1,"  ","  "," "," ",9,20,2.5,2.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_2,,dna,100.000ul,A2,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,falcon6wellAgar_Platenumber_2,,PostMix,100.000ul,B2,"  ","  "," "," ",9,20,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,water,5.000 ul,A1,"  ","  "," "," ",52.42,22,<nil>,1
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,dna_mix,5.000 ul,B1,"  ","  "," "," ",52.42,22,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,PEG,5.000 ul,C1,"  ","  "," "," ",52.42,22,2.5,2.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,dna,5.000 ul,A2,"  ","  "," "," ",52.42,22,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,PostMix,5.000 ul,B2,"  ","  "," "," ",52.42,22,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,water,100.000ul,C2,"  ","  "," "," ",52.42,22,<nil>,1
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,dna_mix,100.000ul,A3,"  ","  "," "," ",52.42,22,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,PEG,100.000ul,B3,"  ","  "," "," ",52.42,22,2.5,2.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,dna,100.000ul,C3,"  ","  "," "," ",52.42,22,<nil>,0.5
+PlateHeightTest20161130183707,Nuncon12wellAgar_incubator_Platenumber_1,,PostMix,100.000ul,A4,"  ","  "," "," ",52.42,22,<nil>,0.5

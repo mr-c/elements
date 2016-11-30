@@ -1,0 +1,22 @@
+{
+    "Connections": [
+        {
+            "src": {
+                "port": "GrowthMedium",
+                "process": "MediaPrep1"
+            },
+            "tgt": {
+                "port": "Medium",
+                "process": "InoculateOvernightGrowth1"
+            }
+        }
+    ],
+    "Processes": {
+        "MediaPrep1": {
+            "Component": "DOEMediaPrep"
+        },
+        "InoculateOvernightGrowth1": {
+            "Component": "InoculateDOE"
+        }
+    }
+}

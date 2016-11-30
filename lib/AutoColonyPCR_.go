@@ -228,7 +228,7 @@ func init() {
 		Constructor: AutoColonyPCRNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/PCR/AutoColonyPCR.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/AutoColonyPCR.an",
 			Params: []component.ParamDesc{
 				{Name: "FwdPrimertype", Desc: "", Kind: "Inputs"},
 				{Name: "Plate", Desc: "", Kind: "Inputs"},

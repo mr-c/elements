@@ -1,0 +1,11 @@
+{
+    "processes": {
+        "Design1": { "component": "GeneDesign_seq" }
+        
+       
+    },
+    "connections": [
+        
+       
+    ]
+}

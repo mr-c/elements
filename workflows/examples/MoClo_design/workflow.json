@@ -1,0 +1,8 @@
+{
+    "connections": [],
+    "processes": {
+        "MoClo_design": {
+            "component": "MoClo_design"
+        }
+    }
+}

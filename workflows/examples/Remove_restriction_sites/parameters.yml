@@ -1,0 +1,13 @@
+{
+    "Parameters": {
+        "RemoveRestrictionSites": {
+            "EnzymeforRestrictionmapping": "BsaI",
+            "PreserveTranslatedseq": true,
+            "RemoveifnotinORF": true,
+            "RestrictionsitetoAvoid": [
+                "SacI"
+            ],
+            "Sequencekey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGGGGGGGGGGAGCTCGGGGGGGGGGGGGGGGGGGGGGGGG"
+        }
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "connections": [],
+    "processes": {
+        "AliquotParams": {
+            "component": "AliquotTo"
+        }
+    }
+}

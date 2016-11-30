@@ -248,7 +248,7 @@ func init() {
 		Constructor: AutoPCR_Gradient_mmx_multiplereactionsNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/PCR/AutoGradientPCRmmx_multiplereactions.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/AutoGradientPCRmmx_multiplereactions.an",
 			Params: []component.ParamDesc{
 				{Name: "FwdPrimertype", Desc: "", Kind: "Inputs"},
 				{Name: "Plate", Desc: "", Kind: "Inputs"},

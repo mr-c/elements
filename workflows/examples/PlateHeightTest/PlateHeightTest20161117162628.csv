@@ -1,0 +1,11 @@
+Plate Height Test:,PlateHeightTest20161117162628
+Time:,2016-11-17 16:26:28.463478063 +0000 GMT
+antha-lang/antha commitID:,8203482f8a6afa47d5271536a6fc6dd7cb5056c2
+
+TestName,Plate,Liquid name,Liquid type ,Liquid Volume,Well ,Aspirate mm from Bottom of well? ,Dispense mm from Bottom of well? ,Acceptable? ," Comments",plate Z start,Plate Height,lhpolicy aspirate z offset,lhpolicy dispense z offset
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,water,19.000ul,A1,"  ","  "," "," ",38.5,15.5,<nil>,1
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,dna_mix,19.000ul,B1,"  ","  "," "," ",38.5,15.5,<nil>,0.5
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,DispenseAboveLiquid,19.000ul,C1,"  ","  "," "," ",38.5,15.5,<nil>,<nil>
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,water,100.000ul,D1,"  ","  "," "," ",38.5,15.5,<nil>,1
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,dna_mix,100.000ul,E1,"  ","  "," "," ",38.5,15.5,<nil>,0.5
+PlateHeightTest20161117162628,pcrplate_skirted_riser40_Platenumber_1,tartrazine,DispenseAboveLiquid,100.000ul,F1,"  ","  "," "," ",38.5,15.5,<nil>,<nil>

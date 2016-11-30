@@ -1,0 +1,8 @@
+{
+    "connections": [],
+    "processes": {
+        "Standarddigest_conc": {
+            "component": "RestrictionDigestion_conc"
+        }
+    }
+}
