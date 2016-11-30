@@ -253,7 +253,7 @@ func init() {
 		Constructor: PCR_vol_mmx_multiplereactionsNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/PCR/pcr_vol_mmx_multiplereactions.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/pcr_vol_mmx_multiplereactions.an",
 			Params: []component.ParamDesc{
 				{Name: "AnnealingTemp", Desc: "Should be calculated from primer and template binding\n", Kind: "Parameters"},
 				{Name: "Annealingtime", Desc: "Denaturationtemp Temperature\n", Kind: "Parameters"},

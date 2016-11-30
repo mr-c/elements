@@ -236,7 +236,7 @@ func init() {
 		Constructor: PCR_vol_mmxNew,
 		Desc: component.ComponentDesc{
 			Desc: "protocol for running pcr for one sample using a mastermix\n",
-			Path: "src/github.com/antha-lang/elements/an/PCR/pcr_vol_mmx.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/pcr_vol_mmx.an",
 			Params: []component.ParamDesc{
 				{Name: "AnnealingTemp", Desc: "Should be calculated from primer and template binding\n", Kind: "Parameters"},
 				{Name: "Annealingtime", Desc: "Denaturationtemp Temperature\n", Kind: "Parameters"},

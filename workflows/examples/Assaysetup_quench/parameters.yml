@@ -1,0 +1,11 @@
+Parameters:
+  Assay_quench:
+    Enzyme: T4Ligase
+    EnzymeVolume: 3ul
+    OutPlate: pcrplate_skirted
+    Quenchingagent: water
+    QuenchingagentVolume: 14ul
+    ReactionTemp: 25C
+    ReactionTime: 300s
+    Substrate: dna_part
+    SubstrateVolume: 3ul

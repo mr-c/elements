@@ -1,0 +1,22 @@
+{
+  "connections": [
+    {
+      "Src": {
+        "Port": "DNA",
+        "Process": "makednaseq"
+      },
+      "Tgt": {
+        "Port": "DNA",
+        "Process": "blast"
+      }
+    }
+  ],
+  "processes": {
+    "blast": {
+      "component": "BlastSearch_wtype"
+    },
+    "makednaseq": {
+      "component": "NewDNASequence"
+    }
+  }
+}

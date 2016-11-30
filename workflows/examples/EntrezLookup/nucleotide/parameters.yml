@@ -1,0 +1,19 @@
+Parameters:
+  fasta:
+    Database: nucleotide
+    Filename: accD.fasta
+    ID: opuntia[ORGN] accD
+    MaxReturns: 3
+    ReturnType: fasta
+  genbank:
+    Database: nucleotide
+    Filename: accD.gb
+    ID: opuntia[ORGN] accD
+    MaxReturns: 3
+    ReturnType: gb
+  xml:
+    Database: nucleotide
+    Filename: ""
+    ID: accD
+    MaxReturns: 10
+    ReturnType: xml

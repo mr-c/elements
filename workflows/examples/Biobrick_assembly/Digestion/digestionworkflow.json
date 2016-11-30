@@ -1,0 +1,14 @@
+{
+  "connections": [],
+  "processes": {
+    "Downstream": {
+      "component": "RestrictionDigestion_conc"
+    },
+    "Upstream": {
+      "component": "RestrictionDigestion_conc"
+    },
+    "Vector": {
+      "component": "RestrictionDigestion_conc"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "PrimerDesign_coverRegion": {
+      "component": "PrimerDesign_coverRegion"
+    }
+  }
+}

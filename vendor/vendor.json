@@ -3,6 +3,12 @@
 	"ignore": "",
 	"package": [
 		{
+			"checksumSHA1": "UmPQ3wCVhIPNYEvCSN6TNUmuLBo=",
+			"path": "github.com/biogo/ncbi",
+			"revision": "dede1854731e260d5c77ca9f4121b525a8ad4dcc",
+			"revisionTime": "2016-02-17T23:37:25Z"
+		},
+		{
 			"checksumSHA1": "EERshlSOEO5Q1IgtlqxMTbef5Eg=",
 			"path": "github.com/cloudfoundry-incubator/candiedyaml",
 			"revision": "5cef21e2e4f0fd147973b558d4db7395176bcd95",

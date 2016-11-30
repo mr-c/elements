@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "DNAgelParams1": {
+      "component": "DNA_gel"
+    }
+  }
+}

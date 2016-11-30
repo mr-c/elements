@@ -1,0 +1,10 @@
+Parameters:
+  PrimerDesign:
+    Dirname: sequences
+    ExportToFile: true
+    Maxgc: 0.6
+    Maxlength: 25
+    Maxtemp: 60C
+    Minlength: 20
+    Mintemp: 55C
+    PermittednucleotideOverlapBetweenPrimers: 20

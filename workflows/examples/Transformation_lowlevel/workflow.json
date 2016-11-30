@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "Transformation": {
+      "component": "Transformation_lowlevel"
+    }
+  }
+}
