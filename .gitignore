@@ -1,1 +1,9 @@
 /reports
+.DS_Store
+*_plateformat.jpg
+Input_plate*.csv
+inputplate*.csv
+generated.sqlite
+cmyk3.jpg
+pcrdemo*.csv
+Output_plate*.csv

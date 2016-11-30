@@ -5,6 +5,8 @@ version: 0.0.2
 build:
   morelines:
   - RUN apt-get update && apt-get install -y libglpk-dev libsqlite3-dev libopencv-dev
+  commands:
+  - make -C /go/src/github.com/antha-lang/elements check
 modules:
   golang:
     deploypackage: github.com/antha-lang/elements/cmd/antharun
