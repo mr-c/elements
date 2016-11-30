@@ -6,7 +6,10 @@ build:
   baseimage: docker.synthace.com/synthace/golang:1.7-wheezy
   morelines:
   - RUN apt-get update && apt-get install -y libglpk-dev libsqlite3-dev libopencv-dev
+  volumes:
+  - /certs
   commands:
+  - tar -C /etc/ssl/certs --dereference --hard-dereference -cz -f - . | tar -C /certs -xz -f -
   - make -C /go/src/github.com/antha-lang/elements check
 modules:
   golang:
@@ -18,3 +21,5 @@ modules:
     image:
       copyhostpaths:
       - github.com/antha-lang/elements:workflows/examples:/root/examples
+      copyvolumes:
+      - github.com/antha-lang/elements:/certs:/etc/ssl/certs
