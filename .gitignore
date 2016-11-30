@@ -7,3 +7,7 @@ generated.sqlite
 cmyk3.jpg
 pcrdemo*.csv
 Output_plate*.csv
+*.csv#
+*.xls
+*.xslx
+*.csv

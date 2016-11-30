@@ -271,7 +271,7 @@ func init() {
 		Constructor: AutoPCR_Gradient_SplitNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/PCR/AutoGradientPCR_Split.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/AutoGradientPCR_Split.an",
 			Params: []component.ParamDesc{
 				{Name: "FwdPrimertype", Desc: "", Kind: "Inputs"},
 				{Name: "Plate", Desc: "", Kind: "Inputs"},

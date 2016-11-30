@@ -225,7 +225,7 @@ func init() {
 		Constructor: MakePCRmmxNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/PCR/MakePCRmmx.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/MakePCRmmx.an",
 			Params: []component.ParamDesc{
 				{Name: "AddPrimerstoMasterMix", Desc: "", Kind: "Parameters"},
 				{Name: "AdditiveVols", Desc: "", Kind: "Parameters"},

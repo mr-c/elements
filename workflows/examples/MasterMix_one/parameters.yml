@@ -1,0 +1,14 @@
+Parameters:
+  Mastermix:
+    ComponentVolumesperReaction:
+    - 2ul
+    - 1ul
+    - 1ul
+    - 1ul
+    Components:
+    - CutsmartBuffer
+    - T4Ligase
+    - SapI
+    - ATP
+    OutPlate: pcrplate_with_cooler
+    Reactionspermastermix: 25

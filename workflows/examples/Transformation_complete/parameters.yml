@@ -1,0 +1,17 @@
+Parameters:
+  Transformation_complete:
+    AgarPlate: falcon6wellAgar
+    CompetentCells: neb5compcells
+    CompetentCellvolumeperassembly: 50ul
+    OutPlate: pcrplate_with_cooler
+    Plateoutvolume: 100ul
+    Postplasmidtemp: 2C
+    Postplasmidtime: 300s
+    Preplasmidtemp: 2C
+    Preplasmidtime: 300s
+    Reaction: dna_part
+    Reactionvolume: 10ul
+    Recoverymedium: LB
+    Recoverytemp: 25C
+    Recoverytime: 57600s
+    Recoveryvolume: 500ul

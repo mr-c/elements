@@ -1,0 +1,22 @@
+Parameters:
+  PlateOut1:
+    AgarPlate: falcon6wellAgar
+    Diluent: water
+    DilutionX: 2
+    IncubationTemp: 37C
+    IncubationTime: 36000s
+    Plateoutvolume: 100ul
+  Recovery1:
+    Recoverymedium: LB
+    Recoverytemp: 25C
+    Recoverytime: 57600s
+    Recoveryvolume: 500ul
+    TransformedcellVolume: 50ul
+  Transformation1:
+    CompetentCellvolumeperassembly: 50ul
+    OutPlate: pcrplate_with_cooler
+    Postplasmidtemp: 2C
+    Postplasmidtime: 300s
+    Reaction: dna_part
+    Reactionvolume: 2ul
+    ReadyCompCells: neb5compcells

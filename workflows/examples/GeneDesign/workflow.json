@@ -1,0 +1,25 @@
+{
+  "connections": [
+    {
+      "src": {
+        "port": "Components",
+        "process": "Synthesis1"
+      },
+      "tgt": {
+        "port": "Components",
+        "process": "Mix1"
+      }
+    }
+  ],
+  "processes": {
+    "Design1": {
+      "component": "GeneDesign_seq"
+    },
+    "Mix1": {
+      "component": "ReactionMix"
+    },
+    "Synthesis1": {
+      "component": "Synthesis"
+    }
+  }
+}

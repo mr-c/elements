@@ -146,7 +146,7 @@ func init() {
 		Constructor: PickColoniesNew,
 		Desc: component.ComponentDesc{
 			Desc: "row\n",
-			Path: "src/github.com/antha-lang/elements/an/PickColonies/PickColonies.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PickColonies/PickColonies.an",
 			Params: []component.ParamDesc{
 				{Name: "ColonyLocations", Desc: "MediaVolume  Volume\n", Kind: "Parameters"},
 				{Name: "ColonyVolume", Desc: "", Kind: "Parameters"},

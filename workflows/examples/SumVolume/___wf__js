@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "SumVolume": {
+      "component": "SumVolume"
+    }
+  }
+}

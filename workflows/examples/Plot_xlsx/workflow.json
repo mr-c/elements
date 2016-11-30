@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "Plotdataparams": {
+      "component": "Plotdata_spreadsheet"
+    }
+  }
+}

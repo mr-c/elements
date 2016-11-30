@@ -1,0 +1,13 @@
+Parameters:
+  PrimerDesign_coverfullseq:
+    DNASeqfile: pSEVA521.gb
+    Maxgc: 0.6
+    Maxlength: 30
+    Maxtemp: 65C
+    Minlength: 18
+    Mintemp: 50C
+    PermittednucleotideOverlapBetweenPrimers: 10
+    Plasmid: true
+    PrimereveryXnucleotides: 800
+    Seqstoavoid:
+    - ""
