@@ -14,5 +14,9 @@
     "AliquotParams": {
       "component": "Aliquot"
     }
-  }
+  },
+"tags":[
+	"starter",
+	"utility"
+]
 }

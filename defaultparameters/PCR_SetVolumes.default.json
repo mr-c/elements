@@ -1,0 +1,45 @@
+{
+
+  "connections": [],
+  "processes": {
+    "PCR": {
+      "component": "PCR_SetVolumes"
+    }
+  },
+  "Parameters": {
+    "PCR": {
+      "AddPrimerstoMasterMix": false,
+      "AdditiveVols": [],
+      "Additives": [],
+      "AnnealingTemp": "60C",
+      "Annealingtime": "10s",
+      "Buffer": "Q5buffer",
+      "BufferConcinX": 10,
+      "DNTPS": "DNTPs",
+      "DNTPVol": "1ul",
+      "Denaturationtime": "5s",
+      "Extensiontime": "60s",
+      "Finalextensiontime": "600s",
+      "FwdPrimer": "PrimerFw",
+      "FwdPrimerVol": "1ul",
+      "Hotstart": false,
+      "InitDenaturationtime": "30s",
+      "Numberofcycles": 1,
+      "OutPlate": "pcrplate_skirted_riser",
+      "PCRPolymerase": "Q5Polymerase",
+      "PolymeraseVolume": "1ul",
+      "ReactionVolume": "20ul",
+      "RevPrimer": "PrimerRev",
+      "RevPrimerVol": "1ul",
+      "Template": "pET_GFP",
+      "Templatevolume": "2ul",
+      "Water": "water"
+    }
+  },
+  "tags":[
+	"starter",
+	"dna",
+	"pcr",
+	"molecular biology"	
+	]
+}

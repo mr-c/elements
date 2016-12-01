@@ -16,5 +16,10 @@
       "Temp": "31.4C",
       "Volumeperwell": "100ul"
     }
-  }
+  },
+	"tags":[
+	"starter",
+	"engineering",
+	"environment"
+	]
 }
