@@ -23,9 +23,9 @@
       "component": "MasterMixMaker"
     }
   },
-	"tags":[
-	"starter",
-	"engineering",
-	"environment"
-	]
+  "tags": [
+    "starter",
+    "engineering",
+    "environment"
+  ]
 }

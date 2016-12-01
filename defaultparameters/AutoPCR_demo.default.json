@@ -72,11 +72,11 @@
       "component": "AutoPCR_multi"
     }
   },
-	"tags":[
-	"starter",
-	"dna",
-	"pcr",
-	"molecular biology",
-	"auto"	
-	]
+  "tags": [
+    "starter",
+    "dna",
+    "pcr",
+    "molecular biology",
+    "auto"
+  ]
 }

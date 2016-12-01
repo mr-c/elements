@@ -1,15 +1,16 @@
-{"Parameters": {
+{
+  "Parameters": {
     "AliquotParams": {
+      "ChangeSolutionName": "",
       "NumberofAliquots": 8,
       "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
       "Solution": "water",
       "SolutionVolume": "4000ul",
-      "VolumePerAliquot": "25ul",
-	"PreMix": false,
-	"ChangeSolutionName":""
+      "VolumePerAliquot": "25ul"
     }
   },
-"connections": [],
+  "connections": [],
   "processes": {
     "AliquotParams": {
       "component": "Aliquot"

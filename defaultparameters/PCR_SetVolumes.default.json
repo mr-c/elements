@@ -1,11 +1,4 @@
 {
-
-  "connections": [],
-  "processes": {
-    "PCR": {
-      "component": "PCR_SetVolumes"
-    }
-  },
   "Parameters": {
     "PCR": {
       "AddPrimerstoMasterMix": false,
@@ -36,10 +29,16 @@
       "Water": "water"
     }
   },
-  "tags":[
-	"starter",
-	"dna",
-	"pcr",
-	"molecular biology"	
-	]
+  "connections": [],
+  "processes": {
+    "PCR": {
+      "component": "PCR_SetVolumes"
+    }
+  },
+  "tags": [
+    "starter",
+    "dna",
+    "pcr",
+    "molecular biology"
+  ]
 }
