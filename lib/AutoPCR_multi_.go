@@ -32,16 +32,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AutoPCR_demoRequirements() {
+func _AutoPCR_multiRequirements() {
 }
 
 // Conditions to run on startup
-func _AutoPCR_demoSetup(_ctx context.Context, _input *AutoPCR_demoInput) {
+func _AutoPCR_multiSetup(_ctx context.Context, _input *AutoPCR_multiInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output *AutoPCR_demoOutput) {
+func _AutoPCR_multiSteps(_ctx context.Context, _input *AutoPCR_multiInput, _output *AutoPCR_multiOutput) {
 
 	// set up a counter to use as an index for increasing well position
 	var counter int
@@ -85,7 +85,7 @@ func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output
 		wellposition := allwellpositionsforplate[counter]
 
 		// Run PCR_vol element
-		result := PCR_vol_demoRunSteps(_ctx, &PCR_vol_demoInput{WaterVolume: _input.DefaultWaterVolume,
+		result := PCR_SetVolumesRunSteps(_ctx, &PCR_SetVolumesInput{WaterVolume: _input.DefaultWaterVolume,
 			ReactionVolume:        _input.DefaultReactionVolume,
 			BufferConcinX:         _input.DefaultBufferConcinX,
 			FwdPrimerName:         _input.Reactiontoprimerpair[reactionname][0],
@@ -147,26 +147,26 @@ func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AutoPCR_demoAnalysis(_ctx context.Context, _input *AutoPCR_demoInput, _output *AutoPCR_demoOutput) {
+func _AutoPCR_multiAnalysis(_ctx context.Context, _input *AutoPCR_multiInput, _output *AutoPCR_multiOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AutoPCR_demoValidation(_ctx context.Context, _input *AutoPCR_demoInput, _output *AutoPCR_demoOutput) {
+func _AutoPCR_multiValidation(_ctx context.Context, _input *AutoPCR_multiInput, _output *AutoPCR_multiOutput) {
 }
-func _AutoPCR_demoRun(_ctx context.Context, input *AutoPCR_demoInput) *AutoPCR_demoOutput {
-	output := &AutoPCR_demoOutput{}
-	_AutoPCR_demoSetup(_ctx, input)
-	_AutoPCR_demoSteps(_ctx, input, output)
-	_AutoPCR_demoAnalysis(_ctx, input, output)
-	_AutoPCR_demoValidation(_ctx, input, output)
+func _AutoPCR_multiRun(_ctx context.Context, input *AutoPCR_multiInput) *AutoPCR_multiOutput {
+	output := &AutoPCR_multiOutput{}
+	_AutoPCR_multiSetup(_ctx, input)
+	_AutoPCR_multiSteps(_ctx, input, output)
+	_AutoPCR_multiAnalysis(_ctx, input, output)
+	_AutoPCR_multiValidation(_ctx, input, output)
 	return output
 }
 
-func AutoPCR_demoRunSteps(_ctx context.Context, input *AutoPCR_demoInput) *AutoPCR_demoSOutput {
-	soutput := &AutoPCR_demoSOutput{}
-	output := _AutoPCR_demoRun(_ctx, input)
+func AutoPCR_multiRunSteps(_ctx context.Context, input *AutoPCR_multiInput) *AutoPCR_multiSOutput {
+	soutput := &AutoPCR_multiSOutput{}
+	output := _AutoPCR_multiRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -176,19 +176,19 @@ func AutoPCR_demoRunSteps(_ctx context.Context, input *AutoPCR_demoInput) *AutoP
 	return soutput
 }
 
-func AutoPCR_demoNew() interface{} {
-	return &AutoPCR_demoElement{
+func AutoPCR_multiNew() interface{} {
+	return &AutoPCR_multiElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AutoPCR_demoInput{}
+				input := &AutoPCR_multiInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AutoPCR_demoRun(_ctx, input)
+				output := _AutoPCR_multiRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AutoPCR_demoInput{},
-			Out: &AutoPCR_demoOutput{},
+			In:  &AutoPCR_multiInput{},
+			Out: &AutoPCR_multiOutput{},
 		},
 	}
 }
@@ -198,11 +198,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AutoPCR_demoElement struct {
+type AutoPCR_multiElement struct {
 	inject.CheckedRunner
 }
 
-type AutoPCR_demoInput struct {
+type AutoPCR_multiInput struct {
 	AdditiveToAdditiveVolume map[string]wunit.Volume
 	DefaultBuffer            *wtype.LHComponent
 	DefaultBufferConcinX     int
@@ -224,13 +224,13 @@ type AutoPCR_demoInput struct {
 	Templatetype             *wtype.LHComponent
 }
 
-type AutoPCR_demoOutput struct {
+type AutoPCR_multiOutput struct {
 	Errors      []error
 	ReactionMap map[string]*wtype.LHComponent
 	Reactions   []*wtype.LHComponent
 }
 
-type AutoPCR_demoSOutput struct {
+type AutoPCR_multiSOutput struct {
 	Data struct {
 		Errors []error
 	}
@@ -241,11 +241,11 @@ type AutoPCR_demoSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AutoPCR_demo",
-		Constructor: AutoPCR_demoNew,
+	if err := addComponent(component.Component{Name: "AutoPCR_multi",
+		Constructor: AutoPCR_multiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform multiple PCR reactions with common default parameters\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/AutoPCR/AutoPCR.an",
+			Path: "src/github.com/antha-lang/elements/starter/AutoPCR/AutoPCR.an",
 			Params: []component.ParamDesc{
 				{Name: "AdditiveToAdditiveVolume", Desc: "look up table of additives to volumes of each additive; e.g. [\"DMSO\"]:\"3ul\"\n", Kind: "Parameters"},
 				{Name: "DefaultBuffer", Desc: "", Kind: "Inputs"},

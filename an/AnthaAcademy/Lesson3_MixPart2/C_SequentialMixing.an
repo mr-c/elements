@@ -69,7 +69,8 @@ Steps {
 		
 	// Ensure liquid type set to Pre and Post Mix 
 	Solution.Type = wtype.LTNeedToMix
-	
+		// check if the enzyme is specified and if not mix the 
+		
 	
 	
 	// sample solution

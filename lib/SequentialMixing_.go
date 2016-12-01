@@ -58,6 +58,7 @@ func _SequentialMixingSteps(_ctx context.Context, _input *SequentialMixingInput,
 
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
+	// check if the enzyme is specified and if not mix the
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)

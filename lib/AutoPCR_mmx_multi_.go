@@ -1,4 +1,4 @@
-// Perform multiple PCR reactions with common default parameters
+// Perform multiple PCR reactions with common default parameters using a mastermix
 package lib
 
 import (
@@ -29,16 +29,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AutoPCR_mmx_demoRequirements() {
+func _AutoPCR_mmx_multiRequirements() {
 }
 
 // Conditions to run on startup
-func _AutoPCR_mmx_demoSetup(_ctx context.Context, _input *AutoPCR_mmx_demoInput) {
+func _AutoPCR_mmx_multiSetup(_ctx context.Context, _input *AutoPCR_mmx_multiInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AutoPCR_mmx_demoSteps(_ctx context.Context, _input *AutoPCR_mmx_demoInput, _output *AutoPCR_mmx_demoOutput) {
+func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInput, _output *AutoPCR_mmx_multiOutput) {
 
 	// set up a counter to use as an index for increasing well position
 	var counter int
@@ -113,26 +113,26 @@ func _AutoPCR_mmx_demoSteps(_ctx context.Context, _input *AutoPCR_mmx_demoInput,
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AutoPCR_mmx_demoAnalysis(_ctx context.Context, _input *AutoPCR_mmx_demoInput, _output *AutoPCR_mmx_demoOutput) {
+func _AutoPCR_mmx_multiAnalysis(_ctx context.Context, _input *AutoPCR_mmx_multiInput, _output *AutoPCR_mmx_multiOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AutoPCR_mmx_demoValidation(_ctx context.Context, _input *AutoPCR_mmx_demoInput, _output *AutoPCR_mmx_demoOutput) {
+func _AutoPCR_mmx_multiValidation(_ctx context.Context, _input *AutoPCR_mmx_multiInput, _output *AutoPCR_mmx_multiOutput) {
 }
-func _AutoPCR_mmx_demoRun(_ctx context.Context, input *AutoPCR_mmx_demoInput) *AutoPCR_mmx_demoOutput {
-	output := &AutoPCR_mmx_demoOutput{}
-	_AutoPCR_mmx_demoSetup(_ctx, input)
-	_AutoPCR_mmx_demoSteps(_ctx, input, output)
-	_AutoPCR_mmx_demoAnalysis(_ctx, input, output)
-	_AutoPCR_mmx_demoValidation(_ctx, input, output)
+func _AutoPCR_mmx_multiRun(_ctx context.Context, input *AutoPCR_mmx_multiInput) *AutoPCR_mmx_multiOutput {
+	output := &AutoPCR_mmx_multiOutput{}
+	_AutoPCR_mmx_multiSetup(_ctx, input)
+	_AutoPCR_mmx_multiSteps(_ctx, input, output)
+	_AutoPCR_mmx_multiAnalysis(_ctx, input, output)
+	_AutoPCR_mmx_multiValidation(_ctx, input, output)
 	return output
 }
 
-func AutoPCR_mmx_demoRunSteps(_ctx context.Context, input *AutoPCR_mmx_demoInput) *AutoPCR_mmx_demoSOutput {
-	soutput := &AutoPCR_mmx_demoSOutput{}
-	output := _AutoPCR_mmx_demoRun(_ctx, input)
+func AutoPCR_mmx_multiRunSteps(_ctx context.Context, input *AutoPCR_mmx_multiInput) *AutoPCR_mmx_multiSOutput {
+	soutput := &AutoPCR_mmx_multiSOutput{}
+	output := _AutoPCR_mmx_multiRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -142,19 +142,19 @@ func AutoPCR_mmx_demoRunSteps(_ctx context.Context, input *AutoPCR_mmx_demoInput
 	return soutput
 }
 
-func AutoPCR_mmx_demoNew() interface{} {
-	return &AutoPCR_mmx_demoElement{
+func AutoPCR_mmx_multiNew() interface{} {
+	return &AutoPCR_mmx_multiElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AutoPCR_mmx_demoInput{}
+				input := &AutoPCR_mmx_multiInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AutoPCR_mmx_demoRun(_ctx, input)
+				output := _AutoPCR_mmx_multiRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AutoPCR_mmx_demoInput{},
-			Out: &AutoPCR_mmx_demoOutput{},
+			In:  &AutoPCR_mmx_multiInput{},
+			Out: &AutoPCR_mmx_multiOutput{},
 		},
 	}
 }
@@ -164,11 +164,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AutoPCR_mmx_demoElement struct {
+type AutoPCR_mmx_multiElement struct {
 	inject.CheckedRunner
 }
 
-type AutoPCR_mmx_demoInput struct {
+type AutoPCR_mmx_multiInput struct {
 	DefaultBufferConcinX              int
 	DefaultMasterMixVolume            wunit.Volume
 	DefaultPolymerase                 *wtype.LHComponent
@@ -187,13 +187,13 @@ type AutoPCR_mmx_demoInput struct {
 	Templatetype                      *wtype.LHComponent
 }
 
-type AutoPCR_mmx_demoOutput struct {
+type AutoPCR_mmx_multiOutput struct {
 	Errors      []error
 	ReactionMap map[string]*wtype.LHComponent
 	Reactions   []*wtype.LHComponent
 }
 
-type AutoPCR_mmx_demoSOutput struct {
+type AutoPCR_mmx_multiSOutput struct {
 	Data struct {
 		Errors []error
 	}
@@ -204,11 +204,11 @@ type AutoPCR_mmx_demoSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AutoPCR_mmx_demo",
-		Constructor: AutoPCR_mmx_demoNew,
+	if err := addComponent(component.Component{Name: "AutoPCR_mmx_multi",
+		Constructor: AutoPCR_mmx_multiNew,
 		Desc: component.ComponentDesc{
-			Desc: "Perform multiple PCR reactions with common default parameters\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/MakeMasterMix_PCR/AutoPCR_mmx.an",
+			Desc: "Perform multiple PCR reactions with common default parameters using a mastermix\n",
+			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/AutoPCR_mmx.an",
 			Params: []component.ParamDesc{
 				{Name: "DefaultBufferConcinX", Desc: "e.g. for  10X Q5 buffer this would be 10\n", Kind: "Parameters"},
 				{Name: "DefaultMasterMixVolume", Desc: "", Kind: "Parameters"},

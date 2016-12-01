@@ -1,3 +1,4 @@
+// Setup a single PCR reaction based on using volumes as setpoints rather than concentrations
 package lib
 
 import (
@@ -15,15 +16,6 @@ import (
 
 // PCRprep parameters:
 
-/*
-	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
-
-	//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...
-	//FullTemplatesequence string // better to use Sid's type system here after proof of concept
-	//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
-	//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
-	//TargetTemplatelengthinBP int
-*/
 // Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
 
 //Denaturationtemp Temperature
@@ -39,16 +31,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _PCR_vol_demoRequirements() {
+func _PCR_SetVolumesRequirements() {
 }
 
 // Conditions to run on startup
-func _PCR_vol_demoSetup(_ctx context.Context, _input *PCR_vol_demoInput) {
+func _PCR_SetVolumesSetup(_ctx context.Context, _input *PCR_SetVolumesInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _PCR_vol_demoSteps(_ctx context.Context, _input *PCR_vol_demoInput, _output *PCR_vol_demoOutput) {
+func _PCR_SetVolumesSteps(_ctx context.Context, _input *PCR_SetVolumesInput, _output *PCR_SetVolumesOutput) {
 
 	// rename components
 
@@ -169,26 +161,26 @@ func _PCR_vol_demoSteps(_ctx context.Context, _input *PCR_vol_demoInput, _output
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _PCR_vol_demoAnalysis(_ctx context.Context, _input *PCR_vol_demoInput, _output *PCR_vol_demoOutput) {
+func _PCR_SetVolumesAnalysis(_ctx context.Context, _input *PCR_SetVolumesInput, _output *PCR_SetVolumesOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _PCR_vol_demoValidation(_ctx context.Context, _input *PCR_vol_demoInput, _output *PCR_vol_demoOutput) {
+func _PCR_SetVolumesValidation(_ctx context.Context, _input *PCR_SetVolumesInput, _output *PCR_SetVolumesOutput) {
 }
-func _PCR_vol_demoRun(_ctx context.Context, input *PCR_vol_demoInput) *PCR_vol_demoOutput {
-	output := &PCR_vol_demoOutput{}
-	_PCR_vol_demoSetup(_ctx, input)
-	_PCR_vol_demoSteps(_ctx, input, output)
-	_PCR_vol_demoAnalysis(_ctx, input, output)
-	_PCR_vol_demoValidation(_ctx, input, output)
+func _PCR_SetVolumesRun(_ctx context.Context, input *PCR_SetVolumesInput) *PCR_SetVolumesOutput {
+	output := &PCR_SetVolumesOutput{}
+	_PCR_SetVolumesSetup(_ctx, input)
+	_PCR_SetVolumesSteps(_ctx, input, output)
+	_PCR_SetVolumesAnalysis(_ctx, input, output)
+	_PCR_SetVolumesValidation(_ctx, input, output)
 	return output
 }
 
-func PCR_vol_demoRunSteps(_ctx context.Context, input *PCR_vol_demoInput) *PCR_vol_demoSOutput {
-	soutput := &PCR_vol_demoSOutput{}
-	output := _PCR_vol_demoRun(_ctx, input)
+func PCR_SetVolumesRunSteps(_ctx context.Context, input *PCR_SetVolumesInput) *PCR_SetVolumesSOutput {
+	soutput := &PCR_SetVolumesSOutput{}
+	output := _PCR_SetVolumesRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -198,19 +190,19 @@ func PCR_vol_demoRunSteps(_ctx context.Context, input *PCR_vol_demoInput) *PCR_v
 	return soutput
 }
 
-func PCR_vol_demoNew() interface{} {
-	return &PCR_vol_demoElement{
+func PCR_SetVolumesNew() interface{} {
+	return &PCR_SetVolumesElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &PCR_vol_demoInput{}
+				input := &PCR_SetVolumesInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _PCR_vol_demoRun(_ctx, input)
+				output := _PCR_SetVolumesRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &PCR_vol_demoInput{},
-			Out: &PCR_vol_demoOutput{},
+			In:  &PCR_SetVolumesInput{},
+			Out: &PCR_SetVolumesOutput{},
 		},
 	}
 }
@@ -220,11 +212,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type PCR_vol_demoElement struct {
+type PCR_SetVolumesElement struct {
 	inject.CheckedRunner
 }
 
-type PCR_vol_demoInput struct {
+type PCR_SetVolumesInput struct {
 	AddPrimerstoMasterMix bool
 	AdditiveVols          []wunit.Volume
 	Additives             []*wtype.LHComponent
@@ -259,12 +251,12 @@ type PCR_vol_demoInput struct {
 	WellPosition          string
 }
 
-type PCR_vol_demoOutput struct {
+type PCR_SetVolumesOutput struct {
 	Reaction *wtype.LHComponent
 	Status   string
 }
 
-type PCR_vol_demoSOutput struct {
+type PCR_SetVolumesSOutput struct {
 	Data struct {
 		Status string
 	}
@@ -274,11 +266,11 @@ type PCR_vol_demoSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "PCR_vol_demo",
-		Constructor: PCR_vol_demoNew,
+	if err := addComponent(component.Component{Name: "PCR_SetVolumes",
+		Constructor: PCR_SetVolumesNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/AutoPCR/PCR.an",
+			Desc: "Setup a single PCR reaction based on using volumes as setpoints rather than concentrations\n",
+			Path: "src/github.com/antha-lang/elements/starter/AutoPCR/PCR.an",
 			Params: []component.ParamDesc{
 				{Name: "AddPrimerstoMasterMix", Desc: "", Kind: "Parameters"},
 				{Name: "AdditiveVols", Desc: "", Kind: "Parameters"},
@@ -297,7 +289,7 @@ func init() {
 				{Name: "FwdPrimerVol", Desc: "", Kind: "Parameters"},
 				{Name: "Hotstart", Desc: "", Kind: "Parameters"},
 				{Name: "InitDenaturationtime", Desc: "", Kind: "Parameters"},
-				{Name: "Numberofcycles", Desc: "\t// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume\n\n\t//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...\n\t//FullTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//FullTemplatelength int\t// clearly could be calculated from the sequence... Sid will have a method to do this already so check!\n\t//TargetTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//TargetTemplatelengthinBP int\n\nReaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
+				{Name: "Numberofcycles", Desc: "Reaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PCRPolymerase", Desc: "", Kind: "Inputs"},
 				{Name: "PolymeraseVolume", Desc: "", Kind: "Parameters"},

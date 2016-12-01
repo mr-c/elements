@@ -28,16 +28,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _SetupReactionsRequirements() {
+func _ReactionSetUpRequirements() {
 }
 
 // Conditions to run on startup
-func _SetupReactionsSetup(_ctx context.Context, _input *SetupReactionsInput) {
+func _ReactionSetUpSetup(_ctx context.Context, _input *ReactionSetUpInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _SetupReactionsSteps(_ctx context.Context, _input *SetupReactionsInput, _output *SetupReactionsOutput) {
+func _ReactionSetUpSteps(_ctx context.Context, _input *ReactionSetUpInput, _output *ReactionSetUpOutput) {
 
 	reactions := make([]*wtype.LHComponent, 0)
 
@@ -68,26 +68,26 @@ func _SetupReactionsSteps(_ctx context.Context, _input *SetupReactionsInput, _ou
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _SetupReactionsAnalysis(_ctx context.Context, _input *SetupReactionsInput, _output *SetupReactionsOutput) {
+func _ReactionSetUpAnalysis(_ctx context.Context, _input *ReactionSetUpInput, _output *ReactionSetUpOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _SetupReactionsValidation(_ctx context.Context, _input *SetupReactionsInput, _output *SetupReactionsOutput) {
+func _ReactionSetUpValidation(_ctx context.Context, _input *ReactionSetUpInput, _output *ReactionSetUpOutput) {
 }
-func _SetupReactionsRun(_ctx context.Context, input *SetupReactionsInput) *SetupReactionsOutput {
-	output := &SetupReactionsOutput{}
-	_SetupReactionsSetup(_ctx, input)
-	_SetupReactionsSteps(_ctx, input, output)
-	_SetupReactionsAnalysis(_ctx, input, output)
-	_SetupReactionsValidation(_ctx, input, output)
+func _ReactionSetUpRun(_ctx context.Context, input *ReactionSetUpInput) *ReactionSetUpOutput {
+	output := &ReactionSetUpOutput{}
+	_ReactionSetUpSetup(_ctx, input)
+	_ReactionSetUpSteps(_ctx, input, output)
+	_ReactionSetUpAnalysis(_ctx, input, output)
+	_ReactionSetUpValidation(_ctx, input, output)
 	return output
 }
 
-func SetupReactionsRunSteps(_ctx context.Context, input *SetupReactionsInput) *SetupReactionsSOutput {
-	soutput := &SetupReactionsSOutput{}
-	output := _SetupReactionsRun(_ctx, input)
+func ReactionSetUpRunSteps(_ctx context.Context, input *ReactionSetUpInput) *ReactionSetUpSOutput {
+	soutput := &ReactionSetUpSOutput{}
+	output := _ReactionSetUpRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -97,19 +97,19 @@ func SetupReactionsRunSteps(_ctx context.Context, input *SetupReactionsInput) *S
 	return soutput
 }
 
-func SetupReactionsNew() interface{} {
-	return &SetupReactionsElement{
+func ReactionSetUpNew() interface{} {
+	return &ReactionSetUpElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &SetupReactionsInput{}
+				input := &ReactionSetUpInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _SetupReactionsRun(_ctx, input)
+				output := _ReactionSetUpRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &SetupReactionsInput{},
-			Out: &SetupReactionsOutput{},
+			In:  &ReactionSetUpInput{},
+			Out: &ReactionSetUpOutput{},
 		},
 	}
 }
@@ -119,11 +119,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type SetupReactionsElement struct {
+type ReactionSetUpElement struct {
 	inject.CheckedRunner
 }
 
-type SetupReactionsInput struct {
+type ReactionSetUpInput struct {
 	Buffer            *wtype.LHComponent
 	Enzyme            *wtype.LHComponent
 	EnzymeVolume      wunit.Volume
@@ -134,12 +134,12 @@ type SetupReactionsInput struct {
 	TotalVolume       wunit.Volume
 }
 
-type SetupReactionsOutput struct {
+type ReactionSetUpOutput struct {
 	Reactions []*wtype.LHComponent
 	Status    string
 }
 
-type SetupReactionsSOutput struct {
+type ReactionSetUpSOutput struct {
 	Data struct {
 		Status string
 	}
@@ -149,8 +149,8 @@ type SetupReactionsSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "SetupReactions",
-		Constructor: SetupReactionsNew,
+	if err := addComponent(component.Component{Name: "ReactionSetUp",
+		Constructor: ReactionSetUpNew,
 		Desc: component.ComponentDesc{
 			Desc: "this protocol will set up a specified number of reactions one component at a time, i.e. in the following format:\nadd component 1 into reaction 1 location,\nadd component 1 into reaction 2 location,\nadd component 1 into reaction n location,\nadd component 2 into reaction 1 location,\nadd component 2 into reaction 2 location,\nadd component 2 into reaction n location,\nadd component x into reaction 1 location,\nadd component x into reaction 2 location,\nadd component x into reaction n location,\n",
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson3_MixPart2/A_Assaysetup_componentbycomponent.an",

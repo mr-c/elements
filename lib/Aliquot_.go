@@ -1,3 +1,5 @@
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting
 package lib
 
 import (
@@ -13,9 +15,14 @@ import (
 
 // Input parameters for this protocol (data)
 
+// optional field. Select if the solution to be aliquoted should be premixed prior to transer
+// optional field to change the name of the component
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
+
+// this time we're specifying what plate we're using
 
 // Physical outputs from this protocol with types
 
@@ -32,11 +39,20 @@ func _AliquotSetup(_ctx context.Context, _input *AliquotInput) {
 // for every input
 func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotOutput) {
 
-	// check there's enough liquid for the aliquots
 	number := _input.SolutionVolume.SIValue() / _input.VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	if possiblenumberofAliquots < _input.NumberofAliquots {
-		panic("Not enough solution for this many aliquots")
+		execute.Errorf(_ctx, "Not enough solution for this many aliquots")
+	}
+
+	// if PreMix is selected change liquid type accordingly
+	if _input.PreMix {
+		_input.Solution.Type = wtype.LTPreMix
+	}
+
+	// if a solution name is given change the name
+	if _input.ChangeSolutionName != "" {
+		_input.Solution.CName = _input.ChangeSolutionName
 	}
 
 	aliquots := make([]*wtype.LHComponent, 0)
@@ -46,7 +62,14 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 			_input.Solution.Type = wtype.LTDoNotMix
 		}
 		aliquotSample := mixer.Sample(_input.Solution, _input.VolumePerAliquot)
-		aliquot := execute.MixTo(_ctx, _input.OutPlatetype, "", 1, aliquotSample)
+
+		// the MixInto command is used instead of Mix to specify the plate
+		// MixInto allows you to specify the exact plate to MixInto (i.e. rather than just a plate type. e.g. barcode 123214234)
+		// the three input fields to the MixInto command represent
+		// 1. the plate
+		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
+		// 3. the sample or array of samples to be mixed
+		aliquot := execute.MixInto(_ctx, _input.OutPlate, "", aliquotSample)
 		aliquots = append(aliquots, aliquot)
 	}
 	_output.Aliquots = aliquots
@@ -111,12 +134,13 @@ type AliquotElement struct {
 }
 
 type AliquotInput struct {
-	NumberofAliquots int
-	OutPlate         *wtype.LHPlate
-	OutPlatetype     string
-	Solution         *wtype.LHComponent
-	SolutionVolume   wunit.Volume
-	VolumePerAliquot wunit.Volume
+	ChangeSolutionName string
+	NumberofAliquots   int
+	OutPlate           *wtype.LHPlate
+	PreMix             bool
+	Solution           *wtype.LHComponent
+	SolutionVolume     wunit.Volume
+	VolumePerAliquot   wunit.Volume
 }
 
 type AliquotOutput struct {
@@ -135,12 +159,13 @@ func init() {
 	if err := addComponent(component.Component{Name: "Aliquot",
 		Constructor: AliquotNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/Aliquot/Aliquot.an",
+			Desc: "Aliquot a solution into a specified plate.\noptionally premix the solution before aliquoting\n",
+			Path: "src/github.com/antha-lang/elements/starter/Aliquot/Aliquot.an",
 			Params: []component.ParamDesc{
+				{Name: "ChangeSolutionName", Desc: "optional field to change the name of the component\n", Kind: "Parameters"},
 				{Name: "NumberofAliquots", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "OutPlatetype", Desc: "", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "this time we're specifying what plate we're using\n", Kind: "Inputs"},
+				{Name: "PreMix", Desc: "optional field. Select if the solution to be aliquoted should be premixed prior to transer\n", Kind: "Parameters"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "SolutionVolume", Desc: "", Kind: "Parameters"},
 				{Name: "VolumePerAliquot", Desc: "", Kind: "Parameters"},
