@@ -20,7 +20,12 @@
   "connections": [],
   "processes": {
     "MMX": {
-      "component": "MasterMix"
+      "component": "MasterMixMaker"
     }
-  }
+  },
+  "tags": [
+    "starter",
+    "engineering",
+    "environment"
+  ]
 }

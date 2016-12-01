@@ -18,7 +18,7 @@ check_json:
 	go run cmd/format-json/main.go workflows starter > /dev/null
 
 fmt_json:
-	go run cmd/format-json/main.go -inPlace workflows starter
+	go run cmd/format-json/main.go -inPlace workflows starter defaultparameters
 
 compile: gen_comp
 	go install -v github.com/antha-lang/elements/cmd/antharun

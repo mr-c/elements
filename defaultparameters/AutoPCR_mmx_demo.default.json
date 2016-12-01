@@ -63,7 +63,14 @@
   "connections": [],
   "processes": {
     "PCR": {
-      "component": "AutoPCR_mmx_demo"
+      "component": "AutoPCR_mmx_multi"
     }
-  }
+  },
+  "tags": [
+    "starter",
+    "dna",
+    "pcr",
+    "molecular biology",
+    "auto"
+  ]
 }

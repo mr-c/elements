@@ -1,10 +1,4 @@
 {
-  "connections": [],
-  "processes": {
-    "Evaporationrate": {
-      "component": "Evaporationrate"
-    }
-  },
   "Parameters": {
     "Evaporationrate": {
       "Airvelocity": "0m/s",
@@ -16,5 +10,16 @@
       "Temp": "31.4C",
       "Volumeperwell": "100ul"
     }
-  }
+  },
+  "connections": [],
+  "processes": {
+    "Evaporationrate": {
+      "component": "Evaporationrate"
+    }
+  },
+  "tags": [
+    "starter",
+    "engineering",
+    "environment"
+  ]
 }
