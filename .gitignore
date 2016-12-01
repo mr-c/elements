@@ -11,3 +11,4 @@ Output_plate*.csv
 *.xls
 *.xslx
 *.csv
+output.json
