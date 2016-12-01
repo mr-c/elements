@@ -5,6 +5,7 @@
 protocol AliquotStartatRowColumn
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -17,7 +18,7 @@ Parameters (
 	SolutionVolume Volume
 	VolumePerAliquot  Volume
 	NumberofAliquots int
-	StartRow int // starts at 0
+	StartRow int // Optional parameter to specify Row start position; if not set or set to zero the first row will be selected
 	StartColumn int // starts at 0
 	ByRow bool
 	PreMix bool
@@ -25,7 +26,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	WellPositions[]string
+	WellPositions []string // plate name as key to return []wells used
 )
 
 
@@ -65,7 +66,8 @@ Steps {
 	
 	// work out well coordinates for any plate
 	wellpositionarray := make([]string, 0)
-	WellPositions = make([]string,0)
+	
+
 
 	alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
 		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
@@ -107,6 +109,8 @@ Steps {
 	
 	// initialise a counter 
 	var counter int // an int is initialised as zero therefore this is the same as counter := 0 or var counter = 0
+	// initialise a platenumber
+	var platenumber int = 1
 	
 	for _, Solution := range Solutions {
 		
@@ -127,10 +131,19 @@ Steps {
 		// if counter == len(wellpositionarray) {
 		// 		platenumber++
 		//}	
-		aliquot := MixTo(OutPlate.Type,wellpositionarray[counter], 1, aliquotSample)
+		aliquot := MixTo(OutPlate.Type,wellpositionarray[counter], platenumber, aliquotSample)
 		aliquots = append(aliquots,aliquot)
-		WellPositions = append(WellPositions,wellpositionarray[counter])
+		
+		var platepluswell string = fmt.Sprint(platenumber,wellpositionarray[counter])
+		WellPositions = append(WellPositions,platepluswell)
+		
+		
+		if counter +1 == len(wellpositionarray){
+			platenumber++
+			counter = 0
+		}else{
 		counter = counter +1 // this is the same as using the more concise counter++
+		}
 	}
 	Aliquots = aliquots
 	

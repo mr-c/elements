@@ -1,5 +1,6 @@
-// example protocol showing The MixInto command which allows a specifc plate to be specified. i.e. plate with ID blahblahblah
-protocol Aliquot_SpecificPlate
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting 
+protocol Aliquot
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -13,6 +14,8 @@ Parameters (
 	SolutionVolume Volume
 	VolumePerAliquot  Volume
 	NumberofAliquots int
+	PreMix bool // optional field. Select if the solution to be aliquoted should be premixed prior to transer
+	ChangeSolutionName string // optional field to change the name of the component
 )
 
 // Data which is returned from this protocol, and data types
@@ -23,7 +26,7 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent
+	Solution *wtype.LHComponent 
 	OutPlate *wtype.LHPlate // this time we're specifying what plate we're using
 	
 )
@@ -52,6 +55,15 @@ Steps {
 		Errorf("Not enough solution for this many aliquots")
 	}
 	
+	// if PreMix is selected change liquid type accordingly 
+	if PreMix {
+		Solution.Type = wtype.LTPreMix
+	}
+	
+	// if a solution name is given change the name 
+	if ChangeSolutionName != ""{
+		Solution.CName = ChangeSolutionName
+	}
 	
 	aliquots := make([]*wtype.LHComponent,0)
 	

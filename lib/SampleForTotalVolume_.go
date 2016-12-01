@@ -145,7 +145,7 @@ func init() {
 		Constructor: SampleForTotalVolumeNew,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol demonstrating the use of the SampleForTotalVolume function\n",
-			Path: "src/github.com/antha-lang/elements/starter/AnthaAcademy/Lesson1_RunningWorkflows/C_SampleForTotalVolume.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson1_RunningWorkflows/C_SampleForTotalVolume.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},

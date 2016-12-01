@@ -198,7 +198,7 @@ func init() {
 		Constructor: EvaporationrateNew,
 		Desc: component.ComponentDesc{
 			Desc: " Evaporation calculator based on\nhttp://www.engineeringtoolbox.com/evaporation-water-surface-d_690.html\n\nThis engineering function may need to be improved to account for vapour pressure and surface tension\n\ngs = Θ A (xs - x) / 3600         (1)\n\nor\n\ngh = Θ A (xs - x)\n\nwhere\n\ngs = amount of evaporated water per second (kg/s)\n\ngh = amount of evaporated water per hour (kg/h)\n\nΘ = (25 + 19 v) = evaporation coefficient (kg/m2h)\n\nv = velocity of air above the water surface (m/s)\n\nA = water surface area (m2)\n\nxs = humidity ratio in saturated air at the same temperature as the water surface (kg/kg)  (kg H2O in kg Dry Air)\n\nx = humidity ratio in the air (kg/kg) (kg H2O in kg Dry Air)\n",
-			Path: "src/github.com/antha-lang/elements/an/eng/Evaporationrate/Evaporationrate.an",
+			Path: "src/github.com/antha-lang/elements/starter/Evaporationrate/Evaporationrate.an",
 			Params: []component.ParamDesc{
 				{Name: "Airvelocity", Desc: "// velocity of air above water in m/s ; could be calculated or measured by an anemometer\n", Kind: "Parameters"},
 				{Name: "Executiontime", Desc: "time\n", Kind: "Parameters"},

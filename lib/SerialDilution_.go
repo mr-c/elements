@@ -13,6 +13,8 @@ import (
 
 // Input parameters for this protocol (data)
 
+// e.g. 10 would take 1 part solution to 9 parts diluent for each dilution
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
@@ -36,17 +38,26 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 
 	var aliquot *wtype.LHComponent
 
-	// work out diluent volume to add
-	diluentVolume := wunit.NewVolume(_input.TotalVolumeperDilution.RawValue()-(_input.TotalVolumeperDilution.RawValue()/float64(_input.DilutionFactor)), _input.TotalVolumeperDilution.Unit().PrefixedSymbol())
+	// calculate solution volume
+
+	// create copy of TotalVolumeperDilution
+	solutionVolume := (wunit.CopyVolume(_input.TotalVolumeperDilution))
+
+	// use divideby method
+	solutionVolume.DivideBy(float64(_input.DilutionFactor))
+
+	// use same approach to work out diluent volume to add
+	diluentVolume := (wunit.CopyVolume(_input.TotalVolumeperDilution))
+
+	// this time using the substract method
+	diluentVolume.Subtract(solutionVolume)
 
 	// sample diluent
 	diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
-
-	// calculate solution volume
-	solutionVolume := wunit.NewVolume((_input.TotalVolumeperDilution.RawValue() / float64(_input.DilutionFactor)), _input.TotalVolumeperDilution.Unit().PrefixedSymbol())
+	// check if the enzyme is specified and if not mix the
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
@@ -167,10 +178,10 @@ func init() {
 		Constructor: SerialDilutionNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to make a serial dilution series from a solution and diluent\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution.an",
+			Path: "src/github.com/antha-lang/elements/starter/SerialDilution/SerialDilution.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
-				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
+				{Name: "DilutionFactor", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
 				{Name: "NumberOfDilutions", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},

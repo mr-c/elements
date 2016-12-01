@@ -1,4 +1,5 @@
 // example protocol showing The MixInto command which allows a specifc plate to be specified. i.e. plate with ID blahblahblah
+// if no specific plate is specified a plate type can be
 package lib
 
 import (
@@ -143,8 +144,8 @@ func init() {
 	if err := addComponent(component.Component{Name: "Aliquot_SpecificPlate",
 		Constructor: Aliquot_SpecificPlateNew,
 		Desc: component.ComponentDesc{
-			Desc: "example protocol showing The MixInto command which allows a specifc plate to be specified. i.e. plate with ID blahblahblah\n",
-			Path: "src/github.com/antha-lang/elements/starter/AnthaAcademy/Lesson2_mix/B_AliquotIntoSpecificPlate.an",
+			Desc: "example protocol showing The MixInto command which allows a specifc plate to be specified. i.e. plate with ID blahblahblah\nif no specific plate is specified a plate type can be\n",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson2_mix/B_AliquotIntoSpecificPlate.an",
 			Params: []component.ParamDesc{
 				{Name: "NumberofAliquots", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "this time we're specifying what plate we're using\n", Kind: "Inputs"},

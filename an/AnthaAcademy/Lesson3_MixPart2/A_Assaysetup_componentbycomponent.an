@@ -8,7 +8,7 @@
 // add component x into reaction 1 location, 
 // add component x into reaction 2 location, 
 // add component x into reaction n location,
-protocol SetupReactions
+protocol ReactionSetUp
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"

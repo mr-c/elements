@@ -5,6 +5,7 @@
 package lib
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -18,10 +19,12 @@ import (
 
 // Input parameters for this protocol (data)
 
-// starts at 0
+// Optional parameter to specify Row start position; if not set or set to zero the first row will be selected
 // starts at 0
 
 // Data which is returned from this protocol, and data types
+
+// plate name as key to return []wells used
 
 // Physical Inputs to this protocol with types
 
@@ -52,7 +55,6 @@ func _AliquotStartatRowColumnSteps(_ctx context.Context, _input *AliquotStartatR
 
 	// work out well coordinates for any plate
 	wellpositionarray := make([]string, 0)
-	_output.WellPositions = make([]string, 0)
 
 	alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
 		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
@@ -90,6 +92,8 @@ func _AliquotStartatRowColumnSteps(_ctx context.Context, _input *AliquotStartatR
 
 	// initialise a counter
 	var counter int // an int is initialised as zero therefore this is the same as counter := 0 or var counter = 0
+	// initialise a platenumber
+	var platenumber int = 1
 
 	for _, Solution := range _input.Solutions {
 
@@ -110,10 +114,18 @@ func _AliquotStartatRowColumnSteps(_ctx context.Context, _input *AliquotStartatR
 			// if counter == len(wellpositionarray) {
 			// 		platenumber++
 			//}
-			aliquot := execute.MixTo(_ctx, _input.OutPlate.Type, wellpositionarray[counter], 1, aliquotSample)
+			aliquot := execute.MixTo(_ctx, _input.OutPlate.Type, wellpositionarray[counter], platenumber, aliquotSample)
 			aliquots = append(aliquots, aliquot)
-			_output.WellPositions = append(_output.WellPositions, wellpositionarray[counter])
-			counter = counter + 1 // this is the same as using the more concise counter++
+
+			var platepluswell string = fmt.Sprint(platenumber, wellpositionarray[counter])
+			_output.WellPositions = append(_output.WellPositions, platepluswell)
+
+			if counter+1 == len(wellpositionarray) {
+				platenumber++
+				counter = 0
+			} else {
+				counter = counter + 1 // this is the same as using the more concise counter++
+			}
 		}
 		_output.Aliquots = aliquots
 
@@ -211,7 +223,7 @@ func init() {
 		Constructor: AliquotStartatRowColumnNew,
 		Desc: component.ComponentDesc{
 			Desc: "Extra fields to Pre mix, and start at specific columns or rows. The lowest level example protocol showing The MixTo command being used to specify the specific wells to be aliquoted to;\nBy doing this we are able to specify whether the aliqouts are pipetted by row or by column.\nIn this case the user is still not specifying the well location (i.e. A1) in the parameters, although that would be possible to specify.\nWe don't generally encourage this since Antha is designed to be prodiminantly a high level language which avoids the user specifying well locations but this possibility is there if necessary.\n",
-			Path: "src/github.com/antha-lang/elements/starter/AnthaAcademy/Lesson2_mix/F_AliquotSolutions_wellpositions.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson2_mix/F_AliquotSolutions_wellpositions.an",
 			Params: []component.ParamDesc{
 				{Name: "ByRow", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofAliquots", Desc: "", Kind: "Parameters"},
@@ -220,10 +232,10 @@ func init() {
 				{Name: "SolutionVolume", Desc: "", Kind: "Parameters"},
 				{Name: "Solutions", Desc: "we're now going to aliquot multiple solutions at the same time (but not mixing them)\n", Kind: "Inputs"},
 				{Name: "StartColumn", Desc: "starts at 0\n", Kind: "Parameters"},
-				{Name: "StartRow", Desc: "starts at 0\n", Kind: "Parameters"},
+				{Name: "StartRow", Desc: "Optional parameter to specify Row start position; if not set or set to zero the first row will be selected\n", Kind: "Parameters"},
 				{Name: "VolumePerAliquot", Desc: "", Kind: "Parameters"},
 				{Name: "Aliquots", Desc: "", Kind: "Outputs"},
-				{Name: "WellPositions", Desc: "", Kind: "Data"},
+				{Name: "WellPositions", Desc: "plate name as key to return []wells used\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

@@ -23,16 +23,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _Mastermix_oneRequirements() {
+func _MasterMixMakerRequirements() {
 }
 
 // Conditions to run on startup
-func _Mastermix_oneSetup(_ctx context.Context, _input *Mastermix_oneInput) {
+func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _Mastermix_oneSteps(_ctx context.Context, _input *Mastermix_oneInput, _output *Mastermix_oneOutput) {
+func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
 
 	var mastermix *wtype.LHComponent
 
@@ -65,26 +65,26 @@ func _Mastermix_oneSteps(_ctx context.Context, _input *Mastermix_oneInput, _outp
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _Mastermix_oneAnalysis(_ctx context.Context, _input *Mastermix_oneInput, _output *Mastermix_oneOutput) {
+func _MasterMixMakerAnalysis(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _Mastermix_oneValidation(_ctx context.Context, _input *Mastermix_oneInput, _output *Mastermix_oneOutput) {
+func _MasterMixMakerValidation(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
 }
-func _Mastermix_oneRun(_ctx context.Context, input *Mastermix_oneInput) *Mastermix_oneOutput {
-	output := &Mastermix_oneOutput{}
-	_Mastermix_oneSetup(_ctx, input)
-	_Mastermix_oneSteps(_ctx, input, output)
-	_Mastermix_oneAnalysis(_ctx, input, output)
-	_Mastermix_oneValidation(_ctx, input, output)
+func _MasterMixMakerRun(_ctx context.Context, input *MasterMixMakerInput) *MasterMixMakerOutput {
+	output := &MasterMixMakerOutput{}
+	_MasterMixMakerSetup(_ctx, input)
+	_MasterMixMakerSteps(_ctx, input, output)
+	_MasterMixMakerAnalysis(_ctx, input, output)
+	_MasterMixMakerValidation(_ctx, input, output)
 	return output
 }
 
-func Mastermix_oneRunSteps(_ctx context.Context, input *Mastermix_oneInput) *Mastermix_oneSOutput {
-	soutput := &Mastermix_oneSOutput{}
-	output := _Mastermix_oneRun(_ctx, input)
+func MasterMixMakerRunSteps(_ctx context.Context, input *MasterMixMakerInput) *MasterMixMakerSOutput {
+	soutput := &MasterMixMakerSOutput{}
+	output := _MasterMixMakerRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -94,19 +94,19 @@ func Mastermix_oneRunSteps(_ctx context.Context, input *Mastermix_oneInput) *Mas
 	return soutput
 }
 
-func Mastermix_oneNew() interface{} {
-	return &Mastermix_oneElement{
+func MasterMixMakerNew() interface{} {
+	return &MasterMixMakerElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &Mastermix_oneInput{}
+				input := &MasterMixMakerInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _Mastermix_oneRun(_ctx, input)
+				output := _MasterMixMakerRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &Mastermix_oneInput{},
-			Out: &Mastermix_oneOutput{},
+			In:  &MasterMixMakerInput{},
+			Out: &MasterMixMakerOutput{},
 		},
 	}
 }
@@ -116,23 +116,23 @@ var (
 	_ = wunit.Make_units
 )
 
-type Mastermix_oneElement struct {
+type MasterMixMakerElement struct {
 	inject.CheckedRunner
 }
 
-type Mastermix_oneInput struct {
+type MasterMixMakerInput struct {
 	ComponentVolumesperReaction []wunit.Volume
 	Components                  []*wtype.LHComponent
 	OutPlate                    *wtype.LHPlate
 	Reactionspermastermix       int
 }
 
-type Mastermix_oneOutput struct {
+type MasterMixMakerOutput struct {
 	Mastermix *wtype.LHComponent
 	Status    string
 }
 
-type Mastermix_oneSOutput struct {
+type MasterMixMakerSOutput struct {
 	Data struct {
 		Status string
 	}
@@ -142,11 +142,11 @@ type Mastermix_oneSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "Mastermix_one",
-		Constructor: Mastermix_oneNew,
+	if err := addComponent(component.Component{Name: "MasterMixMaker",
+		Constructor: MasterMixMakerNew,
 		Desc: component.ComponentDesc{
 			Desc: "Make a general mastermix comprising of a list of components, list of volumes\nand specifying the number of reactions required\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/MakeMasterMix_PCR/Mastermix_one.an",
+			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/MasterMixMaker.an",
 			Params: []component.ParamDesc{
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
 				{Name: "Components", Desc: "TopUpBuffer *wtype.LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
