@@ -20,6 +20,6 @@ modules:
     - ~vendor
     image:
       copyhostpaths:
-      - github.com/antha-lang/elements:workflows/examples:/root/examples
+      - github.com/antha-lang/elements:workflows:/root/workflows
       copyvolumes:
       - github.com/antha-lang/elements:/certs:/etc/ssl/certs
