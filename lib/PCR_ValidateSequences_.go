@@ -1,3 +1,5 @@
+// Validate that the primers will be expected to bind once each to the template sequence
+// exact matches only
 package lib
 
 import (
@@ -5,6 +7,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -22,21 +25,7 @@ import (
 
 // Leave blank for Antha to decide
 
-/*
-	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
-
-	//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...
-	//FullTemplatesequence string // better to use Sid's type system here after proof of concept
-	//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
-	//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
-	//TargetTemplatelengthinBP int
-*/
 // Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
-
-//Denaturationtemp Temperature
-
-// Should be calculated from primer and template binding
-// should be calculated from template length and polymerase rate
 
 // Data which is returned from this protocol, and data types
 
@@ -66,7 +55,7 @@ func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSeque
 
 	_output.RevPrimerSites = sequences.FindSeqsinSeqs(_input.Targetsequence.Sequence(), []string{_input.RevPrimerSeq.Sequence()})
 
-	if len(_output.FwdPrimerSites) == 0 || len(_output.RevPrimerSites) == 0 {
+	if len(_output.FwdPrimerSites) != 1 || len(_output.RevPrimerSites) != 1 {
 
 		errordescription := fmt.Sprint(
 			text.Print("FwdPrimerSitesfound:", fmt.Sprint(_output.FwdPrimerSites)),
@@ -75,6 +64,25 @@ func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSeque
 
 		execute.Errorf(_ctx, errordescription)
 	}
+
+	fwdposition := _output.FwdPrimerSites[0].Positions[0]
+
+	revposition := _output.RevPrimerSites[0].Positions[0]
+
+	var startposition int
+	var endposition int
+
+	if !_output.FwdPrimerSites[0].Reverse && _output.RevPrimerSites[0].Reverse && fwdposition < revposition {
+		startposition = fwdposition
+		endposition = revposition
+	} else if _output.FwdPrimerSites[0].Reverse && !_output.RevPrimerSites[0].Reverse && fwdposition < revposition {
+		startposition = revposition
+		endposition = fwdposition
+	}
+
+	// This is the pcr product
+	_output.Amplicon = oligos.DNAregion(_input.Targetsequence, startposition, endposition)
+
 	// Make a mastermix
 
 	mmxSample := mixer.Sample(_input.MasterMix, _input.MasterMixVolume)
@@ -127,32 +135,61 @@ func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSeque
 		execute.Errorf(_ctx, "No Properties for", polymerase, "found.", "Valid options are:", strings.Join(validoptions, ","))
 	}
 
-	extensionTemp := polymeraseproperties["extensiontemp"]
-	meltingTemp := polymeraseproperties["meltingtemp"]
+	var found bool
 
-	//extensiontime, _ := enzymes.CalculateExtensionTime(polymerase, targetsequence)
+	_output.ExtensionTemp, found = polymeraseproperties["extensiontemp"]
+	if !found {
+		execute.Errorf(_ctx, "No extension temp found for polymerase ", polymerase)
+	}
+	_output.MeltingTemp, found = polymeraseproperties["meltingtemp"]
+	if !found {
+		execute.Errorf(_ctx, "No melting temp found for polymerase ", polymerase)
+	}
+
+	var err error
+
+	_output.ExtensionTime, err = enzymes.CalculateExtensionTime(_input.PCRPolymerase, _output.Amplicon)
+
+	if err != nil {
+		execute.Errorf(_ctx, "Can't calculate extensiontime of polymerase.", err.Error())
+	}
+
+	// work out annealing temperature
+
+	_output.Fwdprimermeltingtemp = oligos.BasicMeltingTemp(_input.FwdPrimerSeq)
+
+	_output.Revprimermeltingtemp = oligos.BasicMeltingTemp(_input.RevPrimerSeq)
+
+	// check which primer has the lowest melting temperature
+	if _output.Fwdprimermeltingtemp.SIValue() < _output.Revprimermeltingtemp.SIValue() {
+		// start PCR 3 degress below lowest melting temp
+		_output.AnnealingTemp = wunit.NewTemperature(_output.Fwdprimermeltingtemp.SIValue()-3.0, "C")
+	} else {
+		// start PCR 3 degress below lowest melting temp
+		_output.AnnealingTemp = wunit.NewTemperature(_output.Revprimermeltingtemp.SIValue()-3.0, "C")
+	}
 
 	// initial Denaturation
 
-	r1 := execute.Incubate(_ctx, reaction, meltingTemp, _input.InitDenaturationtime, false)
+	r1 := execute.Incubate(_ctx, reaction, _output.MeltingTemp, _input.InitDenaturationtime, false)
 
 	for i := 0; i < _input.Numberofcycles; i++ {
 
 		// Denature
 
-		r1 = execute.Incubate(_ctx, r1, meltingTemp, _input.Denaturationtime, false)
+		r1 = execute.Incubate(_ctx, r1, _output.MeltingTemp, _input.Denaturationtime, false)
 
 		// Anneal
-		r1 = execute.Incubate(_ctx, r1, _input.AnnealingTemp, _input.Annealingtime, false)
+		r1 = execute.Incubate(_ctx, r1, _output.AnnealingTemp, _input.AnnealingTime, false)
 
 		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
 
 		// Extend
-		r1 = execute.Incubate(_ctx, r1, extensionTemp, _input.Extensiontime, false)
+		r1 = execute.Incubate(_ctx, r1, _output.ExtensionTemp, _output.ExtensionTime, false)
 
 	}
 	// Final Extension
-	r1 = execute.Incubate(_ctx, r1, extensionTemp, _input.Finalextensiontime, false)
+	r1 = execute.Incubate(_ctx, r1, _output.ExtensionTemp, _input.Finalextensiontime, false)
 
 	// all done
 	_output.Reaction = r1
@@ -218,10 +255,8 @@ type PCR_ValidateSequencesElement struct {
 }
 
 type PCR_ValidateSequencesInput struct {
-	AnnealingTemp                     wunit.Temperature
-	Annealingtime                     wunit.Time
+	AnnealingTime                     wunit.Time
 	Denaturationtime                  wunit.Time
-	Extensiontime                     wunit.Time
 	Finalextensiontime                wunit.Time
 	FwdPrimer                         *wtype.LHComponent
 	FwdPrimerSeq                      wtype.DNASequence
@@ -246,15 +281,29 @@ type PCR_ValidateSequencesInput struct {
 }
 
 type PCR_ValidateSequencesOutput struct {
-	FwdPrimerSites []search.Thingfound
-	Reaction       *wtype.LHComponent
-	RevPrimerSites []search.Thingfound
+	Amplicon             wtype.DNASequence
+	AnnealingTemp        wunit.Temperature
+	ExtensionTemp        wunit.Temperature
+	ExtensionTime        wunit.Time
+	FwdPrimerSites       []search.Thingfound
+	Fwdprimermeltingtemp wunit.Temperature
+	MeltingTemp          wunit.Temperature
+	Reaction             *wtype.LHComponent
+	RevPrimerSites       []search.Thingfound
+	Revprimermeltingtemp wunit.Temperature
 }
 
 type PCR_ValidateSequencesSOutput struct {
 	Data struct {
-		FwdPrimerSites []search.Thingfound
-		RevPrimerSites []search.Thingfound
+		Amplicon             wtype.DNASequence
+		AnnealingTemp        wunit.Temperature
+		ExtensionTemp        wunit.Temperature
+		ExtensionTime        wunit.Time
+		FwdPrimerSites       []search.Thingfound
+		Fwdprimermeltingtemp wunit.Temperature
+		MeltingTemp          wunit.Temperature
+		RevPrimerSites       []search.Thingfound
+		Revprimermeltingtemp wunit.Temperature
 	}
 	Outputs struct {
 		Reaction *wtype.LHComponent
@@ -265,13 +314,11 @@ func init() {
 	if err := addComponent(component.Component{Name: "PCR_ValidateSequences",
 		Constructor: PCR_ValidateSequencesNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "Validate that the primers will be expected to bind once each to the template sequence\nexact matches only\n",
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/PCR_primerbind.an",
 			Params: []component.ParamDesc{
-				{Name: "AnnealingTemp", Desc: "Should be calculated from primer and template binding\n", Kind: "Parameters"},
-				{Name: "Annealingtime", Desc: "Denaturationtemp Temperature\n", Kind: "Parameters"},
+				{Name: "AnnealingTime", Desc: "", Kind: "Parameters"},
 				{Name: "Denaturationtime", Desc: "", Kind: "Parameters"},
-				{Name: "Extensiontime", Desc: "should be calculated from template length and polymerase rate\n", Kind: "Parameters"},
 				{Name: "Finalextensiontime", Desc: "", Kind: "Parameters"},
 				{Name: "FwdPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "FwdPrimerSeq", Desc: "", Kind: "Parameters"},
@@ -279,7 +326,7 @@ func init() {
 				{Name: "InitDenaturationtime", Desc: "", Kind: "Parameters"},
 				{Name: "MasterMix", Desc: "", Kind: "Inputs"},
 				{Name: "MasterMixVolume", Desc: "", Kind: "Parameters"},
-				{Name: "Numberofcycles", Desc: "\t// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume\n\n\t//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...\n\t//FullTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//FullTemplatelength int\t// clearly could be calculated from the sequence... Sid will have a method to do this already so check!\n\t//TargetTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//TargetTemplatelengthinBP int\n\nReaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
+				{Name: "Numberofcycles", Desc: "Reaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
 				{Name: "OptionalWellPosition", Desc: "Leave blank for Antha to decide\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PCRPolymerase", Desc: "", Kind: "Inputs"},
@@ -293,9 +340,16 @@ func init() {
 				{Name: "Targetsequence", Desc: "", Kind: "Parameters"},
 				{Name: "Template", Desc: "", Kind: "Inputs"},
 				{Name: "Templatevolume", Desc: "", Kind: "Parameters"},
+				{Name: "Amplicon", Desc: "", Kind: "Data"},
+				{Name: "AnnealingTemp", Desc: "", Kind: "Data"},
+				{Name: "ExtensionTemp", Desc: "", Kind: "Data"},
+				{Name: "ExtensionTime", Desc: "", Kind: "Data"},
 				{Name: "FwdPrimerSites", Desc: "", Kind: "Data"},
+				{Name: "Fwdprimermeltingtemp", Desc: "", Kind: "Data"},
+				{Name: "MeltingTemp", Desc: "", Kind: "Data"},
 				{Name: "Reaction", Desc: "", Kind: "Outputs"},
 				{Name: "RevPrimerSites", Desc: "", Kind: "Data"},
+				{Name: "Revprimermeltingtemp", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
