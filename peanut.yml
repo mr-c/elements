@@ -21,5 +21,6 @@ modules:
     image:
       copyhostpaths:
       - github.com/antha-lang/elements:workflows:/root/workflows
+      - github.com/antha-lang/elements:defaults:/root/defaults
       copyvolumes:
       - github.com/antha-lang/elements:/certs:/etc/ssl/certs
