@@ -5,7 +5,8 @@ protocol MasterMixMaker
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"fmt"
+	"github.com/antha-lang/antha/microArch/factory"
+
 )
 
 
@@ -13,6 +14,7 @@ import (
 Parameters (
 	Reactionspermastermix int
 	ComponentVolumesperReaction []Volume
+	Components []string
 
 )
 
@@ -24,8 +26,7 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	//TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
-	Components []*wtype.LHComponent
+
 	OutPlate *wtype.LHPlate
 )
 
@@ -48,22 +49,44 @@ Steps {
 	var mastermix *wtype.LHComponent
 	
 	if len(Components) != len(ComponentVolumesperReaction){
-		panic("len(Components) != len(OtherComponentVolumes)")
+		Errorf("len(Components) != len(OtherComponentVolumes)")
 	}
+		
+	
+		// get components from factory and if not present use default dna component
+		
+		lhComponents := make([]*wtype.LHComponent,0)
+		
+		for _,component := range Components {
+			
+			if factory.ComponentInFactory(component){
+				lhComponents = append(lhComponents,factory.GetComponentByType(component))
+			}else {
+				// if component not in factory use dna as default component type
+				defaultcomponent := factory.GetComponentByType("dna")
+				defaultcomponent.CName = component
+				lhComponents = append(lhComponents,defaultcomponent)
+			}
+			
+		}
+		
+		
+		// now make mastermix
+		
 		
 		eachmastermix := make([]*wtype.LHComponent, 0)
 		
 		
-		for k,component := range Components {
-			if k == len(Components){
+		for k, component := range lhComponents { 	
+			if k == len(lhComponents){
 				component.Type = wtype.LTNeedToMix //"NeedToMix"
 			}
 		
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.NewVolume(float64(Reactionspermastermix)*ComponentVolumesperReaction[k].SIValue()*1000000,"ul")
+		adjustedvol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
 			
 		componentSample := mixer.Sample(component,adjustedvol)
-		component.CName = "component"+fmt.Sprint(k+1)
+		
 		eachmastermix = append(eachmastermix,componentSample)
 		
 		
