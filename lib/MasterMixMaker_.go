@@ -3,13 +3,13 @@
 package lib
 
 import (
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/microArch/factory"
 	"golang.org/x/net/context"
 )
 
@@ -18,8 +18,6 @@ import (
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
-
-//TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
 
 // Physical outputs from this protocol with types
 
@@ -37,21 +35,40 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	var mastermix *wtype.LHComponent
 
 	if len(_input.Components) != len(_input.ComponentVolumesperReaction) {
-		panic("len(Components) != len(OtherComponentVolumes)")
+		execute.Errorf(_ctx, "len(Components) != len(OtherComponentVolumes)")
 	}
+
+	// get components from factory and if not present use default dna component
+
+	lhComponents := make([]*wtype.LHComponent, 0)
+
+	for _, component := range _input.Components {
+
+		if factory.ComponentInFactory(component) {
+			lhComponents = append(lhComponents, factory.GetComponentByType(component))
+		} else {
+			// if component not in factory use dna as default component type
+			defaultcomponent := factory.GetComponentByType("dna")
+			defaultcomponent.CName = component
+			lhComponents = append(lhComponents, defaultcomponent)
+		}
+
+	}
+
+	// now make mastermix
 
 	eachmastermix := make([]*wtype.LHComponent, 0)
 
-	for k, component := range _input.Components {
-		if k == len(_input.Components) {
+	for k, component := range lhComponents {
+		if k == len(lhComponents) {
 			component.Type = wtype.LTNeedToMix //"NeedToMix"
 		}
 
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.NewVolume(float64(_input.Reactionspermastermix)*_input.ComponentVolumesperReaction[k].SIValue()*1000000, "ul")
+		adjustedvol := wunit.MultiplyVolume(_input.ComponentVolumesperReaction[k], float64(_input.Reactionspermastermix))
 
 		componentSample := mixer.Sample(component, adjustedvol)
-		component.CName = "component" + fmt.Sprint(k+1)
+
 		eachmastermix = append(eachmastermix, componentSample)
 
 	}
@@ -122,7 +139,7 @@ type MasterMixMakerElement struct {
 
 type MasterMixMakerInput struct {
 	ComponentVolumesperReaction []wunit.Volume
-	Components                  []*wtype.LHComponent
+	Components                  []string
 	OutPlate                    *wtype.LHPlate
 	Reactionspermastermix       int
 }
@@ -149,7 +166,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/MasterMixMaker.an",
 			Params: []component.ParamDesc{
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
-				{Name: "Components", Desc: "TopUpBuffer *wtype.LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
+				{Name: "Components", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
