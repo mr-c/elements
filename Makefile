@@ -15,10 +15,10 @@ check_elements:
 	go run $(GOPATH)/src/github.com/antha-lang/antha/cmd/antha/antha.go -outdir= an starter
 
 check_json:
-	go run cmd/format-json/main.go workflows starter > /dev/null
+	go run cmd/format-json/main.go workflows starter defaults > /dev/null
 
 fmt_json:
-	go run cmd/format-json/main.go -inPlace workflows starter defaultparameters
+	go run cmd/format-json/main.go -inPlace workflows starter defaults
 
 compile: gen_comp
 	go install -v github.com/antha-lang/elements/cmd/antharun
