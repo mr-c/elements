@@ -1,5 +1,15 @@
 /reports
 .DS_Store
+defaults/**/*.csv
+defaults/**/*.csv#
+defaults/**/*.fasta
+defaults/**/*.gb
+defaults/**/*.jpg
+defaults/**/*.jpeg
+defaults/**/*.png
+defaults/**/*.sqlite
+defaults/**/*.xls
+defaults/**/*.xlsx
 starter/**/*.csv
 starter/**/*.csv#
 starter/**/*.fasta
