@@ -1,6 +1,5 @@
 // Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.
 // Thermocycle conditions are calculated from the input sequences and polymerase name
-
 protocol PCR_mmx_ValidateSequences
 
 import (
@@ -21,7 +20,7 @@ import (
 Parameters (
 	// PCRprep parameters:
 	ReactionName string
-	Targetsequence wtype.DNASequence
+	TemplateSequence wtype.DNASequence
 	FwdPrimerSeq wtype.DNASequence
 	RevPrimerSeq wtype.DNASequence
 	
@@ -89,7 +88,7 @@ Steps {
 	
 	// rename components
 
-	Template.CName = Targetsequence.Name()
+	Template.CName = TemplateSequence.Name()
 	FwdPrimer.CName = FwdPrimerSeq.Name()
 	RevPrimer.CName = RevPrimerSeq.Name()
 	
@@ -97,9 +96,9 @@ Steps {
 	
 	
 	// check for non-specific binding. Exact matches only.
-	FwdPrimerSites = sequences.FindSeqsinSeqs(Targetsequence.Sequence(), []string{FwdPrimerSeq.Sequence()})
+	FwdPrimerSites = sequences.FindSeqsinSeqs(TemplateSequence.Sequence(), []string{FwdPrimerSeq.Sequence()})
 	
-	RevPrimerSites = sequences.FindSeqsinSeqs(Targetsequence.Sequence(), []string{RevPrimerSeq.Sequence()})
+	RevPrimerSites = sequences.FindSeqsinSeqs(TemplateSequence.Sequence(), []string{RevPrimerSeq.Sequence()})
 
 	
 	if len(FwdPrimerSites)!=1 || len(RevPrimerSites)!=1{
@@ -131,7 +130,7 @@ Steps {
 	
 	
 	// work out what the pcr product will be
-	Amplicon = oligos.DNAregion(Targetsequence,startposition,endposition)
+	Amplicon = oligos.DNAregion(TemplateSequence,startposition,endposition)
 	
 	
 	

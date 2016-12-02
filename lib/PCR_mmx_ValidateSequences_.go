@@ -1,5 +1,5 @@
-// Validate that the primers will be expected to bind once each to the template sequence
-// exact matches only
+// Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.
+// Thermocycle conditions are calculated from the input sequences and polymerase name
 package lib
 
 import (
@@ -33,27 +33,28 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _PCR_ValidateSequencesRequirements() {
+func _PCR_mmx_ValidateSequencesRequirements() {
 
 }
 
 // Conditions to run on startup
-func _PCR_ValidateSequencesSetup(_ctx context.Context, _input *PCR_ValidateSequencesInput) {
+func _PCR_mmx_ValidateSequencesSetup(_ctx context.Context, _input *PCR_mmx_ValidateSequencesInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSequencesInput, _output *PCR_ValidateSequencesOutput) {
+func _PCR_mmx_ValidateSequencesSteps(_ctx context.Context, _input *PCR_mmx_ValidateSequencesInput, _output *PCR_mmx_ValidateSequencesOutput) {
 
 	// rename components
 
-	_input.Template.CName = _input.Targetsequence.Name()
+	_input.Template.CName = _input.TemplateSequence.Name()
 	_input.FwdPrimer.CName = _input.FwdPrimerSeq.Name()
 	_input.RevPrimer.CName = _input.RevPrimerSeq.Name()
 
-	_output.FwdPrimerSites = sequences.FindSeqsinSeqs(_input.Targetsequence.Sequence(), []string{_input.FwdPrimerSeq.Sequence()})
+	// check for non-specific binding. Exact matches only.
+	_output.FwdPrimerSites = sequences.FindSeqsinSeqs(_input.TemplateSequence.Sequence(), []string{_input.FwdPrimerSeq.Sequence()})
 
-	_output.RevPrimerSites = sequences.FindSeqsinSeqs(_input.Targetsequence.Sequence(), []string{_input.RevPrimerSeq.Sequence()})
+	_output.RevPrimerSites = sequences.FindSeqsinSeqs(_input.TemplateSequence.Sequence(), []string{_input.RevPrimerSeq.Sequence()})
 
 	if len(_output.FwdPrimerSites) != 1 || len(_output.RevPrimerSites) != 1 {
 
@@ -80,8 +81,8 @@ func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSeque
 		endposition = fwdposition
 	}
 
-	// This is the pcr product
-	_output.Amplicon = oligos.DNAregion(_input.Targetsequence, startposition, endposition)
+	// work out what the pcr product will be
+	_output.Amplicon = oligos.DNAregion(_input.TemplateSequence, startposition, endposition)
 
 	// Make a mastermix
 
@@ -199,26 +200,26 @@ func _PCR_ValidateSequencesSteps(_ctx context.Context, _input *PCR_ValidateSeque
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _PCR_ValidateSequencesAnalysis(_ctx context.Context, _input *PCR_ValidateSequencesInput, _output *PCR_ValidateSequencesOutput) {
+func _PCR_mmx_ValidateSequencesAnalysis(_ctx context.Context, _input *PCR_mmx_ValidateSequencesInput, _output *PCR_mmx_ValidateSequencesOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _PCR_ValidateSequencesValidation(_ctx context.Context, _input *PCR_ValidateSequencesInput, _output *PCR_ValidateSequencesOutput) {
+func _PCR_mmx_ValidateSequencesValidation(_ctx context.Context, _input *PCR_mmx_ValidateSequencesInput, _output *PCR_mmx_ValidateSequencesOutput) {
 }
-func _PCR_ValidateSequencesRun(_ctx context.Context, input *PCR_ValidateSequencesInput) *PCR_ValidateSequencesOutput {
-	output := &PCR_ValidateSequencesOutput{}
-	_PCR_ValidateSequencesSetup(_ctx, input)
-	_PCR_ValidateSequencesSteps(_ctx, input, output)
-	_PCR_ValidateSequencesAnalysis(_ctx, input, output)
-	_PCR_ValidateSequencesValidation(_ctx, input, output)
+func _PCR_mmx_ValidateSequencesRun(_ctx context.Context, input *PCR_mmx_ValidateSequencesInput) *PCR_mmx_ValidateSequencesOutput {
+	output := &PCR_mmx_ValidateSequencesOutput{}
+	_PCR_mmx_ValidateSequencesSetup(_ctx, input)
+	_PCR_mmx_ValidateSequencesSteps(_ctx, input, output)
+	_PCR_mmx_ValidateSequencesAnalysis(_ctx, input, output)
+	_PCR_mmx_ValidateSequencesValidation(_ctx, input, output)
 	return output
 }
 
-func PCR_ValidateSequencesRunSteps(_ctx context.Context, input *PCR_ValidateSequencesInput) *PCR_ValidateSequencesSOutput {
-	soutput := &PCR_ValidateSequencesSOutput{}
-	output := _PCR_ValidateSequencesRun(_ctx, input)
+func PCR_mmx_ValidateSequencesRunSteps(_ctx context.Context, input *PCR_mmx_ValidateSequencesInput) *PCR_mmx_ValidateSequencesSOutput {
+	soutput := &PCR_mmx_ValidateSequencesSOutput{}
+	output := _PCR_mmx_ValidateSequencesRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -228,19 +229,19 @@ func PCR_ValidateSequencesRunSteps(_ctx context.Context, input *PCR_ValidateSequ
 	return soutput
 }
 
-func PCR_ValidateSequencesNew() interface{} {
-	return &PCR_ValidateSequencesElement{
+func PCR_mmx_ValidateSequencesNew() interface{} {
+	return &PCR_mmx_ValidateSequencesElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &PCR_ValidateSequencesInput{}
+				input := &PCR_mmx_ValidateSequencesInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _PCR_ValidateSequencesRun(_ctx, input)
+				output := _PCR_mmx_ValidateSequencesRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &PCR_ValidateSequencesInput{},
-			Out: &PCR_ValidateSequencesOutput{},
+			In:  &PCR_mmx_ValidateSequencesInput{},
+			Out: &PCR_mmx_ValidateSequencesOutput{},
 		},
 	}
 }
@@ -250,11 +251,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type PCR_ValidateSequencesElement struct {
+type PCR_mmx_ValidateSequencesElement struct {
 	inject.CheckedRunner
 }
 
-type PCR_ValidateSequencesInput struct {
+type PCR_mmx_ValidateSequencesInput struct {
 	AnnealingTime                     wunit.Time
 	Denaturationtime                  wunit.Time
 	Finalextensiontime                wunit.Time
@@ -275,12 +276,12 @@ type PCR_ValidateSequencesInput struct {
 	RevPrimer                         *wtype.LHComponent
 	RevPrimerSeq                      wtype.DNASequence
 	RevPrimerVol                      wunit.Volume
-	Targetsequence                    wtype.DNASequence
 	Template                          *wtype.LHComponent
+	TemplateSequence                  wtype.DNASequence
 	Templatevolume                    wunit.Volume
 }
 
-type PCR_ValidateSequencesOutput struct {
+type PCR_mmx_ValidateSequencesOutput struct {
 	Amplicon             wtype.DNASequence
 	AnnealingTemp        wunit.Temperature
 	ExtensionTemp        wunit.Temperature
@@ -293,7 +294,7 @@ type PCR_ValidateSequencesOutput struct {
 	Revprimermeltingtemp wunit.Temperature
 }
 
-type PCR_ValidateSequencesSOutput struct {
+type PCR_mmx_ValidateSequencesSOutput struct {
 	Data struct {
 		Amplicon             wtype.DNASequence
 		AnnealingTemp        wunit.Temperature
@@ -311,11 +312,11 @@ type PCR_ValidateSequencesSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "PCR_ValidateSequences",
-		Constructor: PCR_ValidateSequencesNew,
+	if err := addComponent(component.Component{Name: "PCR_mmx_ValidateSequences",
+		Constructor: PCR_mmx_ValidateSequencesNew,
 		Desc: component.ComponentDesc{
-			Desc: "Validate that the primers will be expected to bind once each to the template sequence\nexact matches only\n",
-			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/PCR_primerbind.an",
+			Desc: "Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.\nThermocycle conditions are calculated from the input sequences and polymerase name\n",
+			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/PCR_mmx_ValidateSequences.an",
 			Params: []component.ParamDesc{
 				{Name: "AnnealingTime", Desc: "", Kind: "Parameters"},
 				{Name: "Denaturationtime", Desc: "", Kind: "Parameters"},
@@ -337,8 +338,8 @@ func init() {
 				{Name: "RevPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "RevPrimerSeq", Desc: "", Kind: "Parameters"},
 				{Name: "RevPrimerVol", Desc: "", Kind: "Parameters"},
-				{Name: "Targetsequence", Desc: "", Kind: "Parameters"},
 				{Name: "Template", Desc: "", Kind: "Inputs"},
+				{Name: "TemplateSequence", Desc: "", Kind: "Parameters"},
 				{Name: "Templatevolume", Desc: "", Kind: "Parameters"},
 				{Name: "Amplicon", Desc: "", Kind: "Data"},
 				{Name: "AnnealingTemp", Desc: "", Kind: "Data"},
