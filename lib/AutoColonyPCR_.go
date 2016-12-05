@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -9,7 +10,6 @@ import (
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
 	inplate "github.com/antha-lang/antha/target/mixer"
-	"golang.org/x/net/context"
 	"strconv"
 )
 

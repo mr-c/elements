@@ -6,13 +6,13 @@ import // this is the name of the protocol that will be called in a workflow or 
 // we need to import the wtype package to use the LHComponent type
 // the mixer package is required to use the Sample function
 (
+	"context"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 )
 
 // Input parameters for this protocol (data)

@@ -15,12 +15,12 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	// "path/filepath"
 	// antha "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 	"strconv"
 	"strings"
 )
