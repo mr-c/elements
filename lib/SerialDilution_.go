@@ -178,7 +178,7 @@ func init() {
 		Constructor: SerialDilutionNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to make a serial dilution series from a solution and diluent\n",
-			Path: "src/github.com/antha-lang/elements/starter/SerialDilution/SerialDilution.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},

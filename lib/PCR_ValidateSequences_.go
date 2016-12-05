@@ -266,7 +266,7 @@ func init() {
 		Constructor: PCR_ValidateSequencesNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/PCR_primerbind.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/PCR_primerbind.an",
 			Params: []component.ParamDesc{
 				{Name: "AnnealingTemp", Desc: "Should be calculated from primer and template binding\n", Kind: "Parameters"},
 				{Name: "Annealingtime", Desc: "Denaturationtemp Temperature\n", Kind: "Parameters"},
