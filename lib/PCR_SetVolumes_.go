@@ -111,13 +111,22 @@ func _PCR_SetVolumesSteps(_ctx context.Context, _input *PCR_SetVolumesInput, _ou
 	samples = append(samples, templateSample)
 
 	for j := range samples {
+
+		// mix last sample
+		if !_input.Hotstart && j == len(samples)-1 {
+			samples[j].Type = wtype.LTPostMix
+		}
+
 		mastermix = execute.Mix(_ctx, mastermix, samples[j])
+
 	}
 	reaction := mastermix
 
 	// this needs to go after an initial denaturation!
 	if _input.Hotstart {
+
 		polySample := mixer.Sample(_input.PCRPolymerase, _input.PolymeraseVolume)
+		polySample.Type = wtype.LTPostMix
 
 		reaction = execute.Mix(_ctx, reaction, polySample)
 	}

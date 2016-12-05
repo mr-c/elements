@@ -81,13 +81,18 @@ func _PCR_vol_mmxSteps(_ctx context.Context, _input *PCR_vol_mmxInput, _output *
 	samples = append(samples, templateSample)
 
 	for j := range samples {
+		if !_input.PolymeraseAlreadyaddedtoMastermix && j == len(samples)-1 {
+			samples[j].Type = wtype.LTPostMix
+		}
 		mastermix = execute.Mix(_ctx, mastermix, samples[j])
 	}
 	reaction := mastermix
 
 	// this needs to go after an initial denaturation!
 	if !_input.PolymeraseAlreadyaddedtoMastermix {
+
 		polySample := mixer.Sample(_input.PCRPolymerase, _input.PolymeraseVolume)
+		polySample.Type = wtype.LTPostMix
 
 		reaction = execute.Mix(_ctx, reaction, polySample)
 	}

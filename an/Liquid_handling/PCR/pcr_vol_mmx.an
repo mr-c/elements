@@ -115,13 +115,18 @@ Steps {
 
 	
 	for j := range samples { 
+	if !PolymeraseAlreadyaddedtoMastermix && j == len(samples)-1{
+		samples[j].Type = wtype.LTPostMix
+	}
 	mastermix = Mix(mastermix, samples[j])
 	}
 	reaction := mastermix
 
 	// this needs to go after an initial denaturation!
 	if !PolymeraseAlreadyaddedtoMastermix {
+	
 	polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
+	polySample.Type = wtype.LTPostMix
 	
 	reaction = Mix(reaction,polySample)
 	}
