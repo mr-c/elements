@@ -17,12 +17,12 @@ import (
 	"strconv"
 	"strings"
 	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	"context"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 )
 
 //"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"

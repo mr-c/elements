@@ -15,11 +15,11 @@ import (
 	"encoding/csv"
 	"os"
 	//"path/filepath"
+	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 	"time"
 )
 

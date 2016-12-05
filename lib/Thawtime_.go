@@ -3,6 +3,7 @@
 package lib
 
 import (
+	"context"
 	"fmt"                                                                 // we need this go library to print
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/eng" // all of our functions used here are in the Thaw.go file in the eng package which this points to
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -10,7 +11,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 )
 
 /* e.g. the sample volume as frozen by a previous storage protocol;

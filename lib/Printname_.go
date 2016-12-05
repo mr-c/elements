@@ -1,12 +1,12 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 )
 
 // Input parameters for this protocol
