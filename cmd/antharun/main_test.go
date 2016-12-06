@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	testTimeout = 5 * time.Second
+	testTimeout = 30 * time.Second
 )
 
 func makeContext() (context.Context, error) {
@@ -33,7 +33,15 @@ func makeContext() (context.Context, error) {
 	return ctx, nil
 }
 
-func runTestInput(t *testing.T, ctx context.Context, tgt *target.Target, input *executeutil.TestInput) error {
+func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) error {
+	defer func() {
+		if res := recover(); res != nil {
+			t.Error(res)
+		}
+	}()
+	tgt := target.New()
+	tgt.AddDevice(human.New(human.Opt{CanIncubate: true, CanHandle: true, CanMix: true}))
+
 	errs := make(chan error)
 	go func() {
 		// HACK(ddn): Sink chdir inside goroutine to "improve" chances that
@@ -57,11 +65,12 @@ func runTestInput(t *testing.T, ctx context.Context, tgt *target.Target, input *
 	}()
 
 	var err error
+
 	select {
 	case err = <-errs:
 	case <-time.After(testTimeout):
 		// TODO(ddn): reenable timeouts
-		//err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
+		err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
 	}
 
 	if err == nil {
@@ -81,9 +90,6 @@ func inputLabel(input *executeutil.TestInput) string {
 }
 
 func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestInput) {
-	tgt := target.New()
-	tgt.AddDevice(human.New(human.Opt{CanMix: true, CanIncubate: true, CanHandle: true}))
-
 	odir, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -91,7 +97,7 @@ func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestIn
 
 	for _, input := range inputs {
 		in := input
-		t.Run(inputLabel(in), func(t *testing.T) { t.Parallel(); runTestInput(t, ctx, tgt, in) })
+		t.Run(inputLabel(in), func(t *testing.T) { t.Parallel(); runTestInput(t, ctx, in) })
 	}
 
 	if err := os.Chdir(odir); err != nil {
