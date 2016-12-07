@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,7 +18,7 @@ import (
 )
 
 const (
-	testTimeout = 30 * time.Second
+	testTimeout = 5 * time.Second
 )
 
 func makeContext() (context.Context, error) {
@@ -72,8 +73,10 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 	select {
 	case err = <-errs:
 	case <-time.After(testTimeout):
-		// TODO(ddn): reenable timeouts
-		//err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
+		err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
+		if inputMatches(input, string(filepath.Separator)+"long") {
+			err = nil
+		}
 	}
 
 	if err == nil {
@@ -90,22 +93,22 @@ func inputLabel(input *executeutil.TestInput) string {
 	return fmt.Sprintf("workflow %q with parameters %q", input.WorkflowPath, input.ParamsPath)
 }
 
-func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestInput) {
-	matches := func(in *executeutil.TestInput, xs []string) bool {
-		if len(xs) == 0 {
-			return true
-		}
-
-		for _, x := range xs {
-			for _, p := range in.Paths() {
-				if strings.Contains(p, x) {
-					return true
-				}
-			}
-		}
-		return false
+func inputMatches(in *executeutil.TestInput, xs ...string) bool {
+	if len(xs) == 0 {
+		return true
 	}
 
+	for _, x := range xs {
+		for _, p := range in.Paths() {
+			if strings.Contains(p, x) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestInput) {
 	args := flag.Args()
 
 	odir, err := os.Getwd()
@@ -115,11 +118,11 @@ func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestIn
 
 	for _, input := range inputs {
 		in := input
-		if !matches(in, args) {
+		if !inputMatches(in, args...) {
 			continue
 		}
 
-		t.Run(inputLabel(in), func(t *testing.T) { t.Parallel(); runTestInput(t, ctx, in) })
+		t.Run(inputLabel(in), func(t *testing.T) { runTestInput(t, ctx, in) })
 	}
 
 	if err := os.Chdir(odir); err != nil {
