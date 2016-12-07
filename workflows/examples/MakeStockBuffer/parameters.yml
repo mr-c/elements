@@ -2,5 +2,5 @@ Parameters:
   StockBuffer:
     Diluent: water
     MassAddedinG: 0.01538g
-    Moleculename: Acid yellow 23
+    Moleculename: glucose
     TotalVolume: 100ml
