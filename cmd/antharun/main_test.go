@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
-	"github.com/antha-lang/antha/bvendor/golang.org/x/net/context"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/execute/executeutil"
 	"github.com/antha-lang/antha/inject"
@@ -33,7 +35,7 @@ func makeContext() (context.Context, error) {
 	return ctx, nil
 }
 
-func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) error {
+func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) {
 	defer func() {
 		if res := recover(); res != nil {
 			t.Error(res)
@@ -44,6 +46,7 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 
 	errs := make(chan error)
 	go func() {
+		defer close(errs)
 		// HACK(ddn): Sink chdir inside goroutine to "improve" chances that
 		// golang scheduler puts this goroutine on the os thread
 		// corresponding to the chdir call.
@@ -70,15 +73,13 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 	case err = <-errs:
 	case <-time.After(testTimeout):
 		// TODO(ddn): reenable timeouts
-		err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
+		//err = fmt.Errorf("timeout after %ds", testTimeout/time.Second)
 	}
 
 	if err == nil {
-		return nil
 	} else if _, ok := err.(*execute.Error); ok {
-		return nil
 	} else {
-		return fmt.Errorf("error running %s: %s", inputLabel(input), err)
+		t.Errorf("error running %s: %s", inputLabel(input), err)
 	}
 }
 
@@ -90,6 +91,23 @@ func inputLabel(input *executeutil.TestInput) string {
 }
 
 func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestInput) {
+	matches := func(in *executeutil.TestInput, xs []string) bool {
+		if len(xs) == 0 {
+			return true
+		}
+
+		for _, x := range xs {
+			for _, p := range in.Paths() {
+				if strings.Contains(p, x) {
+					return true
+				}
+			}
+		}
+		return false
+	}
+
+	args := flag.Args()
+
 	odir, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -97,6 +115,10 @@ func runElements(t *testing.T, ctx context.Context, inputs []*executeutil.TestIn
 
 	for _, input := range inputs {
 		in := input
+		if !matches(in, args) {
+			continue
+		}
+
 		t.Run(inputLabel(in), func(t *testing.T) { t.Parallel(); runTestInput(t, ctx, in) })
 	}
 
@@ -131,6 +153,8 @@ func findInputs(basePaths ...string) ([]*executeutil.TestInput, error) {
 }
 
 func TestElementsWithExampleInputs(t *testing.T) {
+	flag.Parse()
+
 	ctx, err := makeContext()
 	if err != nil {
 		t.Fatal(err)
