@@ -40,12 +40,6 @@ func _MakePalette_OneByOneSetup(_ctx context.Context, _input *MakePalette_OneByO
 // for every input
 func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByOneInput, _output *MakePalette_OneByOneOutput) {
 
-	//var chosencolourpalette color.Palette
-
-	//chosencolourpalette := image.AvailablePalettes["Plan9"]
-
-	//positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate)
-
 	if _input.PosterizeImage {
 		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
 	}
@@ -58,8 +52,6 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
-
-	//fmt.Println("positions", positiontocolourmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
@@ -93,11 +85,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 						cyanvol.SetValue(0.5)
 					}
 
-					//if cmyk.K == 0 && cmyk.M == 0 && cmyk.Y == 0{
 					_input.Cyan.Type = wtype.LTDISPENSEABOVE
-					//}else {
-					//Cyan.Type = wtype.LTPostMix
-					//}
 
 					cyanSample := mixer.Sample(_input.Cyan, cyanvol)
 					components = append(components, cyanSample)
@@ -163,7 +151,6 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 	_output.Numberofcolours = len(chosencolourpalette)
 	_output.Palette = chosencolourpalette
 	_output.ColourtoComponentMap = colourtoComponentMap
-	//fmt.Println("Unique Colours =",Numberofcolours,"from palette:", chosencolourpalette)
 
 }
 

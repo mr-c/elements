@@ -2,12 +2,10 @@
 package lib
 
 import (
+	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/microArch/factory"
-	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -17,8 +15,6 @@ import (
 )
 
 // Input parameters for this protocol (data)
-
-//AvailableColours []string
 
 // Data which is returned from this protocol, and data types
 
@@ -62,7 +58,7 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 		if componentpresent {
 
 			if _input.LiquidType != "" {
-				component.Type, err = wtype.LiquidTypeFromString(_input.LiquidType) //"DoNotMix"
+				component.Type, err = wtype.LiquidTypeFromString(_input.LiquidType)
 
 				if err != nil {
 					execute.Errorf(_ctx, "for component", component.CName, err.Error())
@@ -92,7 +88,6 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 	}
 	_output.Pixels = solutions
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 
 }
 
@@ -197,7 +192,7 @@ func init() {
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
 				{Name: "LiquidType", Desc: "", Kind: "Parameters"},
 				{Name: "NotthisColour", Desc: "", Kind: "Parameters"},
-				{Name: "OnlythisColour", Desc: "AvailableColours []string\n", Kind: "Parameters"},
+				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Palette", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
