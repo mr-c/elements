@@ -130,7 +130,7 @@ func TestElementsWithExampleInputs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	inputs, err := findInputs("../../workflows", "workflows")
+	inputs, err := findInputs("../../workflows", "workflows", "../../defaults", "defaults")
 	if err != nil {
 		t.Fatal(err)
 	}
