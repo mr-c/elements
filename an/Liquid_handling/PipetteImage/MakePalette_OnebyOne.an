@@ -59,11 +59,6 @@ Setup {
 // for every input
 Steps {
 	
-	//var chosencolourpalette color.Palette
-	
-	//chosencolourpalette := image.AvailablePalettes["Plan9"] 
-	
-	//positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate) 
 	
 	if PosterizeImage{
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
@@ -78,8 +73,6 @@ Steps {
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
-	
-	//fmt.Println("positions", positiontocolourmap)
 	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
@@ -114,13 +107,9 @@ Steps {
 		if cyanvol.RawValue() < 0.5 && cyanvol.Unit().PrefixedSymbol() == "ul"{
 				cyanvol.SetValue(0.5)
 			}
-		
-		//if cmyk.K == 0 && cmyk.M == 0 && cmyk.Y == 0{
+	
 		Cyan.Type  =	wtype.LTDISPENSEABOVE
-		//}else {
-		//Cyan.Type = wtype.LTPostMix
-		//}
-		
+			
 		cyanSample := mixer.Sample(Cyan, cyanvol)
 		components = append(components, cyanSample)
 		}
@@ -187,7 +176,6 @@ Steps {
 	Numberofcolours = len(chosencolourpalette)
 	Palette = chosencolourpalette
 	ColourtoComponentMap = colourtoComponentMap
-	//fmt.Println("Unique Colours =",Numberofcolours,"from palette:", chosencolourpalette)
 
 }
 // Run after controls and a steps block are completed to

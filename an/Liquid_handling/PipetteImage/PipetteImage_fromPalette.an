@@ -20,7 +20,6 @@ Parameters (
 	Imagefilename string
 	Palette color.Palette
 	ColourIndextoComponentMap map[string]*wtype.LHComponent
-	//AvailableColours []string
 	OnlythisColour string
 	NotthisColour string
 	Rotate bool
@@ -85,7 +84,7 @@ Steps {
 		if componentpresent {
 		
 		if LiquidType != ""{
-		component.Type, err = wtype.LiquidTypeFromString(LiquidType)//"DoNotMix"
+		component.Type, err = wtype.LiquidTypeFromString(LiquidType)
 		
 		if err != nil {
 			Errorf("for component",component.CName, err.Error())
@@ -115,7 +114,6 @@ Steps {
 	}
 	Pixels = solutions
 	Numberofpixels = len(Pixels)
-	fmt.Println("Pixels =",Numberofpixels)
 	
 }
 // Run after controls and a steps block are completed to
