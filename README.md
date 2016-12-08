@@ -17,6 +17,12 @@ make
 make current
 ```
 
+or run this command from anywhere:
+```sh
+make -C $HOME/go/src/github.com/antha-lang/elements
+```
+
+
 By default, `make` will download and update any dependent libraries. If you
 have any modifications to these dependencies (e.g., non-master branches), `make
 current` will build elements without updating any dependent libraries.
