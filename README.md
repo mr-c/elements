@@ -19,7 +19,7 @@ make current
 
 or run this command from anywhere:
 ```sh
-make -C $HOME/go/src/github.com/antha-lang/elements
+make -C "$(go list -f '{{.Dir}}' github.com/antha-lang/elements)"
 ```
 
 
