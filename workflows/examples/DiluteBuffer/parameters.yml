@@ -1,7 +1,7 @@
 Parameters:
   DiluteBuffer:
     BufferVolumeAdded: 1ul
-    Bufferstock: Acid yellow 23
+    Bufferstock: PEG
     Bufferstockconc: 0.006M/l
     Diluent: water
     DiluentVolume: 45ul
