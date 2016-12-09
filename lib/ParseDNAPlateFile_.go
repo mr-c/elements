@@ -6,6 +6,7 @@ import
 // we need to import the wtype package to use the LHComponent type
 // the mixer package is required to use the Sample function
 (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -14,7 +15,6 @@ import
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
-	"golang.org/x/net/context"
 	"strings"
 )
 

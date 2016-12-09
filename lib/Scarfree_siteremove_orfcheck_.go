@@ -8,6 +8,7 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
@@ -23,7 +24,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"golang.org/x/net/context"
 	"strconv"
 	"strings"
 )
