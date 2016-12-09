@@ -13,6 +13,17 @@ antharun --parameters parameters.yml --workflow myamazingworkflow.json
 
 _____________
 
+antharun --bundle
+
+By default the antharun command uses a parameters file named parameters.json and a workflow file named workflow.json. 
+If these files are named differently you’ll need to use the --parameters and/or --workflow flags to specify which files to use.
+
+1.
+To run the combined parameters and workflow bundle found in this folder you'll need to run this:
+
+antharun --bundle bundle.json 
+
+_____________
 
 antharun --inputPlateType
 
