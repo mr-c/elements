@@ -9,7 +9,7 @@ ________________
 
 If a workflow or parameters set is changed you can rerun using antharun at any time. 
 
-If you need to change the source code however, you'll need to recompile
+If you need to change the source code however, you'll need to recompile by running anthabuild.
 
 
 ## anthabuild
@@ -26,7 +26,7 @@ if you haven't set up the anthabuild alias you can do so here:
 
 1. Modify the Sample.an file so that a additional Sample output is created called Sample2; modify the steps so that Sample2 is created in the same way as Sample, i.e. with the same Solution input and SolutionVolume.
 
-You'll need to run anthabuild since the source code is being modified. If you get an error along the way, you'll need to resolve it before being able to run th emodified element.
+You'll need to run anthabuild since the source code is being modified. If you get an error along the way, you'll need to resolve it before being able to run the modified element.
 
 ## Next Steps
 

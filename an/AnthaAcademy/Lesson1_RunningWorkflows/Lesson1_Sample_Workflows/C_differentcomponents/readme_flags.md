@@ -3,13 +3,13 @@
 
 antharun --parameters --workflow
 
-By default the antharun command uses a parameters file named parameters.yml and a workflow file named workflow.json. 
+By default the antharun command uses a parameters file named parameters.json and a workflow file named workflow.json. 
 If these files are named differently you’ll need to use the --parameters and/or --workflow flags to specify which files to use.
 
 1.
 To run the parameters found in this folder you'll need to run this:
 
-antharun --parameters parameters.json --workflow myamazingworkflow.json
+antharun --parameters parameters.yml --workflow myamazingworkflow.json
 
 _____________
 
@@ -17,7 +17,8 @@ _____________
 antharun --inputPlateType
 
 2. e.g. antharun --inputPlateType greiner384
-This allows the type of input plate to be specified from the list of available plate types in github.com/antha-lang/antha/microArch/factory/make_plate_library.go
+This allows the type of input plate to be specified from the list of available Antha plate types. 
+The available plates can be found by running the ```antharun lhplates``` command
 
  
 _____________
@@ -26,7 +27,7 @@ antharun --inputPlates
 
 3. e.g. antharun --inputPlates inputplate.csv 
 This allows user defined input plates to be defined. If this is not chosen antha will decide upon the layout.
-More than one inputplate can be defined: this waould be done like so:
+More than one inputplate can be defined: this would be done like so:
 antharun --inputPlates assemblyreagents.csv --inputPlates assemblyparts.csv
 
 _____________

@@ -42,6 +42,12 @@ The example parameters files in these folders show how to set variables specifie
  
 One of the key variables you'll likely want to set are the liquid handling components. (wtype.LHComponent) 
 
+
+### Bundle:
+Instead of specifying a workflow and parameters separately a second option also exists where the workflow and parameters are combined into one file. We call this file a bundle.
+
+
+
 ## Excercises
 
 1. Define the following:
@@ -49,6 +55,7 @@ One of the key variables you'll likely want to set are the liquid handling compo
 (a) element
 (b) workflow
 (c) parameters
+(d) bundle
 
 ## Next Steps
 
