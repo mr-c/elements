@@ -27,6 +27,8 @@ import (
 
 // Physical Inputs to this protocol with types
 
+// the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it
+
 // e.g. DMSO
 
 // Physical outputs from this protocol with types
@@ -42,9 +44,22 @@ func _PCR_SetVolumesSetup(_ctx context.Context, _input *PCR_SetVolumesInput) {
 // for every input
 func _PCR_SetVolumesSteps(_ctx context.Context, _input *PCR_SetVolumesInput, _output *PCR_SetVolumesOutput) {
 
-	// rename components
+	// liquidhandling components all have a defined liquid class which
+	// determines how they'll be pipetted (e.g. glycerol is viscous so must be
+	// pipetted more slowly than water). For this reason when we define an LHComponent it must be based on
+	// one which exists in antha already so antha knows how it should be pipetted.
+	// We can rename them though by inputting the component name as a parameter
+
+	// The LHComponent type has many properties and behaviours which you can call upon using a period
+	// For example, an LHComponent's name is stored as a field called CName.
+	// We can change the name of the LHComponent Template to the string TemplateName like so
 
 	_input.Template.CName = _input.TemplateName
+	// The Template and TemplateName variables are declared above and given a type
+	// Template is an LHComponent which is a physical input so it's declared in the Inputs section.
+	// TemplateName is a string so just data input; it is therefore delcared in the parameters section.
+
+	// Now do the same for the primers
 	_input.FwdPrimer.CName = _input.FwdPrimerName
 	_input.RevPrimer.CName = _input.RevPrimerName
 
@@ -307,7 +322,7 @@ func init() {
 				{Name: "RevPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "RevPrimerName", Desc: "", Kind: "Parameters"},
 				{Name: "RevPrimerVol", Desc: "", Kind: "Parameters"},
-				{Name: "Template", Desc: "", Kind: "Inputs"},
+				{Name: "Template", Desc: "the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it\n", Kind: "Inputs"},
 				{Name: "TemplateName", Desc: "", Kind: "Parameters"},
 				{Name: "Templatevolume", Desc: "", Kind: "Parameters"},
 				{Name: "Water", Desc: "", Kind: "Inputs"},
