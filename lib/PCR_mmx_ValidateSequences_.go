@@ -157,17 +157,17 @@ func _PCR_mmx_ValidateSequencesSteps(_ctx context.Context, _input *PCR_mmx_Valid
 
 	// work out annealing temperature
 
-	_output.Fwdprimermeltingtemp = oligos.BasicMeltingTemp(_input.FwdPrimerSeq)
+	_output.FwdPrimerMeltingTemp = oligos.BasicMeltingTemp(_input.FwdPrimerSeq)
 
-	_output.Revprimermeltingtemp = oligos.BasicMeltingTemp(_input.RevPrimerSeq)
+	_output.RevPrimerMeltingTemp = oligos.BasicMeltingTemp(_input.RevPrimerSeq)
 
 	// check which primer has the lowest melting temperature
-	if _output.Fwdprimermeltingtemp.SIValue() < _output.Revprimermeltingtemp.SIValue() {
+	if _output.FwdPrimerMeltingTemp.SIValue() < _output.RevPrimerMeltingTemp.SIValue() {
 		// start PCR 3 degress below lowest melting temp
-		_output.AnnealingTemp = wunit.NewTemperature(_output.Fwdprimermeltingtemp.SIValue()-3.0, "C")
+		_output.AnnealingTemp = wunit.NewTemperature(_output.FwdPrimerMeltingTemp.SIValue()-3.0, "C")
 	} else {
 		// start PCR 3 degress below lowest melting temp
-		_output.AnnealingTemp = wunit.NewTemperature(_output.Revprimermeltingtemp.SIValue()-3.0, "C")
+		_output.AnnealingTemp = wunit.NewTemperature(_output.RevPrimerMeltingTemp.SIValue()-3.0, "C")
 	}
 
 	// initial Denaturation
@@ -286,12 +286,12 @@ type PCR_mmx_ValidateSequencesOutput struct {
 	AnnealingTemp        wunit.Temperature
 	ExtensionTemp        wunit.Temperature
 	ExtensionTime        wunit.Time
+	FwdPrimerMeltingTemp wunit.Temperature
 	FwdPrimerSites       []search.Thingfound
-	Fwdprimermeltingtemp wunit.Temperature
 	MeltingTemp          wunit.Temperature
 	Reaction             *wtype.LHComponent
+	RevPrimerMeltingTemp wunit.Temperature
 	RevPrimerSites       []search.Thingfound
-	Revprimermeltingtemp wunit.Temperature
 }
 
 type PCR_mmx_ValidateSequencesSOutput struct {
@@ -300,11 +300,11 @@ type PCR_mmx_ValidateSequencesSOutput struct {
 		AnnealingTemp        wunit.Temperature
 		ExtensionTemp        wunit.Temperature
 		ExtensionTime        wunit.Time
+		FwdPrimerMeltingTemp wunit.Temperature
 		FwdPrimerSites       []search.Thingfound
-		Fwdprimermeltingtemp wunit.Temperature
 		MeltingTemp          wunit.Temperature
+		RevPrimerMeltingTemp wunit.Temperature
 		RevPrimerSites       []search.Thingfound
-		Revprimermeltingtemp wunit.Temperature
 	}
 	Outputs struct {
 		Reaction *wtype.LHComponent
@@ -345,12 +345,12 @@ func init() {
 				{Name: "AnnealingTemp", Desc: "", Kind: "Data"},
 				{Name: "ExtensionTemp", Desc: "", Kind: "Data"},
 				{Name: "ExtensionTime", Desc: "", Kind: "Data"},
+				{Name: "FwdPrimerMeltingTemp", Desc: "", Kind: "Data"},
 				{Name: "FwdPrimerSites", Desc: "", Kind: "Data"},
-				{Name: "Fwdprimermeltingtemp", Desc: "", Kind: "Data"},
 				{Name: "MeltingTemp", Desc: "", Kind: "Data"},
 				{Name: "Reaction", Desc: "", Kind: "Outputs"},
+				{Name: "RevPrimerMeltingTemp", Desc: "", Kind: "Data"},
 				{Name: "RevPrimerSites", Desc: "", Kind: "Data"},
-				{Name: "Revprimermeltingtemp", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

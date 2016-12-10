@@ -47,8 +47,8 @@ Data (
 	Amplicon wtype.DNASequence
 	FwdPrimerSites []search.Thingfound
 	RevPrimerSites []search.Thingfound
-	Fwdprimermeltingtemp Temperature
-	Revprimermeltingtemp Temperature
+	FwdPrimerMeltingTemp Temperature
+	RevPrimerMeltingTemp Temperature
 	AnnealingTemp Temperature
 	ExtensionTime Time
 	ExtensionTemp Temperature
@@ -212,17 +212,17 @@ Steps {
 
 	// work out annealing temperature
 	
-	Fwdprimermeltingtemp = oligos.BasicMeltingTemp(FwdPrimerSeq)
+	FwdPrimerMeltingTemp = oligos.BasicMeltingTemp(FwdPrimerSeq)
 	
-	Revprimermeltingtemp = oligos.BasicMeltingTemp(RevPrimerSeq)
+	RevPrimerMeltingTemp = oligos.BasicMeltingTemp(RevPrimerSeq)
 
 	// check which primer has the lowest melting temperature
-	if Fwdprimermeltingtemp.SIValue() < Revprimermeltingtemp.SIValue(){
+	if FwdPrimerMeltingTemp.SIValue() < RevPrimerMeltingTemp.SIValue(){
 		// start PCR 3 degress below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(Fwdprimermeltingtemp.SIValue()- 3.0,"C")
+		AnnealingTemp = wunit.NewTemperature(FwdPrimerMeltingTemp.SIValue()- 3.0,"C")
 	}else{
 		// start PCR 3 degress below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(Revprimermeltingtemp.SIValue()- 3.0,"C")
+		AnnealingTemp = wunit.NewTemperature(RevPrimerMeltingTemp.SIValue()- 3.0,"C")
 	}
 
 	// initial Denaturation
