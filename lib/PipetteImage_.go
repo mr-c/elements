@@ -2,22 +2,27 @@
 package lib
 
 import (
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"context"
-	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
 	"image/color"
+	"sort"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
+
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
@@ -37,6 +42,29 @@ func _PipetteImageSetup(_ctx context.Context, _input *PipetteImageInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output *PipetteImageOutput) {
+
+	// if image is from url, download
+	if _input.UseURL {
+		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
+	// check that palette name is valid
+	_, ok := image.AvailablePalettes()[_input.Palettename]
+
+	if !ok {
+		var validpalettes []string
+
+		for key := range image.AvailablePalettes() {
+			validpalettes = append(validpalettes, key)
+		}
+
+		sort.Strings(validpalettes)
+
+		execute.Errorf(_ctx, "Palette", _input.Palettename, "not available. Valid entries are: ", strings.Join(validpalettes, ","))
+	}
 
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
@@ -108,8 +136,6 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type, _ = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
 
-		//fmt.Println(image.Colourcomponentmap[colour])
-
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if _input.OnlythisColour != "" {
 
@@ -118,7 +144,6 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
 				counter = counter + 1
-				//	fmt.Println("wells",OnlythisColour, counter)
 
 				pixelSample := mixer.Sample(component, _input.VolumePerWell)
 
@@ -133,7 +158,6 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
 				counter = counter + 1
-				//	fmt.Println("wells not ",Notthiscolour,counter)
 
 				component.Type, _ = wtype.LiquidTypeFromString(_input.UseLiquidClass)
 				pixelSample := mixer.Sample(component, _input.VolumePerWell)
@@ -146,12 +170,9 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	}
 
 	_output.UniqueComponents = search.RemoveDuplicates(_output.UniqueComponents)
-	fmt.Println("Unique Components:", _output.UniqueComponents)
-	fmt.Println("number of unique components", len(_output.UniqueComponents))
 	_output.Pixels = solutions
 
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 
 }
 
@@ -225,8 +246,10 @@ type PipetteImageInput struct {
 	Rotate                bool
 	Subset                bool
 	Subsetnames           []string
+	URL                   string
 	UVimage               bool
 	UseLiquidClass        string
+	UseURL                bool
 	VolumePerWell         wunit.Volume
 }
 
@@ -256,7 +279,7 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -264,8 +287,10 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},

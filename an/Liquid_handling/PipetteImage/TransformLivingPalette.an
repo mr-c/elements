@@ -4,12 +4,12 @@ protocol TransformLivingPalette
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"fmt"
-	 "image/color"
+	"image/color"
 	"strconv"
 )
 
@@ -21,7 +21,9 @@ Parameters (
 	/*AntibioticVolume Volume
 	InducerVolume Volume
 	RepressorVolume Volume*/
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -107,6 +109,14 @@ Steps {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
 
+
+	// if image is from url, download
+	if UseURL {
+		_, err := download.UrlToFile(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
 	
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed

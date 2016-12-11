@@ -4,11 +4,10 @@ protocol PipetteImage_living
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
-	"fmt"
 	 "image/color"
 )
 
@@ -16,11 +15,9 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	//InoculationVolume Volume
-	/*AntibioticVolume Volume
-	InducerVolume Volume
-	RepressorVolume Volume*/
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -30,8 +27,7 @@ Parameters (
 	Subset bool
 	UseLiquidClass string
 	Subsetnames []string
-	//IncTemp Temperature
-	//IncTime Time
+
 )
 
 // Data which is returned from this protocol, and data types
@@ -43,11 +39,7 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	//InPlate *wtype.LHPlate
-	//Media *wtype.LHComponent
-	/*Antibiotic *wtype.LHComponent
-	Inducer *wtype.LHComponent
-	Repressor *wtype.LHComponent*/
+	
 	ComponentType *wtype.LHComponent
 	OutPlate *wtype.LHPlate
 )
@@ -69,6 +61,14 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
+	// if image is from url, download
+	if UseURL {
+		_, err := download.UrlToFile(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
 	
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
@@ -123,7 +123,6 @@ Steps {
 		componentmap[componentname] = componenttopick
 
 	}
-//	fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -133,20 +132,16 @@ Steps {
 
 // loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
-		
-		//components := make([]*wtype.LHComponent, 0)
-		
+				
 		component := componentmap[colourtostringmap[colour]]
 
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type, err = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
 		
 		if err != nil {
-			panic(err.Error())
+			Errorf(err.Error())
 		}
-		
-	//	fmt.Println(image.Colourcomponentmap[colour])
-		
+				
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if OnlythisColour !="" {
 	
@@ -155,17 +150,8 @@ Steps {
 			UniqueComponents = append(UniqueComponents,component.CName)
 			
 			counter = counter + 1
-	//		fmt.Println("wells",OnlythisColour, counter)
-		//mediaSample := mixer.SampleForTotalVolume(Media, VolumePerWell)
-		//components = append(components,mediaSample)
-		/*antibioticSample := mixer.Sample(Antibiotic, AntibioticVolume)
-		components = append(components,antibioticSample)
-		repressorSample := mixer.Sample(Repressor, RepressorVolume)
-		components = append(components,repressorSample)
-		inducerSample := mixer.Sample(Inducer, InducerVolume)
-		components = append(components,inducerSample)*/
+
 		pixelSample := mixer.Sample(component, VolumePerWell)
-		//components = append(components,pixelSample)
 		solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
 		
 		solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
@@ -177,17 +163,8 @@ Steps {
 			UniqueComponents = append(UniqueComponents,component.CName)
 			
 			counter = counter + 1
-	//		fmt.Println("wells not ",Notthiscolour,counter)
-		//mediaSample := mixer.SampleForTotalVolume(Media, VolumePerWell)
-		//components = append(components,mediaSample)
-		/*antibioticSample := mixer.Sample(Antibiotic, AntibioticVolume)
-		components = append(components,antibioticSample)
-		repressorSample := mixer.Sample(Repressor, RepressorVolume)
-		components = append(components,repressorSample)
-		inducerSample := mixer.Sample(Inducer, InducerVolume)
-		components = append(components,inducerSample)*/
 		
-		component.Type,err = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
+		component.Type,err = wtype.LiquidTypeFromString(UseLiquidClass)
 		
 		if err != nil {
 			panic(err.Error())
@@ -195,7 +172,7 @@ Steps {
 		
 		
 		pixelSample := mixer.Sample(component, VolumePerWell)
-		//components = append(components,pixelSample)
+		
 		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
 		
 		solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
@@ -204,12 +181,11 @@ Steps {
 	}
 
 	UniqueComponents = search.RemoveDuplicates(UniqueComponents)
-	fmt.Println("Unique Components:",UniqueComponents)
-	fmt.Println("number of unique components",len(UniqueComponents))
+	
 	Pixels = solutions
 	
 	Numberofpixels = len(Pixels)
-	fmt.Println("Pixels =",Numberofpixels)
+
 	
 }
 

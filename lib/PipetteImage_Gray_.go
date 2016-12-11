@@ -3,7 +3,7 @@ package lib
 
 import (
 	"context"
-	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -16,6 +16,9 @@ import (
 
 // Input parameters for this protocol (data)
 
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 // above this value pure black will be dispensed
 
@@ -39,6 +42,14 @@ func _PipetteImage_GraySetup(_ctx context.Context, _input *PipetteImage_GrayInpu
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInput, _output *PipetteImage_GrayOutput) {
+
+	// if image is from url, download
+	if _input.UseURL {
+		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
 
 	var blackvol wunit.Volume
 
@@ -73,10 +84,7 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 
 	for locationkey, colour := range positiontocolourmap {
 
-		//components := make([]*wtype.LHComponent, 0)
-
 		var solution *wtype.LHComponent
-		//var mixedsolution *wtype.LHComponent
 
 		gray := image.ColourtoGrayscale(colour)
 
@@ -89,12 +97,9 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 
 		fullblackuint8 = uint8(_input.MaxBlackPercentagethreshold * float64(maxuint8))
 
-		//	fmt.Println("brand new minuint8 ",minuint8,"fullblackuint8 ", fullblackuint8)
-
 		if gray.Y < minuint8 {
 			if _input.SkipWhite {
 				skipped = skipped + 1
-				//	fmt.Println("skipping well:", skipped,locationkey)
 			} else {
 				whitevol := _input.VolumeForFullcolour
 				_input.Diluent.Type, _ = wtype.LiquidTypeFromString(_input.NonMixingClass)
@@ -120,7 +125,6 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 
 			if gray.Y < fullblackuint8 /*&& gray.Y >= minuint8*/ {
 				watervol := wunit.NewVolume((float64(maxuint8-gray.Y) / float64(maxuint8) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
-				//			fmt.Println("new well", locationkey, "water vol", watervol.ToString())
 				// force hv tip choice
 				if _input.OnlyHighVolumetips && watervol.RawValue() < 21 && watervol.Unit().PrefixedSymbol() == "ul" {
 					watervol.SetValue(21)
@@ -131,15 +135,10 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 			}
 			if gray.Y >= fullblackuint8 {
 				fullblack = fullblack + 1
-				//		fmt.Println("full colours:", fullblack)
 				blackvol = _input.VolumeForFullcolour
 			} else {
 				blackvol = wunit.NewVolume((float64(gray.Y) / float64(maxuint8) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 			}
-
-			//	fmt.Println("new well", locationkey, "black vol", blackvol.ToString())
-
-			//Black.Type = wtype.LiquidTypeFromString("NeedToMix")
 
 			if _input.DontMix {
 				_input.Black.Type = wtype.LTDISPENSEABOVE
@@ -149,13 +148,11 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 				_input.Black.Type, _ = wtype.LiquidTypeFromString(_input.MixingLiquidClass)
 			}
 
-			//fmt.Println("blackvol2",blackvol.ToString())
 			if _input.OnlyHighVolumetips && blackvol.RawValue() < 21 && blackvol.Unit().PrefixedSymbol() == "ul" {
 				blackvol.SetValue(21)
 			}
 
 			blackSample := mixer.Sample(_input.Black, blackvol)
-			//components = append(components, blackSample)
 
 			if solution != nil {
 				solution = execute.Mix(_ctx, solution, blackSample)
@@ -170,7 +167,6 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 	_output.NumberofShadesofGrey = len(_output.ShadesofGrey)
 	_output.Pixels = solutions
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 	_output.Fullblack = fullblack
 	_output.Skipped = skipped
 
@@ -252,6 +248,8 @@ type PipetteImage_GrayInput struct {
 	PosterizeLevels                 int
 	Rotate                          bool
 	SkipWhite                       bool
+	URL                             string
+	UseURL                          bool
 	VolumeForFullcolour             wunit.Volume
 }
 
@@ -289,7 +287,7 @@ func init() {
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DontMix", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "MaxBlackPercentagethreshold", Desc: "above this value pure black will be dispensed\n", Kind: "Parameters"},
 				{Name: "MinimumBlackpercentagethreshold", Desc: "as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white\n", Kind: "Parameters"},
 				{Name: "MixingLiquidClass", Desc: "", Kind: "Parameters"},
@@ -301,6 +299,8 @@ func init() {
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "SkipWhite", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Fullblack", Desc: "", Kind: "Data"},
 				{Name: "NumberofShadesofGrey", Desc: "", Kind: "Data"},

@@ -4,18 +4,19 @@ protocol PipetteImage_fromPalette
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"image/color"
 	"strconv"
-
-
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Palette color.Palette
 	ColourIndextoComponentMap map[string]*wtype.LHComponent
 	OnlythisColour string
@@ -56,6 +57,14 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
+	// if image is from url, download
+	if UseURL {
+		_, err := download.UrlToFile(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
 	
 	var err error
 	
