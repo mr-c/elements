@@ -13,6 +13,7 @@ import (
 	"github.com/antha-lang/antha/inject"
 	"image/color"
 	"strconv"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -64,40 +65,55 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 	for locationkey, colour := range positiontocolourmap {
 
-		colourindex := strconv.Itoa(_input.Palette.Index(colour))
+		// temp skip of wells with x, e.g. x1,x2,x12
+		if !strings.Contains(locationkey, "x") && !strings.Contains(locationkey, "X") {
 
-		component, componentpresent := _input.ColourIndextoComponentMap[colourindex]
+			colourindex := strconv.Itoa(_input.Palette.Index(colour))
 
-		if componentpresent {
+			component, componentpresent := _input.ColourIndextoComponentMap[colourindex]
 
-			if _input.LiquidType != "" {
-				component.Type, err = wtype.LiquidTypeFromString(_input.LiquidType)
+			/*
+				if !componentpresent {
 
-				if err != nil {
-					execute.Errorf(_ctx, "for component", component.CName, err.Error())
+
+				for key, _ := range ColourIndextoComponentMap {
+					foundthese = append(foundthese,key)
 				}
+				sort.Strings(foundthese)
+				Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
+				}
+			*/
+
+			if componentpresent {
+
+				if _input.LiquidType != "" {
+					component.Type, err = wtype.LiquidTypeFromString(_input.LiquidType)
+
+					if err != nil {
+						execute.Errorf(_ctx, "for component", component.CName, err.Error())
+					}
+				}
+				if _input.OnlythisColour != "" {
+
+					if image.Colourcomponentmap[colour] == _input.OnlythisColour {
+						counter = counter + 1
+
+						pixelSample := mixer.Sample(component, _input.VolumePerWell)
+						solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
+						solutions = append(solutions, solution)
+					}
+
+				} else {
+					if component.CName != _input.NotthisColour {
+						counter = counter + 1
+						pixelSample := mixer.Sample(component, _input.VolumePerWell)
+						solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
+						solutions = append(solutions, solution)
+					}
+				}
+
 			}
-			if _input.OnlythisColour != "" {
-
-				if image.Colourcomponentmap[colour] == _input.OnlythisColour {
-					counter = counter + 1
-
-					pixelSample := mixer.Sample(component, _input.VolumePerWell)
-					solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
-					solutions = append(solutions, solution)
-				}
-
-			} else {
-				if component.CName != _input.NotthisColour {
-					counter = counter + 1
-					pixelSample := mixer.Sample(component, _input.VolumePerWell)
-					solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
-					solutions = append(solutions, solution)
-				}
-			}
-
 		}
-
 	}
 	_output.Pixels = solutions
 	_output.Numberofpixels = len(_output.Pixels)
