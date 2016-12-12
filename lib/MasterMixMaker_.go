@@ -75,6 +75,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
 
 	_output.Mastermix = mastermix
+	_output.PlateWithMastermix = _input.OutPlate
 
 	_output.Status = "Mastermix Made"
 
@@ -145,8 +146,9 @@ type MasterMixMakerInput struct {
 }
 
 type MasterMixMakerOutput struct {
-	Mastermix *wtype.LHComponent
-	Status    string
+	Mastermix          *wtype.LHComponent
+	PlateWithMastermix *wtype.LHPlate
+	Status             string
 }
 
 type MasterMixMakerSOutput struct {
@@ -154,7 +156,8 @@ type MasterMixMakerSOutput struct {
 		Status string
 	}
 	Outputs struct {
-		Mastermix *wtype.LHComponent
+		Mastermix          *wtype.LHComponent
+		PlateWithMastermix *wtype.LHPlate
 	}
 }
 
@@ -170,6 +173,7 @@ func init() {
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
+				{Name: "PlateWithMastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 			},
 		},

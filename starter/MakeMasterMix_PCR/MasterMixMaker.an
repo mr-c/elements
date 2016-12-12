@@ -33,6 +33,7 @@ Inputs (
 // Physical outputs from this protocol with types
 Outputs (
 	Mastermix *wtype.LHComponent
+	PlateWithMastermix *wtype.LHPlate
 )
 
 Requirements {
@@ -94,8 +95,9 @@ Steps {
 	mastermix = MixInto(OutPlate, "",  eachmastermix...)
 	
 	Mastermix = mastermix
+	PlateWithMastermix = OutPlate
 	
- Status = "Mastermix Made"
+ 	Status = "Mastermix Made"
 	
 }
 
