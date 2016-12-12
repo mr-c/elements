@@ -1,5 +1,5 @@
 // Generates instructions to pipette out a defined image onto a defined plate using a defined palette of colours
-protocol PipetteImage_fromPalette
+protocol PipetteImage_fromPalette_refactor
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -9,6 +9,7 @@ import (
 	"image/color"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 
@@ -20,6 +21,7 @@ Parameters (
 	URL string // enter URL link to the image file here if applicable
 	Palette color.Palette
 	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourtoWellLocationMap map[string][]string
 	OnlythisColour string
 	NotthisColour string
 	Rotate bool
@@ -67,13 +69,29 @@ Steps {
 		}
 	}
 	
-	var err error
 	
 	if PosterizeImage{
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
 	}
 	
 	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate) 
+	
+	// use position to colour map to make a colour to []well positions map
+	colourtoWellLocationMap := make(map[string][]string)
+	
+	for well, colour := range positiontocolourmap {
+		
+		colourindex := Palette.Index(colour)
+		
+		colourstring := strconv.Itoa(colourindex)
+		
+		if locations, found := colourtoWellLocationMap[colourstring]; !found{
+			colourtoWellLocationMap[colourstring] = []string{well}
+		}else{
+			locations = append(locations,well)
+			colourtoWellLocationMap[colourstring] = locations
+		}
+	}
 	
 	
 	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
@@ -84,58 +102,70 @@ Steps {
 	counter := 0
 	
 	
-
-	for locationkey, colour := range positiontocolourmap {
+	for colourindex, wells := range colourtoWellLocationMap {
 		
+	component, componentpresent := ColourIndextoComponentMap[colourindex]
+	
+	/*
+	if !componentpresent {
 		
-		// temp skip of wells with x, e.g. x1,x2,x12
-		if !strings.Contains(locationkey,"x") && !strings.Contains(locationkey,"X") {
-		
-		colourindex := strconv.Itoa(Palette.Index(colour))
-		
-		component, componentpresent := ColourIndextoComponentMap[colourindex]
-		
-		/*
-		if !componentpresent {
-			
+		var foundthese []string
 		
 		for key, _ := range ColourIndextoComponentMap {
 			foundthese = append(foundthese,key)
 		}
 		sort.Strings(foundthese)
 		Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
-		}
-		*/
-
-		if componentpresent {
 		
-		if LiquidType != ""{
-		component.Type, err = wtype.LiquidTypeFromString(LiquidType)
-		
-		if err != nil {
-			Errorf("for component",component.CName, err.Error())
-		}
-		}
-		if OnlythisColour !="" {
+	}
+	*/
+	if componentpresent {
 	
-		if image.Colourcomponentmap[colour] == OnlythisColour{
-			counter = counter + 1
-
-		pixelSample := mixer.Sample(component, VolumePerWell)
-		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
-		solutions = append(solutions, solution)
-			}
+	if LiquidType != "" {
+		fmt.Println("liquidtype",LiquidType )
+	liquidtype, err := wtype.LiquidTypeFromString(LiquidType)
+		
+	if err != nil {
+			Errorf("for component",component.CName, err.Error())
+	}
+	
+	component.Type = liquidtype
+	
+	}	
 			
-		}else{
-			if component.CName != NotthisColour{
-			counter = counter + 1
+		for _, locationkey := range wells {
+		
+		// due to trilution error, temporarily skip any wells with x in the well coordinates, e.g. x1,x2,x12
+		if !strings.Contains(locationkey,"x") && !strings.Contains(locationkey,"X") {
+		
+		// use index of colour in palette to retrieve real colour
+		
+		colourint, err := strconv.Atoi(colourindex)
+		
+		if err!=nil {
+			Errorf(err.Error())
+		}
+		
+		actualcolour := Palette[colourint]
+		
+
+		if OnlythisColour != ""  && image.Colourcomponentmap[actualcolour] == OnlythisColour  {
+		
 		pixelSample := mixer.Sample(component, VolumePerWell)
 		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
 		solutions = append(solutions, solution)
+		counter++
+			
+		} else if component.CName != NotthisColour{
+		pixelSample := mixer.Sample(component, VolumePerWell)
+		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+		solutions = append(solutions, solution)
+		counter++
 		}
 		}
 		
 	}
+		
 	}
 	}
 	Pixels = solutions

@@ -38,6 +38,7 @@ Inputs (
 	Yellow *wtype.LHComponent
 	Magenta *wtype.LHComponent
 	Black *wtype.LHComponent
+	White *wtype.LHComponent
 	//InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 	PalettePlate *wtype.LHPlate
@@ -86,6 +87,7 @@ Steps {
 	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	
 
 	counter := 0
 
@@ -117,8 +119,6 @@ Steps {
 		if cyanvol.RawValue() < 0.5 && cyanvol.Unit().PrefixedSymbol() == "ul"{
 				cyanvol.SetValue(0.5)
 			}
-	
-		Cyan.Type  =	wtype.LTDISPENSEABOVE
 			
 		cyanSample := mixer.Sample(Cyan, cyanvol)
 		components = append(components, cyanSample)
@@ -131,12 +131,6 @@ Steps {
 				yellowvol.SetValue(0.5)
 			}
 		
-		if cmyk.K == 0 && cmyk.M == 0{
-		Yellow.Type  =	wtype.LTPostMix
-		}else {
-		Yellow.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		yellowSample := mixer.Sample(Yellow, yellowvol)
 		components = append(components, yellowSample)
 		}
@@ -148,30 +142,48 @@ Steps {
 				magentavol.SetValue(0.5)
 			}
 		
-		if cmyk.K == 0 {
-		Magenta.Type  =	wtype.LTPostMix
-		}else {
-		Magenta.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		magentaSample := mixer.Sample(Magenta, magentavol)
 		components = append(components, magentaSample)
 		}
 		
 		if cmyk.K > 0{
+				
 		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul"{
 				blackvol.SetValue(0.5)
 			}
 		
-		Black.Type = wtype.LTPostMix
-		
 		blackSample := mixer.Sample(Black, blackvol)
 		components = append(components, blackSample)
 		}
 		
+		// top up colour to 4 x volumeforfullcolour with white to make the correct shade
+		
+	  	// get all component volumes 
+		// and change liquid types
+		var componentvols []Volume
+		for _, component := range components {
+			componentvols = append(componentvols,component.Volume())
+			component.Type = wtype.LTDoNotMix
+		}	
+		// calculate volume of white to add
+		whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentvols)
+		
+		// mix with white sample
+		White.Type = wtype.LTPostMix
+		
+		whiteSample := mixer.Sample(White, whitevol)
+		components = append(components, whiteSample)
+		
+
 		solution := MixInto(PalettePlate, "", components...)
+		
+		// change name of component
+		originalname := solution.CName
+		solution.CName = originalname + "_colour_"+strconv.Itoa(colourindex)
+		
+		// add solution to be exported later
 		solutions = append(solutions, solution)
 		colourtoComponentMap[strconv.Itoa(colourindex)] = solution
 		

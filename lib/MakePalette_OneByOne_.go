@@ -97,8 +97,6 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 						cyanvol.SetValue(0.5)
 					}
 
-					_input.Cyan.Type = wtype.LTDISPENSEABOVE
-
 					cyanSample := mixer.Sample(_input.Cyan, cyanvol)
 					components = append(components, cyanSample)
 				}
@@ -108,12 +106,6 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 					if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul" {
 						yellowvol.SetValue(0.5)
-					}
-
-					if cmyk.K == 0 && cmyk.M == 0 {
-						_input.Yellow.Type = wtype.LTPostMix
-					} else {
-						_input.Yellow.Type = wtype.LTDISPENSEABOVE
 					}
 
 					yellowSample := mixer.Sample(_input.Yellow, yellowvol)
@@ -127,30 +119,47 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 						magentavol.SetValue(0.5)
 					}
 
-					if cmyk.K == 0 {
-						_input.Magenta.Type = wtype.LTPostMix
-					} else {
-						_input.Magenta.Type = wtype.LTDISPENSEABOVE
-					}
-
 					magentaSample := mixer.Sample(_input.Magenta, magentavol)
 					components = append(components, magentaSample)
 				}
 
 				if cmyk.K > 0 {
+
 					blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul" {
 						blackvol.SetValue(0.5)
 					}
 
-					_input.Black.Type = wtype.LTPostMix
-
 					blackSample := mixer.Sample(_input.Black, blackvol)
 					components = append(components, blackSample)
 				}
 
+				// top up colour to 4 x volumeforfullcolour with white to make the correct shade
+
+				// get all component volumes
+				// and change liquid types
+				var componentvols []wunit.Volume
+				for _, component := range components {
+					componentvols = append(componentvols, component.Volume())
+					component.Type = wtype.LTDoNotMix
+				}
+				// calculate volume of white to add
+				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4), componentvols)
+
+				// mix with white sample
+				_input.White.Type = wtype.LTPostMix
+
+				whiteSample := mixer.Sample(_input.White, whitevol)
+				components = append(components, whiteSample)
+
 				solution := execute.MixInto(_ctx, _input.PalettePlate, "", components...)
+
+				// change name of component
+				originalname := solution.CName
+				solution.CName = originalname + "_colour_" + strconv.Itoa(colourindex)
+
+				// add solution to be exported later
 				solutions = append(solutions, solution)
 				colourtoComponentMap[strconv.Itoa(colourindex)] = solution
 
@@ -238,6 +247,7 @@ type MakePalette_OneByOneInput struct {
 	URL                 string
 	UseURL              bool
 	VolumeForFullcolour wunit.Volume
+	White               *wtype.LHComponent
 	Yellow              *wtype.LHComponent
 }
 
@@ -279,6 +289,7 @@ func init() {
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
+				{Name: "White", Desc: "", Kind: "Inputs"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},
