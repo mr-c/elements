@@ -14,7 +14,8 @@
         "water"
       ],
       "OutPlate": "pcrplate_skirted_riser20",
-      "Reactionspermastermix": 1
+      "Reactionspermastermix": 5,
+	"CheckPartsInInventory":true
     }
   },
   "connections": [],
