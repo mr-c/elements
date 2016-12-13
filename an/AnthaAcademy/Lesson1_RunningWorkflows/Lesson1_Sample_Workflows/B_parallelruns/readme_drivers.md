@@ -28,7 +28,9 @@ antharun --driver go://github.com/Synthace/PipetMaxDriver/server
 ### (b) Running a driver 
 If running the pipetmax driver this will be launched locally from a binary using the following command in a separate terminal prior to using antharun:
 
-```PipetMax```
+```bash
+PipetMax
+```
 
 By default this will set the port to ```localhost:50051```, output file to ```generated.sqlite``` and protocol name to ```rpctest```
 
