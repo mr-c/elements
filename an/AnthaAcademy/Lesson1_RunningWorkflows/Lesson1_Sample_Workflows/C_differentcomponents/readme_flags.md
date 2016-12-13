@@ -57,9 +57,11 @@ antharun --inputPlates assemblyreagents.csv --inputPlates assemblyparts.csv
 
 ### Config
 
-4. An alternative to specifying plates as a flag is adding a Config section to the parameters file.
+An alternative to specifying plates as a flag is adding a Config section to the parameters file.
+
 A series of desired input or output plates (in order of preference) can be specified by adding a config section to the parameters file as shown in configparameters.json
 
+```json
  "Config": {
         "InputPlateType": [
             "pcrplate_skirted_riser"
@@ -68,7 +70,7 @@ A series of desired input or output plates (in order of preference) can be speci
             "greiner384_riser"
         ]
     }
-	
+```
 There are many other preferences which can be specified in the config, such as tip position preferences to whether you want Antha to compensate for evaporation. 	
 	
 ## Excercises
