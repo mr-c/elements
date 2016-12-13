@@ -1,52 +1,64 @@
 ### Other antharun flags:
+ 
+A full list of optional flags which can be used with antharun is available by running ```antharun --help```
 
-
-antharun --parameters --workflow
+### antharun --parameters --workflow
 
 By default the antharun command uses a parameters file named parameters.json and a workflow file named workflow.json. 
 If these files are named differently you’ll need to use the --parameters and/or --workflow flags to specify which files to use.
 
-1.
+
 To run the parameters found in this folder you'll need to run this:
 
+```bash
 antharun --parameters parameters.yml --workflow myamazingworkflow.json
+```
 
-_____________
-
-antharun --bundle
+### antharun --bundle 
 
 By default the antharun command uses a parameters file named parameters.json and a workflow file named workflow.json. 
 If these files are named differently you’ll need to use the --parameters and/or --workflow flags to specify which files to use.
 
-1.
+
 To run the combined parameters and workflow bundle found in this folder you'll need to run this:
 
+
+```bash
 antharun --bundle bundle.json 
+```
 
-_____________
 
-antharun --inputPlateType
+### antharun --inputPlateType
 
-2. e.g. antharun --inputPlateType greiner384
+e.g. 
+```bash
+antharun --inputPlateType greiner384
+```
+
 This allows the type of input plate to be specified from the list of available Antha plate types. 
-The available plates can be found by running the ```antharun lhplates``` command
+The available plates can be found by running the ```antharun list plates``` command
 
  
-_____________
 
-antharun --inputPlates 
+### antharun --inputPlates 
 
-3. e.g. antharun --inputPlates inputplate.csv 
+e.g. 
+```bash
+antharun --inputPlates inputplate.csv 
+```
+
 This allows user defined input plates to be defined. If this is not chosen antha will decide upon the layout.
 More than one inputplate can be defined: this would be done like so:
+
+```bash
 antharun --inputPlates assemblyreagents.csv --inputPlates assemblyparts.csv
+```
 
-_____________
 
-Config
+### Config
 
 4. An alternative to specifying plates as a flag is adding a Config section to the parameters file.
-An input or output plate type can be specified by adding a config section to the parameters file as shown in configparameters.json
+A series of desired input or output plates (in order of preference) can be specified by adding a config section to the parameters file as shown in configparameters.json
 
  "Config": {
         "InputPlateType": [
@@ -57,8 +69,7 @@ An input or output plate type can be specified by adding a config section to the
         ]
     }
 	
-	
-	
+There are many other preferences which can be specified in the config, such as tip position preferences to whether you want Antha to compensate for evaporation. 	
 	
 ## Excercises
 
