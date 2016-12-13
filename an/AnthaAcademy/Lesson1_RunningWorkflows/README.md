@@ -2,8 +2,6 @@
 
 This tutorial will teach you the basics you need to start running and writing Antha protocols. 
 
-Antha is a domain specific progrmaming language for biology built atop the [go](golang.org) programming language. Many of the core concepts in go also apply in Antha so if you're not familiar with the concepts of programming we highly recommend checking out chapters 1 to 8 of the [golang book](https://www.golang-book.com/books/intro/1).
-
 Here're the core concepts of how to run your first Antha programme:
 
 ### Antha elements (.an files)
@@ -132,7 +130,7 @@ Sample = Mix(Sample)
 anthabuild
 ```
 
-(b) Run protocol using parameters in parameters.yml file
+(b) Run protocol using parameters in parameters.json file
 
 ```bash
 antharun

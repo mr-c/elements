@@ -1,0 +1,48 @@
+{
+
+  "Parameters": {
+    "sample": {
+      "SampleVolume": "15ul",
+      "Solution": "water"
+    },
+    "sampleAll": {
+      "Sampleall": true
+    },
+    "sampleTotal": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "150ul"
+    },
+    "samplealone": {
+      "SampleVolume": "20ul",
+      "Solution": "water"
+    }
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "Sample",
+        "process": "sample"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "sampleAll"
+      }
+    }
+  ],
+  "processes": {
+    "sample": {
+      "component": "Sample"
+    },
+    "sampleAll": {
+      "component": "SampleAll"
+    },
+    "sampleTotal": {
+      "component": "SampleForTotalVolume"
+    },
+    "samplealone": {
+      "component": "Sample"
+    }
+  }
+}
