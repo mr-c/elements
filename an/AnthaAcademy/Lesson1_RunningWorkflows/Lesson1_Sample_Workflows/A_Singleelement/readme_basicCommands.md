@@ -37,7 +37,10 @@ EOF
 
 ## Excercises
 
-1. Modify the Sample.an file so that a additional Sample output is created called Sample2; modify the steps so that Sample2 is created in the same way as Sample, i.e. with the same Solution input and SolutionVolume.
+1. Modify the Sample.an file so that a additional Sample output is created called Sample2
+
+2. Modify the steps so that Sample2 is created in the same way as Sample, i.e. with the same Solution input and SolutionVolume.
+
 
 You'll need to run anthabuild since the source code is being modified. If you get an error along the way, you'll need to resolve it before being able to run the modified element.
 
