@@ -17,10 +17,23 @@ If you need to change the source code however, you'll need to recompile by runni
 If you’ve added this alias this will build(recompile) all .an files in components into their corresponding .go files ready for execution. 
 Whenever you change the source code of an antha element you must run anthabuild for the changes to take effect.
 
-if you haven't set up the anthabuild alias you can do so here:
+if you haven't set up the anthabuild alias you can do so by running this command:
 
-[https://www.antha-lang.org/docs/academy/install_advanced.html#setting-up-some-aliases-to-your-profile-for-easier-building-and-running-of-protocols](https://www.antha-lang.org/docs/academy/install_advanced.html#setting-up-some-aliases-to-your-profile-for-easier-building-and-running-of-protocols
-)
+#### Mac:
+
+``` 
+cat<<EOF>>$HOME/.bash_profile
+alias anthabuild='make -C $HOME/go/src/github.com/antha-lang/elements'
+EOF
+```
+
+#### Linux:
+
+``` 
+cat<<EOF>>$HOME/.bashrc
+alias anthabuild='make -C $HOME/go/src/github.com/antha-lang/elements'
+EOF
+```
 
 ## Excercises
 
