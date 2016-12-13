@@ -484,7 +484,7 @@ func init() {
 		Constructor: Scarfree_siteremove_orfcheckNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree_removesites_checkorfs.an",
+			Path: "src/github.com/antha-lang/elements/starter/Scarfree_removesites_checkorfs.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},
