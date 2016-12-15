@@ -11,6 +11,8 @@ To for instructions on how to install Antha  please see the instructions on the 
 ### Basics of golang
 1. Antha is a domain specific progrmaming language for biology built atop the [go](golang.org) programming language. Many of the core concepts in go also apply in Antha so if you're not familiar with the concepts of programming we highly recommend checking out chapters 1 to 9 of the [golang book](https://www.golang-book.com/books/intro/1).
 
+For lesson 1 you will need to go through the material in chapters 1-4:
+
 a. Getting started  
 
 b. Reading a go program 
@@ -18,6 +20,9 @@ b. Reading a go program
 c. Types 
 
 d. Variables 
+
+
+For lesson 2 and 3 you will need to go through the material in chapters 5-9:
 
 e. For/If/Switch 
 
