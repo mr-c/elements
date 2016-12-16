@@ -22,14 +22,32 @@ or run this command from anywhere:
 make -C "$(go list -f '{{.Dir}}' github.com/antha-lang/elements)"
 ```
 
-
 By default, `make` will download and update any dependent libraries. If you
 have any modifications to these dependencies (e.g., non-master branches), `make
 current` will build elements without updating any dependent libraries.
 
+### Setting up anthabuild as an alias
+The tutorial material will refer to using anthabuild as a command to recompile all antha elements.
+You can set up the anthabuild alias by running this command:
+
+#### On Mac
+```sh
+cat<<EOF>>$HOME/.bash_profile
+alias anthabuild='make -C "$(go list -f '{{.Dir}}' github.com/antha-lang/elements)"'
+EOF
+source ~/.bash_profile
+```
+
+#### On Linux
+```sh
+cat<<EOF>>$HOME/.bashrc
+alias anthabuild='make -C "$(go list -f '{{.Dir}}' github.com/antha-lang/elements)"'
+EOF
+source ~/.bashrc
+```
 
 ## Test
-To run tests:
+To run tests ok all example workflows:
 ```sh
 make test
 ```
