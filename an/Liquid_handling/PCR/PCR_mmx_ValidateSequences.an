@@ -35,11 +35,12 @@ Parameters (
 	OptionalWellPosition string // Leave blank for Antha to decide
 	
 	// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
-	Numberofcycles int 
-	InitDenaturationtime Time
-	Denaturationtime Time
+	NumberOfCycles int 
+	InitDenaturationTime Time
+	DenaturationTime Time
 	AnnealingTime Time
-	Finalextensiontime Time
+	FinalExtensionTime Time
+	AnnealingTempOffset Temperature // degrees C below lowest MeltingTemp to set annealing Temperature.
 )
 
 // Data which is returned from this protocol, and data types
@@ -85,15 +86,12 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+		
 	// rename components
 
 	Template.CName = TemplateSequence.Name()
 	FwdPrimer.CName = FwdPrimerSeq.Name()
 	RevPrimer.CName = RevPrimerSeq.Name()
-	
-	
-	
 	
 	// check for non-specific binding. Exact matches only.
 	FwdPrimerSites = sequences.FindSeqsinSeqs(TemplateSequence.Sequence(), []string{FwdPrimerSeq.Sequence()})
@@ -104,6 +102,7 @@ Steps {
 	if len(FwdPrimerSites)!=1 || len(RevPrimerSites)!=1{
 	
 	errordescription := fmt.Sprint(
+						fmt.Sprint("Unexpected number of primer binding sites found in template"),
 						text.Print("FwdPrimerSitesfound:", fmt.Sprint(FwdPrimerSites)),
 						text.Print("RevPrimerSitesfound:", fmt.Sprint(RevPrimerSites)),
 	)
@@ -206,7 +205,7 @@ Steps {
 	ExtensionTime, err = enzymes.CalculateExtensionTime(PCRPolymerase, Amplicon) 
 	
 	if err != nil {
-		Errorf("Can't calculate extensiontime of polymerase.",  err.Error())
+		Errorf("Can't calculate extension time of polymerase.",  err.Error())
 	}
 
 
@@ -218,34 +217,32 @@ Steps {
 
 	// check which primer has the lowest melting temperature
 	if FwdPrimerMeltingTemp.SIValue() < RevPrimerMeltingTemp.SIValue(){
-		// start PCR 3 degress below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(FwdPrimerMeltingTemp.SIValue()- 3.0,"C")
+		// start PCR AnnealingTempOffset degrees below lowest melting temp
+		AnnealingTemp = wunit.NewTemperature(FwdPrimerMeltingTemp.SIValue()- AnnealingTempOffset.SIValue(),"C")
 	}else{
-		// start PCR 3 degress below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(RevPrimerMeltingTemp.SIValue()- 3.0,"C")
+		// start PCR AnnealingTempOffset degrees below lowest melting temp
+		AnnealingTemp = wunit.NewTemperature(RevPrimerMeltingTemp.SIValue()- AnnealingTempOffset.SIValue(),"C")
 	}
 
 	// initial Denaturation
 
-	r1 := Incubate(reaction, MeltingTemp, InitDenaturationtime, false)
+	r1 := Incubate(reaction, MeltingTemp, InitDenaturationTime, false)
 	
-	for i:=0; i < Numberofcycles; i++ {
+	for i:=0; i < NumberOfCycles; i++ {
 		
 		// Denature
 
-	r1 = Incubate(r1, MeltingTemp, Denaturationtime, false)
+	r1 = Incubate(r1, MeltingTemp, DenaturationTime, false)
 	
 		// Anneal
 	r1 = Incubate(r1, AnnealingTemp, AnnealingTime, false)
-	
-	//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
-	
+		
 		// Extend
 	r1 = Incubate(r1, ExtensionTemp, ExtensionTime, false)
 		
 	}
 		// Final Extension
-	r1 = Incubate(r1, ExtensionTemp, Finalextensiontime, false)
+	r1 = Incubate(r1, ExtensionTemp, FinalExtensionTime, false)
 	
 
 	// all done

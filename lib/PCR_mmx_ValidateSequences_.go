@@ -27,6 +27,8 @@ import (
 
 // Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
 
+// degrees C below lowest MeltingTemp to set annealing Temperature.
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
@@ -59,6 +61,7 @@ func _PCR_mmx_ValidateSequencesSteps(_ctx context.Context, _input *PCR_mmx_Valid
 	if len(_output.FwdPrimerSites) != 1 || len(_output.RevPrimerSites) != 1 {
 
 		errordescription := fmt.Sprint(
+			fmt.Sprint("Unexpected number of primer binding sites found in template"),
 			text.Print("FwdPrimerSitesfound:", fmt.Sprint(_output.FwdPrimerSites)),
 			text.Print("RevPrimerSitesfound:", fmt.Sprint(_output.RevPrimerSites)),
 		)
@@ -152,7 +155,7 @@ func _PCR_mmx_ValidateSequencesSteps(_ctx context.Context, _input *PCR_mmx_Valid
 	_output.ExtensionTime, err = enzymes.CalculateExtensionTime(_input.PCRPolymerase, _output.Amplicon)
 
 	if err != nil {
-		execute.Errorf(_ctx, "Can't calculate extensiontime of polymerase.", err.Error())
+		execute.Errorf(_ctx, "Can't calculate extension time of polymerase.", err.Error())
 	}
 
 	// work out annealing temperature
@@ -163,34 +166,32 @@ func _PCR_mmx_ValidateSequencesSteps(_ctx context.Context, _input *PCR_mmx_Valid
 
 	// check which primer has the lowest melting temperature
 	if _output.FwdPrimerMeltingTemp.SIValue() < _output.RevPrimerMeltingTemp.SIValue() {
-		// start PCR 3 degress below lowest melting temp
-		_output.AnnealingTemp = wunit.NewTemperature(_output.FwdPrimerMeltingTemp.SIValue()-3.0, "C")
+		// start PCR AnnealingTempOffset degrees below lowest melting temp
+		_output.AnnealingTemp = wunit.NewTemperature(_output.FwdPrimerMeltingTemp.SIValue()-_input.AnnealingTempOffset.SIValue(), "C")
 	} else {
-		// start PCR 3 degress below lowest melting temp
-		_output.AnnealingTemp = wunit.NewTemperature(_output.RevPrimerMeltingTemp.SIValue()-3.0, "C")
+		// start PCR AnnealingTempOffset degrees below lowest melting temp
+		_output.AnnealingTemp = wunit.NewTemperature(_output.RevPrimerMeltingTemp.SIValue()-_input.AnnealingTempOffset.SIValue(), "C")
 	}
 
 	// initial Denaturation
 
-	r1 := execute.Incubate(_ctx, reaction, _output.MeltingTemp, _input.InitDenaturationtime, false)
+	r1 := execute.Incubate(_ctx, reaction, _output.MeltingTemp, _input.InitDenaturationTime, false)
 
-	for i := 0; i < _input.Numberofcycles; i++ {
+	for i := 0; i < _input.NumberOfCycles; i++ {
 
 		// Denature
 
-		r1 = execute.Incubate(_ctx, r1, _output.MeltingTemp, _input.Denaturationtime, false)
+		r1 = execute.Incubate(_ctx, r1, _output.MeltingTemp, _input.DenaturationTime, false)
 
 		// Anneal
 		r1 = execute.Incubate(_ctx, r1, _output.AnnealingTemp, _input.AnnealingTime, false)
-
-		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
 
 		// Extend
 		r1 = execute.Incubate(_ctx, r1, _output.ExtensionTemp, _output.ExtensionTime, false)
 
 	}
 	// Final Extension
-	r1 = execute.Incubate(_ctx, r1, _output.ExtensionTemp, _input.Finalextensiontime, false)
+	r1 = execute.Incubate(_ctx, r1, _output.ExtensionTemp, _input.FinalExtensionTime, false)
 
 	// all done
 	_output.Reaction = r1
@@ -256,16 +257,17 @@ type PCR_mmx_ValidateSequencesElement struct {
 }
 
 type PCR_mmx_ValidateSequencesInput struct {
+	AnnealingTempOffset               wunit.Temperature
 	AnnealingTime                     wunit.Time
-	Denaturationtime                  wunit.Time
-	Finalextensiontime                wunit.Time
+	DenaturationTime                  wunit.Time
+	FinalExtensionTime                wunit.Time
 	FwdPrimer                         *wtype.LHComponent
 	FwdPrimerSeq                      wtype.DNASequence
 	FwdPrimerVol                      wunit.Volume
-	InitDenaturationtime              wunit.Time
+	InitDenaturationTime              wunit.Time
 	MasterMix                         *wtype.LHComponent
 	MasterMixVolume                   wunit.Volume
-	Numberofcycles                    int
+	NumberOfCycles                    int
 	OptionalWellPosition              string
 	OutPlate                          *wtype.LHPlate
 	PCRPolymerase                     *wtype.LHComponent
@@ -318,16 +320,17 @@ func init() {
 			Desc: "Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.\nThermocycle conditions are calculated from the input sequences and polymerase name\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/PCR_mmx_ValidateSequences.an",
 			Params: []component.ParamDesc{
+				{Name: "AnnealingTempOffset", Desc: "degrees C below lowest MeltingTemp to set annealing Temperature.\n", Kind: "Parameters"},
 				{Name: "AnnealingTime", Desc: "", Kind: "Parameters"},
-				{Name: "Denaturationtime", Desc: "", Kind: "Parameters"},
-				{Name: "Finalextensiontime", Desc: "", Kind: "Parameters"},
+				{Name: "DenaturationTime", Desc: "", Kind: "Parameters"},
+				{Name: "FinalExtensionTime", Desc: "", Kind: "Parameters"},
 				{Name: "FwdPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "FwdPrimerSeq", Desc: "", Kind: "Parameters"},
 				{Name: "FwdPrimerVol", Desc: "", Kind: "Parameters"},
-				{Name: "InitDenaturationtime", Desc: "", Kind: "Parameters"},
+				{Name: "InitDenaturationTime", Desc: "", Kind: "Parameters"},
 				{Name: "MasterMix", Desc: "", Kind: "Inputs"},
 				{Name: "MasterMixVolume", Desc: "", Kind: "Parameters"},
-				{Name: "Numberofcycles", Desc: "Reaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
+				{Name: "NumberOfCycles", Desc: "Reaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
 				{Name: "OptionalWellPosition", Desc: "Leave blank for Antha to decide\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PCRPolymerase", Desc: "", Kind: "Inputs"},
