@@ -2,18 +2,19 @@
   "Parameters": {
     "PCR": {
       "AnnealingTime": "10s",
-      "Denaturationtime": "5s",
-      "Finalextensiontime": "600s",
+      "DenaturationTime": "5s",
+      "FinalExtensionTime": "600s",
       "FwdPrimer": "PrimerFw",
       "FwdPrimerSeq": {
         "jm": "fwdprimer1",
         "seq": "TACGGAGATGGGATGAGATCACTTATACT"
       },
       "FwdPrimerVol": "1ul",
-      "InitDenaturationtime": "30s",
+      "AnnealingTempOffset": "3C",
+      "InitDenaturationTime": "30s",
       "MasterMix": "dna_part",
       "MasterMixVolume": "10ul",
-      "Numberofcycles": 1,
+      "NumberOfCycles": 1,
       "OptionalWellPosition": "",
       "OutPlate": "pcrplate_skirted_riser20",
       "PCRPolymerase": "Q5Polymerase",
