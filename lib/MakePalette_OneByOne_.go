@@ -27,8 +27,6 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
-
 // Physical outputs from this protocol with types
 
 func _MakePalette_OneByOneRequirements() {
@@ -46,7 +44,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -281,7 +279,7 @@ func init() {
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
-				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},

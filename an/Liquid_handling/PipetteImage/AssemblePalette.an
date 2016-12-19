@@ -101,7 +101,7 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.UrlToFile(URL, Imagefilename)
+		err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -120,8 +120,6 @@ Steps {
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
-	
-	//fmt.Println("positions", positiontocolourmap)
 	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)

@@ -85,7 +85,7 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -103,8 +103,6 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
-
-	//fmt.Println("positions", positiontocolourmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)

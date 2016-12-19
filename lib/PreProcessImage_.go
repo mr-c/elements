@@ -38,7 +38,7 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

@@ -42,7 +42,7 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

@@ -45,7 +45,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.UrlToFile(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -137,7 +137,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		component.Type, _ = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
 
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if _input.OnlythisColour != "" {
+		if _input.OnlythisColour != "" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
 
 			if image.Colourcomponentmap[colour] == _input.OnlythisColour {
 
@@ -153,7 +153,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 			}
 
 		} else {
-			if component.CName != _input.Notthiscolour && component.CName != "transparent" {
+			if component.CName != _input.Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
 
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 

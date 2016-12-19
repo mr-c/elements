@@ -65,7 +65,7 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.UrlToFile(URL, Imagefilename)
+		err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -159,7 +159,7 @@ Steps {
 		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
 		
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if OnlythisColour !="" {
+		if OnlythisColour !="" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
 	
 		if image.Colourcomponentmap[colour] == OnlythisColour{
 			
@@ -175,7 +175,7 @@ Steps {
 			}
 			
 		}else{
-			if component.CName !=Notthiscolour && component.CName != "transparent"{
+			if component.CName !=Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
 				
 			UniqueComponents = append(UniqueComponents,component.CName)
 			

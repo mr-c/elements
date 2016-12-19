@@ -39,7 +39,6 @@ Inputs (
 	Magenta *wtype.LHComponent
 	Black *wtype.LHComponent
 	White *wtype.LHComponent
-	//InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 	PalettePlate *wtype.LHPlate
 )
@@ -65,7 +64,7 @@ Steps {
 
 	// if image is from url, download
 	if UseURL {
-		_, err := download.UrlToFile(URL, Imagefilename)
+		err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
