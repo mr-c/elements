@@ -2,7 +2,7 @@ Parameters:
   PipetteImage:
     AutoRotate: false
     CheckResizeAlgorithms: true
-    Imagefilename: antha.jpg
+    Imagefilename: bird.jpg
     Notthiscolour: white
     OnlythisColour: ""
     OutPlate: nunc1536_riser20
@@ -19,7 +19,7 @@ Parameters:
     - orange
     - red
     - pink
-    URL: https://photos-3.dropbox.com/t/2/AADvsT2OoJhgdAxnNTmnDWxIJP75x_Eo6-W-4I99k3vMJg/12/331503266/jpeg/32x32/3/1481464800/0/2/antha-icon-color-highres.jpg/EKuNmKEBGJW_ASAHKAc/Fwu7zh36YWGpVbrLnpHk203xR8snh39U-NSfHFg81c8?size_mode=3&dl=0&size=2048x1536
+    URL: https://www.petfinder.com/wp-content/uploads/2012/11/bird-average-bird-lifespans-thinkstock-155253666-632x457.jpg
     UVimage: false
     UseLiquidClass: water
     UseURL: true
