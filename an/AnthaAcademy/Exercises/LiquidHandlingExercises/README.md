@@ -142,7 +142,7 @@ To use anthabuild to compile the antha file the an file will need to be within t
 
 ## Excercises
 
-1. Using what you've learnt in Lesson 1, adapt the protocol to Split an input solution into two output solutions. 
+### 1. Using what you've learnt in Lesson 1, adapt the protocol to Split an input solution into two output solutions. 
 
 The Parameters should look like this:
 
@@ -165,7 +165,7 @@ SolutionA *wtype.LHComponent
 SolutionB *wtype.LHComponent
 ```
 
-2. Generate a protocol called CherryPick which will take in a slice of components as an input and output a single component.
+### 2. Generate a protocol called CherryPick which will take in a slice of components as an input and output a single component.
 No Mixing will take place unless the MixToNewLocation parameter is set to true. 
 
 The Parameters should look like this:
@@ -188,7 +188,7 @@ The outputs:
 OutputSolution *wtype.LHComponent
 ```
 
-3. Modify CherryPick into a protocol called CherryPickSlice to take in a slice of positions to CherryPick
+### 3. Modify CherryPick into a protocol called CherryPickSlice to take in a slice of positions to CherryPick
 
 The Parameters should look like this:
 
@@ -210,7 +210,7 @@ The outputs:
 OutputSolutions []*wtype.LHComponent
 ```
 
-4. Make a new protocol based around the [Transfer](https://github.com/antha-lang/elements/blob/master/an/Liquid_handling/Transfer/Transfer.an) protocol which will take in a slice of solutions and transfer them to a specified plate
+### 4. Make a new protocol based around the [Transfer](https://github.com/antha-lang/elements/blob/master/an/Liquid_handling/Transfer/Transfer.an) protocol which will take in a slice of solutions and transfer them to a specified plate
 
 The Parameters should look like this:
 
@@ -234,7 +234,7 @@ OutPutSolutions []*wtype.LHComponent
 OutputSolutionsMap map[string][]*wtype.LHComponent // as a potentially more convenient output we can also return a map of the solutions using the name of the component as a key
 ```
 
-5. Make a new protocol called Dilute which will automatically dilute a sample to an intermediate dilution plate and then transfer the diluted Sample into the OutPlate if SampleVolume is below a minimal threshold.
+### 5. Make a new protocol called Dilute which will automatically dilute a sample to an intermediate dilution plate and then transfer the diluted Sample into the OutPlate if SampleVolume is below a minimal threshold.
 Return a warning back to the user if a dilution has occurred. 
 
 Do this by writing a new function in the protocol which will call the [SerialDilution](https://github.com/antha-lang/elements/blob/master/an/Liquid_handling/SerialDilution/SerialDilution.an) element if the TargetTransferVolume.SIValue() < MinimalTransferVolume.SIValue()
@@ -272,7 +272,7 @@ IntermediateSolution *wtype.LHComponent
 ```
 
 
-5. Make a new protocol called Aliquot_multi based around the [Aliquot](https://github.com/antha-lang/elements/blob/master/starter/Aliquot/Aliquot.an) protocol which will take in a slice of solutions and Aliquot them all
+### 6. Make a new protocol called Aliquot_multi based around the [Aliquot](https://github.com/antha-lang/elements/blob/master/starter/Aliquot/Aliquot.an) protocol which will take in a slice of solutions and Aliquot them all
 
 Do this by recursively using the Aliquot element from within the Aliquot_multi element in a similar way to the AutoPCR_demo element shown in Lesson0.
 
