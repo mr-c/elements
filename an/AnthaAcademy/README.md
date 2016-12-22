@@ -5,6 +5,10 @@ It holds both workflows and elements.
 
 ## Pre-requisites
 
+
+### Knowledge of programming termininology
+Checkout the [free online dictionary](https://foldoc.org/) of computing as a great reference for computer programming termininology.
+
 ### Familiarity with the command line
 You will need to use the command line to run antha.
 If using OS X or Linux and you’re not familiar with working on the command line, this tour offers a good introduction for navigating through the command line in unix/linux:
