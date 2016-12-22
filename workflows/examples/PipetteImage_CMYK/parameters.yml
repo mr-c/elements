@@ -7,5 +7,5 @@ Parameters:
     Magenta: Magenta
     OutPlate: greiner384_riser
     Rotate: false
-    VolumeForFullcolour: 150ul
+    VolumeForFullcolour: 25ul
     Yellow: Yellow_ink
