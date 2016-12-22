@@ -4,19 +4,22 @@ protocol PipetteImage
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
-	"fmt"
-	 "image/color"
+	"image/color"
+	"sort"
+	"strings"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -27,7 +30,6 @@ Parameters (
 	UseLiquidClass string
 	Subsetnames []string
 	CheckResizeAlgorithms bool
-
 )
 
 // Data which is returned from this protocol, and data types
@@ -60,6 +62,30 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
+	// check that palette name is valid
+	_, ok := image.AvailablePalettes()[Palettename]
+	
+	if !ok {
+		var validpalettes []string
+		
+		for key, _ := range image.AvailablePalettes() {
+			validpalettes = append(validpalettes,key)
+		}
+			
+			sort.Strings(validpalettes)
+		
+		Errorf("Palette", Palettename, "not available. Valid entries are: ",strings.Join(validpalettes,","))
+	}
+	
 	
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
@@ -133,17 +159,14 @@ Steps {
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
 		
-		//fmt.Println(image.Colourcomponentmap[colour])
-		
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if OnlythisColour !="" {
+		if OnlythisColour !="" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
 	
 		if image.Colourcomponentmap[colour] == OnlythisColour{
 			
 			UniqueComponents = append(UniqueComponents,component.CName)
 			
 			counter = counter + 1
-		//	fmt.Println("wells",OnlythisColour, counter)
 	
 		pixelSample := mixer.Sample(component, VolumePerWell)
 	
@@ -153,12 +176,11 @@ Steps {
 			}
 			
 		}else{
-			if component.CName !=Notthiscolour && component.CName != "transparent"{
+			if component.CName !=Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
 				
 			UniqueComponents = append(UniqueComponents,component.CName)
 			
 			counter = counter + 1
-		//	fmt.Println("wells not ",Notthiscolour,counter)
 	
 		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
 		pixelSample := mixer.Sample(component, VolumePerWell)
@@ -171,12 +193,9 @@ Steps {
 	}
 
 	UniqueComponents = search.RemoveDuplicates(UniqueComponents)
-	fmt.Println("Unique Components:",UniqueComponents)
-	fmt.Println("number of unique components",len(UniqueComponents))
 	Pixels = solutions
 	
 	Numberofpixels = len(Pixels)
-	fmt.Println("Pixels =",Numberofpixels)
 	
 }
 
