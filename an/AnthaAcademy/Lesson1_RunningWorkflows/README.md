@@ -50,7 +50,7 @@ Parameters (
 ```go
 // Physical Inputs to this protocol with types
 Inputs (
-	// the LHComponent is the principal liquidhandling type in antha
+	// the LHComponent (i.e. Liquid Handling Component) is the principal liquidhandling type in antha 
 	// the * signifies that this is a pointer to the component rather than the component itself
 	// most key antha functions such as Sample and Mix use *LHComponent rather than LHComponent
 	// since the type is imported from the wtype package we need to use  *wtype.LHComponent rather than simply *LHComponent
@@ -70,7 +70,7 @@ The Data and Outputs represent the outputs.
 
 // Data which is returned from this protocol, and data types
 Data (
-	// Antha inherits all standard primitives valid in golang; 
+	// Antha inherits all standard primitives valid in golang (e.g. bool, float64, string, int etc...); 
 	//for example the string type shown here used to return a textual message 
 	Status string
 )
@@ -105,7 +105,8 @@ Steps {
 	// We would need a Mix command to instruct where to put the sample
 	
 	// we can also create data outputs as a string like this
-	Status = SampleVolume.ToString() + " of " + Solution.ToString() + " sampled"
+	// This can either be by using the ToString() method which can be used on units, such as volumes, and the .Name() method on an LHComponent  
+	Status = SampleVolume.ToString() + " of " + Solution.Name() + " sampled"
 	
 }
 ```
@@ -116,7 +117,7 @@ Take a look at the three .an files in this folder and read through the comments 
 
 ## Excercises
 
-1. Add a step in the steps block to take the Sample produced and Mix it to an output location by adding the following line:
+1. Modify the Sample.an file by adding a step in the steps block to take the Sample produced and Mix it to an output location by adding the following line:
 
 Sample = Mix(Sample)
 
@@ -130,7 +131,7 @@ Sample = Mix(Sample)
 anthabuild
 ```
 
-(b) Run protocol using parameters in parameters.json file
+(b) Now run protocol (this will use the workflow.json file and parameters in the parameters.json file)
 
 ```bash
 antharun
