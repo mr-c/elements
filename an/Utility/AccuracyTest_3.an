@@ -67,7 +67,12 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-		
+	
+	// if dilution factor not set dilute by 10x 
+	if DilutionFactor == 0 {
+		DilutionFactor = 10
+	}
+	
 	// declare some global variables for use later
 	var rotate = false
 	var autorotate = true
