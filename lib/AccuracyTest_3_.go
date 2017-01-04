@@ -41,6 +41,11 @@ func _AccuracyTest_3Setup(_ctx context.Context, _input *AccuracyTest_3Input) {
 // for every input
 func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
 
+	// if dilution factor not set dilute by 10x
+	if _input.DilutionFactor == 0 {
+		_input.DilutionFactor = 10
+	}
+
 	// declare some global variables for use later
 	var rotate = false
 	var autorotate = true
