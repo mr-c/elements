@@ -1,9 +1,10 @@
 ## antharun
 
 
-Run this command from a folder containing your workflow.json file and parameters.yml file
+Run this command from a folder containing your workflow.json file and parameters.json file
 as shown here. 
-Running antharun without the ```--driver``` flag will use the manual driver.
+
+This will print the output of the element to the command line by default.
 
 ________________
 
@@ -21,7 +22,7 @@ If you haven't set up the anthabuild alias you can do so by following the instru
 
 ## Excercises
 
-1. Modify the Sample.an file so that a additional Sample output is created called Sample2
+1. Modify the A_Sample.an file you modified previously so that a additional Sample output is created called Sample2
 
 2. Modify the steps so that Sample2 is created in the same way as Sample, i.e. with the same Solution input and SolutionVolume.
 
