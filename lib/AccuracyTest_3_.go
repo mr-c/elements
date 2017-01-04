@@ -45,6 +45,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	if _input.DilutionFactor == 0 {
 		_input.DilutionFactor = 10
 	}
+	minVolume := wunit.NewVolume(0.5, "ul")
 
 	// declare some global variables for use later
 	var rotate = false
@@ -131,7 +132,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					var bufferSample *wtype.LHComponent
 					var Dilution *wtype.LHComponent
 
-					if _input.TestSolVolumes[l].RawValue() < 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					if _input.TestSolVolumes[l].LessThan(minVolume) {
 
 						// add diluent to dilution plate ready for dilution
 						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor)}))
@@ -162,7 +163,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 						}
 					}
 
-					if _input.TestSolVolumes[l].RawValue() > 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					if _input.TestSolVolumes[l].GreaterThan(minVolume) {
 
 						//sample
 						testSample := mixer.Sample(_input.TestSols[k], _input.TestSolVolumes[l])
@@ -175,7 +176,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 							solution = execute.Mix(_ctx, solution, testSample)
 						}
 
-					} else if _input.TestSolVolumes[l].RawValue() > 0.0 && _input.TestSolVolumes[l].RawValue() < 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					} else if _input.TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && _input.TestSolVolumes[l].LessThan(minVolume) {
 
 						//sample
 						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor))

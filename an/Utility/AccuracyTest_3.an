@@ -72,6 +72,7 @@ Steps {
 	if DilutionFactor == 0 {
 		DilutionFactor = 10
 	}
+	minVolume := wunit.NewVolume(0.5,"ul")
 	
 	// declare some global variables for use later
 	var rotate = false
@@ -157,7 +158,7 @@ Steps {
 		var bufferSample *wtype.LHComponent
 		var Dilution *wtype.LHComponent
 		
-		if TestSolVolumes[l].RawValue() < 0.5 && TestSolVolumes[l].Unit().PrefixedSymbol()=="ul"{
+		if TestSolVolumes[l].LessThan(minVolume) {
 			
 			// add diluent to dilution plate ready for dilution
 			dilutedSampleBuffer := mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor)}))
@@ -192,7 +193,7 @@ Steps {
 				}
 		}
 		
-		if  TestSolVolumes[l].RawValue() > 0.5 && TestSolVolumes[l].Unit().PrefixedSymbol()=="ul"{
+		if  TestSolVolumes[l].GreaterThan(minVolume) {
 		
 		//sample
 		testSample := mixer.Sample(TestSols[k], TestSolVolumes[l])
@@ -206,7 +207,7 @@ Steps {
 		}
 		
 		
-		}else if TestSolVolumes[l].RawValue() > 0.0 && TestSolVolumes[l].RawValue() < 0.5 && TestSolVolumes[l].Unit().PrefixedSymbol()=="ul"{
+		}else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume) {
 
 		//sample
 		dilutionSample := mixer.Sample(TestSols[k], wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor))
