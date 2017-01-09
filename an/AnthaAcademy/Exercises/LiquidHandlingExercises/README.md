@@ -144,48 +144,75 @@ To use anthabuild to compile the antha file the an file will need to be within t
 
 ### 1. Using what you've learnt in Lesson 1, adapt the protocol to Split an input solution into two output solutions. 
 
+Using the parameters below modify the Steps block so the protocol correctly samples the Input solution into two output solutions, SolutionA and SolutionB of Volumes VolumeA and VolumeB.
+
 The Parameters should look like this:
 
 ```go
+Parameters(
 VolumeA Volume
 VolumeB Volume
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 InputSolution *wtype.LHComponent
+}
 ```
 
 
 The outputs: 
 
 ```go
+OutPuts{
 SolutionA *wtype.LHComponent
 SolutionB *wtype.LHComponent
+}
 ```
 
 ### 2. Generate a protocol called CherryPick which will take in a slice of components as an input and output a single component.
-No Mixing will take place unless the MixToNewLocation parameter is set to true. 
+
+Using the parameters below modify the Steps block so the protocol correctly selects an input solution from a slice of InputSolutions. i.e. if the components were ["water","dna","fluorescein"] and PositionInSlice was 0; the "water" component would be selected. 
+
+Write the protocol so that if MixToNewLocation is set to true the component will be sampled and mixed to a new location. 
+
+i.e. 
+```go
+if MixToNewLocation {
+
+} else {
+
+}
+```
 
 The Parameters should look like this:
 
 ```go
+Parameters(
 PositionInSlice int
 MixToNewLocation bool
+SolutionVolume Volume
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 InputSolutions []*wtype.LHComponent
+}
 ```
 
 
 The outputs: 
 
 ```go
+OutPuts{
 OutputSolution *wtype.LHComponent
+}
 ```
 
 ### 3. Modify CherryPick into a protocol called CherryPickSlice to take in a slice of positions to CherryPick
@@ -193,21 +220,28 @@ OutputSolution *wtype.LHComponent
 The Parameters should look like this:
 
 ```go
+Parameters(
 PositionsInSlice []int
 MixToNewLocation bool
+SolutionVolume Volume
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 InputSolutions []*wtype.LHComponent
+}
 ```
 
 
 The outputs: 
 
 ```go
+Outputs{
 OutputSolutions []*wtype.LHComponent
+}
 ```
 
 ### 4. Make a new protocol based around the [Transfer](https://github.com/antha-lang/elements/blob/master/an/Liquid_handling/Transfer/Transfer.an) protocol which will take in a slice of solutions and transfer them to a specified plate
@@ -215,23 +249,29 @@ OutputSolutions []*wtype.LHComponent
 The Parameters should look like this:
 
 ```go
+Parameters(
 TransferVolume Volume
 Replicates int
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 InputSolutions []*wtype.LHComponent
 OutPlate *wtype.LHPlate
+}
 ```
 
 
 The outputs: 
 
 ```go
+Outputs{
 OutPutSolutions []*wtype.LHComponent
 OutputSolutionsMap map[string][]*wtype.LHComponent // as a potentially more convenient output we can also return a map of the solutions using the name of the component as a key
+}
 ```
 
 ### 5. Make a new protocol called Dilute which will automatically dilute a sample to an intermediate dilution plate and then transfer the diluted Sample into the OutPlate if SampleVolume is below a minimal threshold.
@@ -242,33 +282,41 @@ Do this by writing a new function in the protocol which will call the [SerialDil
 The Parameters should look like this:
 
 ```go
+Parameters(
 TargetTransferVolume Volume
 MinimalTransferVolume Volume
 DilutionFactor int
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 TransferSample *wtype.LHComponent
 Diluent *wtype.LHComponent
 DilutionPlate *wtype.LHPlate
 OutPlate *wtype.LHPlate
+}
 ```
 
 
 The data outputs:
 
 ```go
+Data(
 Warning error
 Diluted bool
+)
 ```
 
 The outputs: 
 
 ```go
+Outputs{
 FinalSolution *wtype.LHComponent
 IntermediateSolution *wtype.LHComponent
+}
 ```
 
 
@@ -279,21 +327,27 @@ Do this by recursively using the Aliquot element from within the Aliquot_multi e
 The Parameters should look like this:
 
 ```go
+Parameters(
 SolutionToVolumeMap map[string]Volume
 SolutionToReplicatesMap map[string]int
+)
 ```
 
 The inputs:
 
 ```go
+Inputs{
 InputSolutions []*wtype.LHComponent
+}
 ```
 
 
 The outputs: 
 
 ```go
+Outputs{
 OutputSolutionsMap map[string][]*wtype.LHComponent // as a potentially more convenient output we can also return a map of the solutions using the name of the component as a key
+}
 ```
 
 ## Next Steps
