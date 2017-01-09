@@ -286,7 +286,7 @@ Steps {
 	// print out LHPolicy info
 	policy, found := liquidhandling.GetPolicyByName(doerun)
 	if  !found {
-		panic("policy "+doerun+" not found")
+		Errorf("policy "+doerun+" not found")
 		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
 	}
 	
@@ -298,7 +298,7 @@ Steps {
 	newruns = append(newruns,run)
 	
 	
-	counter = counter + 1
+	counter++
 	
 	}
 
@@ -329,7 +329,7 @@ Steps {
 		Blankwells = append(Blankwells,well)
 	
 		reactions = append(reactions,reaction)
-		counter = counter + 1
+		counter++
 	
 	}
 	

@@ -251,7 +251,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						panic("policy " + doerun + " not found")
+						execute.Errorf(_ctx, "policy "+doerun+" not found")
 						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
 					}
 
@@ -262,7 +262,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					reactions = append(reactions, solution)
 					newruns = append(newruns, run)
 
-					counter = counter + 1
+					counter++
 
 				}
 
@@ -293,7 +293,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 			_output.Blankwells = append(_output.Blankwells, well)
 
 			reactions = append(reactions, reaction)
-			counter = counter + 1
+			counter++
 
 		}
 
