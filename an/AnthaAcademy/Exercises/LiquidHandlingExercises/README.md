@@ -167,7 +167,7 @@ InputSolution *wtype.LHComponent
 The outputs: 
 
 ```go
-OutPuts{
+Outputs{
 SolutionA *wtype.LHComponent
 SolutionB *wtype.LHComponent
 }
@@ -210,7 +210,7 @@ InputSolutions []*wtype.LHComponent
 The outputs: 
 
 ```go
-OutPuts{
+Outputs{
 OutputSolution *wtype.LHComponent
 }
 ```
