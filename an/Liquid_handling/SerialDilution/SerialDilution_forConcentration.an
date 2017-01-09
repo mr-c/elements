@@ -1,0 +1,143 @@
+// Protocol to make a serial dilution series targeting a series of specified concentrations from a solution of known Stock concentration and a diluent.
+// The next dilution in the series will always be made from the previous dilution and not from the original stock solution.
+protocol SerialDilution_forConcentration
+
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"	
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	StartVolumeperDilution 	Volume
+	StockConcentration		Concentration
+	TargetConcentrations  	[]Concentration// e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
+	ByRow 					bool
+	//StartRow				int
+	//StartColumn				int
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Solution *wtype.LHComponent 
+	Diluent *wtype.LHComponent
+	OutPlate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Dilutions []*wtype.LHComponent
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	allwellpositions := OutPlate.AllWellPositions(ByRow)
+	
+	dilutions := make([]*wtype.LHComponent,0)
+
+	var aliquot *wtype.LHComponent
+	
+	// calculate solution volume
+	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[0],StockConcentration,StartVolumeperDilution)
+	
+		if err != nil{
+			Errorf(err.Error())
+		}
+	
+	// use same approach to work out diluent volume to add	
+	diluentVolume := (wunit.CopyVolume(StartVolumeperDilution))
+	
+	// this time using the substract method
+	diluentVolume.Subtract(solutionVolume)	
+	
+	// sample diluent
+	diluentSample := mixer.Sample(Diluent,diluentVolume)
+		
+	// Ensure liquid type set to Pre and Post Mix 
+	Solution.Type = wtype.LTNeedToMix
+	// check if the enzyme is specified and if not mix the 
+		
+	// sample solution
+	solutionSample := mixer.Sample(Solution,solutionVolume)
+	
+	// mix both samples to OutPlate
+	aliquot = MixNamed(OutPlate.Type,allwellpositions[0], "DilutionPlate",diluentSample, solutionSample)
+
+	// rename sample to include concentration
+	aliquot.CName = TargetConcentrations[0].ToString() + Solution.CName
+
+	// add to dilutions array
+	dilutions = append(dilutions,aliquot)
+	
+	// loop through NumberOfDilutions until all serial dilutions are made
+	for k := 1; k < len(TargetConcentrations); k++ {
+		
+			// calculate new solution volume
+		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[k],TargetConcentrations[k-1],StartVolumeperDilution)
+		
+			if err != nil{
+				Errorf(err.Error())
+			}
+		
+		// use same approach to work out diluent volume to add	
+		diluentVolume = (wunit.CopyVolume(StartVolumeperDilution))
+		
+		// this time using the substract method
+		diluentVolume.Subtract(solutionVolume)	
+			
+		// take next sample of diluent
+		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
+	
+		// Ensure liquid type set to Pre and Post Mix 
+		aliquot.Type = wtype.LTNeedToMix
+		
+		// sample from previous dilution sample
+		nextSample := mixer.Sample(aliquot, solutionVolume)
+		
+		// Mix sample into nextdiluent sample
+		nextaliquot := Mix(nextdiluentSample,nextSample)
+		
+		// rename sample to include concentration
+		nextaliquot.CName = TargetConcentrations[k].ToString() + Solution.CName
+		
+		// add to dilutions array 
+		dilutions = append(dilutions,nextaliquot)
+		// reset aliquot
+		aliquot = nextaliquot
+	}
+		
+// export as Output
+Dilutions = dilutions 
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}
+
