@@ -95,6 +95,8 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		// take next sample of diluent
 		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 
+		nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[k], "DilutionPlate", nextdiluentSample)
+
 		// Ensure liquid type set to Pre and Post Mix
 		aliquot.Type = wtype.LTNeedToMix
 

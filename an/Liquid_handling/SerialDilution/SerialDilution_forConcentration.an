@@ -106,7 +106,9 @@ Steps {
 			
 		// take next sample of diluent
 		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
-	
+		
+		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[k], "DilutionPlate",nextdiluentSample)
+		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
 		
