@@ -41,4 +41,4 @@ anthac:
 
 compile: gen_comp
 	go install -v $(PACKAGE)/cmd/antharun
-	antharun list > /dev/null
+	antharun list elements > /dev/null

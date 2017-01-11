@@ -15,7 +15,7 @@ i.e. When we say the concept of a component we don't mean a specific sample of w
 To check what components are available type the following command
 
 ```bash
-antharun lhcomponents
+antharun list components
 ```
 
 ## Factory
@@ -51,16 +51,16 @@ A = wtype.NewLHComponent()
     cmap[A.CName] = A
 ```
 
-### plate factory:
+### Plate factory:
 
 Open the file and add the component to the list within the body of the func makePlateLibrary()
 
 
 #### Checking available plates from command line
-To check what components are available type the following command
+To check what plates are available type the following command
 
 ```bash
-antharun lhplates
+antharun list plates
 ```
 
 ### LiquidTypes:
@@ -92,17 +92,17 @@ Currently this consists of:
 The full list can be found by typing 
 
 ```bash
-antharun lhpolicies
+antharun list policies
 ```
 
 or looking at the liquidClass map in the following file: 
 
 
-```bash
-$GOPATH/src/github.com/antha-lang/antha/antha/anthalib/wtype/LiquidType.go
-```
+The details of any of the properties of an lhpolicy can be found by running 
 
-The details of these policies can be found in
+```bash
+antharun list policyCommands
+```
 
 ```bash
 $GOPATH/src/github.com/antha-lang/antha/microArch/driver/liquidhandling/makelhpolicy.go

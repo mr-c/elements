@@ -6,7 +6,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
-
+	"github.com/antha-lang/antha/antha/anthalib/setup"
 )
 
 
@@ -15,7 +15,7 @@ Parameters (
 	Reactionspermastermix int
 	ComponentVolumesperReaction []Volume
 	Components []string
-
+	CheckPartsInInventory bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -47,13 +47,13 @@ Setup {
 // for every input
 Steps {
 	
+	
 	var mastermix *wtype.LHComponent
 	
 	if len(Components) != len(ComponentVolumesperReaction){
 		Errorf("len(Components) != len(OtherComponentVolumes)")
 	}
 		
-	
 		// get components from factory and if not present use default dna component
 		
 		lhComponents := make([]*wtype.LHComponent,0)
@@ -71,9 +71,19 @@ Steps {
 			
 		}
 		
+		if CheckPartsInInventory {
+	
+		// First specify some handles for UI interaction
+		// Adds Ordering handle for the UI
+		lhComponents[0] = Handle(setup.OrderInfo(lhComponents[0]))
+		// we need a plate prep step
+		lhComponents[0] = Handle(setup.PlatePrep(lhComponents[0]))
+
+		// a setup step
+    	lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
+		}
 		
 		// now make mastermix
-		
 		
 		eachmastermix := make([]*wtype.LHComponent, 0)
 		

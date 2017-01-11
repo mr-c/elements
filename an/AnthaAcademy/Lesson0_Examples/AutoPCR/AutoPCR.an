@@ -70,9 +70,6 @@ Steps {
 	// initialise map
 	ReactionMap = make(map[string]*wtype.LHComponent)
 
-
-	// range through the Reaction to template map
-
 	additives := make([]*wtype.LHComponent,0)
 	additivevolumes := make([]wunit.Volume,0)
 
@@ -92,7 +89,7 @@ Steps {
 		additivevolumes = append(additivevolumes,volume)
 	}
 
- 	
+ 	// range through the Reaction to template map
 	for reactionname, templatename := range Reactiontotemplate {
 	
 	// use counter to find next available well position in plate

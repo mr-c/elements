@@ -1,3 +1,4 @@
+// Demo protocol to set up a single PCR reaction based on using volumes as setpoints rather than concentrations
 package lib
 
 import (
@@ -15,26 +16,13 @@ import (
 
 // PCRprep parameters:
 
-/*
-	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
-
-	//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...
-	//FullTemplatesequence string // better to use Sid's type system here after proof of concept
-	//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
-	//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
-	//TargetTemplatelengthinBP int
-*/
-// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
-
-//Denaturationtemp Temperature
-
-// Should be calculated from primer and template binding
-// should be calculated from template length and polymerase rate
+// Reaction parameters:
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
 
+// the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it
 // e.g. DMSO
 
 // Physical outputs from this protocol with types
@@ -50,9 +38,22 @@ func _PCR_vol_demoSetup(_ctx context.Context, _input *PCR_vol_demoInput) {
 // for every input
 func _PCR_vol_demoSteps(_ctx context.Context, _input *PCR_vol_demoInput, _output *PCR_vol_demoOutput) {
 
-	// rename components
+	// liquidhandling components all have a defined liquid class which
+	// determines how they'll be pipetted (e.g. glycerol is viscous so must be
+	// pipetted more slowly than water). For this reason when we define an LHComponent it must be based on
+	// one which exists in antha already so antha knows how it should be pipetted.
+	// We can rename them though by inputting the component name as a parameter
+
+	// The LHComponent type has many properties and behaviours which you can call upon using a period
+	// For example, an LHComponent's name is stored as a field called CName.
+	// We can change the name of the LHComponent Template to the string TemplateName like so
 
 	_input.Template.CName = _input.TemplateName
+	// The Template and TemplateName variables are declared above and given a type
+	// Template is an LHComponent which is a physical input so it's declared in the Inputs section.
+	// TemplateName is a string so just data input; it is therefore delcared in the parameters section.
+
+	// Now do the same for the primers
 	_input.FwdPrimer.CName = _input.FwdPrimerName
 	_input.RevPrimer.CName = _input.RevPrimerName
 
@@ -69,7 +70,7 @@ func _PCR_vol_demoSteps(_ctx context.Context, _input *PCR_vol_demoInput, _output
 	samples = append(samples, dntpSample)
 
 	if len(_input.Additives) != len(_input.AdditiveVols) {
-		execute.Errorf(_ctx, "Bad things are going to happen if you have different numbers of additives and additivevolumes")
+		execute.Errorf(_ctx, "Additives and AdditiveVols need to contain the same number of entries, check this please")
 	}
 
 	for i := range _input.Additives {
@@ -277,27 +278,27 @@ func init() {
 	if err := addComponent(component.Component{Name: "PCR_vol_demo",
 		Constructor: PCR_vol_demoNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "Demo protocol to set up a single PCR reaction based on using volumes as setpoints rather than concentrations\n",
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/AutoPCR/PCR.an",
 			Params: []component.ParamDesc{
 				{Name: "AddPrimerstoMasterMix", Desc: "", Kind: "Parameters"},
 				{Name: "AdditiveVols", Desc: "", Kind: "Parameters"},
 				{Name: "Additives", Desc: "e.g. DMSO\n", Kind: "Inputs"},
-				{Name: "AnnealingTemp", Desc: "Should be calculated from primer and template binding\n", Kind: "Parameters"},
-				{Name: "Annealingtime", Desc: "Denaturationtemp Temperature\n", Kind: "Parameters"},
+				{Name: "AnnealingTemp", Desc: "", Kind: "Parameters"},
+				{Name: "Annealingtime", Desc: "", Kind: "Parameters"},
 				{Name: "Buffer", Desc: "", Kind: "Inputs"},
 				{Name: "BufferConcinX", Desc: "", Kind: "Parameters"},
 				{Name: "DNTPS", Desc: "", Kind: "Inputs"},
 				{Name: "DNTPVol", Desc: "", Kind: "Parameters"},
 				{Name: "Denaturationtime", Desc: "", Kind: "Parameters"},
-				{Name: "Extensiontime", Desc: "should be calculated from template length and polymerase rate\n", Kind: "Parameters"},
+				{Name: "Extensiontime", Desc: "", Kind: "Parameters"},
 				{Name: "Finalextensiontime", Desc: "", Kind: "Parameters"},
 				{Name: "FwdPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "FwdPrimerName", Desc: "", Kind: "Parameters"},
 				{Name: "FwdPrimerVol", Desc: "", Kind: "Parameters"},
 				{Name: "Hotstart", Desc: "", Kind: "Parameters"},
 				{Name: "InitDenaturationtime", Desc: "", Kind: "Parameters"},
-				{Name: "Numberofcycles", Desc: "\t// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume\n\n\t//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...\n\t//FullTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//FullTemplatelength int\t// clearly could be calculated from the sequence... Sid will have a method to do this already so check!\n\t//TargetTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//TargetTemplatelengthinBP int\n\nReaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
+				{Name: "Numberofcycles", Desc: "Reaction parameters:\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PCRPolymerase", Desc: "", Kind: "Inputs"},
 				{Name: "PolymeraseVolume", Desc: "", Kind: "Parameters"},
@@ -306,7 +307,7 @@ func init() {
 				{Name: "RevPrimer", Desc: "", Kind: "Inputs"},
 				{Name: "RevPrimerName", Desc: "", Kind: "Parameters"},
 				{Name: "RevPrimerVol", Desc: "", Kind: "Parameters"},
-				{Name: "Template", Desc: "", Kind: "Inputs"},
+				{Name: "Template", Desc: "the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it\n", Kind: "Inputs"},
 				{Name: "TemplateName", Desc: "", Kind: "Parameters"},
 				{Name: "Templatevolume", Desc: "", Kind: "Parameters"},
 				{Name: "Water", Desc: "", Kind: "Inputs"},

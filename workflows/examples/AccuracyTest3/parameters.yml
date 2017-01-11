@@ -1,0 +1,20 @@
+Parameters:
+  AccuracyTest:
+    DXORJMP: JMP
+    Diluent: water
+    DilutionFactor: 10
+    Imagefilename: star.png
+    LHPolicy: PostMix
+    NumberofBlanks: 1
+    NumberofReplicates: 5
+    OutPlate: greiner384_riser
+    OutputFilename: AccuracytestPostMixoutput_test.xlsx
+    Printasimage: true
+    TestSolVolumes:
+    - 0.25ul
+    - 2.5ul
+    - 25ul
+    TestSols:
+    - tartrazine
+    TotalVolume: 100ul
+    UseLiquidPolicyForTestSolutions: true
