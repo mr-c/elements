@@ -1,8 +1,8 @@
 {
-    "connections": [],
-    "processes": {
-        "MultiChannelTest": {
-            "component": "MultichannelTestProtocol"
-        }
+  "connections": [],
+  "processes": {
+    "MultiChannelTest": {
+      "component": "MultichannelTestProtocol"
     }
+  }
 }
