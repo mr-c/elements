@@ -138,7 +138,6 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 					if _input.PipetteOnebyOne {
 						eachreaction = make([]*wtype.LHComponent, 0)
-						//eachdilution = make([]*wtype.LHComponent, 0)
 					}
 					// keep default policy for diluent
 
@@ -304,7 +303,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						panic("policy " + doerun + " not found")
+						execute.Errorf(_ctx, "policy "+doerun+" not found")
 						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
 					}
 

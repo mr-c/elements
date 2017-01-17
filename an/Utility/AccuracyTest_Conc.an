@@ -163,7 +163,6 @@ Steps {
 		
 		if PipetteOnebyOne {
 		eachreaction = make([]*wtype.LHComponent, 0)
-		//eachdilution = make([]*wtype.LHComponent, 0)
 		}
 		// keep default policy for diluent
 		
@@ -338,7 +337,7 @@ Steps {
 	// print out LHPolicy info
 	policy, found := liquidhandling.GetPolicyByName(doerun)
 	if  !found {
-		panic("policy "+doerun+" not found")
+		Errorf("policy "+doerun+" not found")
 		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
 	}
 	
