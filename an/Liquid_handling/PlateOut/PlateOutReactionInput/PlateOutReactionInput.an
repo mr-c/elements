@@ -1,0 +1,70 @@
+// Protocol PlateOutReactionInput performs something.
+
+protocol PlateOutReactionInput
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	Plateoutvolume wunit.Volume
+	IncubationTemp Temperature
+	IncubationTime Time
+	DilutionX int
+)
+
+// Output data of this protocol
+Data (
+	Sum float64
+)
+
+// Physical inputs to this protocol
+Inputs (
+	Reactions []*wtype.LHComponent
+	Diluent *wtype.LHComponent
+	AgarPlate *wtype.LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	Platedculture *wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+plateout := make([]*wtype.LHComponent,0)
+
+if Diluent != nil && DilutionX > 1 {
+diluentsample := mixer.SampleForTotalVolume(Diluent,Plateoutvolume)
+plateout = append(plateout,diluentsample)
+// redeclare Plateoutvolume for adjusted volume to add of recovery mixture based on dilution ratio
+Plateoutvolume = wunit.NewVolume(Plateoutvolume.RawValue()/float64(DilutionX),Plateoutvolume.Unit().PrefixedSymbol())
+
+}
+plateoutsample := mixer.Sample(Reactions, Plateoutvolume)
+plateout = append(plateout,plateoutsample)
+platedculture := MixInto(AgarPlate, "",  plateout...)
+platedculture = Incubate(platedculture,IncubationTemp,IncubationTime,false)
+Platedculture = platedculture
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

@@ -1,0 +1,102 @@
+// Protocol PlateOut transfers liquid (i.e. recovered cells) from one plate type to an output agar plate type.
+
+protocol PlateOutTest
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"fmt"
+)
+
+// Parameters to this protocol
+Parameters (
+	OutWell string
+	OverlayAgarname string
+	Plateoutvolume Volume
+	NumberofReplicates int
+	AgarPlateNumber int
+)
+
+// Output data of this protocol
+Data (
+	WellsUsedinAgarPlate int
+	AgarPlatesUsed int
+)
+
+// Physical inputs to this protocol
+Inputs (
+	OverlayAgar *wtype.LHComponent
+	AgarPlate *wtype.LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	Platedculture *wtype.LHComponent
+	Transformedplate int
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	// set counter to select correct well position and platenumber
+	var counter int = WellsUsedinAgarPlate
+
+	// set a platenumber to 1
+	var platenumber int = AgarPlateNumber //1
+
+	//get position info on agarplate
+	var wellpositionarray []string = AgarPlate.AllWellPositions(wtype.BYCOLUMN)
+
+	//define platedculture output as a liquid component
+	Platedcultures := make([]*wtype.LHComponent, 0)
+fmt.Println("all is good1")
+
+	//OverlayAgar := factory.GetComponentByType("neb5compcells")
+	OverlayAgar.CName = OverlayAgarname
+fmt.Println("all is good2")
+
+	//create loop for counting number of replicates
+	for j := 0; j < NumberofReplicates;j++{
+
+		//sample the specified liquid at specified volume
+		plateout := mixer.Sample(OverlayAgar, Plateoutvolume)
+
+		//detect next well location accessing array slice using counter as pointer
+		nextwell := wellpositionarray[counter]
+
+		//perform mix actions with plateout from above into specified plate and location
+		platedculture := MixNamed(AgarPlate.Type, nextwell, fmt.Sprint(Transformedplate+platenumber), plateout)
+
+
+		platedculture.CName = fmt.Sprint(platedculture.CName, j)
+
+		Platedcultures = append(Platedcultures,platedculture)
+
+		//increase counter for next iteration
+		if counter +1 == len(wellpositionarray) {
+		platenumber++
+		counter=0
+		}else{
+		counter++
+		}
+}
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

@@ -1,0 +1,18 @@
+{
+  "processes": {
+    "PlateOutTest_1": {
+      "component": "PlateOutTest"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "PlateOutTest_1": {
+      "OverlayAgar": "protoplasts",
+      "AgarPlate": "falcon6wellAgar",
+    	"OverlayAgarname": "neb5compcells",
+    	"Plateoutvolume": "10ul",
+    	"NumberofReplicates": 1,
+    	"AgarPlateNumber": 2
+  }
+  }
+}
