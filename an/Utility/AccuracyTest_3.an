@@ -29,7 +29,7 @@ Parameters (
 	UseLHPolicyDoeforDiluent bool
 	DilutionFactor float64
 	WellsUsed int // optional parameter allowing pipetting to resume on partially filled plate
-
+	MinVolume Volume
 )
 
 // Data which is returned from this protocol, and data types
@@ -72,7 +72,14 @@ Steps {
 	if DilutionFactor == 0 {
 		DilutionFactor = 10
 	}
-	minVolume := wunit.NewVolume(0.5,"ul")
+	
+	var minVolume Volume
+	
+	if MinVolume.EqualTo(wunit.NewVolume(0.0,"ul")){
+		minVolume = wunit.NewVolume(0.5,"ul")
+	}else {
+		minVolume = MinVolume
+	}
 	
 	// declare some global variables for use later
 	var rotate = false

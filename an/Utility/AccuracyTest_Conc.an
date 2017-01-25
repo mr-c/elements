@@ -34,7 +34,7 @@ Parameters (
 	UseLHPolicyDoeforDiluent bool
 	DilutionFactor float64
 	WellsUsed int // optional parameter allowing pipetting to resume on partially filled plate
-
+	MinVolume Volume
 )
 
 // Data which is returned from this protocol, and data types
@@ -80,7 +80,15 @@ Steps {
 	Runtowelllocationmap = make(map[string]string)
 	Blankwells = make([]string,0)
 	counter := WellsUsed 
-	minVolume := wunit.NewVolume(0.5,"ul")
+	
+	var minVolume Volume
+	
+	if MinVolume.EqualTo(wunit.NewVolume(0.0,"ul")){
+		minVolume = wunit.NewVolume(0.5,"ul")
+	}else {
+		minVolume = MinVolume
+	}
+	
 	var platenum = 1
 	var runs = make([]doe.Run,1)
 	var newruns = make([]doe.Run,0)
