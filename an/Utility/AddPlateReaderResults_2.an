@@ -23,6 +23,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
+	"math"
 	"fmt"
 	"path/filepath"
 	"strconv"
@@ -320,7 +321,15 @@ Steps {
 				correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
 
 				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ExpectedConc "+strconv.Itoa(Wavelength), expectedconc.SIValue())
+				
+				// if Infinity or Not a number set to 0
+				if math.IsInf(correctnessfactor,0) || math.IsNaN(correctnessfactor){
+					correctnessfactor = 0.0
+				}
+				
 				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(Wavelength), correctnessfactor)
+
+				
 				correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
 				
 
@@ -459,6 +468,11 @@ Analysis {
 	if err != nil{
 		Errors = append(Errors,err.Error())
 	}
+	
+	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+			
+	xygraph.Title.Text = "Expected vs Measured Concentration"
+			
 	filenameandextension := strings.Split(OutputFilename, ".")
 	plot.Export(xygraph, "10cm","10cm",filenameandextension[0]+"_plot"+".png")
 	
@@ -747,6 +761,12 @@ Analysis {
 	dataset.Values = values
 
 	dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
+	
+	// if CV == Infinity or Not a number set to -1.0
+	if math.IsInf(dataset.CV,0)|| math.IsNaN(dataset.CV){
+		dataset.CV = -1.0
+	}
+	
 	VolumeToCorrectnessFactor[key] = dataset
 	
 	
@@ -818,7 +838,7 @@ if ManualComparison {
 	
 }
 
-
+fmt.Println("VOlumetoCorrectnessmap", VolumeToCorrectnessFactor)
 	
 }
 

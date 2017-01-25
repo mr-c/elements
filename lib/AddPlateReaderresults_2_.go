@@ -29,6 +29,7 @@ import (
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/montanaflynn/stats"
+	"math"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -286,7 +287,14 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 		correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
 
 		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ExpectedConc "+strconv.Itoa(_input.Wavelength), expectedconc.SIValue())
+
+		// if Infinity or Not a number set to 0
+		if math.IsInf(correctnessfactor, 0) || math.IsNaN(correctnessfactor) {
+			correctnessfactor = 0.0
+		}
+
 		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(_input.Wavelength), correctnessfactor)
+
 		correctnessFactorValues = append(correctnessFactorValues, correctnessfactor)
 
 		//xvalues = append(xvalues, expectedconc.SIValue())
@@ -414,6 +422,11 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 	if err != nil {
 		_output.Errors = append(_output.Errors, err.Error())
 	}
+
+	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+
+	xygraph.Title.Text = "Expected vs Measured Concentration"
+
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
 	plot.Export(xygraph, "10cm", "10cm", filenameandextension[0]+"_plot"+".png")
 
@@ -692,6 +705,12 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 		dataset.Values = values
 
 		dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
+
+		// if CV == Infinity or Not a number set to -1.0
+		if math.IsInf(dataset.CV, 0) || math.IsNaN(dataset.CV) {
+			dataset.CV = -1.0
+		}
+
 		_output.VolumeToCorrectnessFactor[key] = dataset
 
 	}
@@ -756,6 +775,8 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 		plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_Manualcorrectnessfactor"+".png")
 
 	}
+
+	fmt.Println("VOlumetoCorrectnessmap", _output.VolumeToCorrectnessFactor)
 
 }
 
