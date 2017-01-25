@@ -12,6 +12,7 @@ Parameters:
     Printasimage: true
     TestSolVolumes:
     - 0.25ul
+    - 0.5ul
     - 2.5ul
     - 25ul
     TestSols:

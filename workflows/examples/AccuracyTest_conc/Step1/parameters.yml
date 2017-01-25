@@ -5,24 +5,23 @@ Parameters:
     DilutionFactor: 10
     Imagefilename: star.png
     LHPolicy: PostMix
-    NumberofBlanks: 3
+    MinVolume: 1ul
+    NumberofBlanks: 0
     NumberofReplicates: 4
     OutPlate: greiner384_riser40
-    OutputFilename: AccuracytestPostMixConcOutput_Arnold.xlsx
+    OutputFilename: 180117AccuracytestPostMixConcOutput_Arnold.xlsx
     Printasimage: false
     StockConcentrations:
-    - 0.0002878191305957933M/l
+    - 0.2878191305957933mM
     TestSolConcs:
+    - 0.0uM
+    - 0.5uM
     - 1uM
     - 2uM
     - 4uM
     - 8uM
-    - 10uM
-    - 20uM
-    - 40uM
-    - 80uM
-    - 160uM
     TestSols:
     - tartrazine
     TotalVolume: 100ul
     UseLiquidPolicyForTestSolutions: true
+    WellsUsed: 39

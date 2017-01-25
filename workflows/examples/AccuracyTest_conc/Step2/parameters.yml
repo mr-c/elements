@@ -1,15 +1,15 @@
 Parameters:
   AddResponses:
     Blanks:
-    - D1
+    - H3
     CVthreshold: 0.2
-    DesignFile: ../Step1/AccuracytestPostMixConcOutput_Arnold.xlsx
+    DesignFile: ../Step1/180117AccuracytestPostMixConcOutput_Arnold.xlsx
     DesignFiletype: JMP
     Diluent: water
     Extinctioncoefficient: 20330
     FindOptWavelength: true
     ManualComparison: false
-    MarsResultsFileXLSX: platereaderresults.xlsx
+    MarsResultsFileXLSX: 180117platereaderresults.xlsx
     Molecule: tartrazine
     OutputFilename: null
     PlateType: greiner384
@@ -21,9 +21,7 @@ Parameters:
     StockconcinMperL: 0.0002878191305957933M/l
     Stockvol: 100ul
     VolumeToManualwells:
-      0.347 ul:
-      - A1
-      - B1
-      - C1
+      1.390 ul:
+      - I4
     Wavelength: 472
-    WellForScanAnalysis: J2
+    WellForScanAnalysis: I4
