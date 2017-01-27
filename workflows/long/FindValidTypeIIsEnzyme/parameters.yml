@@ -1,6 +1,8 @@
 Parameters:
-  Iterative_assembly_design:
+  FindValidTypeIIsEnzyme:
     ApprovedEnzymes:
+    - sapI
+    - bsaI
     - aarI
     Constructname: Assemblyproduct
     Seqsinorder:
