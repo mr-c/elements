@@ -1,8 +1,7 @@
 Parameters:
   Iterative_assembly_design:
     ApprovedEnzymes:
-    - BSAI
-    - SapI
+    - aarI
     Constructname: Assemblyproduct
     Seqsinorder:
     - CGCGGAACCCCTATTTGTTTATTTTTCTAAATACATTCAAATATGTATCCGCTCATGAGACAATAACCCTGATAAATGCTTCAATAATATTGAAAAAGGAAGAGT
