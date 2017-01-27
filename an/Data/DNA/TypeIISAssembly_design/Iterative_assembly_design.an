@@ -3,8 +3,6 @@
 // which is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme
 // from the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)
 // all typeIIs enzymes will be screened to find feasible backup options
-
-
 protocol Iterative_assembly_design
 
 import (
@@ -83,7 +81,12 @@ Steps {
 	var backupoption string
 	for _, possibility := range possibilities {
 				// check number of sites per part !
-	enz := lookup.EnzymeLookup(possibility)
+	
+	enz, err := lookup.EnzymeLookup(possibility)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
 	
 	for _,part := range partsinorder {
 	
@@ -105,7 +108,12 @@ Steps {
 	for _,Enzyme := range ApprovedEnzymes {
 	
 			// check number of sites per part !
-	enz := lookup.EnzymeLookup(Enzyme)
+	enz, err := lookup.EnzymeLookup(Enzyme)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
 	
 	for _,part := range partsinorder {
 	
@@ -175,7 +183,11 @@ Steps {
 	}	
 	
 		// check number of sites per part !
-	enz := lookup.EnzymeLookup(Enzyme)
+	enz, err := lookup.EnzymeLookup(Enzyme)
+	
+	if err!=nil{
+		Errorf(err.Error())
+	}
 	sites := make([]int,0)
 	multiple := make ([]string,0)
 	for _,part := range PartswithOverhangs {

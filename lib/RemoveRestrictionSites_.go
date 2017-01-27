@@ -1,6 +1,5 @@
 // This protocol is intended to check sequences for restriction sites and remove according to
 // specified conditions
-
 package lib
 
 import (
@@ -51,7 +50,10 @@ func _RemoveRestrictionSitesSteps(_ctx context.Context, _input *RemoveRestrictio
 	// first lookup enzyme properties for all enzymes and make a new array
 	enzlist := make([]wtype.RestrictionEnzyme, 0)
 	for _, site := range _input.RestrictionsitetoAvoid {
-		enzsite := lookup.EnzymeLookup(site)
+		enzsite, err := lookup.EnzymeLookup(site)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		enzlist = append(enzlist, enzsite)
 	}
 
@@ -155,7 +157,11 @@ func _RemoveRestrictionSitesSteps(_ctx context.Context, _input *RemoveRestrictio
 	}
 
 	// Now let's find out the size of fragments we would get if digested with a common site cutter
-	mapenz := lookup.EnzymeLookup(_input.EnzymeforRestrictionmapping)
+	mapenz, err := lookup.EnzymeLookup(_input.EnzymeforRestrictionmapping)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	_output.FragmentSizesfromRestrictionmapping = enzymes.RestrictionMapper(Sequence, mapenz)
 
@@ -267,7 +273,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "RemoveRestrictionSites",
 		Constructor: RemoveRestrictionSitesNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to check sequences for restriction sites and remove according to\nspecified conditions\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/RestrictionSiteRemover/RemoveRestrictionSites.an",
 			Params: []component.ParamDesc{
 				{Name: "EnzymeforRestrictionmapping", Desc: "", Kind: "Parameters"},

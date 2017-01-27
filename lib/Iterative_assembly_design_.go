@@ -3,7 +3,6 @@
 // which is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme
 // from the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)
 // all typeIIs enzymes will be screened to find feasible backup options
-
 package lib
 
 import (
@@ -67,7 +66,12 @@ func _Iterative_assembly_designSteps(_ctx context.Context, _input *Iterative_ass
 	var backupoption string
 	for _, possibility := range possibilities {
 		// check number of sites per part !
-		enz := lookup.EnzymeLookup(possibility)
+
+		enz, err := lookup.EnzymeLookup(possibility)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 
 		for _, part := range partsinorder {
 
@@ -89,7 +93,11 @@ func _Iterative_assembly_designSteps(_ctx context.Context, _input *Iterative_ass
 	for _, Enzyme := range _input.ApprovedEnzymes {
 
 		// check number of sites per part !
-		enz := lookup.EnzymeLookup(Enzyme)
+		enz, err := lookup.EnzymeLookup(Enzyme)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 
 		for _, part := range partsinorder {
 
@@ -157,7 +165,11 @@ func _Iterative_assembly_designSteps(_ctx context.Context, _input *Iterative_ass
 		}
 
 		// check number of sites per part !
-		enz := lookup.EnzymeLookup(Enzyme)
+		enz, err := lookup.EnzymeLookup(Enzyme)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		sites := make([]int, 0)
 		multiple := make([]string, 0)
 		for _, part := range _output.PartswithOverhangs {
@@ -302,7 +314,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "Iterative_assembly_design",
 		Constructor: Iterative_assembly_designNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is based on scarfree design so please look at that first.\nThe protocol is intended to design assembly parts using the first enzyme\nwhich is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme\nfrom the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)\nall typeIIs enzymes will be screened to find feasible backup options\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Iterative_assembly_design.an",
 			Params: []component.ParamDesc{
 				{Name: "ApprovedEnzymes", Desc: "", Kind: "Parameters"},
