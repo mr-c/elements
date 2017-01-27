@@ -1,9 +1,11 @@
+// Perform accuracy test protocol using a series of concentrations as set points
 package lib
 
 import (
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -18,6 +20,11 @@ import (
 
 // Input parameters for this protocol (data)
 
+// corresponds to order of solutions
+
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
+
 // optional parameter allowing pipetting to resume on partially filled plate
 
 // Data which is returned from this protocol, and data types
@@ -30,29 +37,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AccuracyTest_3Requirements() {
+func _AccuracyTest_ConcentrationRequirements() {
 }
 
 // Conditions to run on startup
-func _AccuracyTest_3Setup(_ctx context.Context, _input *AccuracyTest_3Input) {
+func _AccuracyTest_ConcentrationSetup(_ctx context.Context, _input *AccuracyTest_ConcentrationInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
-
-	// if dilution factor not set dilute by 10x
-	if _input.DilutionFactor == 0 {
-		_input.DilutionFactor = 10
-	}
-
-	var minVolume wunit.Volume
-
-	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
-		minVolume = wunit.NewVolume(0.5, "ul")
-	} else {
-		minVolume = _input.MinVolume
-	}
+func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
 
 	// declare some global variables for use later
 	var rotate = false
@@ -62,14 +56,32 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	_output.Blankwells = make([]string, 0)
 	counter := _input.WellsUsed
 
+	var minVolume wunit.Volume
+
+	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
+		minVolume = wunit.NewVolume(0.5, "ul")
+	} else {
+		minVolume = _input.MinVolume
+	}
+
 	var platenum = 1
 	var runs = make([]doe.Run, 1)
 	var newruns = make([]doe.Run, 0)
+
 	var err error
 	_output.Errors = make([]error, 0)
 	// work out plate layout based on picture or just in order
 
 	if _input.Printasimage {
+
+		// if image is from url, download
+		if _input.UseURL {
+			err := download.File(_input.URL, _input.Imagefilename)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+		}
+
 		chosencolourpalette := image.AvailablePalettes()["Palette1"]
 		positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
 
@@ -104,11 +116,23 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 		referencekeys = append(referencekeys, key)
 	}
 
-	for l := 0; l < len(_input.TestSolVolumes); l++ {
+	for l := 0; l < len(_input.TestSolConcs); l++ {
 		for k := 0; k < len(_input.TestSols); k++ {
+
+			// calculate target volumes from concentrations
+			var TestSolVolumes []wunit.Volume
+
+			for _, targetconc := range _input.TestSolConcs {
+				vol, err := wunit.VolumeForTargetConcentration(targetconc, _input.StockConcentrations[k], _input.TotalVolume)
+				if err != nil {
+					execute.Errorf(_ctx, err.Error())
+				}
+				TestSolVolumes = append(TestSolVolumes, vol)
+			}
+
 			for j := 0; j < _input.NumberofReplicates; j++ {
 				for i := 0; i < len(runs); i++ {
-
+					var diluted bool
 					var run doe.Run
 
 					if counter == ((_input.OutPlate.WlsX * _input.OutPlate.WlsY) + _input.NumberofBlanks) {
@@ -122,7 +146,6 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 
 					if _input.PipetteOnebyOne {
 						eachreaction = make([]*wtype.LHComponent, 0)
-						//eachdilution = make([]*wtype.LHComponent, 0)
 					}
 					// keep default policy for diluent
 
@@ -139,18 +162,25 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					var bufferSample *wtype.LHComponent
 					var Dilution *wtype.LHComponent
 
-					if _input.TestSolVolumes[l].LessThan(minVolume) {
+					if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
+
+						_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+						_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+
+						if err != nil {
+							execute.Errorf(_ctx, err.Error())
+						}
 
 						// add diluent to dilution plate ready for dilution
-						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor)}))
+						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor)}))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutedSampleBuffer)
 
 						// add same volume to destination plate ready for dilutedsolution
-						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor)}))
+						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor)}))
 
 					} else {
 
-						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{_input.TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
+						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
 
 					}
 
@@ -170,10 +200,10 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 						}
 					}
 
-					if _input.TestSolVolumes[l].GreaterThan(minVolume) {
+					if TestSolVolumes[l].GreaterThan(minVolume) {
 
 						//sample
-						testSample := mixer.Sample(_input.TestSols[k], _input.TestSolVolumes[l])
+						testSample := mixer.Sample(_input.TestSols[k], TestSolVolumes[l])
 
 						if _input.PipetteOnebyOne {
 							eachreaction = append(eachreaction, testSample)
@@ -183,13 +213,21 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 							solution = execute.Mix(_ctx, solution, testSample)
 						}
 
-					} else if _input.TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && _input.TestSolVolumes[l].LessThan(minVolume) {
+					} else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
+						diluted = true
+
+						_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+						_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+
+						if err != nil {
+							execute.Errorf(_ctx, err.Error())
+						}
 
 						//sample
-						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor))
+						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutionSample)
 
-						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor))
+						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor))
 
 						if _input.PipetteOnebyOne {
 							eachreaction = append(eachreaction, testSample)
@@ -206,15 +244,30 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					// get annotation info
 					doerun := wtype.LiquidTypeName(_input.TestSols[k].Type)
 
-					volume := _input.TestSolVolumes[l].ToString()
+					volume := TestSolVolumes[l].ToString()
+					conc := _input.TestSolConcs[l].ToString()
 
 					solutionname := _input.TestSols[k].CName
+					stockconc := _input.StockConcentrations[k].ToString()
 
 					// add Solution Name
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Solution", solutionname)
 
+					// add Solution Name
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Stock Conc", stockconc)
+
 					// add Volume
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Volume", volume)
+
+					// if diluted
+					if diluted {
+						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", _input.DilutionFactor)
+					} else {
+						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", 0)
+					}
+
+					// add Concentration
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Concentration", conc)
 
 					// add Replicate
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Replicate", strconv.Itoa(j+1))
@@ -269,7 +322,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					reactions = append(reactions, solution)
 					newruns = append(newruns, run)
 
-					counter++
+					counter = counter + 1
 
 				}
 
@@ -300,7 +353,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 			_output.Blankwells = append(_output.Blankwells, well)
 
 			reactions = append(reactions, reaction)
-			counter++
+			counter = counter + 1
 
 		}
 
@@ -315,26 +368,26 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AccuracyTest_3Analysis(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
+func _AccuracyTest_ConcentrationAnalysis(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AccuracyTest_3Validation(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
+func _AccuracyTest_ConcentrationValidation(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
 }
-func _AccuracyTest_3Run(_ctx context.Context, input *AccuracyTest_3Input) *AccuracyTest_3Output {
-	output := &AccuracyTest_3Output{}
-	_AccuracyTest_3Setup(_ctx, input)
-	_AccuracyTest_3Steps(_ctx, input, output)
-	_AccuracyTest_3Analysis(_ctx, input, output)
-	_AccuracyTest_3Validation(_ctx, input, output)
+func _AccuracyTest_ConcentrationRun(_ctx context.Context, input *AccuracyTest_ConcentrationInput) *AccuracyTest_ConcentrationOutput {
+	output := &AccuracyTest_ConcentrationOutput{}
+	_AccuracyTest_ConcentrationSetup(_ctx, input)
+	_AccuracyTest_ConcentrationSteps(_ctx, input, output)
+	_AccuracyTest_ConcentrationAnalysis(_ctx, input, output)
+	_AccuracyTest_ConcentrationValidation(_ctx, input, output)
 	return output
 }
 
-func AccuracyTest_3RunSteps(_ctx context.Context, input *AccuracyTest_3Input) *AccuracyTest_3SOutput {
-	soutput := &AccuracyTest_3SOutput{}
-	output := _AccuracyTest_3Run(_ctx, input)
+func AccuracyTest_ConcentrationRunSteps(_ctx context.Context, input *AccuracyTest_ConcentrationInput) *AccuracyTest_ConcentrationSOutput {
+	soutput := &AccuracyTest_ConcentrationSOutput{}
+	output := _AccuracyTest_ConcentrationRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -344,19 +397,19 @@ func AccuracyTest_3RunSteps(_ctx context.Context, input *AccuracyTest_3Input) *A
 	return soutput
 }
 
-func AccuracyTest_3New() interface{} {
-	return &AccuracyTest_3Element{
+func AccuracyTest_ConcentrationNew() interface{} {
+	return &AccuracyTest_ConcentrationElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AccuracyTest_3Input{}
+				input := &AccuracyTest_ConcentrationInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AccuracyTest_3Run(_ctx, input)
+				output := _AccuracyTest_ConcentrationRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AccuracyTest_3Input{},
-			Out: &AccuracyTest_3Output{},
+			In:  &AccuracyTest_ConcentrationInput{},
+			Out: &AccuracyTest_ConcentrationOutput{},
 		},
 	}
 }
@@ -366,11 +419,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AccuracyTest_3Element struct {
+type AccuracyTest_ConcentrationElement struct {
 	inject.CheckedRunner
 }
 
-type AccuracyTest_3Input struct {
+type AccuracyTest_ConcentrationInput struct {
 	DXORJMP                         string
 	Diluent                         *wtype.LHComponent
 	DilutionFactor                  float64
@@ -383,15 +436,18 @@ type AccuracyTest_3Input struct {
 	OutputFilename                  string
 	PipetteOnebyOne                 bool
 	Printasimage                    bool
-	TestSolVolumes                  []wunit.Volume
+	StockConcentrations             []wunit.Concentration
+	TestSolConcs                    []wunit.Concentration
 	TestSols                        []*wtype.LHComponent
 	TotalVolume                     wunit.Volume
+	URL                             string
 	UseLHPolicyDoeforDiluent        bool
 	UseLiquidPolicyForTestSolutions bool
+	UseURL                          bool
 	WellsUsed                       int
 }
 
-type AccuracyTest_3Output struct {
+type AccuracyTest_ConcentrationOutput struct {
 	Blankwells           []string
 	Errors               []error
 	Pixelcount           int
@@ -402,7 +458,7 @@ type AccuracyTest_3Output struct {
 	Wellpositionarray    []string
 }
 
-type AccuracyTest_3SOutput struct {
+type AccuracyTest_ConcentrationSOutput struct {
 	Data struct {
 		Blankwells           []string
 		Errors               []error
@@ -418,11 +474,11 @@ type AccuracyTest_3SOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AccuracyTest_3",
-		Constructor: AccuracyTest_3New,
+	if err := addComponent(component.Component{Name: "AccuracyTest_Concentration",
+		Constructor: AccuracyTest_ConcentrationNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest_3.an",
+			Desc: "Perform accuracy test protocol using a series of concentrations as set points\n",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest_Conc.an",
 			Params: []component.ParamDesc{
 				{Name: "DXORJMP", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
@@ -436,11 +492,14 @@ func init() {
 				{Name: "OutputFilename", Desc: "", Kind: "Parameters"},
 				{Name: "PipetteOnebyOne", Desc: "", Kind: "Parameters"},
 				{Name: "Printasimage", Desc: "", Kind: "Parameters"},
-				{Name: "TestSolVolumes", Desc: "", Kind: "Parameters"},
+				{Name: "StockConcentrations", Desc: "corresponds to order of solutions\n", Kind: "Parameters"},
+				{Name: "TestSolConcs", Desc: "", Kind: "Parameters"},
 				{Name: "TestSols", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UseLHPolicyDoeforDiluent", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidPolicyForTestSolutions", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
 				{Name: "Blankwells", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
