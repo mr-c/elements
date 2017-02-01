@@ -10,7 +10,54 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"strconv"
+	"strings"
 )
+
+func parseConcentration(componentname string) (containsconc bool, conc wunit.Concentration, componentNameOnly string) {
+
+	approvedunits := wunit.UnitMap["Concentration"]
+
+	fields := strings.Fields(componentname)
+	var unitmatchlength int
+	var longestmatchedunit string
+	var valueandunit string
+
+	for key := range approvedunits {
+		for _, field := range fields {
+			if strings.Contains(field, key) {
+				if len(key) > unitmatchlength {
+					longestmatchedunit = key
+					unitmatchlength = len(key)
+					valueandunit = field
+				}
+			}
+		}
+	}
+
+	for _, field := range fields {
+		if len(fields) == 2 && field != longestmatchedunit {
+			componentNameOnly = field
+		}
+	}
+
+	// if no match, return original component name
+	if unitmatchlength == 0 {
+		return false, conc, componentname
+	}
+
+	concfields := strings.Split(valueandunit, longestmatchedunit)
+
+	value, err := strconv.ParseFloat(concfields[0], 64)
+	if err != nil {
+		panic(err.Error())
+		return false, conc, componentNameOnly
+	}
+
+	conc = wunit.NewConcentration(value, longestmatchedunit)
+	containsconc = true
+	return containsconc, conc, componentNameOnly
+}
 
 // Input parameters for this protocol (data)
 
@@ -70,9 +117,17 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// mix both samples to OutPlate
 	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[0], "DilutionPlate", diluentSample, solutionSample)
 
-	// rename sample to include concentration
-	aliquot.CName = _input.TargetConcentrations[0].ToString() + _input.Solution.CName
+	var solutionname string
 
+	// rename sample to include concentration
+	containsconc, _, componentNameOnly := parseConcentration(_input.Solution.CName)
+
+	if containsconc {
+		solutionname = componentNameOnly
+	}
+
+	aliquot.CName = strings.Replace(_input.TargetConcentrations[0].ToString(), " ", "", -1) + " " + solutionname
+	aliquot.SetConcentration(_input.TargetConcentrations[0])
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
 
@@ -107,8 +162,14 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		nextaliquot := execute.Mix(_ctx, nextdiluentSample, nextSample)
 
 		// rename sample to include concentration
-		nextaliquot.CName = _input.TargetConcentrations[k].ToString() + _input.Solution.CName
+		// rename sample to include concentration
+		containsconc, _, componentNameOnly := parseConcentration(_input.Solution.CName)
 
+		if containsconc {
+			solutionname = componentNameOnly
+		}
+		nextaliquot.CName = strings.Replace(_input.TargetConcentrations[k].ToString(), " ", "", -1) + " " + solutionname
+		nextaliquot.SetConcentration(_input.TargetConcentrations[k])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
 		// reset aliquot
@@ -117,6 +178,20 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	// export as Output
 	_output.Dilutions = dilutions
+
+	// export all concentrations used as export
+	_output.AllDilutions = append(_output.AllDilutions, _input.Solution)
+	_output.AllConcentrations = append(_output.AllConcentrations, _input.StockConcentration)
+
+	_input.Solution.CName = strings.Replace(_input.StockConcentration.ToString(), " ", "", -1) + " " + solutionname
+	_output.ComponentNames = append(_output.ComponentNames, _input.Solution.CName)
+	for i, dilution := range _output.Dilutions {
+
+		_output.AllDilutions = append(_output.AllDilutions, dilution)
+		_output.ComponentNames = append(_output.ComponentNames, dilution.CName)
+		_output.AllConcentrations = append(_output.AllConcentrations, _input.TargetConcentrations[i])
+
+	}
 
 }
 
@@ -189,14 +264,20 @@ type SerialDilution_forConcentrationInput struct {
 }
 
 type SerialDilution_forConcentrationOutput struct {
-	Dilutions []*wtype.LHComponent
+	AllConcentrations []wunit.Concentration
+	AllDilutions      []*wtype.LHComponent
+	ComponentNames    []string
+	Dilutions         []*wtype.LHComponent
 }
 
 type SerialDilution_forConcentrationSOutput struct {
 	Data struct {
+		AllConcentrations []wunit.Concentration
+		ComponentNames    []string
 	}
 	Outputs struct {
-		Dilutions []*wtype.LHComponent
+		AllDilutions []*wtype.LHComponent
+		Dilutions    []*wtype.LHComponent
 	}
 }
 
@@ -214,6 +295,9 @@ func init() {
 				{Name: "StartVolumeperDilution", Desc: "", Kind: "Parameters"},
 				{Name: "StockConcentration", Desc: "", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
+				{Name: "AllConcentrations", Desc: "", Kind: "Data"},
+				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
+				{Name: "ComponentNames", Desc: "", Kind: "Data"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
 			},
 		},

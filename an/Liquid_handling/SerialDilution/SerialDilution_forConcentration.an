@@ -6,9 +6,57 @@ protocol SerialDilution_forConcentration
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"	
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"strings"
+	"strconv"
 )
 
-
+func parseConcentration(componentname string)(containsconc bool, conc wunit.Concentration, componentNameOnly string){
+	
+	approvedunits := wunit.UnitMap["Concentration"]
+	
+	fields := strings.Fields(componentname)
+	var unitmatchlength int
+	var longestmatchedunit string
+	var valueandunit string
+	
+	for key, _ := range approvedunits {
+		for _,field := range fields {
+		if strings.Contains(field,key){
+			if len(key) > unitmatchlength {
+				longestmatchedunit = key
+				unitmatchlength = len(key)
+				valueandunit = field
+				}
+			}
+		}
+	}
+	
+	for _, field := range fields {
+		if len(fields)== 2 && field !=  longestmatchedunit {
+			componentNameOnly = field
+		}
+	}
+	
+	// if no match, return original component name
+	if unitmatchlength == 0 {
+		return false, conc, componentname
+	}
+	
+	concfields := strings.Split(valueandunit,longestmatchedunit)
+	
+	value, err := strconv.ParseFloat(concfields[0],64)
+	if err != nil{
+		panic(err.Error())
+		return false, conc, componentNameOnly
+	}
+	
+	
+	
+	
+	conc = wunit.NewConcentration(value,longestmatchedunit)
+	containsconc = true
+	return containsconc, conc, componentNameOnly
+}
 // Input parameters for this protocol (data)
 Parameters (
 	StartVolumeperDilution 	Volume
@@ -21,7 +69,8 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	
+	AllConcentrations []Concentration
+	ComponentNames []string
 )
 
 
@@ -35,6 +84,7 @@ Inputs (
 // Physical outputs from this protocol with types
 Outputs (
 	Dilutions []*wtype.LHComponent
+	AllDilutions []*wtype.LHComponent
 )
 
 Requirements {
@@ -82,9 +132,17 @@ Steps {
 	// mix both samples to OutPlate
 	aliquot = MixNamed(OutPlate.Type,allwellpositions[0], "DilutionPlate",diluentSample, solutionSample)
 
+	var solutionname string
+	
 	// rename sample to include concentration
-	aliquot.CName = TargetConcentrations[0].ToString() + Solution.CName
-
+	containsconc, _, componentNameOnly := parseConcentration(Solution.CName)
+	
+	if containsconc{
+		solutionname = componentNameOnly
+	}
+	
+	aliquot.CName = strings.Replace(TargetConcentrations[0].ToString()," ","",-1) + " " +solutionname
+	aliquot.SetConcentration(TargetConcentrations[0])
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	
@@ -119,8 +177,14 @@ Steps {
 		nextaliquot := Mix(nextdiluentSample,nextSample)
 		
 		// rename sample to include concentration
-		nextaliquot.CName = TargetConcentrations[k].ToString() + Solution.CName
+		// rename sample to include concentration
+		containsconc, _, componentNameOnly := parseConcentration(Solution.CName)
 		
+		if containsconc{
+			solutionname = componentNameOnly
+		}
+		nextaliquot.CName = strings.Replace(TargetConcentrations[k].ToString()," ","",-1) + " " +solutionname
+		nextaliquot.SetConcentration(TargetConcentrations[k])
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
@@ -128,7 +192,24 @@ Steps {
 	}
 		
 // export as Output
-Dilutions = dilutions 
+Dilutions = dilutions
+
+
+// export all concentrations used as export
+AllDilutions = append(AllDilutions,Solution)
+AllConcentrations = append(AllConcentrations, StockConcentration)
+
+Solution.CName = strings.Replace(StockConcentration.ToString()," ","",-1) + " " +solutionname
+ComponentNames = append(ComponentNames, Solution.CName)
+for i, dilution := range Dilutions {
+	
+	AllDilutions = append(AllDilutions,dilution)
+	ComponentNames = append(ComponentNames, dilution.CName)
+	AllConcentrations = append(AllConcentrations, TargetConcentrations[i])
+	
+} 
+
+
 
 }
 // Run after controls and a steps block are completed to
