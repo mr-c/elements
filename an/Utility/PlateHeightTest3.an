@@ -90,10 +90,10 @@ Steps {
 	time := []string{"Time:",fmt.Sprint(time.Now())}
 	
 	// find git commit id
-	anthacommit, err := cmd.GitCommit()
+	anthacommit, err := cmd.GitCommit("github.com/antha-lang/antha")
 	
 	if err != nil{
-		Errorf(err.Error())
+		anthacommit = err.Error()
 	}
 	
 	gitcommit := []string{"antha-lang/antha commitID:",anthacommit}
