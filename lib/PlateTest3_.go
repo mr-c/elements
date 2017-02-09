@@ -77,10 +77,10 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 	time := []string{"Time:", fmt.Sprint(time.Now())}
 
 	// find git commit id
-	anthacommit, err := cmd.GitCommit()
+	anthacommit, err := cmd.GitCommit("github.com/antha-lang/antha")
 
 	if err != nil {
-		execute.Errorf(_ctx, err.Error())
+		anthacommit = err.Error()
 	}
 
 	gitcommit := []string{"antha-lang/antha commitID:", anthacommit}
