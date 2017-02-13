@@ -9,7 +9,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"strconv"
 )
 
 //    RunVoltage      Int
@@ -28,40 +27,32 @@ func _LoadGel_multiSetup(_ctx context.Context, _input *LoadGel_multiInput) {
 func _LoadGel_multiSteps(_ctx context.Context, _input *LoadGel_multiInput, _output *LoadGel_multiOutput) {
 
 	// work out well coordinates for any plate
-	wellpositionarray := make([]string, 0)
-
-	//alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
-		"Y", "Z", "AA", "BB", "CC", "DD", "EE", "FF"}
-	//k := 0
-	for j := 0; j < _input.GelPlate.WlsY; j++ {
-		for i := 0; i < _input.GelPlate.WlsX; i++ { //countingfrom1iswhatmakesushuman := j + 1
-			//k = k + 1
-			wellposition := string(alphabet[j]) + strconv.Itoa(i+1)
-			//fmt.Println(wellposition, k)
-			wellpositionarray = append(wellpositionarray, wellposition)
-		}
-
-	}
+	wellpositionarray := _input.GelPlate.AllWellPositions(wtype.BYROW)
 
 	_output.RunSolutions = make([]*wtype.LHComponent, 0)
 
-	var RunSolution *wtype.LHComponent
+	var runSolution *wtype.LHComponent
 
 	for k, SampleName := range _input.SampleNames {
+
 		samples := make([]*wtype.LHComponent, 0)
+
 		waterSample := mixer.Sample(_input.Water, _input.WaterVolume)
+
 		waterSample.CName = _input.WaterName
+
 		samples = append(samples, waterSample)
 
+		_input.Protein.CName = SampleName
+
 		loadSample := mixer.Sample(_input.Protein, _input.LoadVolume)
-		loadSample.CName = SampleName
+
 		samples = append(samples, loadSample)
+
 		fmt.Println("This is a list of samples for loading:", samples)
 
-		RunSolution = execute.MixTo(_ctx, _input.GelPlate.Type, wellpositionarray[k], 0, samples...)
-		_output.RunSolutions = append(_output.RunSolutions, RunSolution)
+		runSolution = execute.MixNamed(_ctx, _input.GelPlate.Type, wellpositionarray[k], "GelPlate", samples...)
+		_output.RunSolutions = append(_output.RunSolutions, runSolution)
 	}
 }
 
@@ -110,6 +101,7 @@ func LoadGel_multiNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
