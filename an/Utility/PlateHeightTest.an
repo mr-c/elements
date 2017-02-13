@@ -11,13 +11,16 @@ import (
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"fmt"
-	"github.com/antha-lang/antha/cmd/antharun/cmd"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 
 	"encoding/csv"
 	"os"
-	//"path/filepath"
 	"time"
+	"os/exec"
+	"os/user"
+	"strings"
+	"os"
+	"path/filepath"
 
 )
 
@@ -90,7 +93,7 @@ Steps {
 	time := []string{"Time:",fmt.Sprint(time.Now())}
 	
 	// find git commit id
-	anthacommit, err := cmd.GitCommit("github.com/antha-lang/antha")
+	anthacommit, err := gitCommit("github.com/antha-lang/antha")
 	
 	if err != nil{
 		anthacommit = err.Error()
@@ -260,4 +263,42 @@ Analysis {
 // dipstick basis
 Validation {
 	
+}
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
+}
+
+// assumes GOPATH is in home directory if not set as environment variable
+func gopath() string {
+
+	// if gopath set return gopath
+	if p := os.Getenv("GOPATH"); len(p) != 0 {
+		return filepath.Join(p, "src")
+	}
+	// if not set assume under user's home directory
+	u, err := user.Current()
+	if err != nil {
+		return ""
+	}
+
+	return filepath.Join(u.HomeDir, "go/src")
+}
+
+func gitCommit(path string) (string, error) {
+	cmdName := "git"
+	cmdArgs := []string{"rev-parse", "HEAD"}
+
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd.Dir = path
+	commitID, err := cmd.Output()
+	return strings.TrimSpace(string(commitID)), err
 }
