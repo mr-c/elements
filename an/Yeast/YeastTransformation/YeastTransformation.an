@@ -1,0 +1,295 @@
+// Protocol for transforming S.cerevisiae
+protocol YeastTransformation
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	unitoperations "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/UnitOperations"
+)
+
+// Parameters to this protocol
+Parameters (
+	TargetStartingYeastConcentration Concentration // cells per ml
+	TargetTransformationYeastConcentration Concentration // cells per ml
+	PEGConcentration Concentration // w/v
+	PEGVolume Volume
+	LiAcConcentration Concentration
+	LiACVolume Volume
+	
+	// corresponding concentrations and set points for each dna transformation 
+	DNAStockConcentration []Concentration
+	TargetDNAMassPerTransformation []Mass
+	
+	// Boiling of single stranded carrier dna prior to transformation
+	SSDNABoilTemp Temperature
+	SSDNABoilTime Time
+	SSDNAPostBoilTemp Temperature
+	SSDNAPostBoilTime Time
+	SSCarrierDNAVolume Volume
+	
+	// Initial culture
+	YPDVolume Volume
+	TotalInitialCultureVolume Volume
+	InitialCultureTime Time // Estimate is 4 hours to achieve TargetYeastConcentration
+	InitialCultureTemp Temperature
+	
+	CentrifugationRCF wunit.Force
+	CentrifugationTime Time
+	NumberOfWashes int
+	
+	PostSpinWashVolume Volume
+	PostWashResuspensionVolume Volume
+	
+	ODYEASTExtinctionCoefficient float64
+	
+	
+	// Volume of competent cells
+	CompetentCellVolumePerTransformation Volume
+	
+	
+	// transformation step
+	MastermixVolumePerReaction Volume
+	TotalTransformationVolume Volume
+	
+	// heatshock 
+	HeatShockTemp Temperature
+	HeatShockTime Time
+	
+	// Final resuspension 
+	FinalResuspensionVolume Volume
+	
+	//Plate out
+	PlateOutVolumes []Volume
+	
+	
+)
+
+// Output data of this protocol
+Data (
+
+)
+
+// Physical inputs to this protocol
+Inputs (
+	
+	// Growth
+	YPD *wtype.LHComponent
+	GrowthPlate *wtype.LHPlate
+	
+	// OD measurement
+	ODDiluent *wtype.LHComponent
+	ODPlate *wtype.LHPlate
+	
+	// washing pellet
+	PostSpinWashBuffer *wtype.LHComponent
+	PostSpinResuspensionBuffer *wtype.LHComponent
+	WastePlate *wtype.LHPlate
+	
+	// transformation components:
+	SSCarrierDNA *wtype.LHComponent 
+	PEG3350 *wtype.LHComponent // should be 50% w/v
+	LiAC *wtype.LHComponent
+	YeastCells *wtype.LHComponent
+	DNAToTransform []*wtype.LHComponent
+	Water *wtype.LHComponent
+	
+	// plate out
+	AgarPlate *wtype.LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	CompetentCells []*wtype.LHComponent
+	PlatedTransformations []*wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+
+
+	var resuspendedcompetentcells *wtype.LHComponent
+
+	// Pre warm media 
+	YPD = Incubate(YPD,wunit.NewTemperature(30,"C"),wunit.NewTime(10,"mins"),false)
+
+	// sample pre-warmed media
+	ypdSample := mixer.Sample(YPD,YPDVolume)
+	
+	// add pre-warmed media to growth plate
+	starterculture := MixInto(GrowthPlate, "",ypdSample)
+	
+	// add cells 
+	
+	// first calculate volume to add based on concentration target and actual concentration
+	cellvol, err :=  wunit.VolumeForTargetConcentration(TargetStartingYeastConcentration,YeastCells.Concentration(),TotalInitialCultureVolume)
+	
+	if err != nil {
+		Errorf("NO!, problem with your conversion of concentraitons into volume: %s",err.Error())
+	}
+	
+	cellsample := mixer.Sample(YeastCells,cellvol)
+
+	culturewithcells := Mix(starterculture,cellsample)
+	
+	incubatedculture := Incubate(culturewithcells,InitialCultureTemp,InitialCultureTime,true)
+	
+	
+	// measure OD of yeast culture
+	
+	incubatedculture.Type = wtype.LTNeedToMix
+	
+	sampleforOD := mixer.Sample(incubatedculture, wunit.NewVolume(10,"ul"))
+	
+	absorbanceresults := RunSteps(AbsorbanceMeasurement, 
+                Parameters{
+                	AbsorbanceWavelength: wunit.NewLength(600,"nm"),
+                        DilutionVolume: wunit.NewVolume(90.0,"ul"),
+                        ExtinctionCoefficient: ODYEASTExtinctionCoefficient,
+                }, Inputs{
+                        SampleForReading: sampleforOD,
+						Diluent: ODDiluent,
+						Plate: ODPlate,
+                })
+				
+		actualconc := absorbanceresults.Data.ActualConcentration
+		
+		if actualconc.GreaterThan(TargetTransformationYeastConcentration) {
+			
+			// centrifuge sample 
+			pellet, supernatant := unitoperations.Separate(culturewithcells)
+			
+			// discard supernatant
+			wastesupernatant := mixer.SampleAll(supernatant)
+			
+			MixInto(WastePlate,"",wastesupernatant)
+			
+			washsample := mixer.Sample(PostSpinWashBuffer,PostSpinWashVolume)
+			
+			washedpellet := Mix(pellet,washsample)
+			
+			// centrifuge sample 
+			pellet, supernatant = unitoperations.Separate(washedpellet)
+			
+			// discard supernatant
+			wastesupernatant = mixer.SampleAll(supernatant)
+			
+			MixInto(WastePlate,"",wastesupernatant)
+			
+			resuspensionsample := mixer.Sample(PostSpinResuspensionBuffer,PostWashResuspensionVolume)
+			
+			resuspendedcompetentcells = Mix(pellet,resuspensionsample)
+			
+			
+			
+		}else {
+			Errorf("Carry on incubating")
+		}
+	
+	// boil sperm dna
+	incubatedsscarrierdna := Incubate(SSCarrierDNA,SSDNABoilTemp,SSDNABoilTime,false)
+	
+	// chill
+	incubatedsscarrierdna = Incubate(incubatedsscarrierdna,SSDNAPostBoilTemp,SSDNAPostBoilTime,false)
+	
+	// calculate number of aliquots
+	numberofaliquots,err := wutil.RoundDown(PostWashResuspensionVolume.SIValue()/CompetentCellVolumePerTransformation.SIValue())
+	
+	if err != nil{
+		Errorf(err.Error())
+	}
+	
+	// Aliquot Competent cells
+	for index:=0; index < numberofaliquots; index++ {
+	
+		aliquotSample := mixer.Sample(resuspendedcompetentcells,CompetentCellVolumePerTransformation)
+	
+		aliquot := Mix(aliquotSample)
+	
+		CompetentCells = append(CompetentCells,aliquot)
+	
+		
+	
+	}
+	// now transformation time
+	if len(CompetentCells) < len(DNAToTransform) {
+		Errorf("Not enough competent cells for this many transformations")
+	}
+	
+	numberofreactions := float64(len(DNAToTransform) + 1)
+	
+	var mmxSamples []*wtype.LHComponent
+	
+	mmxSamples = append(mmxSamples,mixer.Sample(LiAC,wunit.MultiplyVolume(LiACVolume, numberofreactions)),mixer.Sample(PEG3350,wunit.MultiplyVolume(PEGVolume,numberofreactions)),mixer.Sample(incubatedsscarrierdna,wunit.MultiplyVolume(SSCarrierDNAVolume,numberofreactions)))
+	
+	mastermix := Mix(mmxSamples...)
+	
+	for i, dnaSample := range DNAToTransform {
+		
+		// centrifuge sample 
+		pellet, supernatant := unitoperations.Separate(CompetentCells[i])
+			
+		// discard supernatant
+		wastesupernatant := mixer.SampleAll(supernatant)
+		
+		// vortex and resuspend here
+		
+		compcellmix := Mix(pellet,mixer.Sample(mastermix,MastermixVolumePerReaction))
+		
+		dnaVol, err := wunit.VolumeForTargetMass(TargetDNAMassPerTransformation[i],DNAStockConcentration[i])
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+		compcelldnamix := Mix(compcellmix,mixer.Sample(dnaSample,dnaVol))
+		
+		finalreaction := Mix(compcelldnamix,mixer.SampleForTotalVolume(Water, TotalTransformationVolume))
+		
+		incubatedreaction := Incubate(finalreaction, HeatShockTemp,HeatShockTime,false)
+		
+	
+		// centrifuge sample 
+		pellet, supernatant = unitoperations.Separate(incubatedreaction)
+			
+		// discard supernatant
+		wastesupernatant = mixer.SampleAll(supernatant)
+		MixInto(WastePlate,"",wastesupernatant)
+		
+		readytoplateout := Mix(pellet,mixer.Sample(Water,FinalResuspensionVolume))
+		
+		for _, platoutvol := range PlateOutVolumes {
+			plateoutSample := mixer.Sample(readytoplateout, platoutvol)
+			
+			plateoutculture := MixInto(AgarPlate, "",plateoutSample)
+			
+			PlatedTransformations = append(PlatedTransformations,plateoutculture)
+		}
+		
+	}
+	
+}
+
+Requirements {
+	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
