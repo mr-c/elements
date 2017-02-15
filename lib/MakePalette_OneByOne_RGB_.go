@@ -193,6 +193,7 @@ func MakePalette_OneByOne_RGBNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

@@ -161,6 +161,7 @@ func AutoPCR_mmx_demoNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
