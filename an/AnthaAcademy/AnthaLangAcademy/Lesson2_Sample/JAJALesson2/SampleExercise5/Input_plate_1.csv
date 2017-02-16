@@ -1,7 +1,0 @@
-pcrplate_skirted_riser20,Input_plate_1,LiquidType ,Vol,Vol Unit,Conc,Conc Unit
-A1,water,water,186,ul,0,mg/l
-B1,water,water,186,ul,0,mg/l
-D1,neb5compcells,culture,15.5,ul,0,mg/l
-F1,water+neb5compcells,culture,15.5,ul,0,mg/l
-G1,water+neb5compcells,culture,15.5,ul,0,mg/l
-H1,water+neb5compcells,culture,15.5,ul,0,mg/l
