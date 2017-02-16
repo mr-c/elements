@@ -10,18 +10,20 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/cmd/antharun/cmd"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
 
-	"encoding/csv"
-	"os"
-	//"path/filepath"
 	"context"
+	"encoding/csv"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"os"
+	"os/exec"
+	"os/user"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -77,7 +79,7 @@ func _PlateTestSteps(_ctx context.Context, _input *PlateTestInput, _output *Plat
 	time := []string{"Time:", fmt.Sprint(time.Now())}
 
 	// find git commit id
-	anthacommit, err := cmd.GitCommit("github.com/antha-lang/antha")
+	anthacommit, err := gitCommit("github.com/antha-lang/antha")
 
 	if err != nil {
 		anthacommit = err.Error()
@@ -237,6 +239,44 @@ func _PlateTestAnalysis(_ctx context.Context, _input *PlateTestInput, _output *P
 // dipstick basis
 func _PlateTestValidation(_ctx context.Context, _input *PlateTestInput, _output *PlateTestOutput) {
 
+}
+
+// exists returns whether the given file or directory exists or not
+func exists(path string) (bool, error) {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return true, err
+}
+
+// assumes GOPATH is in home directory if not set as environment variable
+func gopath() string {
+
+	// if gopath set return gopath
+	if p := os.Getenv("GOPATH"); len(p) != 0 {
+		return filepath.Join(p, "src")
+	}
+	// if not set assume under user's home directory
+	u, err := user.Current()
+	if err != nil {
+		return ""
+	}
+
+	return filepath.Join(u.HomeDir, "go/src")
+}
+
+func gitCommit(path string) (string, error) {
+	cmdName := "git"
+	cmdArgs := []string{"rev-parse", "HEAD"}
+
+	cmd := exec.Command(cmdName, cmdArgs...)
+	cmd.Dir = path
+	commitID, err := cmd.Output()
+	return strings.TrimSpace(string(commitID)), err
 }
 func _PlateTestRun(_ctx context.Context, input *PlateTestInput) *PlateTestOutput {
 	output := &PlateTestOutput{}
