@@ -128,6 +128,7 @@ func CombinatorialLibraryDesign_PRO_RBS_CDSNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

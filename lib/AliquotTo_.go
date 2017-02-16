@@ -50,9 +50,9 @@ func _AliquotToSteps(_ctx context.Context, _input *AliquotToInput, _output *Aliq
 	// work out well coordinates for any plate
 	wellpositionarray := make([]string, 0)
 
-	alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
-		"Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"}
+	//alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+	//	"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
+	//	"Y", "Z", "AA", "AB", "AC", "AD", "AE", "AF"}
 
 	if _input.ByRow {
 		// add well positions to the array based upon the number of wells per column (OutPlate.WlsX) and row (OutPlate.WlsY) of the plate type in question
@@ -66,7 +66,8 @@ func _AliquotToSteps(_ctx context.Context, _input *AliquotToInput, _output *Aliq
 				// var myInt int = 1
 				// var myFloat float64
 				// myFloat = float64(myInt)
-				wellposition := alphabet[j] + strconv.Itoa(i+1)
+				//wellposition := alphabet[j] + strconv.Itoa(i+1)
+				wellposition := wutil.NumToAlpha(j+1) + strconv.Itoa(i+1)
 
 				wellpositionarray = append(wellpositionarray, wellposition)
 			}
@@ -76,7 +77,8 @@ func _AliquotToSteps(_ctx context.Context, _input *AliquotToInput, _output *Aliq
 		for j := 0; j < _input.OutPlate.WlsX; j++ {
 			for i := 0; i < _input.OutPlate.WlsY; i++ {
 
-				wellposition := alphabet[i] + strconv.Itoa(j+1)
+				//wellposition := alphabet[i] + strconv.Itoa(j+1)
+				wellposition := wutil.NumToAlpha(i+1) + strconv.Itoa(j+1)
 
 				wellpositionarray = append(wellpositionarray, wellposition)
 			}
@@ -163,6 +165,7 @@ func AliquotToNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
