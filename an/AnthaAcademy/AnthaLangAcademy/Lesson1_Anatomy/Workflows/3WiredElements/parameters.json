@@ -1,0 +1,25 @@
+{
+  "Parameters": {
+    "MyFirstProtocol": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    },
+    "MySecondProtocol": {
+      "Diluent": "water",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    },
+    "MyThirdProtocol": {
+      "Diluent": "water",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    },
+    "MyFourthProtocol": {
+      "Diluent": "water",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    }
+  }
+}

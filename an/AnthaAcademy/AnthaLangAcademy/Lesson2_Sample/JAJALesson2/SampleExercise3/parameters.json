@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "MyFirstProtocol": {
+	"Diluent": "water",
+	"FinalVolume": "100ul",
+	"SampleVolumeA": "15ul",
+	"SampleVolumeB": "30ul",
+	"InputSolution": "neb5compcells"
+    }
+  }
+}

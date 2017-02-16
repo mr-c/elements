@@ -1,0 +1,48 @@
+{
+  "connections": [
+    {
+      "src": {
+        "port": "DilutedSample",
+        "process": "MyFirstProtocol"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "MySecondProtocol"
+      }
+    },
+    {
+      "src": {
+        "port": "DilutedSample",
+        "process": "MySecondProtocol"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "MyThirdProtocol"
+      }
+    },
+    {
+      "src": {
+        "port": "DilutedSample",
+        "process": "MyThirdProtocol"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "MyFourthProtocol"
+      }
+    }
+  ],
+  "processes": {
+    "MyFirstProtocol": {
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MySecondProtocol":{
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MyThirdProtocol":{
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MyFourthProtocol":{
+      "component": "SampleForTotalVolumeMIX"
+    }
+  }
+}

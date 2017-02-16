@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "SerialDilute": {
+      "component": "SerialDilution"
+    }
+  }
+}

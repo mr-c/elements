@@ -1,0 +1,8 @@
+{
+  "Parameters": {
+    "MyFirstProtocol": {
+      "SampleVolume": "1ul",
+      "Solution": "restrictionenzyme"
+    }
+  }
+}

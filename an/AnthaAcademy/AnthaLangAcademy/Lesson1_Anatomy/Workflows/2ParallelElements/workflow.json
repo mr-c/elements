@@ -1,0 +1,22 @@
+{
+  "processes": {
+    "MyFirstProtocol": {
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MySecondProtocol":{
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MyThirdProtocol":{
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "MyFourthProtocol":{
+      "component": "Aliquot"
+    },
+    "MyFifthProtocol":{
+      "component": "Aliquot"
+    },
+    "MySixthProtocol":{
+      "component": "Aliquot"
+    }
+  }
+}

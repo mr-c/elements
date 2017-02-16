@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "Aliquot1": {
+      "component": "Aliquot"
+    }
+  }
+}

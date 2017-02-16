@@ -1,0 +1,10 @@
+{
+  "processes": {
+    "Assembly": {
+      "component": "AutoAssembly"
+    },
+	"SerialDilute": {
+      "component": "SerialDilution"
+    }
+  }
+}

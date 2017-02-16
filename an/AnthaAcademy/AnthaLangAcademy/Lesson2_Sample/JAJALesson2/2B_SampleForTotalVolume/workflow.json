@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "sampleTotal": {
+      "component": "SampleForTotalVolumeJAJA"
+    }
+  }
+}

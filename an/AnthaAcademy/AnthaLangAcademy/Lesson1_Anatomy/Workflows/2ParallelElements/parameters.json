@@ -1,0 +1,49 @@
+{
+  "Parameters": {
+    "MyFirstProtocol": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    },
+    "MySecondProtocol": {
+      "Diluent": "water",
+      "Solution": "Glycerol",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "15ul"
+    },
+    "MyThirdProtocol": {
+      "Diluent": "water",
+      "Solution": "tartrazine",
+      "SolutionVolume": "10ul",
+      "TotalVolume": "100ul"
+    },
+    "MyFourthProtocol": {
+      "ChangeSolutionName": "",
+      "NumberofAliquots": 20,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
+    },
+    "MyFifthProtocol": {
+      "ChangeSolutionName": "MasterMix",
+      "NumberofAliquots": 10,
+      "OutPlate": "DSW96",
+      "PreMix": true,
+      "Solution": "mastermix_sapI",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "5ul"
+    },
+    "MySixthProtocol": {
+      "ChangeSolutionName": "",
+      "NumberofAliquots": 8,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
+    }
+  }
+}
