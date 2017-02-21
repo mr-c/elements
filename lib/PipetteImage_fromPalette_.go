@@ -142,6 +142,7 @@ func PipetteImage_fromPaletteNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
