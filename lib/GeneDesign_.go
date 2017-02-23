@@ -43,7 +43,11 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	}
 
 	// Look up the restriction enzyme
-	EnzymeInf, _ := lookup.TypeIIsLookup(_input.RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(_input.RE)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// look up vector sequence
 
@@ -69,10 +73,12 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 
 	// export sequence to fasta
 	if _input.ExporttoFastaFile {
-		export.Makefastaserial2(export.LOCAL, _input.ConstructName, _output.PartsWithOverhangs)
-	}
+		_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.ConstructName, _output.PartsWithOverhangs)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 
-	//fmt.Println("Parts Source: ",PartsWithOverhangs)
+	}
 }
 
 func _GeneDesignAnalysis(_ctx context.Context, _input *GeneDesignInput, _output *GeneDesignOutput) {
@@ -141,6 +147,7 @@ type GeneDesignInput struct {
 }
 
 type GeneDesignOutput struct {
+	PartsToOrder       wtype.File
 	PartsWithOverhangs []wtype.DNASequence
 	SimulationStatus   string
 	Validated          bool
@@ -149,6 +156,7 @@ type GeneDesignOutput struct {
 
 type GeneDesignSOutput struct {
 	Data struct {
+		PartsToOrder       wtype.File
 		PartsWithOverhangs []wtype.DNASequence
 		SimulationStatus   string
 		Validated          bool
@@ -172,6 +180,7 @@ func init() {
 				{Name: "RE", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
 				{Name: "SynthesisProvider", Desc: "name of synthesis provider e.g. GenScript\n", Kind: "Parameters"},
 				{Name: "Vector", Desc: "dna sequence as string\n", Kind: "Parameters"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartsWithOverhangs", Desc: "output parts with correct overhangs\n", Kind: "Data"},
 				{Name: "SimulationStatus", Desc: "", Kind: "Data"},
 				{Name: "Validated", Desc: "", Kind: "Data"},

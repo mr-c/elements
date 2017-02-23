@@ -20,12 +20,12 @@ Parameters (
 	ExporttoFastaFile bool // Whether or not you want to export the sequences generated to a fasta file
 )
 Data (
-
 	// output parts with correct overhangs
 	PartsWithOverhangs []wtype.DNASequence
 	SimulationStatus string
 	Validated bool
 	ValidationStatus string
+	PartsToOrder File
 )
 
 Inputs (
@@ -52,7 +52,11 @@ Steps {
 	}
 	
 	// Look up the restriction enzyme
-	EnzymeInf, _ := lookup.TypeIIsLookup(RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(RE)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
 	
 	// look up vector sequence
 	
@@ -79,10 +83,12 @@ Steps {
 	
 	// export sequence to fasta
 	if ExporttoFastaFile {
-	export.Makefastaserial2(export.LOCAL,ConstructName, PartsWithOverhangs)
+	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,ConstructName, PartsWithOverhangs)
+	if err != nil {
+		Errorf(err.Error())
 	}
 	
-	//fmt.Println("Parts Source: ",PartsWithOverhangs)
+	}
 }
 	
 Analysis {
