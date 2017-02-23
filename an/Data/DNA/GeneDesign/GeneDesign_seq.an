@@ -6,9 +6,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
 	"strconv"
-	"fmt"
+
 )
 
 Parameters (
@@ -27,6 +26,7 @@ Data (
 	SimulationStatus string
 	Validated bool
 	ValidationStatus string
+	PartsToOrder File
 )
 
 Inputs (
@@ -54,7 +54,10 @@ Steps {
 	VectorSeq := wtype.MakePlasmidDNASequence("Vector",Vector)
 
 	// Look up the restriction enzyme
-	EnzymeInf, _ := lookup.TypeIIsLookup(RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(RE)
+	if err != nil {
+		Errorf(err.Error())
+	}
 	
 	// Add overhangs
 	if EndsAlreadyAdded {
@@ -73,10 +76,12 @@ Steps {
 	
 	// export sequence to fasta
 	if ExporttoFastaFile {
-	export.Makefastaserial2(export.LOCAL,ConstructName, PartsWithOverhangs)
+	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,ConstructName, PartsWithOverhangs)
+	if err != nil {
+		Errorf(err.Error())
+	}
 	}
 	
-	fmt.Println("Parts Source: ",PartsWithOverhangs)
 }
 	
 Analysis {
