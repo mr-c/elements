@@ -140,14 +140,14 @@ Steps {
 	if FolderPerProject{
 		
 		// export simulated assembled sequences to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
 		
 		// add fasta files of all parts with overhangs 
 		labels:= []string{"Device1","Device2","Device3"}
 		for j := range labels {
 		for i := range Parts{
 		fmt.Println(i,len(labels),len(Parts))
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,labels[j]), Parts[i])
+		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,labels[j]), Parts[i])
 		}
 		}
 	}
