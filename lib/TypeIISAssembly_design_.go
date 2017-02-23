@@ -169,14 +169,20 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 
 	// Export sequences to order into a fasta file
 
-	partswithOverhangs := make([]*wtype.DNASequence, 0)
+	partswithOverhangs := make([]wtype.DNASequence, 0)
 	for _, part := range _output.PartswithOverhangs {
-		export.ExportFasta(_input.Constructname, &part)
-		partswithOverhangs = append(partswithOverhangs, &part)
+		partFile, _, err := export.Fasta(_input.Constructname, &part)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+		_output.IndividualPartFiles = append(_output.IndividualPartFiles, partFile)
+		partswithOverhangs = append(partswithOverhangs, part)
 
 	}
-	export.Makefastaserial(_input.Constructname, partswithOverhangs)
-
+	_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.Constructname, partswithOverhangs)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 	//partstoorder := ansi.Color(fmt.Sprintln("PartswithOverhangs", PartswithOverhangs),"red")
 	partstoorder := fmt.Sprintln("PartswithOverhangs", _output.PartswithOverhangs)
 
@@ -272,24 +278,28 @@ type TypeIISAssembly_designInput struct {
 }
 
 type TypeIISAssembly_designOutput struct {
-	BackupParts        []string
-	NewDNASequence     wtype.DNASequence
-	PartswithOverhangs []wtype.DNASequence
-	Simulationpass     bool
-	Sitesfound         []enzymes.Restrictionsites
-	Status             string
-	Warnings           string
+	BackupParts         []string
+	IndividualPartFiles []wtype.File
+	NewDNASequence      wtype.DNASequence
+	PartsToOrder        wtype.File
+	PartswithOverhangs  []wtype.DNASequence
+	Simulationpass      bool
+	Sitesfound          []enzymes.Restrictionsites
+	Status              string
+	Warnings            string
 }
 
 type TypeIISAssembly_designSOutput struct {
 	Data struct {
-		BackupParts        []string
-		NewDNASequence     wtype.DNASequence
-		PartswithOverhangs []wtype.DNASequence
-		Simulationpass     bool
-		Sitesfound         []enzymes.Restrictionsites
-		Status             string
-		Warnings           string
+		BackupParts         []string
+		IndividualPartFiles []wtype.File
+		NewDNASequence      wtype.DNASequence
+		PartsToOrder        wtype.File
+		PartswithOverhangs  []wtype.DNASequence
+		Simulationpass      bool
+		Sitesfound          []enzymes.Restrictionsites
+		Status              string
+		Warnings            string
 	}
 	Outputs struct {
 	}
@@ -310,7 +320,9 @@ func init() {
 				{Name: "RestrictionsitetoAvoid", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "BackupParts", Desc: "", Kind: "Data"},
+				{Name: "IndividualPartFiles", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "i.e. parts to order\n", Kind: "Data"},
 				{Name: "Simulationpass", Desc: "", Kind: "Data"},
 				{Name: "Sitesfound", Desc: "", Kind: "Data"},
