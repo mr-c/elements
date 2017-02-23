@@ -313,7 +313,7 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
+		export.FastaSerial(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
 		
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
@@ -321,7 +321,7 @@ Steps {
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		export.FastaSerial(export.LOCAL,Constructname+"_Parts", exportedsequences)
 	}
 	
 	

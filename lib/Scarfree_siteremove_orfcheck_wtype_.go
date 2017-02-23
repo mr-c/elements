@@ -290,7 +290,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
+		export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
 
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
@@ -298,7 +298,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
 	}
 
 }
