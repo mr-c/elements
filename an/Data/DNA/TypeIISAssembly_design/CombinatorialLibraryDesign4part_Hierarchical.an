@@ -153,7 +153,7 @@ Steps {
 	if FolderPerProject{
 		
 		// export simulated sequences to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
 
 		// add fasta file for each set of parts with overhangs
 		labels:= []string{"Promoters","RBSs","CDSs","Ters"}
@@ -175,7 +175,7 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
 		}
 		
 		// add fasta file for each set of primers
@@ -198,7 +198,7 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
 		}
 	
 	 }
