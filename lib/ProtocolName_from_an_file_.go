@@ -93,6 +93,7 @@ func ProtocolName_from_an_fileNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

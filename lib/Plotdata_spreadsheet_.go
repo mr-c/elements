@@ -7,6 +7,7 @@ import (
 	"context"
 	graph "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/spreadsheet"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -129,6 +130,7 @@ func Plotdata_spreadsheetNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

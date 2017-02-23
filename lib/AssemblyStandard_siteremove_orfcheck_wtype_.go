@@ -361,6 +361,7 @@ func AssemblyStandard_siteremove_orfcheck_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

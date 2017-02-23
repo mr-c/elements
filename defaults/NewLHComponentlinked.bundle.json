@@ -1,13 +1,6 @@
 {
-  "processes": {
-    "Process1": {
-      "component": "AddNewLHComponent"
-    },
-	 "Process2": {
-      "component": "AddNewLHComponent"
-    }
-  },
-  "connections":  [
+  "config": null,
+  "connections": [
     {
       "src": {
         "port": "NewLHComponent",
@@ -22,15 +15,22 @@
   "parameters": {
     "Process1": {
       "Name": "MOPS",
-	  "StockConcentration": "50mM",
-	  "UseLHPolicy": "water",
-	  "TemplateComponent": "water"
+      "StockConcentration": "50mM",
+      "TemplateComponent": "water",
+      "UseLHPolicy": "water"
     },
-	 "Process2": {
+    "Process2": {
       "Name": "HEPES",
-	  "StockConcentration": "10mM",
-	  "UseLHPolicy": ""
+      "StockConcentration": "10mM",
+      "UseLHPolicy": ""
     }
   },
-  "config": null
+  "processes": {
+    "Process1": {
+      "component": "AddNewLHComponent"
+    },
+    "Process2": {
+      "component": "AddNewLHComponent"
+    }
+  }
 }

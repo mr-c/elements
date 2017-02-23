@@ -117,6 +117,7 @@ func MakeStockBuffer2New() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
