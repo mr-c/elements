@@ -3,8 +3,6 @@
 // which is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme
 // from the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)
 // all typeIIs enzymes will be screened to find feasible backup options
-
-
 protocol Iterative_assembly_design
 
 import (
@@ -13,9 +11,10 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"strconv"
 	"strings"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	
 
 )
 
@@ -60,12 +59,10 @@ Setup {}
 Steps {
 	//var msg string
 	// set warnings reported back to user to none initially
-	
-	
-	
+
 	warnings := make([]string,0)
-	sitefound := false
-	Enzyme := "No enzymes which passed with these sequences"
+	var approvedenzymefail bool
+	var Enzyme string // := "No enzymes which passed with these sequences"
 	// make an empty array of DNA Sequences ready to fill
 	partsinorder := make([]wtype.DNASequence,0)
 	
@@ -78,70 +75,83 @@ Steps {
 		
 	partsinorder = append(partsinorder,partDNA)
 	}
-	// Find all possible typeIIs enzymes we could use for these sequences (i.e. non cutters of all parts)
-	possibilities := lookup.FindEnzymeNamesofClass("TypeIIs")
-	var backupoption string
-	for _, possibility := range possibilities {
-				// check number of sites per part !
-	enz := lookup.EnzymeLookup(possibility)
 	
-	for _,part := range partsinorder {
-	
-	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
-	if len(info) != 0 {
-	if info[0].Sitefound == true {
-		sitefound = true
-		break
-	}
-	}
-	}
-	if sitefound == false {
-			backupoption = possibility
-			BackupEnzymes = append(BackupEnzymes,backupoption)
-		}
-	}
-	
-	sitefound = false
-	for _,Enzyme := range ApprovedEnzymes {
-	
-			// check number of sites per part !
-	enz := lookup.EnzymeLookup(Enzyme)
-	
-	for _,part := range partsinorder {
-	
-	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
-	if len(info) != 0 {
-	if info[0].Sitefound == true {
-		sitefound = true
-		break
-	}
-	}
-	}
-	if sitefound == false {
-			EnzymeUsed = enz
-		}
-	}
-		
-	
-	if sitefound != true {
-	fmt.Println("enzyme used", EnzymeUsed)
-	Enzyme = EnzymeUsed.Name
-	
+	// add vector
 	// make vector into an antha type DNASequence
 	vectordata := wtype.MakePlasmidDNASequence("Vector",Vector)
+		
+	// Find all possible typeIIs enzymes we could use for these sequences (i.e. non cutters of all parts)
+	possibilities := lookup.FindEnzymeNamesofClass("TypeIIs")
+
+	for _, possibility := range possibilities {
+	// check number of sites per part !
+	var sitefound bool
 	
+	enz, err := lookup.EnzymeLookup(possibility)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	for _,part := range partsinorder {
+	
+	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+	if len(info) != 0 {
+	if info[0].Sitefound == true {
+		sitefound = true
+		//break
+	}
+	}
+	}
+	if !sitefound {
+			BackupEnzymes = append(BackupEnzymes,possibility)
+		}
+	}
+	
+	
+	for _,enz := range ApprovedEnzymes {
+	
+	var sitefound bool
+			// check number of sites per part !
+	enz, err := lookup.EnzymeLookup(enz)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	
+	for _,part := range partsinorder {
+	
+	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+	if len(info) != 0 {
+	if info[0].Sitefound {
+		sitefound = true
+		approvedenzymefail = true
+		//break
+	}
+	}
+	}
+	if !sitefound {
+			EnzymeUsed = enz
+			Enzyme = enz.Name
+		}
+	}
+			
 	//lookup restriction enzyme
 	restrictionenzyme,err := lookup.TypeIIsLookup(EnzymeUsed.Name) 
 	if err != nil {
-		text.Print("Error", err.Error())
+		Errorf(err.Error())
 	}
 		
+	last := len(partsinorder) - 1
+    justParts := partsinorder[:last]
+	
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	PartswithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(partsinorder, vectordata, restrictionenzyme)
+	PartswithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(justParts, vectordata, restrictionenzyme)
 	
 	// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
 	assembly := enzymes.Assemblyparameters{Constructname, restrictionenzyme.Name,vectordata,PartswithOverhangs}
-		status,numberofassemblies,_,newDNASequence, err := enzymes.Assemblysimulator(assembly)
+	status,numberofassemblies,_,newDNASequence, err := enzymes.Assemblysimulator(assembly)
 	
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
@@ -152,8 +162,8 @@ Steps {
 	} else {
 		
 		
-		warnings = append(warnings,status)
-		// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
+	warnings = append(warnings,status)
+	// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
 	_,stickyends5,stickyends3 := enzymes.TypeIIsdigest(vectordata, restrictionenzyme)
 	
 	allends := make([]string,0)
@@ -174,8 +184,12 @@ Steps {
 	endreport = strings.Join(allends," ")
 	}	
 	
-		// check number of sites per part !
-	enz := lookup.EnzymeLookup(Enzyme)
+	// check number of sites per part !
+	enz, err := lookup.EnzymeLookup(Enzyme)
+	
+	if err!=nil{
+		Errorf(err.Error())
+	}
 	sites := make([]int,0)
 	multiple := make ([]string,0)
 	for _,part := range PartswithOverhangs {
@@ -213,15 +227,15 @@ Steps {
 		partstoorder)
 	
 	
-	}
+	
 	// Print status
 	if Status != "all parts available"{
 		Status = fmt.Sprintln(Status,
 		text.Print("Backup Enzymes: ", BackupEnzymes))
-	} else if sitefound == true {
-			Status = fmt.Sprintln(text.Print("No Enzyme found to be compatible from approved list", ApprovedEnzymes),
-			text.Print("Backup Enzymes: ", BackupEnzymes))
-		
+	} else if approvedenzymefail {
+		Status = fmt.Sprintln(text.Print("No Enzyme found to be compatible from approved list", ApprovedEnzymes),
+		text.Print("Backup Enzymes: ", BackupEnzymes))
+	
 	}else{
 	Status = fmt.Sprintln(Status,
 	text.Print("Backup Enzymes: ", BackupEnzymes))

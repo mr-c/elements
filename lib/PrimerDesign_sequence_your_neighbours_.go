@@ -11,6 +11,7 @@ import (
 	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -258,6 +259,7 @@ func PrimerDesign_sequence_your_neighboursNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

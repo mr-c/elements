@@ -125,6 +125,7 @@ func PrimerDesign_FWD_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -164,7 +165,7 @@ func init() {
 		Constructor: PrimerDesign_FWD_wtypeNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will design a sequencing primer to target amplification of a target region within a sequence file\nDesign criteria such as maximum gc content, acceptable ranges of melting temperatures and primer length may be specified by the user.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesign_FWD_wtype.an",
+			Path: "src/github.com/antha-lang/elements/starter/PrimerDesign_FWD_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "FlankTargetSequence", Desc: "", Kind: "Parameters"},
 				{Name: "FullDNASeq", Desc: "string // genbank file (.gb)\n", Kind: "Parameters"},

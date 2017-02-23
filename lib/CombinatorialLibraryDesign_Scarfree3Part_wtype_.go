@@ -4,7 +4,6 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
-
 package lib
 
 import (
@@ -174,6 +173,7 @@ func CombinatorialLibraryDesign_Scarfree3Part_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -229,7 +229,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_Scarfree3Part_wtype",
 		Constructor: CombinatorialLibraryDesign_Scarfree3Part_wtypeNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialLibraryDesign_Scarfree_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},

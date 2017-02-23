@@ -69,8 +69,15 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 		// 1. the plate
 		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
 		// 3. the sample or array of samples to be mixed
-		aliquot := execute.MixInto(_ctx, _input.OutPlate, "", aliquotSample)
-		aliquots = append(aliquots, aliquot)
+		var aliquot *wtype.LHComponent
+		if _input.OptimisePlateUsage {
+			aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, "", "AliquotPlate", aliquotSample)
+		} else {
+			aliquot = execute.MixInto(_ctx, _input.OutPlate, "", aliquotSample)
+		}
+		if aliquot != nil {
+			aliquots = append(aliquots, aliquot)
+		}
 	}
 	_output.Aliquots = aliquots
 }
@@ -126,6 +133,7 @@ func AliquotNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -136,6 +144,7 @@ type AliquotElement struct {
 type AliquotInput struct {
 	ChangeSolutionName string
 	NumberofAliquots   int
+	OptimisePlateUsage bool
 	OutPlate           *wtype.LHPlate
 	PreMix             bool
 	Solution           *wtype.LHComponent
@@ -164,6 +173,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "ChangeSolutionName", Desc: "optional field to change the name of the component\n", Kind: "Parameters"},
 				{Name: "NumberofAliquots", Desc: "", Kind: "Parameters"},
+				{Name: "OptimisePlateUsage", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "this time we're specifying what plate we're using\n", Kind: "Inputs"},
 				{Name: "PreMix", Desc: "optional field. Select if the solution to be aliquoted should be premixed prior to transer\n", Kind: "Parameters"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},

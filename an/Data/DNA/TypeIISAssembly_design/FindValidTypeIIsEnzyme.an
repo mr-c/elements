@@ -1,0 +1,136 @@
+// The protocol is intended to return a list of valid TypeIIs enzymes which are compatible with a set of sequences and optionally the vector sequence.
+// A list of ApprovedEnzymes enzymes can be specified. If no enzyme
+// from the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)
+// all typeIIs enzymes will be screened to find feasible backup options.
+protocol FindValidTypeIIsEnzyme
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
+	"strconv"
+	"strings"
+
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+	Constructname 			string
+	Seqsinorder				[]string // list sequences as strings
+	Vector					string // optionally specify the vector sequence.
+	ApprovedEnzymes			[]string // list preferred enzyme names
+)
+
+// Physical Inputs to this protocol with types
+Inputs (
+
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	ValidApprovedEnzymes []string
+	BackupEnzymeNames []string
+	BackupEnzymes []wtype.RestrictionEnzyme
+)
+// Input Requirement specification
+Requirements {
+	// e.g. are MoClo types valid?
+}
+
+// Conditions to run on startup
+Setup {}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	// make an empty array of DNA Sequences ready to fill
+	partsinorder := make([]wtype.DNASequence,0)
+
+	for i, part := range Seqsinorder {
+		if strings.Contains(part, "BBa_") {
+			part = igem.GetSequence(part)
+		}
+		partDNA := wtype.MakeLinearDNASequence("Part " + strconv.Itoa(i),part)
+		
+	partsinorder = append(partsinorder,partDNA)
+	}
+	
+	if Vector != "" {
+	// add vector
+	// make vector into an antha type DNASequence
+	vectordata := wtype.MakePlasmidDNASequence("Vector",Vector)
+	partsinorder = append(partsinorder,vectordata)
+	}
+	// Find all possible typeIIs enzymes we could use for these sequences (i.e. non cutters of all parts)
+	possibilities := lookup.FindEnzymeNamesofClass("TypeIIs")
+
+	for _, possibility := range possibilities {
+	// check number of sites per part !
+	var sitefound bool
+	
+	enz, err := lookup.EnzymeLookup(possibility)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	for _,part := range partsinorder {
+	
+	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+	if len(info) != 0 {
+	if info[0].Sitefound == true {
+		sitefound = true
+	}
+	}
+	}
+	if !sitefound {
+			BackupEnzymeNames = append(BackupEnzymeNames,possibility)
+			BackupEnzymes = append(BackupEnzymes,enz)
+		}
+	}
+	
+	
+	for _,enzyme := range ApprovedEnzymes {
+	
+	var sitefound bool
+		
+	// check number of sites per part !
+	enz, err := lookup.EnzymeLookup(enzyme)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	for _,part := range partsinorder {
+	
+	info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+	if len(info) != 0 {
+	if info[0].Sitefound {
+		sitefound = true
+	}
+	}
+	}
+	if !sitefound {
+			ValidApprovedEnzymes = append(ValidApprovedEnzymes,enzyme)
+		}
+	}
+	
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+}

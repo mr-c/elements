@@ -110,6 +110,7 @@ func ResuspendDNA_MultipleNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

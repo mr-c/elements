@@ -41,6 +41,19 @@ func _AccuracyTest_3Setup(_ctx context.Context, _input *AccuracyTest_3Input) {
 // for every input
 func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
 
+	// if dilution factor not set dilute by 10x
+	if _input.DilutionFactor == 0 {
+		_input.DilutionFactor = 10
+	}
+
+	var minVolume wunit.Volume
+
+	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
+		minVolume = wunit.NewVolume(0.5, "ul")
+	} else {
+		minVolume = _input.MinVolume
+	}
+
 	// declare some global variables for use later
 	var rotate = false
 	var autorotate = true
@@ -126,7 +139,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					var bufferSample *wtype.LHComponent
 					var Dilution *wtype.LHComponent
 
-					if _input.TestSolVolumes[l].RawValue() < 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					if _input.TestSolVolumes[l].LessThan(minVolume) {
 
 						// add diluent to dilution plate ready for dilution
 						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor)}))
@@ -157,7 +170,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 						}
 					}
 
-					if _input.TestSolVolumes[l].RawValue() > 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					if _input.TestSolVolumes[l].GreaterThan(minVolume) {
 
 						//sample
 						testSample := mixer.Sample(_input.TestSols[k], _input.TestSolVolumes[l])
@@ -170,7 +183,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 							solution = execute.Mix(_ctx, solution, testSample)
 						}
 
-					} else if _input.TestSolVolumes[l].RawValue() > 0.0 && _input.TestSolVolumes[l].RawValue() < 0.5 && _input.TestSolVolumes[l].Unit().PrefixedSymbol() == "ul" {
+					} else if _input.TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && _input.TestSolVolumes[l].LessThan(minVolume) {
 
 						//sample
 						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.MultiplyVolume(_input.TestSolVolumes[l], _input.DilutionFactor))
@@ -245,7 +258,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						panic("policy " + doerun + " not found")
+						execute.Errorf(_ctx, "policy "+doerun+" not found")
 						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
 					}
 
@@ -256,7 +269,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					reactions = append(reactions, solution)
 					newruns = append(newruns, run)
 
-					counter = counter + 1
+					counter++
 
 				}
 
@@ -287,7 +300,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 			_output.Blankwells = append(_output.Blankwells, well)
 
 			reactions = append(reactions, reaction)
-			counter = counter + 1
+			counter++
 
 		}
 
@@ -350,6 +363,7 @@ func AccuracyTest_3New() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -363,6 +377,7 @@ type AccuracyTest_3Input struct {
 	DilutionFactor                  float64
 	Imagefilename                   string
 	LHPolicy                        string
+	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int
 	OutPlate                        *wtype.LHPlate
@@ -415,6 +430,7 @@ func init() {
 				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
 				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
+				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

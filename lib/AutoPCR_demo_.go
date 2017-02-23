@@ -53,8 +53,6 @@ func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output
 	// initialise map
 	_output.ReactionMap = make(map[string]*wtype.LHComponent)
 
-	// range through the Reaction to template map
-
 	additives := make([]*wtype.LHComponent, 0)
 	additivevolumes := make([]wunit.Volume, 0)
 
@@ -74,6 +72,7 @@ func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output
 		additivevolumes = append(additivevolumes, volume)
 	}
 
+	// range through the Reaction to template map
 	for reactionname, templatename := range _input.Reactiontotemplate {
 
 		// use counter to find next available well position in plate
@@ -195,6 +194,7 @@ func AutoPCR_demoNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

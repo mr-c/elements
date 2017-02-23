@@ -3,7 +3,6 @@
 // A simulation is performed and status returned to the user
 // The user can also specify the names of enzyme sites they wish to avoid to check if these are present in the
 // new dna sequence (if simulation passes that is).
-
 package lib
 
 import (
@@ -132,7 +131,12 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 	// first lookup enzyme properties
 	enzlist := make([]wtype.RestrictionEnzyme, 0)
 	for _, site := range _input.RestrictionsitetoAvoid {
-		enzsite := lookup.EnzymeLookup(site)
+		enzsite, err := lookup.EnzymeLookup(site)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
 		enzlist = append(enzlist, enzsite)
 	}
 	othersitesfound := enzymes.Restrictionsitefinder(newDNASequence, enzlist)
@@ -142,7 +146,11 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 	}
 
 	// Now let's find out the size of fragments we would get if digested with a common site cutter
-	tspEI := lookup.EnzymeLookup("TspEI")
+	tspEI, err := lookup.EnzymeLookup("TspEI")
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	Testdigestionsizes := enzymes.RestrictionMapper(newDNASequence, tspEI)
 
@@ -245,6 +253,7 @@ func TypeIISAssembly_designNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -290,7 +299,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "TypeIISAssembly_design",
 		Constructor: TypeIISAssembly_designNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using either an assembly standard or a specified enzyme.\nparts are added as biobrick IDs, or looked up from the inventory package\nA simulation is performed and status returned to the user\nThe user can also specify the names of enzyme sites they wish to avoid to check if these are present in the\nnew dna sequence (if simulation passes that is).\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/TypeIISAssembly_design.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "", Kind: "Parameters"},
