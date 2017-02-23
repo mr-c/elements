@@ -13,16 +13,8 @@
 package lib
 
 import (
-<<<<<<< HEAD
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/montanaflynn/stats"
-	// "github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/microArch/factory"
-	// "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
-=======
 	"context"
 	"fmt"
->>>>>>> master
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
@@ -34,7 +26,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/montanaflynn/stats"
 	"math"
