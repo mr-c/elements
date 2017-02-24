@@ -13,18 +13,19 @@ import (
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
 
-	"context"
 	"encoding/csv"
+	"os"
+	"os/exec"
+	"os/user"
+	"strings"
+	"time"
+
+	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"os"
-	"os/exec"
-	"os/user"
 	"path/filepath"
-	"strings"
-	"time"
 )
 
 // Input parameters for this protocol (data)

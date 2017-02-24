@@ -2,6 +2,7 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -37,17 +38,34 @@ func _ParsePlateSetup(_ctx context.Context, _input *ParsePlateInput) {
 // for every input
 func _ParsePlateSteps(_ctx context.Context, _input *ParsePlateInput, _output *ParsePlateOutput) {
 
-	// parse sample locations from file
-	inputplate, err := inplate.ParseInputPlateFile(_input.InputCSVfile)
+	// Read file
+	filecontents, err := _input.InputCSVfile.ReadAll()
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	// create a reader from filecontents
+	reader := bytes.NewReader(filecontents)
+
+	// Parse plate from reader
+	plateresult, err := inplate.ParsePlateCSV(reader)
 
 	if err != nil {
 		_output.Error = err
 		execute.Errorf(_ctx, err.Error())
 	}
 
+	// assign LHPlate variable
+	inputplate := plateresult.Plate
+
+	// return any warnings from plate parsing process
+	_output.Warnings = plateresult.Warnings
+
 	components := make([]*wtype.LHComponent, 0)
 	_output.ComponentMap = make(map[string]*wtype.LHComponent)
 
+	// get all plate components and return into both a slice and a map
 	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN) {
 
 		if !inputplate.WellMap()[wellcontents].Empty() {
@@ -67,9 +85,6 @@ func _ParsePlateSteps(_ctx context.Context, _input *ParsePlateInput, _output *Pa
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 func _ParsePlateAnalysis(_ctx context.Context, _input *ParsePlateInput, _output *ParsePlateOutput) {
-	// need the control samples to be completed before doing the analysis
-
-	//
 
 }
 
@@ -77,22 +92,7 @@ func _ParsePlateAnalysis(_ctx context.Context, _input *ParsePlateInput, _output 
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 func _ParsePlateValidation(_ctx context.Context, _input *ParsePlateInput, _output *ParsePlateOutput) {
-	/* 	if calculatedbandsize == expected {
-			stop
-		}
-		if calculatedbandsize != expected {
-		if S == "matches size of incorrect assembly possibility" {
-			call(assembly_troubleshoot)
-			}
-		} // loop at beginning should be designed to split labware resource optimally in the event of any failures e.g. if 96well capacity and 4 failures check 96/4 = 12 colonies of each to maximise chance of getting a hit
-	    }
-	    if repeat > 2
-		stop
-	    }
-	    if (recoverylocation doesn't grow then use backup or repeat
-		}
-		if sequencingresults do not match expected then use backup or repeat
-	    // TODO: */
+
 }
 func _ParsePlateRun(_ctx context.Context, input *ParsePlateInput) *ParsePlateOutput {
 	output := &ParsePlateOutput{}
@@ -143,7 +143,7 @@ type ParsePlateElement struct {
 }
 
 type ParsePlateInput struct {
-	InputCSVfile string
+	InputCSVfile wtype.File
 }
 
 type ParsePlateOutput struct {
@@ -151,11 +151,13 @@ type ParsePlateOutput struct {
 	ComponentMap        map[string]*wtype.LHComponent
 	Error               error
 	PlatewithComponents *wtype.LHPlate
+	Warnings            []string
 }
 
 type ParsePlateSOutput struct {
 	Data struct {
-		Error error
+		Error    error
+		Warnings []string
 	}
 	Outputs struct {
 		AllComponents       []*wtype.LHComponent
@@ -176,11 +178,10 @@ func init() {
 				{Name: "ComponentMap", Desc: "", Kind: "Outputs"},
 				{Name: "Error", Desc: "", Kind: "Data"},
 				{Name: "PlatewithComponents", Desc: "", Kind: "Outputs"},
+				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
 		panic(err)
 	}
 }
-
-//func cherrypick ()
