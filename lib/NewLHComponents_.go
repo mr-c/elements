@@ -98,7 +98,7 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 		var lhpolicy string
 		var found bool
 
-		// check is a concentration is specified
+		// check if a concentration is specified
 		if stockConc, found = _input.StockConcentrations[name]; !found {
 			stockConc = defaultConc
 			status = "No concentration specified for " + name + "; "
