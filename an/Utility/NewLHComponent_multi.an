@@ -12,25 +12,42 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	Names []string // Name of new LHComponents, if empty defaults to TemplateComponent name
-	StockConcentrations map[string]Concentration // Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration
-	UseLHPolicy map[string]string // If empty defaults to LHPolicy of TemplateComponent LHComponent, if only 1 selected this policy is used for all
+	// list of desired names for new LHComponents, if empty returns an error
+	Names []string 
+	
+	// Stock concentration being used, 
+	// if empty this defaults to TemplateComponent concentration, 
+	// if only 1 entry, the entry for that will be used as a default for all
+	// if a "default" is specified then that will be used as the default for all entries with no value
+	// if there is no concentration associated with TemplateComponent and no default is specified, no concentration is set
+	StockConcentrations map[string]Concentration 
+	
+	// If empty this defaults to LHPolicy of TemplateComponent LHComponent, 
+	// if only 1 entry this policy is used for all
+	// if a "default" is specified this policy is used for all entries with no value
+	UseLHPolicy map[string]string 
 )
 
 // Output data of this protocol
 Data (
-	Status map[string]string // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
-	NewLHComponentNames []string // Outputs the NewLHComponent name as a string
+	// Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
+	Status map[string]string 
+	// Outputs the NewLHComponent names 
+	NewLHComponentNames []string
 )
 
 // Physical inputs to this protocol
 Inputs (
-	TemplateComponents map[string]*wtype.LHComponent // This TemplateComponent must be specified in the parameters file or the element will have a run time error, if length 1, the same template is used for all
+	// This TemplateComponent must be specified in the parameters file or the element will have a run time error, 
+	// if length 1, the same template is used for all
+	// if "default" is specified that will be used as default for all entries with no value
+	TemplateComponents map[string]*wtype.LHComponent 
 )
 
 // Physical outputs to this protocol
 Outputs (
-	NewLHComponents []*wtype.LHComponent // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+	// This is the list of NewLHComponents output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+	NewLHComponents []*wtype.LHComponent 
 )
 
 // Conditions to run on startup
@@ -40,6 +57,11 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
+	
+	if len(Names)==0{
+		Errorf("No Names specified for new components")
+	}
+	
 	
 	// initialise default conc as empty, if not found in map, no concentration will be set
 	var defaultConc Concentration
