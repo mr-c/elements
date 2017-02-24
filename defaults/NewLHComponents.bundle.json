@@ -1,0 +1,30 @@
+{
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Names": [
+        "MOPS",
+        "PIPES",
+        "MES",
+        "TB"
+      ],
+      "StockConcentrations": {
+        "MOPS": "50mM",
+        "default": "0mM"
+      },
+      "TemplateComponents": {
+        "PIPES": "dna",
+        "default": "water"
+      },
+      "UseLHPolicy": {
+        "default": "water"
+      }
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "NewLHComponents"
+    }
+  }
+}
