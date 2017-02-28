@@ -1,0 +1,20 @@
+{
+  "Parameters": {
+    "AliquotParams": {
+      "ChangeSolutionName": "",
+      "NumberofAliquots": 97,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "Solution": "dna",
+      "SolutionVolume": "10000ul",
+      "VolumePerAliquot": "20ul",
+	"OptimisePlateUsage": false
+    }
+  },
+  "connections": [],
+  "processes": {
+    "AliquotParams": {
+      "component": "MixInto"
+    }
+  }
+}

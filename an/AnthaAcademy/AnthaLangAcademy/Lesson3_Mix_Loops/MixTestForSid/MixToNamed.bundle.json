@@ -1,0 +1,26 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "MixTest"
+    },
+	"Process2": {
+		"component": "MixTest"
+	}
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+     "VolumeA" : "10ul",
+	 "ComponentA": "water",
+	 "ComponentB": "Glycerol",
+	 "InputPlate": "DSW96"
+    },
+	 "Process2": {
+     "VolumeA" : "10ul",
+	 "ComponentA": "water",
+	 "ComponentB": "Glycerol",
+	 "InputPlate": "DSW96"
+    }
+  },
+  "config": null
+}
