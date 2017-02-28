@@ -19,6 +19,10 @@ Parameters (
 // Output data of this protocol
 Data (
 	Status string // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
+<<<<<<< HEAD
+=======
+	NewLHComponentName string // Outputs the NewLHComponent name as a string
+>>>>>>> master
 )
 
 // Physical inputs to this protocol
@@ -42,8 +46,13 @@ Steps {
 	//Initialise variable err with type error 
 	var err error
 
+<<<<<<< HEAD
 	//Store the TemplateComponent name into a variable for text output at the end of the run
 	TemplateComponentName := TemplateComponent.CName
+=======
+	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
+	templateComponentName := TemplateComponent.CName
+>>>>>>> master
 		
 	//Initialise NewComponent variable with the LHComponent properties of the TemplateComponent
 	
@@ -85,8 +94,15 @@ Steps {
 	}
  
 	//Provides a string output describing the new LHComponent
+<<<<<<< HEAD
 	Status = NewLHComponent.CName + " LHComponent created based on " + TemplateComponentName + " LHComponent, with a concentration of " + NewLHComponentConc + " using the  " + NewLHComponent.GetType() + " LHPolicy"
 	//Outputs any errors generated
+=======
+	Status = NewLHComponent.CName + " LHComponent created based on " + templateComponentName + " LHComponent, with a concentration of " + NewLHComponentConc + " using the  " + NewLHComponent.GetType() + " LHPolicy"
+
+	//Outputs the new LHComponent name in Data
+	NewLHComponentName = NewLHComponent.CName
+>>>>>>> master
 }
 
 // Run after controls and a steps block are completed to post process any data

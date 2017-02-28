@@ -37,11 +37,11 @@ Parameters (
 
 	MarsResultsFileXLSX string // plate reader results file, currently only mars files are valid
 	Sheet               int    // i.e. the sheet position in the plate reader results excel file; starting from 0                                      
-	DesignFile             string // i.e. the design file of the original liquid handling
-	DesignFiletype         string // current supported formats are "JMP" and "DX"
+	DesignFile          string // i.e. the design file of the original liquid handling
+	DesignFiletype      string // current supported formats are "JMP" and "DX"
 	OutputFilename      string // set the desired name for the output file, if this is blank it will append the design file name with _output
 
-	Wavelength            int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
+	Wavelength          int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
 	Extinctioncoefficient float64 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
 	StockconcinMperL wunit.Concentration //= 0.0002878191305957933
 	
