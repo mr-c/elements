@@ -1,0 +1,17 @@
+{
+  "Parameters": {
+    "DiluteMySample": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "100ul",
+      "TotalVolume": "1000ul"
+    },
+    "AliquotMySample": {
+      "ChangeSolutionName": "",
+      "NumberofAliquots": 30,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "VolumePerAliquot": "25ul"
+    }
+  }
+}
