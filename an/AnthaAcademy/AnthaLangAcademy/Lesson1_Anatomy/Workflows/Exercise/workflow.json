@@ -1,0 +1,32 @@
+{
+  "connections": [
+    {
+      "src": {
+        "port": "DilutedSample",
+        "process": "DiluteMySample"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "AliquotMySample"
+      }
+    },
+    {
+      "src": {
+        "port": "DilutedSampleVol",
+        "process": "DiluteMySample"
+      },
+      "tgt": {
+        "port": "SolutionVolume",
+        "process": "AliquotMySample"
+      }
+    }
+  ],
+  "processes": {
+    "DiluteMySample": {
+      "component": "SampleForTotalVolumeMIX"
+    },
+    "AliquotMySample":{
+      "component": "Aliquot"
+    }
+  }
+}
