@@ -78,8 +78,9 @@ func _ParsePlateSteps(_ctx context.Context, _input *ParsePlateInput, _output *Pa
 		}
 	}
 	if len(_output.AllComponents) == 0 {
-		_output.Error = fmt.Errorf("No Components found when parsing plate" + _input.InputCSVfile.Name)
+		err = fmt.Errorf("No Components found when parsing plate" + _input.InputCSVfile.Name)
 		_output.Warnings = append(_output.Warnings, err.Error())
+		_output.Error = err
 	}
 	_output.AllComponents = components
 	_output.PlatewithComponents = inputplate

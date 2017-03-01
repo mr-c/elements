@@ -83,8 +83,9 @@ Steps {
 		}
 	}
 	if len(AllComponents)==0{
-		Error = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
+		err = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
 		Warnings = append(Warnings,err.Error())
+		Error = err
 	}
 	AllComponents = components
 	PlatewithComponents = inputplate
