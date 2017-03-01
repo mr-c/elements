@@ -1,0 +1,36 @@
+{
+  "config": null,
+  "connections": [
+    {
+      "src": {
+        "port": "NewLHComponent",
+        "process": "Process1"
+      },
+      "tgt": {
+        "port": "TemplateComponent",
+        "process": "Process2"
+      }
+    }
+  ],
+  "parameters": {
+    "Process1": {
+      "Name": "MOPS",
+      "StockConcentration": "50mM",
+      "TemplateComponent": "water",
+      "UseLHPolicy": "water"
+    },
+    "Process2": {
+      "Name": "HEPES",
+      "StockConcentration": "10mM",
+      "UseLHPolicy": ""
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "AddNewLHComponent"
+    },
+    "Process2": {
+      "component": "AddNewLHComponent"
+    }
+  }
+}
