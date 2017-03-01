@@ -59,8 +59,12 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 		execute.Errorf(_ctx, "No Names specified for new components")
 	}
 
-	// initialise default conc as empty, if not found in map, no concentration will be set
+	// initialise default conc as empty, if not found in map, no concentration will be set unless a "default" key is used in the StockConcentrations map
 	var defaultConc wunit.Concentration
+
+	if _, found := _input.StockConcentrations["default"]; found {
+		defaultConc = _input.StockConcentrations["default"]
+	}
 
 	// if the length of the map is 1 this template will be used for all components
 	// if empty the protocol will terminate with an error

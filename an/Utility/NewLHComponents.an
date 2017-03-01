@@ -63,8 +63,12 @@ Steps {
 	}
 	
 	
-	// initialise default conc as empty, if not found in map, no concentration will be set
+	// initialise default conc as empty, if not found in map, no concentration will be set unless a "default" key is used in the StockConcentrations map
 	var defaultConc Concentration
+	
+	if _, found := StockConcentrations["default"];found{
+		defaultConc = StockConcentrations["default"]
+	}
 	
 	// if the length of the map is 1 this template will be used for all components
 	// if empty the protocol will terminate with an error
