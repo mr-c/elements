@@ -25,10 +25,7 @@ import
 // Output data of this protocol
 
 // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
-<<<<<<< HEAD
-=======
 // Outputs the NewLHComponent name as a string
->>>>>>> master
 
 // Physical inputs to this protocol
 
@@ -49,13 +46,8 @@ func _AddNewLHComponentSteps(_ctx context.Context, _input *AddNewLHComponentInpu
 	//Initialise variable err with type error
 	var err error
 
-<<<<<<< HEAD
-	//Store the TemplateComponent name into a variable for text output at the end of the run
-	TemplateComponentName := _input.TemplateComponent.CName
-=======
 	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
 	templateComponentName := _input.TemplateComponent.CName
->>>>>>> master
 
 	//Initialise NewComponent variable with the LHComponent properties of the TemplateComponent
 
@@ -97,15 +89,11 @@ func _AddNewLHComponentSteps(_ctx context.Context, _input *AddNewLHComponentInpu
 	}
 
 	//Provides a string output describing the new LHComponent
-<<<<<<< HEAD
-	_output.Status = _output.NewLHComponent.CName + " LHComponent created based on " + TemplateComponentName + " LHComponent, with a concentration of " + NewLHComponentConc + " using the  " + _output.NewLHComponent.GetType() + " LHPolicy"
-	//Outputs any errors generated
-=======
 	_output.Status = _output.NewLHComponent.CName + " LHComponent created based on " + templateComponentName + " LHComponent, with a concentration of " + NewLHComponentConc + " using the  " + _output.NewLHComponent.GetType() + " LHPolicy"
 
 	//Outputs the new LHComponent name in Data
 	_output.NewLHComponentName = _output.NewLHComponent.CName
->>>>>>> master
+
 }
 
 // Run after controls and a steps block are completed to post process any data
@@ -176,24 +164,15 @@ type AddNewLHComponentInput struct {
 }
 
 type AddNewLHComponentOutput struct {
-<<<<<<< HEAD
-	NewLHComponent *wtype.LHComponent
-	Status         string
-=======
 	NewLHComponent     *wtype.LHComponent
 	NewLHComponentName string
 	Status             string
->>>>>>> master
 }
 
 type AddNewLHComponentSOutput struct {
 	Data struct {
-<<<<<<< HEAD
-		Status string
-=======
 		NewLHComponentName string
 		Status             string
->>>>>>> master
 	}
 	Outputs struct {
 		NewLHComponent *wtype.LHComponent
@@ -212,10 +191,7 @@ func init() {
 				{Name: "TemplateComponent", Desc: "This TemplateComponent must be specified in the parameters file or the element will have a run time error\n", Kind: "Inputs"},
 				{Name: "UseLHPolicy", Desc: "If empty defaults to LHPolicy of TemplateComponent LHComponent\n", Kind: "Parameters"},
 				{Name: "NewLHComponent", Desc: "This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
-<<<<<<< HEAD
-=======
 				{Name: "NewLHComponentName", Desc: "Outputs the NewLHComponent name as a string\n", Kind: "Data"},
->>>>>>> master
 				{Name: "Status", Desc: "Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.\n", Kind: "Data"},
 			},
 		},
