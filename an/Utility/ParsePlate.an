@@ -4,6 +4,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	inplate "github.com/antha-lang/antha/target/mixer"
 	"bytes"
+	"fmt"
 )
 // Input parameters for this protocol (data)
 Parameters (
@@ -80,6 +81,11 @@ Steps {
 	ComponentMap[component.CName] = component
 	
 		}
+	}
+	if len(AllComponents)==0{
+		err = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
+		Warnings = append(Warnings,err.Error())
+		Error = err
 	}
 	AllComponents = components
 	PlatewithComponents = inputplate
