@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "MixAB": {
+      "component": "MixAB"
+    }
+  }
+}

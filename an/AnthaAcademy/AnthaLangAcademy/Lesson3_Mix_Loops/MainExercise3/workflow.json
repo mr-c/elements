@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "MixExercise3": {
+      "component": "MixExercise3"
+    }
+  }
+}

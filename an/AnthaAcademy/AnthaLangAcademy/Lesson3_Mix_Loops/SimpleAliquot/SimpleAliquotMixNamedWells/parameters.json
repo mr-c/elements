@@ -1,0 +1,12 @@
+{
+  "Parameters": {
+    "SimpleAliquotMixNamedWells": {
+      "SampleName": "water",
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 10,
+      "Outplate": "pcrplate_skirted_riser40",
+      "WellLocation": ["B6","B7","B8","B9","B10","B11","B12","C1","C2","C3"],
+      "PlateName": "Sausages"
+    }
+  }
+}

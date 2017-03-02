@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "SimpleAliquotMixNamedManyPlates": {
+      "SampleName": "water",
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 10,
+      "Outplate": "pcrplate_skirted_riser40",
+      "PlateNames": ["Sausages","Peanuts","Bananas"]
+    }
+  }
+}

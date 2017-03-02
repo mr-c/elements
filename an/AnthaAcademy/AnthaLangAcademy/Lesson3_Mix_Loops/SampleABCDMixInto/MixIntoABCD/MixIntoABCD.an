@@ -1,0 +1,71 @@
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting
+protocol MixIntoABCD
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	SampleVolumeA Volume
+	SampleVolumeB Volume
+	SampleVolumeC Volume
+	SampleVolumeD Volume
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	SampleNameA *wtype.LHComponent
+	SampleNameB *wtype.LHComponent
+	SampleNameC *wtype.LHComponent
+	SampleNameD *wtype.LHComponent
+	Outplate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+SampleABCDMix *wtype.LHComponent
+)
+
+Requirements {
+
+}
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	sampleA := mixer.Sample(SampleNameA, SampleVolumeA)
+	sampleAMix := MixInto(Outplate,"A1", sampleA)
+	sampleB := mixer.Sample(SampleNameB, SampleVolumeB)
+	sampleABMix := Mix(sampleAMix, sampleB)
+	sampleC := mixer.Sample(SampleNameC, SampleVolumeC)
+	sampleABCMix := Mix(sampleABMix, sampleC)
+	sampleD := mixer.Sample(SampleNameD, SampleVolumeD)
+	sampleABCDMix := Mix(sampleABCMix, sampleD)
+	SampleABCDMix = sampleABCDMix
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed
+//correctly. Optionally, destructive tests can be performed to validate
+//results on a dipstick basis
+Validation {
+
+}

@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "SimpleAliquotMixTo": {
+      "SampleName": "water",
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 10,
+      "Outplate": "pcrplate_skirted_riser40",
+      "PlateNumber": 1
+    }
+  }
+}

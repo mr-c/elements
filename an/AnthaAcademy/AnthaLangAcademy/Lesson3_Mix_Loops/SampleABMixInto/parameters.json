@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "MixIntoAB": {
+      "SampleNameA": "water",
+      "SampleNameB": "Glycerol",
+      "SampleVolumeA": "100ul",
+      "SampleVolumeB": "50ul",
+      "Outplate": "DSW96"
+    }
+  }
+}

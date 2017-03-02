@@ -1,0 +1,66 @@
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting
+protocol SimpleAliquotMixTo
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	AliquotVolume Volume
+	NumberOfAliquots int
+	Outplate string
+	PlateNumber int
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	SampleName *wtype.LHComponent
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+Aliquots []*wtype.LHComponent
+)
+
+Requirements {
+
+}
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+
+	for i := 0; i < NumberOfAliquots; i++ {
+sampleA := mixer.Sample(SampleName, AliquotVolume)
+aliquot := MixTo(Outplate,"", PlateNumber, sampleA)
+Aliquots = append(Aliquots, aliquot)
+}
+
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed
+//correctly. Optionally, destructive tests can be performed to validate
+//results on a dipstick basis
+Validation {
+
+}

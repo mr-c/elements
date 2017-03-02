@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "MixABCD": {
+      "component": "MixABCD"
+    }
+  }
+}

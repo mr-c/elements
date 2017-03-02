@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "AliquotByRowColBool1": {
+      "component": "AliquotByRowColBool1"
+    }
+  }
+}

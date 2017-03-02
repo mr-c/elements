@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "MixExercise": {
+      "component": "MixExercise"
+    }
+  }
+}

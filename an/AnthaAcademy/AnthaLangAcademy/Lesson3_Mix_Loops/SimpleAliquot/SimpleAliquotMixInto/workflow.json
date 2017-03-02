@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "SimpleAliquotMixInto": {
+      "component": "SimpleAliquotMixInto"
+    }
+  }
+}

@@ -1,0 +1,97 @@
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting
+protocol AliquotByRowColBool3
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	"strconv"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	AliquotVolume Volume
+	NumberOfAliquots int
+	ByRow bool
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+
+)
+
+// Physical Inputs to this protocol with types
+Inputs (
+	SampleNames []*wtype.LHComponent
+	Outplate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+Aliquots []*wtype.LHComponent
+)
+
+Requirements {
+
+}
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+
+var wellpositionarray []string
+var aliquots []*wtype.LHComponent
+
+if ByRow {
+	for  y:=0; y < Outplate.WlsY; y++{
+           for x:=0; x< Outplate.WlsX; x++{
+	wellposition := wutil.NumToAlpha(y+1) + strconv.Itoa(x+1)
+	wellpositionarray = append(wellpositionarray, wellposition)
+			}
+		}
+		} else {
+	for  x:=0; x < Outplate.WlsX; x++{
+			for y:=0; y< Outplate.WlsY; y++{
+		wellposition := wutil.NumToAlpha(y+1) + strconv.Itoa(x+1)
+		wellpositionarray = append(wellpositionarray, wellposition)
+			}
+		}
+}
+  platenumber := 1
+	counter := 0
+
+for _, samplename := range SampleNames {
+	for i := 0; i < NumberOfAliquots; i++ {
+       sampleA := mixer.Sample(samplename, AliquotVolume)
+       aliquot := MixTo(Outplate.Type, wellpositionarray[counter], platenumber,sampleA)
+       aliquots = append(Aliquots, aliquot)
+
+			 if counter+1 == len(wellpositionarray){
+				 platenumber++
+				 counter = 0
+			 }else{
+			 counter ++
+   }
+ }
+	 Aliquots = aliquots
+}	 
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed
+//correctly. Optionally, destructive tests can be performed to validate
+//results on a dipstick basis
+Validation {
+
+}

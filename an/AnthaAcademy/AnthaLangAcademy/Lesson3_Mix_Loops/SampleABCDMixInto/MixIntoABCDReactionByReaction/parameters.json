@@ -1,0 +1,16 @@
+{
+  "Parameters": {
+    "MixIntoABCDRByR": {
+      "SampleNameA": "water",
+      "SampleNameB": "CutsmartBuffer",
+	    "SampleNameC": "dna",
+      "SampleNameD": "EcoRI",
+      "SampleVolumeA": "39",
+      "SampleVolumeB": "5ul",
+      "SampleVolumeC": "5ul",
+      "SampleVolumeD": "1ul",
+      "Outplate": "pcrplate_skirted_riser40",
+      "NumberOfReactions": 5
+    }
+  }
+}

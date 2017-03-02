@@ -1,0 +1,12 @@
+{
+  "Parameters": {
+    "MixExercise3": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "DilutionVolume": "10ul",
+      "TotalVolume": "100ul",
+	    "OutPlateType": "DSW96",
+      "NumberOfSerialDilutions": 10
+    }
+  }
+}

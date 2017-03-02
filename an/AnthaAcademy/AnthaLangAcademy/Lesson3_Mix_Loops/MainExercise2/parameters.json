@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "MixExercise2": {
+      "SampleNames": ["water","CutsmartBuffer","dna","dna","restrictionenzyme"],
+      "SampleVolumes": ["34ul","5ul","5ul","5ul","1ul"],
+      "Outplate": "pcrplate_with_cooler",
+      "NumberOfReactions": 192,
+      "ByRow": false
+    }
+  }
+}

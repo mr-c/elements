@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "MixIntoABCDCByC": {
+      "component": "MixIntoABCDCByC"
+    }
+  }
+}

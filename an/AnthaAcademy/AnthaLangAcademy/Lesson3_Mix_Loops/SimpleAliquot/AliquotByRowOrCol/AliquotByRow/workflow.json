@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "AliquotByRow": {
+      "component": "AliquotByRow"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "SimpleAliquotMixToManyPlates": {
+      "component": "SimpleAliquotMixToManyPlates"
+    }
+  }
+}

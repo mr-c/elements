@@ -1,0 +1,9 @@
+{
+  "Parameters": {
+    "SimpleAliquotMix": {
+      "SampleName": "water",
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 10
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "AliquotByRowColBool2": {
+      "SampleName": "water",
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 192,
+      "Outplate": "pcrplate_skirted_riser40",
+      "ByRow": true
+    }
+  }
+}

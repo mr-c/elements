@@ -1,0 +1,11 @@
+{
+  "Parameters": {
+    "AliquotByRowColBool3": {
+      "SampleNames": ["water","Glycerol","Tartrazine"],
+      "AliquotVolume": "50ul",
+      "NumberOfAliquots": 96,
+      "Outplate": "pcrplate_skirted_riser40",
+      "ByRow": true
+    }
+  }
+}

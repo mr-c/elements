@@ -1,0 +1,14 @@
+{
+  "Parameters": {
+    "MixABCD": {
+      "SampleNameA": "water",
+      "SampleNameB": "Glycerol",
+      "SampleVolumeA": "100ul",
+      "SampleVolumeB": "50ul",
+      "SampleNameC": "tartrazine",
+      "SampleNameD": "neb5compcells",
+      "SampleVolumeC": "25ul",
+      "SampleVolumeD": "25ul"
+    }
+  }
+}

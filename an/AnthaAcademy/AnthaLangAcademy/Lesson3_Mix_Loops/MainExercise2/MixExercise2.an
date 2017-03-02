@@ -1,0 +1,101 @@
+// Aliquot a solution into a specified plate.
+// optionally premix the solution before aliquoting
+protocol MixExercise2
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	"strconv"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	SampleVolumes []Volume
+	NumberOfReactions int
+	ByRow bool
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	SampleNames []*wtype.LHComponent
+	Outplate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+Reactions []*wtype.LHComponent
+)
+
+Requirements {
+
+}
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	counter:=0
+	platenumber:=1
+	reactions := make([]*wtype.LHComponent,0)
+	var wellpositionarray []string
+
+	if ByRow {
+	for  y:=0; y < Outplate.WlsY; y++{
+           for x:=0; x< Outplate.WlsX; x++{
+	wellposition := wutil.NumToAlpha(y+1) + strconv.Itoa(x+1)
+	wellpositionarray = append(wellpositionarray, wellposition)
+			}
+		}
+		} else {
+	for  x:=0; x < Outplate.WlsX; x++{
+			for y:=0; y< Outplate.WlsY; y++{
+		wellposition := wutil.NumToAlpha(y+1) + strconv.Itoa(x+1)
+		wellpositionarray = append(wellpositionarray, wellposition)
+			}
+		}
+}
+
+	for i:=0; i < NumberOfReactions; i++ {
+
+		eachreaction := make([]*wtype.LHComponent,0)
+
+			for j:=0; j < len(SampleNames); j++ {
+				sample := mixer.Sample(SampleNames[j], SampleVolumes[j])
+				eachreaction = append(eachreaction,sample)
+				}
+
+		sampleABCDMixreaction := MixTo(Outplate.Type,wellpositionarray[counter],platenumber, eachreaction...)
+		reactions = append(reactions,sampleABCDMixreaction)
+
+		if counter+1 == len(wellpositionarray){
+				platenumber++
+				counter=0
+			}else{
+		counter++
+			}
+		}
+	Reactions = reactions
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed
+//correctly. Optionally, destructive tests can be performed to validate
+//results on a dipstick basis
+Validation {
+
+}

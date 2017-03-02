@@ -1,0 +1,10 @@
+{
+  "Parameters": {
+    "MixAB": {
+      "SampleNameA": "water",
+      "SampleNameB": "Glycerol",
+      "SampleVolumeA": "100ul",
+      "SampleVolumeB": "50ul"
+    }
+  }
+}
