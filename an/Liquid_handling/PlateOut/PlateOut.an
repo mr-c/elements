@@ -32,7 +32,7 @@ Inputs (
 
 // Physical outputs to this protocol
 Outputs (
-	Platedculture *wtype.LHComponent
+	Platedcultures []*wtype.LHComponent
 	Transformedplate int
 )
 
@@ -53,11 +53,11 @@ Steps {
 	//get position info on agarplate
 	var wellpositionarray []string = AgarPlate.AllWellPositions(wtype.BYCOLUMN)
 
-	//define platedculture output as a liquid component
-	Platedcultures := make([]*wtype.LHComponent, 0)
+	//make map to fill with platedcultures and define this output as a liquid component
+	platedcultures := make([]*wtype.LHComponent, 0)
 fmt.Println("all is good1")
 
-	//OverlayAgar := factory.GetComponentByType("neb5compcells")
+	//get info for overlayagar name from input name in Parameters
 	OverlayAgar.CName = OverlayAgarname
 fmt.Println("all is good2")
 
@@ -69,6 +69,7 @@ fmt.Println("all is good2")
 
 		//detect next well location accessing array slice using counter as pointer
 		nextwell := wellpositionarray[counter]
+		fmt.Println(counter)
 
 		//perform mix actions with plateout from above into specified plate and location
 		platedculture := MixNamed(AgarPlate.Type, nextwell, fmt.Sprint(Transformedplate+platenumber), plateout)
@@ -76,7 +77,8 @@ fmt.Println("all is good2")
 
 		platedculture.CName = fmt.Sprint(platedculture.CName, j)
 
-		Platedcultures = append(Platedcultures,platedculture)
+		Platedcultures = append(platedcultures,platedculture)
+
 
 		//increase counter for next iteration
 		if counter +1 == len(wellpositionarray) {
@@ -86,6 +88,8 @@ fmt.Println("all is good2")
 		counter++
 		}
 }
+
+
 }
 
 // Run after controls and a steps block are completed to post process any data

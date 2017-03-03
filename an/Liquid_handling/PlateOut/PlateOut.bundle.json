@@ -7,12 +7,12 @@
   "connections": null,
   "parameters": {
     "PlateOutTest_1": {
-      "OverlayAgar": "protoplasts",
+      "OverlayAgar": "Overlay",
       "AgarPlate": "falcon6wellAgar",
-    	"OverlayAgarname": "neb5compcells",
-    	"Plateoutvolume": "10ul",
+    	"OverlayAgarname": "TransformedCells",
+    	"Plateoutvolume": "120ul",
     	"NumberofReplicates": 1,
-    	"AgarPlateNumber": 2
+    	"AgarPlateNumber": 1
   }
   }
 }
