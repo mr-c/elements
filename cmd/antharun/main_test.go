@@ -64,6 +64,7 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 			Workflow: input.Workflow,
 			Params:   input.Params,
 			Target:   tgt,
+			TransitionalReadLocalFiles: true,
 		})
 		errs <- err
 	}()

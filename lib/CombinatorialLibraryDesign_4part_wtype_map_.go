@@ -260,6 +260,7 @@ func CombinatorialLibraryDesign_4part_wtype_mapNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

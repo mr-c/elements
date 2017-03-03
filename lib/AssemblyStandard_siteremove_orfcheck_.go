@@ -4,7 +4,6 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
-
 package lib
 
 import (
@@ -136,7 +135,14 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 	removetheseenzymes = append(removetheseenzymes, enz.RestrictionEnzyme)
 
 	for _, enzyme := range _input.OtherEnzymeSitesToRemove {
-		removetheseenzymes = append(removetheseenzymes, lookup.EnzymeLookup(enzyme))
+
+		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
 	warning = text.Print("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
@@ -416,6 +422,7 @@ func AssemblyStandard_siteremove_orfcheckNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -472,7 +479,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "AssemblyStandard_siteremove_orfcheck",
 		Constructor: AssemblyStandard_siteremove_orfcheckNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/AssemblyStandard_removesites_checkorfs.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "MoClo\n", Kind: "Parameters"},

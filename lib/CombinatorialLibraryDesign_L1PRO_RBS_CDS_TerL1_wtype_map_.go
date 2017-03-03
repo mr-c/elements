@@ -228,6 +228,7 @@ func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

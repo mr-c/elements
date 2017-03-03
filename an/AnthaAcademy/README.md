@@ -6,7 +6,7 @@ It holds both workflows and elements.
 ## Pre-requisites
 
 
-### Knowledge of programming termininology
+### Knowledge of programming terminology
 Checkout the [free online dictionary](https://foldoc.org/) of computing as a great reference for computer programming termininology.
 
 ### Familiarity with the command line

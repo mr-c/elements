@@ -3,7 +3,6 @@
 // which is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme
 // from the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)
 // all typeIIs enzymes will be screened to find feasible backup options
-
 package lib
 
 import (
@@ -48,8 +47,8 @@ func _Iterative_assembly_designSteps(_ctx context.Context, _input *Iterative_ass
 	// set warnings reported back to user to none initially
 
 	warnings := make([]string, 0)
-	sitefound := false
-	Enzyme := "No enzymes which passed with these sequences"
+	var approvedenzymefail bool
+	var Enzyme string // := "No enzymes which passed with these sequences"
 	// make an empty array of DNA Sequences ready to fill
 	partsinorder := make([]wtype.DNASequence, 0)
 
@@ -62,143 +61,158 @@ func _Iterative_assembly_designSteps(_ctx context.Context, _input *Iterative_ass
 
 		partsinorder = append(partsinorder, partDNA)
 	}
+
+	// add vector
+	// make vector into an antha type DNASequence
+	vectordata := wtype.MakePlasmidDNASequence("Vector", _input.Vector)
+
 	// Find all possible typeIIs enzymes we could use for these sequences (i.e. non cutters of all parts)
 	possibilities := lookup.FindEnzymeNamesofClass("TypeIIs")
-	var backupoption string
+
 	for _, possibility := range possibilities {
 		// check number of sites per part !
-		enz := lookup.EnzymeLookup(possibility)
+		var sitefound bool
 
-		for _, part := range partsinorder {
+		enz, err := lookup.EnzymeLookup(possibility)
 
-			info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
-			if len(info) != 0 {
-				if info[0].Sitefound == true {
-					sitefound = true
-					break
-				}
-			}
-		}
-		if sitefound == false {
-			backupoption = possibility
-			_output.BackupEnzymes = append(_output.BackupEnzymes, backupoption)
-		}
-	}
-
-	sitefound = false
-	for _, Enzyme := range _input.ApprovedEnzymes {
-
-		// check number of sites per part !
-		enz := lookup.EnzymeLookup(Enzyme)
-
-		for _, part := range partsinorder {
-
-			info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
-			if len(info) != 0 {
-				if info[0].Sitefound == true {
-					sitefound = true
-					break
-				}
-			}
-		}
-		if sitefound == false {
-			_output.EnzymeUsed = enz
-		}
-	}
-
-	if sitefound != true {
-		fmt.Println("enzyme used", _output.EnzymeUsed)
-		Enzyme = _output.EnzymeUsed.Name
-
-		// make vector into an antha type DNASequence
-		vectordata := wtype.MakePlasmidDNASequence("Vector", _input.Vector)
-
-		//lookup restriction enzyme
-		restrictionenzyme, err := lookup.TypeIIsLookup(_output.EnzymeUsed.Name)
 		if err != nil {
-			text.Print("Error", err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
-		//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-		_output.PartswithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(partsinorder, vectordata, restrictionenzyme)
-
-		// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
-		assembly := enzymes.Assemblyparameters{_input.Constructname, restrictionenzyme.Name, vectordata, _output.PartswithOverhangs}
-		status, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
-
-		endreport := "Endreport only run in the event of assembly simulation failure"
-		//sites := "Restriction mapper only run in the event of assembly simulation failure"
-		_output.NewDNASequence = newDNASequence
-		if err == nil && numberofassemblies == 1 {
-
-			_output.Simulationpass = true
-		} else {
-
-			warnings = append(warnings, status)
-			// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
-			_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(vectordata, restrictionenzyme)
-
-			allends := make([]string, 0)
-			ends := ""
-
-			ends = text.Print(vectordata.Nm+" 5 Prime end: ", stickyends5)
-			allends = append(allends, ends)
-			ends = text.Print(vectordata.Nm+" 3 Prime end: ", stickyends3)
-			allends = append(allends, ends)
-
-			for _, part := range _output.PartswithOverhangs {
-				_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(part, restrictionenzyme)
-				ends = text.Print(part.Nm+" 5 Prime end: ", stickyends5)
-				allends = append(allends, ends)
-				ends = text.Print(part.Nm+" 3 Prime end: ", stickyends3)
-				allends = append(allends, ends)
-			}
-			endreport = strings.Join(allends, " ")
-		}
-
-		// check number of sites per part !
-		enz := lookup.EnzymeLookup(Enzyme)
-		sites := make([]int, 0)
-		multiple := make([]string, 0)
-		for _, part := range _output.PartswithOverhangs {
+		for _, part := range partsinorder {
 
 			info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
-
-			sitepositions := enzymes.SitepositionString(info[0])
-
-			sites = append(sites, info[0].Numberofsites)
-			sitepositions = text.Print(part.Nm+" "+Enzyme+" positions:", sitepositions)
-			multiple = append(multiple, sitepositions)
+			if len(info) != 0 {
+				if info[0].Sitefound == true {
+					sitefound = true
+					//break
+				}
+			}
 		}
-
-		if len(warnings) == 0 {
-			warnings = append(warnings, "none")
+		if !sitefound {
+			_output.BackupEnzymes = append(_output.BackupEnzymes, possibility)
 		}
-		_output.Warnings = fmt.Errorf(strings.Join(warnings, ";"))
-
-		partsummary := make([]string, 0)
-		for _, part := range _output.PartswithOverhangs {
-			partsummary = append(partsummary, text.Print(part.Nm, part.Seq))
-		}
-
-		partstoorder := text.Print("PartswithOverhangs: ", partsummary)
-
-		_output.Status = fmt.Sprintln(
-			text.Print("simulator status: ", status),
-			text.Print("Endreport after digestion: ", endreport),
-			text.Print("Sites per part for "+Enzyme, sites),
-			text.Print("Positions: ", multiple),
-			text.Print("Warnings:", _output.Warnings.Error()),
-			text.Print("Simulationpass=", _output.Simulationpass),
-			text.Print("NewDNASequence: ", _output.NewDNASequence),
-			partstoorder)
-
 	}
+
+	for _, enz := range _input.ApprovedEnzymes {
+
+		var sitefound bool
+		// check number of sites per part !
+		enz, err := lookup.EnzymeLookup(enz)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		for _, part := range partsinorder {
+
+			info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+			if len(info) != 0 {
+				if info[0].Sitefound {
+					sitefound = true
+					approvedenzymefail = true
+					//break
+				}
+			}
+		}
+		if !sitefound {
+			_output.EnzymeUsed = enz
+			Enzyme = enz.Name
+		}
+	}
+
+	//lookup restriction enzyme
+	restrictionenzyme, err := lookup.TypeIIsLookup(_output.EnzymeUsed.Name)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	last := len(partsinorder) - 1
+	justParts := partsinorder[:last]
+
+	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
+	_output.PartswithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(justParts, vectordata, restrictionenzyme)
+
+	// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
+	assembly := enzymes.Assemblyparameters{_input.Constructname, restrictionenzyme.Name, vectordata, _output.PartswithOverhangs}
+	status, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
+
+	endreport := "Endreport only run in the event of assembly simulation failure"
+	//sites := "Restriction mapper only run in the event of assembly simulation failure"
+	_output.NewDNASequence = newDNASequence
+	if err == nil && numberofassemblies == 1 {
+
+		_output.Simulationpass = true
+	} else {
+
+		warnings = append(warnings, status)
+		// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
+		_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(vectordata, restrictionenzyme)
+
+		allends := make([]string, 0)
+		ends := ""
+
+		ends = text.Print(vectordata.Nm+" 5 Prime end: ", stickyends5)
+		allends = append(allends, ends)
+		ends = text.Print(vectordata.Nm+" 3 Prime end: ", stickyends3)
+		allends = append(allends, ends)
+
+		for _, part := range _output.PartswithOverhangs {
+			_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(part, restrictionenzyme)
+			ends = text.Print(part.Nm+" 5 Prime end: ", stickyends5)
+			allends = append(allends, ends)
+			ends = text.Print(part.Nm+" 3 Prime end: ", stickyends3)
+			allends = append(allends, ends)
+		}
+		endreport = strings.Join(allends, " ")
+	}
+
+	// check number of sites per part !
+	enz, err := lookup.EnzymeLookup(Enzyme)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range _output.PartswithOverhangs {
+
+		info := enzymes.Restrictionsitefinder(part, []wtype.RestrictionEnzyme{enz})
+
+		sitepositions := enzymes.SitepositionString(info[0])
+
+		sites = append(sites, info[0].Numberofsites)
+		sitepositions = text.Print(part.Nm+" "+Enzyme+" positions:", sitepositions)
+		multiple = append(multiple, sitepositions)
+	}
+
+	if len(warnings) == 0 {
+		warnings = append(warnings, "none")
+	}
+	_output.Warnings = fmt.Errorf(strings.Join(warnings, ";"))
+
+	partsummary := make([]string, 0)
+	for _, part := range _output.PartswithOverhangs {
+		partsummary = append(partsummary, text.Print(part.Nm, part.Seq))
+	}
+
+	partstoorder := text.Print("PartswithOverhangs: ", partsummary)
+
+	_output.Status = fmt.Sprintln(
+		text.Print("simulator status: ", status),
+		text.Print("Endreport after digestion: ", endreport),
+		text.Print("Sites per part for "+Enzyme, sites),
+		text.Print("Positions: ", multiple),
+		text.Print("Warnings:", _output.Warnings.Error()),
+		text.Print("Simulationpass=", _output.Simulationpass),
+		text.Print("NewDNASequence: ", _output.NewDNASequence),
+		partstoorder)
+
 	// Print status
 	if _output.Status != "all parts available" {
 		_output.Status = fmt.Sprintln(_output.Status,
 			text.Print("Backup Enzymes: ", _output.BackupEnzymes))
-	} else if sitefound == true {
+	} else if approvedenzymefail {
 		_output.Status = fmt.Sprintln(text.Print("No Enzyme found to be compatible from approved list", _input.ApprovedEnzymes),
 			text.Print("Backup Enzymes: ", _output.BackupEnzymes))
 
@@ -260,6 +274,7 @@ func Iterative_assembly_designNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -302,7 +317,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "Iterative_assembly_design",
 		Constructor: Iterative_assembly_designNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is based on scarfree design so please look at that first.\nThe protocol is intended to design assembly parts using the first enzyme\nwhich is found to be feasible to use from a list of ApprovedEnzymes enzymes . If no enzyme\nfrom the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)\nall typeIIs enzymes will be screened to find feasible backup options\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Iterative_assembly_design.an",
 			Params: []component.ParamDesc{
 				{Name: "ApprovedEnzymes", Desc: "", Kind: "Parameters"},
