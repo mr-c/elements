@@ -6,20 +6,19 @@
   },
   "connections": null,
   "parameters": {
-    "Process1": {
-      "A": 2.99,
-      "B": -1,
-      "ComponentA": "water",
-      "ComponentB": "dna",
-      "Option": false,
-      "String": "Example",
-      "StringArray": [
-        "A",
-        "B",
-        "C"
-      ],
-      "VolumeA": "1ul",
-      "VolumeB": "2ul"
+    "PlateOutReactionInput_1": {
+      "Plateoutvolume": "100ul",
+      "IncubationTemp": "-1",
+      "IncubationTime": "water",
+      "DilutionX": "dna",
+      "OverlayAgarname": false,
+      "NumberofReplicates": "Example",
+      "AgarPlateNumber":,
+      "Reactions": [
+        "1ul"],
+      "Diluent": "2ul",
+      "AgarPlate": "1ul",
+      "OverlayAgar": "2ul"
     }
   },
   "config": null

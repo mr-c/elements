@@ -28,7 +28,7 @@ Config:
   InputPlateData: null
   InputPlateFiles: null
   InputPlateType:
-  - Nuncon12wellAgar_bioshake_standard_adaptor
+  - pcrplate_skirted_riser20
   InputPlates: null
   MaxPlates: null
   MaxWells: null
@@ -41,20 +41,10 @@ Parameters:
   newparams:
     LiquidTypes:
     - water
-    - dna_mix
-    - PEG
-    - dna
-    - PostMix
     LiquidVolumes:
     - 5ul
     - 100ul
     OutPlates:
-    - pcrplate_skirted_riser20
-    - falcon6wellAgar
-    - Nuncon12wellAgar_bioshake_standard_adaptor
+    - pcrplate_skirted_bioshake_96well_adaptor
     Startingsolutions:
-    - water
-    - dna_part
-    - PEG
-    - dna_part
     - water

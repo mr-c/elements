@@ -7,7 +7,7 @@
   "connections": null,
   "parameters": {
     "PlateOutTest_1": {
-      "OverlayAgar": "Overlay",
+      "OverlayAgarType": "Overlay",
       "AgarPlate": "falcon6wellAgar",
     	"OverlayAgarname": "TransformedCells",
     	"Plateoutvolume": "120ul",

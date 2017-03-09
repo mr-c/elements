@@ -47,7 +47,7 @@ Steps {
 	// set counter to select correct well position and platenumber
 	var counter int = WellsUsedinAgarPlate
 
-	// set a platenumber to 1
+	// set a platenumber
 	var platenumber int = AgarPlateNumber //1
 
 	//get position info on agarplate
