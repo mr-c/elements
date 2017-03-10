@@ -6,22 +6,19 @@
 package lib
 
 import (
+	"context"
+	"encoding/csv"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/cmd/antharun/cmd"
-	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
-	"github.com/antha-lang/antha/microArch/factory"
-
-	"encoding/csv"
-	"os"
-	//"path/filepath"
-	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
+	"github.com/antha-lang/antha/microArch/factory"
+	"os"
 	"time"
 )
 
@@ -77,10 +74,11 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 	time := []string{"Time:", fmt.Sprint(time.Now())}
 
 	// find git commit id
-	anthacommit, err := cmd.GitCommit()
+	// func gitCommit declared in platetest.an
+	anthacommit, err := gitCommit("github.com/antha-lang/antha")
 
 	if err != nil {
-		execute.Errorf(_ctx, err.Error())
+		anthacommit = err.Error()
 	}
 
 	gitcommit := []string{"antha-lang/antha commitID:", anthacommit}
@@ -283,6 +281,7 @@ func PlateTest3New() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

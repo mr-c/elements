@@ -5,7 +5,6 @@
 // Level 0 parts can then be assembled together by using level 1 enzymes and overhangs. 
 // currently this protocol only supports level 0 steps.
 // see http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0016765
-
 protocol MoCloLevel0_PRO_RBS_CDS_TERMINATOR_VECTOR
 
 import (

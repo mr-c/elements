@@ -28,7 +28,7 @@ Config:
   InputPlateData: null
   InputPlateFiles: null
   InputPlateType:
-  - Nuncon12wellAgar_incubator
+  - Nuncon12wellAgar_bioshake_standard_adaptor
   InputPlates: null
   MaxPlates: null
   MaxWells: null
@@ -51,7 +51,7 @@ Parameters:
     OutPlates:
     - pcrplate_skirted_riser20
     - falcon6wellAgar
-    - Nuncon12wellAgar_incubator
+    - Nuncon12wellAgar_bioshake_standard_adaptor
     Startingsolutions:
     - water
     - dna_part

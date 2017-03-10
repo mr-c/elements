@@ -3,14 +3,17 @@ protocol ParsePlate
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	inplate "github.com/antha-lang/antha/target/mixer"
+	"bytes"
+	"fmt"
 )
 // Input parameters for this protocol (data)
 Parameters (
-	InputCSVfile string
+	InputCSVfile File
 ) 
 // Data which is returned from this protocol, and data types
 Data (
 	Error error
+	Warnings []string
 )
 
 
@@ -23,7 +26,6 @@ Outputs (
 	AllComponents []*wtype.LHComponent//Gel
 	PlatewithComponents *wtype.LHPlate
 	ComponentMap map[string]*wtype.LHComponent
-   
 )
 
 // No special requirements on inputs
@@ -42,19 +44,34 @@ Setup {
 // for every input
 Steps {
 
-	// parse sample locations from file
-	inputplate,err := inplate.ParseInputPlateFile(InputCSVfile) 
+	// Read file
+	filecontents, err := InputCSVfile.ReadAll()
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	// create a reader from filecontents
+	reader := bytes.NewReader(filecontents)
+	
+	// Parse plate from reader
+	plateresult,err := inplate.ParsePlateCSV(reader) 
 	
 	if err != nil {
 		Error = err
 		Errorf(err.Error())
 	}
 	
-		
+	// assign LHPlate variable
+	inputplate := plateresult.Plate
+	
+	// return any warnings from plate parsing process
+	Warnings = plateresult.Warnings
+	
 	components := make([]*wtype.LHComponent,0)
 	ComponentMap = make(map[string]*wtype.LHComponent)
 	
-
+	// get all plate components and return into both a slice and a map
 	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN){
 	
 	if !inputplate.WellMap()[wellcontents].Empty() {
@@ -64,6 +81,11 @@ Steps {
 	ComponentMap[component.CName] = component
 	
 		}
+	}
+	if len(AllComponents)==0{
+		err = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
+		Warnings = append(Warnings,err.Error())
+		Error = err
 	}
 	AllComponents = components
 	PlatewithComponents = inputplate
@@ -76,9 +98,6 @@ Steps {
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
-    // need the control samples to be completed before doing the analysis
-
-    //
 
 }
 
@@ -86,22 +105,6 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-  /* 	if calculatedbandsize == expected {
-		stop
-	}
-	if calculatedbandsize != expected {
-	if S == "matches size of incorrect assembly possibility" {
-		call(assembly_troubleshoot)
-		}
-	} // loop at beginning should be designed to split labware resource optimally in the event of any failures e.g. if 96well capacity and 4 failures check 96/4 = 12 colonies of each to maximise chance of getting a hit
-    }
-    if repeat > 2
-	stop
-    }
-    if (recoverylocation doesn't grow then use backup or repeat 
-	}
-	if sequencingresults do not match expected then use backup or repeat
-    // TODO: */
+
 }
 
-//func cherrypick ()

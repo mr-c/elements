@@ -49,7 +49,14 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	if _input.DilutionFactor == 0 {
 		_input.DilutionFactor = 10
 	}
-	minVolume := wunit.NewVolume(0.5, "ul")
+
+	var minVolume wunit.Volume
+
+	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
+		minVolume = wunit.NewVolume(0.5, "ul")
+	} else {
+		minVolume = _input.MinVolume
+	}
 
 	// declare some global variables for use later
 	var rotate = false
@@ -369,6 +376,7 @@ func AccuracyTest_3New() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -382,6 +390,7 @@ type AccuracyTest_3Input struct {
 	DilutionFactor                  float64
 	Imagefilename                   string
 	LHPolicy                        string
+	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int
 	OutPlate                        *wtype.LHPlate
@@ -436,6 +445,7 @@ func init() {
 				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
 				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
+				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

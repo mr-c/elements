@@ -1,6 +1,8 @@
 Parameters:
   addplate:
-    InputCSVfile: inputplate.csv
+    InputCSVfile:
+      host_file:
+        filename: inputplate.csv
   transfer:
     LiquidVolume: 10ul
     Liquidname: testliquid

@@ -1,0 +1,7 @@
+{
+  "processes": {
+    "PlotSpreadsheet": {
+      "component": "PlotSpreadsheet"
+    }
+  }
+}

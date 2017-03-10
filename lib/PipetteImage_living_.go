@@ -216,6 +216,7 @@ func PipetteImage_livingNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 

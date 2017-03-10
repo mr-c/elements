@@ -4,7 +4,6 @@ import (
     "github.com/antha-lang/antha/antha/anthalib/mixer"
     "github.com/antha-lang/antha/antha/anthalib/wtype"
     "fmt"
-	"strconv"
 )
 
 Parameters (
@@ -42,43 +41,34 @@ Steps {
 
 
 	// work out well coordinates for any plate
-	wellpositionarray := make([]string, 0)
+	wellpositionarray := GelPlate.AllWellPositions(wtype.BYROW)
 
 	
-	//alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	alphabet := []string{"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
-		"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
-		"Y", "Z", "AA", "BB", "CC", "DD", "EE", "FF"}
-	//k := 0
-	for j := 0; j < GelPlate.WlsY; j++ {
-		for i := 0; i < GelPlate.WlsX; i++ { //countingfrom1iswhatmakesushuman := j + 1
-			//k = k + 1
-			wellposition := string(alphabet[j]) + strconv.Itoa(i+1)
-			//fmt.Println(wellposition, k)
-			wellpositionarray = append(wellpositionarray, wellposition)
-		}
-
-	}
-
-
 	RunSolutions = make([]*wtype.LHComponent,0)
 
-	var RunSolution *wtype.LHComponent
+	var runSolution *wtype.LHComponent
 
 
 	for k, SampleName := range SampleNames {
+		
     samples := make ([]*wtype.LHComponent, 0)
+	
     waterSample := mixer.Sample(Water, WaterVolume)
-    waterSample.CName = WaterName
+    
+	waterSample.CName = WaterName
+	
     samples = append(samples, waterSample)
+	
+	Protein.CName = SampleName
 
     loadSample := mixer.Sample(Protein, LoadVolume)
-    loadSample.CName = SampleName
+	
     samples = append(samples, loadSample)
+	
     fmt.Println ("This is a list of samples for loading:", samples)
 
-    RunSolution = MixTo(GelPlate.Type,wellpositionarray[k], 0, samples...)
-	RunSolutions = append(RunSolutions,RunSolution)
+    runSolution = MixNamed(GelPlate.Type,wellpositionarray[k], "GelPlate", samples...)
+	RunSolutions = append(RunSolutions,runSolution)
 	}
 }
 

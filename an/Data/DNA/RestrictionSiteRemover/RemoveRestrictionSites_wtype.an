@@ -1,6 +1,5 @@
 // This protocol is intended to check sequences for restriction sites and remove according to 
 // specified conditions
-
 protocol RemoveRestrictionSites_wtype
 
 import (
@@ -61,7 +60,12 @@ Steps {
 	// first lookup enzyme properties for all enzymes and make a new array
 	enzlist := make([]wtype.RestrictionEnzyme, 0)
 	for _, site := range RestrictionsitetoAvoid {
-		enzsite := lookup.EnzymeLookup(site)
+		enzsite, err := lookup.EnzymeLookup(site)
+		
+		if err!=nil{
+		Errorf(err.Error())
+		}
+	
 	enzlist = append(enzlist, enzsite)
 	}
 	
@@ -169,7 +173,11 @@ Steps {
 }			
 	
 	// Now let's find out the size of fragments we would get if digested with a common site cutter
-	mapenz := lookup.EnzymeLookup(EnzymeforRestrictionmapping)
+	mapenz, err := lookup.EnzymeLookup(EnzymeforRestrictionmapping)
+	
+	if err!=nil{
+		Errorf(err.Error())
+	}
 	
 	FragmentSizesfromRestrictionmapping = enzymes.RestrictionMapper(Sequence, mapenz)
 	
