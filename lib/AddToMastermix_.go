@@ -1,5 +1,6 @@
-// Make a general mastermix comprising of a list of components, list of volumes
-// and specifying the number of reactions required
+// Adds a list of components to a mastermix
+// Volumes of each component are specified by a map.
+// A default volume may be specified which applies to all which are not present explicitely in the map
 package lib
 
 import (
@@ -200,7 +201,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "AddToMastermix",
 		Constructor: AddToMastermixNew,
 		Desc: component.ComponentDesc{
-			Desc: "Make a general mastermix comprising of a list of components, list of volumes\nand specifying the number of reactions required\n",
+			Desc: "Adds a list of components to a mastermix\nVolumes of each component are specified by a map.\nA default volume may be specified which applies to all which are not present explicitely in the map\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/AddToMastermix.an",
 			Params: []component.ParamDesc{
 				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
