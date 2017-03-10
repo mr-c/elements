@@ -2,7 +2,9 @@
   "Parameters": {
     "AliquotParams": {
       "ChangeSolutionName": "",
+      "Incubation": true,
       "NumberofAliquots": 8,
+      "OptimisePlateUsage": false,
       "OutPlate": "pcrplate_with_cooler",
       "PreMix": false,
       "Solution": "water",

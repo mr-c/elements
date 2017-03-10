@@ -13,6 +13,8 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
+//"fmt"
+
 // Input parameters for this protocol (data)
 
 // optional field. Select if the solution to be aliquoted should be premixed prior to transer
@@ -79,6 +81,16 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 			aliquots = append(aliquots, aliquot)
 		}
 	}
+
+	if _input.Incubation == true {
+		//var incubationtype *wtype.LHComponent
+		//incubationtype.Type = wtype.LTWater
+		//fmt.Println("OK")
+		aliquots[len(aliquots)-1].Type = wtype.LTPause
+		//fmt.Println(aliquots)
+
+	}
+
 	_output.Aliquots = aliquots
 }
 
@@ -143,6 +155,7 @@ type AliquotElement struct {
 
 type AliquotInput struct {
 	ChangeSolutionName string
+	Incubation         bool
 	NumberofAliquots   int
 	OptimisePlateUsage bool
 	OutPlate           *wtype.LHPlate
@@ -172,6 +185,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/starter/Aliquot/Aliquot.an",
 			Params: []component.ParamDesc{
 				{Name: "ChangeSolutionName", Desc: "optional field to change the name of the component\n", Kind: "Parameters"},
+				{Name: "Incubation", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofAliquots", Desc: "", Kind: "Parameters"},
 				{Name: "OptimisePlateUsage", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "this time we're specifying what plate we're using\n", Kind: "Inputs"},
