@@ -105,6 +105,12 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 	reactions := make([]*wtype.LHComponent, 0)
 
 	// use first policy as reference to ensure consistent range through map values
+
+	// if none is specified, use lhpolicy of first solution
+	if _input.LHPolicy == "" {
+		_input.LHPolicy = _input.TestSols[0].TypeName()
+	}
+
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
 		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
@@ -152,7 +158,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// diluent first
 
 					// change lhpolicy if desired
-					if _input.UseLHPolicyDoeforDiluent {
+					if _input.UseLHPolicyforDiluent {
 						_input.Diluent.Type, err = wtype.LiquidTypeFromString(_input.LHPolicy)
 						if err != nil {
 							_output.Errors = append(_output.Errors, err)
@@ -442,7 +448,7 @@ type AccuracyTest_ConcentrationInput struct {
 	TestSols                        []*wtype.LHComponent
 	TotalVolume                     wunit.Volume
 	URL                             string
-	UseLHPolicyDoeforDiluent        bool
+	UseLHPolicyforDiluent           bool
 	UseLiquidPolicyForTestSolutions bool
 	UseURL                          bool
 	WellsUsed                       int
@@ -498,7 +504,7 @@ func init() {
 				{Name: "TestSols", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseLHPolicyDoeforDiluent", Desc: "", Kind: "Parameters"},
+				{Name: "UseLHPolicyforDiluent", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidPolicyForTestSolutions", Desc: "", Kind: "Parameters"},
 				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
