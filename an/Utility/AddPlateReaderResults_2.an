@@ -29,15 +29,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"bytes"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
+	MarsResultsFileXLSX File // input file containing the Plate reader results exported from Mars
+	DesignFile File // Design file for the executed experiment containing the corresponding plate and well locations
 
-	MarsResultsFileXLSX string // plate reader results file, currently only mars files are valid
-	Sheet               int    // i.e. the sheet position in the plate reader results excel file; starting from 0                                      
-	DesignFile          string // i.e. the design file of the original liquid handling
+	SheetNumber         int    // i.e. the sheet position in the plate reader results excel file; starting from 0                                      
 	DesignFiletype      string // current supported formats are "JMP" and "DX"
 	OutputFilename      string // set the desired name for the output file, if this is blank it will append the design file name with _output
 
@@ -66,6 +67,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
+	OutPutDesignFile File
 	BlankValues []float64
 	ResponsetoManualValuesmap map[string][]float64
 	MeasuredOptimalWavelength int
@@ -108,7 +110,7 @@ Steps {
 	
 	if OutputFilename == "" {
 		
-		_, filename := filepath.Split(DesignFile)
+		_, filename := filepath.Split(DesignFile.Name)
 		
 		OutputFilename = strings.Split(filename,".")[0] + "_output" +fmt.Sprint(time.Now().Format("20060102150405")) +".xlsx"
 	}
@@ -122,12 +124,16 @@ Steps {
 	}
 	
 	Molecularweight := molecule.MolecularWeight
-	
-	var marsdata parser.MarsData
-	
+		
+	data, err := MarsResultsFileXLSX.ReadAll()
 
-	marsdata, err = parser.ParseMarsXLSXOutput(MarsResultsFileXLSX, Sheet)
 	if err != nil {
+		Errorf("Error reading Mars file %s", err.Error())
+	}
+
+	marsdata, err := parser.ParseMarsXLSXBinary(data,SheetNumber)
+	if err != nil {
+		Errors = append(Errors,err.Error())
 		Errorf(err.Error())
 	}
 
@@ -146,18 +152,23 @@ Steps {
 		}
 	}
 
+	designFileData, err := DesignFile.ReadAll()
+
+	if err != nil {
+		Errorf("Error reading Design file %s", err.Error())
+	}
+
 	if DesignFiletype == "DX" {
-		runs, err = doe.RunsFromDXDesign(DesignFile, intfactors)
+		runs, err = doe.RunsFromDXDesignContents(designFileData, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	} else if DesignFiletype == "JMP" {
-		runs, err = doe.RunsFromJMPDesign(DesignFile, []int{}, []int{}, intfactors)
+		runs, err = doe.RunsFromJMPDesignContents(designFileData, []int{}, []int{}, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	}
-	
 	BlankValues = make([]float64,0)
 	
 	
@@ -331,12 +342,7 @@ Steps {
 
 				
 				correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
-				
-
-				//xvalues = append(xvalues, expectedconc.SIValue())
-				//yvalues = append(yvalues, actualconc.SIValue())
-				//actualconcreplicates = append(actualconcreplicates, actualconc.SIValue())
-			
+							
 				// add comparison to manually pipetted wells
 				if _, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok  {
 					manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
@@ -357,51 +363,25 @@ Steps {
 					
 				}
 
-				
-				
-				
-				
-			
-
-			// process replicates into mean and cv
-			//mean := stats.Mean(actualconcreplicates)
-			//stdev := stats.StdDevS(actualconcreplicates)
-
-			//cv := stdev / mean
-
-			//run = doe.AddNewResponseFieldandValue(run, response+"_Average_ActualConc", mean)
-			//run = doe.AddNewResponseFieldandValue(run, response+"_CV_ActualConc", cv)
-			
-			
-			// average of correctness factor values
-			//meanCF := stats.Mean(correctnessFactorValues)
-			//run = doe.AddNewResponseFieldandValue(run, response+"_Average_CorrectnessFactor", meanCF)
-			
-		/*	if ManualComparison {
-			
-			meanManCF := stats.Mean(manualCorrectnessFactorValues)
-			run = doe.AddNewResponseFieldandValue(run, response+"_Average_ManualCorrectnessFactor", meanManCF)
-			}
-		*/
-		
-		
 
 		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-		
-		//rsquared := plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
-		//run.AddResponseValue("R2", rsquared)
 
-		//xygraph := plot.Plot(xvalues, [][]float64{yvalues})
-		//filenameandextension := strings.Split(OutputFilename, ".")
-		//plot.Export(xygraph, filenameandextension[0]+".png")
 
 		runswithresponses = append(runswithresponses, run)
 	}
 	
-	doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
+	xlsxfile := doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
 	
 	Runs = runswithresponses
 
+	var buffer bytes.Buffer
+	
+	xlsxfile.Write(&buffer)
+
+	OutPutDesignFile.Name = OutputFilename
+
+	OutPutDesignFile.WriteAll(buffer.Bytes())
+	
 }
 
 // Run after controls and a steps block are completed to
@@ -838,7 +818,6 @@ if ManualComparison {
 	
 }
 
-fmt.Println("VOlumetoCorrectnessmap", VolumeToCorrectnessFactor)
 	
 }
 
