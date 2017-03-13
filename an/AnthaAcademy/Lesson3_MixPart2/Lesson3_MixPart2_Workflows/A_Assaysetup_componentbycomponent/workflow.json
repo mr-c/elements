@@ -2,7 +2,7 @@
     "connections": [],
     "processes": {
         "Assaysetup": {
-            "component": "SetupReactions"
+            "component": "ReactionSetUp"
         }
     }
 }

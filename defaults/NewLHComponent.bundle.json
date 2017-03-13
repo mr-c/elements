@@ -1,0 +1,17 @@
+{
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Name": "MOPS",
+      "StockConcentration": "50mM",
+      "TemplateComponent": "water",
+      "UseLHPolicy": "water"
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "AddNewLHComponent"
+    }
+  }
+}
