@@ -417,7 +417,13 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 	xygraph.Title.Text = "Expected vs Measured Concentration"
 
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
-	plot.Export(xygraph, "10cm", "10cm", filenameandextension[0]+"_plot"+".png")
+
+	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "10cm", "10cm", filenameandextension[0]+"_plot"+".png")
+
+	if err != nil {
+		_output.Errors = append(_output.Errors, err.Error())
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// reset
 	xvalues = make([]float64, 0)
@@ -474,7 +480,13 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 		_output.Errors = append(_output.Errors, err.Error())
 	}
 
-	plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_correctnessfactor"+".png")
+	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_correctnessfactor"+".png")
+
+	if err != nil {
+		_output.Errors = append(_output.Errors, err.Error())
+		execute.Errorf(_ctx, err.Error())
+
+	}
 
 	// reset
 	xvalues = make([]float64, 0)
@@ -872,9 +884,11 @@ type AddPlateReaderresults_2Input struct {
 }
 
 type AddPlateReaderresults_2Output struct {
+	ActualVsExpectedPlot      wtype.File
 	BlankValues               []float64
 	CV                        float64
 	CVpass                    bool
+	CorrectnessFactorPlot     wtype.File
 	Errors                    []string
 	Formula                   string
 	MeasuredOptimalWavelength int
@@ -891,9 +905,11 @@ type AddPlateReaderresults_2Output struct {
 
 type AddPlateReaderresults_2SOutput struct {
 	Data struct {
+		ActualVsExpectedPlot      wtype.File
 		BlankValues               []float64
 		CV                        float64
 		CVpass                    bool
+		CorrectnessFactorPlot     wtype.File
 		Errors                    []string
 		Formula                   string
 		MeasuredOptimalWavelength int
@@ -940,9 +956,11 @@ func init() {
 				{Name: "VolumeToManualwells", Desc: "if comparing to manual pipetting set the wells to use for each concentration here\n", Kind: "Parameters"},
 				{Name: "Wavelength", Desc: " Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest\n", Kind: "Parameters"},
 				{Name: "WellForScanAnalysis", Desc: "well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false\n", Kind: "Parameters"},
+				{Name: "ActualVsExpectedPlot", Desc: "", Kind: "Data"},
 				{Name: "BlankValues", Desc: "", Kind: "Data"},
 				{Name: "CV", Desc: "", Kind: "Data"},
 				{Name: "CVpass", Desc: "", Kind: "Data"},
+				{Name: "CorrectnessFactorPlot", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "Formula", Desc: "", Kind: "Data"},
 				{Name: "MeasuredOptimalWavelength", Desc: "", Kind: "Data"},

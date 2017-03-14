@@ -68,6 +68,8 @@ Parameters (
 // Data which is returned from this protocol, and data types
 Data (
 	OutPutDesignFile File
+	ActualVsExpectedPlot File
+	CorrectnessFactorPlot File
 	BlankValues []float64
 	ResponsetoManualValuesmap map[string][]float64
 	MeasuredOptimalWavelength int
@@ -454,7 +456,13 @@ Analysis {
 	xygraph.Title.Text = "Expected vs Measured Concentration"
 			
 	filenameandextension := strings.Split(OutputFilename, ".")
-	plot.Export(xygraph, "10cm","10cm",filenameandextension[0]+"_plot"+".png")
+	
+	ActualVsExpectedPlot, err =  plot.Export(xygraph, "10cm","10cm",filenameandextension[0]+"_plot"+".png")
+	
+	if err != nil{
+		Errors = append(Errors,err.Error())
+		Errorf(err.Error())
+	}
 	
 	// reset
 		xvalues = make([]float64, 0)
@@ -512,7 +520,13 @@ Analysis {
 		Errors = append(Errors,err.Error())
 	}
 	
-	plot.Export(correctnessgraph, "10cm","10cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "10cm","10cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	
+	if err != nil{
+		Errors = append(Errors,err.Error())
+		Errorf(err.Error())
+
+	}
 	
 	// reset
 		xvalues = make([]float64, 0)
