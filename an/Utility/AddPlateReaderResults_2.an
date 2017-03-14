@@ -453,11 +453,11 @@ Analysis {
 	
 	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
 			
-	xygraph.Title.Text = "Expected vs Measured Concentration"
+	xygraph.Title.Text = Molecule.CName + ": Expected vs Measured Concentration"
 			
 	filenameandextension := strings.Split(OutputFilename, ".")
 	
-	ActualVsExpectedPlot, err =  plot.Export(xygraph, "10cm","10cm",filenameandextension[0]+"_plot"+".png")
+	ActualVsExpectedPlot, err =  plot.Export(xygraph, "20cm","20cm",filenameandextension[0]+"_plot"+".png")
 	
 	if err != nil{
 		Errors = append(Errors,err.Error())
@@ -520,7 +520,13 @@ Analysis {
 		Errors = append(Errors,err.Error())
 	}
 	
-	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "10cm","10cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+			
+	correctnessgraph.Title.Text = Molecule.CName + ": Correctness Factor vs Target Concentration"
+	
+	
+	
+	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm","20cm",filenameandextension[0]+"_correctnessfactor"+".png")
 	
 	if err != nil{
 		Errors = append(Errors,err.Error())

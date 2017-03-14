@@ -414,11 +414,11 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 
 	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
 
-	xygraph.Title.Text = "Expected vs Measured Concentration"
+	xygraph.Title.Text = _input.Molecule.CName + ": Expected vs Measured Concentration"
 
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
 
-	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "10cm", "10cm", filenameandextension[0]+"_plot"+".png")
+	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "20cm", "20cm", filenameandextension[0]+"_plot"+".png")
 
 	if err != nil {
 		_output.Errors = append(_output.Errors, err.Error())
@@ -480,7 +480,11 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 		_output.Errors = append(_output.Errors, err.Error())
 	}
 
-	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_correctnessfactor"+".png")
+	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+
+	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Target Concentration"
+
+	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm", "20cm", filenameandextension[0]+"_correctnessfactor"+".png")
 
 	if err != nil {
 		_output.Errors = append(_output.Errors, err.Error())
