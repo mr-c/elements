@@ -11,7 +11,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"fmt"
 	"strconv"
-
+	"bytes"
 )
 
 
@@ -46,7 +46,7 @@ Data (
 	Blankwells []string
 	Runs []doe.Run
 	Wellpositionarray []string
-	//NeatSamplewells []string 
+	ExportedFile File
 )
 
 
@@ -372,7 +372,18 @@ Steps {
 	}
 	
 	// export overall DOE design file showing all well locations for all conditions
-	doe.XLSXFileFromRuns(newruns,OutputFilename,DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns,OutputFilename,DXORJMP)
+			
+		var out bytes.Buffer
+		
+		err = xlsxfile.Write(&out)
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+	ExportedFile.Name = OutputFilename
+	ExportedFile.WriteAll(out.Bytes())
 	
 	// add blanks after
 	
