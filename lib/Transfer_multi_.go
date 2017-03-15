@@ -1,3 +1,7 @@
+// Protocol Transfer_multi will transfer a series of components to a specified destination plate
+// Liquid names may be specified which will override the component names
+// if no liquid names are specified the Starting Solution names are preserved
+// either all liquidnames must be specified or none
 package lib
 
 import (
@@ -13,9 +17,19 @@ import (
 
 // Input parameters for this protocol (data)
 
+// Liquid names may be specified which will override the component names
+// if no liquid names are specified the Starting Solution names are preserved
+// either all liquidnames must be specified or none
+
+// One liquid volume is specified for all transfers
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
+
+// The solutions to be transferred
+
+// one outplate is specified for all transfers
 
 // Physical outputs from this protocol with types
 
@@ -48,6 +62,7 @@ func _Transfer_multiSteps(_ctx context.Context, _input *Transfer_multiInput, _ou
 
 		_output.FinalSolutions = append(_output.FinalSolutions, execute.MixInto(_ctx, _input.OutPlate, "", sample))
 
+		// if a liquid name has already been specified the name will be appended
 		if _, found := _output.Status[liquid.CName]; found {
 			originalName := liquid.CName
 			var number int = 2
@@ -149,13 +164,13 @@ func init() {
 	if err := addComponent(component.Component{Name: "Transfer_multi",
 		Constructor: Transfer_multiNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "Protocol Transfer_multi will transfer a series of components to a specified destination plate\nLiquid names may be specified which will override the component names\nif no liquid names are specified the Starting Solution names are preserved\neither all liquidnames must be specified or none\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/Transfer/Transfer_multi.an",
 			Params: []component.ParamDesc{
-				{Name: "LiquidVolume", Desc: "", Kind: "Parameters"},
-				{Name: "Liquidnames", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Startingsolutions", Desc: "", Kind: "Inputs"},
+				{Name: "LiquidVolume", Desc: "One liquid volume is specified for all transfers\n", Kind: "Parameters"},
+				{Name: "Liquidnames", Desc: "Liquid names may be specified which will override the component names\nif no liquid names are specified the Starting Solution names are preserved\neither all liquidnames must be specified or none\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "one outplate is specified for all transfers\n", Kind: "Inputs"},
+				{Name: "Startingsolutions", Desc: "The solutions to be transferred\n", Kind: "Inputs"},
 				{Name: "FinalSolutions", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 			},
