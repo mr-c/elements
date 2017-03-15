@@ -57,6 +57,7 @@ Data (
 	OriginalParts []wtype.DNASequence 
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs []wtype.DNASequence // parts to order
+	PartsAndVector []wtype.DNASequence // parts to order + vector
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
 	ORFmissing bool
 	Endreport string
@@ -214,6 +215,14 @@ Steps {
 	if err != nil {
 		Errorf(err.Error())
 	}
+
+	// export parts + vector as one array
+	for _, part := range PartswithOverhangs {
+		PartsAndVector = append(PartsAndVector,part)
+	}
+	
+	// now add vector 
+	PartsAndVector = append(PartsAndVector,vectordata)
 
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
