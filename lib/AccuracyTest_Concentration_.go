@@ -2,6 +2,7 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
@@ -30,8 +31,6 @@ import (
 // Data which is returned from this protocol, and data types
 
 //[]string //map[string]string
-
-//NeatSamplewells []string
 
 // Physical Inputs to this protocol with types
 
@@ -337,7 +336,18 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 	}
 
 	// export overall DOE design file showing all well locations for all conditions
-	doe.XLSXFileFromRuns(newruns, _input.OutputFilename, _input.DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns, _input.OutputFilename, _input.DXORJMP)
+
+	var out bytes.Buffer
+
+	err = xlsxfile.Write(&out)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	_output.ExportedFile.Name = _input.OutputFilename
+	_output.ExportedFile.WriteAll(out.Bytes())
 
 	// add blanks after
 
@@ -457,6 +467,7 @@ type AccuracyTest_ConcentrationInput struct {
 type AccuracyTest_ConcentrationOutput struct {
 	Blankwells           []string
 	Errors               []error
+	ExportedFile         wtype.File
 	Pixelcount           int
 	Reactions            []*wtype.LHComponent
 	Runcount             int
@@ -469,6 +480,7 @@ type AccuracyTest_ConcentrationSOutput struct {
 	Data struct {
 		Blankwells           []string
 		Errors               []error
+		ExportedFile         wtype.File
 		Pixelcount           int
 		Runcount             int
 		Runs                 []doe.Run
@@ -510,6 +522,7 @@ func init() {
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
 				{Name: "Blankwells", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
+				{Name: "ExportedFile", Desc: "", Kind: "Data"},
 				{Name: "Pixelcount", Desc: "", Kind: "Data"},
 				{Name: "Reactions", Desc: "", Kind: "Outputs"},
 				{Name: "Runcount", Desc: "", Kind: "Data"},
