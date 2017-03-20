@@ -1,6 +1,5 @@
-// This protocol is intended to design assembly parts using a specified enzyme. 
-// overhangs are added to complement the adjacent parts and leave no scar. 
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
+// This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.
+// Overhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme. 
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
@@ -11,7 +10,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"path/filepath"
-	"strconv"
 	"fmt"
 )
 
@@ -46,6 +44,7 @@ Outputs (
 Data (
 	StatusMap map[string]string
 	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
+	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
 	PassMap map[string]bool
 	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
 	Sequences []wtype.DNASequence
@@ -68,6 +67,7 @@ Setup {}
 Steps {
 	StatusMap = make(map[string]string)
 	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	Assemblies = make(map[string][]wtype.DNASequence)
 	PassMap = make(map[string]bool)
 	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
 	Sequences = make([]wtype.DNASequence,0)
@@ -84,7 +84,7 @@ Steps {
 			for l := range Part2s {
 				for m := range Part3s {	
 					
-						key := 	ProjectName+"_"+"Vector"+strconv.Itoa(j+1)+"_1."+strconv.Itoa(k+1)+"_2."+strconv.Itoa(l+1)+"_3."+strconv.Itoa(m+1)
+						key := 	ProjectName+"_"+Vectors[j].Name()+"_"+Part1s[k].Name()+"_"+Part2s[l].Name()+"_"+Part3s[m].Name()
 						assembly := RunSteps(Scarfree_siteremove_orfcheck_wtype,
 		Parameters {
 					Constructname: 				key,
@@ -103,6 +103,7 @@ Steps {
                 })
 				key = key  //+ Vectors[j]
 				PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+				Assemblies[key] = assembly.Data.PartsAndVector // parts + vector to be fed into assembly element
 				PassMap[key] = assembly.Data.Simulationpass
 				EndreportMap[key]  = assembly.Data.Endreport
 				PositionReportMap[key] = assembly.Data.PositionReport

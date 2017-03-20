@@ -43,6 +43,7 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+// parts to order + vector
 // desired sequence to end up with after assembly
 
 // Input Requirement specification
@@ -196,6 +197,14 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
+
+	// export parts + vector as one array
+	for _, part := range _output.PartswithOverhangs {
+		_output.PartsAndVector = append(_output.PartsAndVector, part)
+	}
+
+	// now add vector
+	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
 
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
@@ -390,6 +399,7 @@ type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
 	NewDNASequence        wtype.DNASequence
 	ORFmissing            bool
 	OriginalParts         []wtype.DNASequence
+	PartsAndVector        []wtype.DNASequence
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs    []wtype.DNASequence
 	PositionReport        []string
@@ -404,6 +414,7 @@ type AssemblyStandard_siteremove_orfcheck_wtypeSOutput struct {
 		NewDNASequence        wtype.DNASequence
 		ORFmissing            bool
 		OriginalParts         []wtype.DNASequence
+		PartsAndVector        []wtype.DNASequence
 		PartsWithSitesRemoved []wtype.DNASequence
 		PartswithOverhangs    []wtype.DNASequence
 		PositionReport        []string
@@ -439,6 +450,7 @@ func init() {
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsAndVector", Desc: "parts to order + vector\n", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PositionReport", Desc: "", Kind: "Data"},
