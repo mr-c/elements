@@ -158,7 +158,7 @@ Steps {
 				
 				// check liquid type is valid
 				if err != nil {
-					Errorf("Liquid type issue with ", LiquidTypes[i], err.Error())
+					Errorf("Liquid type issue with %s: %s", LiquidTypes[i], err.Error())
 				}
 				
 				// change liquid type to that specified in loop

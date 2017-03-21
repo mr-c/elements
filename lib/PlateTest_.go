@@ -141,7 +141,7 @@ func _PlateTestSteps(_ctx context.Context, _input *PlateTestInput, _output *Plat
 
 				// check liquid type is valid
 				if err != nil {
-					execute.Errorf(_ctx, "Liquid type issue with ", _input.LiquidTypes[i], err.Error())
+					execute.Errorf(_ctx, "Liquid type issue with %s: %s", _input.LiquidTypes[i], err.Error())
 				}
 
 				// change liquid type to that specified in loop

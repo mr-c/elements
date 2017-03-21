@@ -7,24 +7,21 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"strconv"
-	"strings"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"context"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"strconv"
+	"strings"
 )
-
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 
 // Input parameters for this protocol (data)
 
@@ -37,6 +34,8 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+
+// parts + vector
 
 // desired sequence to end up with after assembly
 
@@ -263,10 +262,16 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	partsummary = append(partsummary, fmt.Sprint("Vector:"+vectordata.Nm, vectordata.Seq))
 	partstoorder := fmt.Sprint("PartswithOverhangs: ", partsummary)
 
+	// export parts + vector as one array
+	for _, part := range _output.PartswithOverhangs {
+		_output.PartsAndVector = append(_output.PartsAndVector, part)
+	}
+
+	// now add vector
+	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
+
 	// Print status
-	/*if Status != "all parts available"{
-		Status = fmt.Sprintln(status)
-	} else {*/_output.Status = fmt.Sprintln(
+	_output.Status = fmt.Sprintln(
 		fmt.Sprint("simulator status: ", status),
 		fmt.Sprint("Endreport after digestion: ", endreport),
 		fmt.Sprint("Sites per part for "+_input.Enzymename, sites),
@@ -380,6 +385,7 @@ type Scarfree_siteremove_orfcheck_wtypeOutput struct {
 	ORFmissing             bool
 	ORIpresent             bool
 	OriginalParts          []wtype.DNASequence
+	PartsAndVector         []wtype.DNASequence
 	PartsWithSitesRemoved  []wtype.DNASequence
 	PartswithOverhangs     []wtype.DNASequence
 	Plasmid                bool
@@ -397,6 +403,7 @@ type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
 		ORFmissing             bool
 		ORIpresent             bool
 		OriginalParts          []wtype.DNASequence
+		PartsAndVector         []wtype.DNASequence
 		PartsWithSitesRemoved  []wtype.DNASequence
 		PartswithOverhangs     []wtype.DNASequence
 		Plasmid                bool
@@ -432,6 +439,7 @@ func init() {
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsAndVector", Desc: "parts + vector\n", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "Plasmid", Desc: "", Kind: "Data"},

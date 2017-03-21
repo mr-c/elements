@@ -2,6 +2,7 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
@@ -30,8 +31,6 @@ import (
 // Data which is returned from this protocol, and data types
 
 //[]string //map[string]string
-
-//NeatSamplewells []string
 
 // Physical Inputs to this protocol with types
 
@@ -105,6 +104,12 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 	reactions := make([]*wtype.LHComponent, 0)
 
 	// use first policy as reference to ensure consistent range through map values
+
+	// if none is specified, use lhpolicy of first solution
+	if _input.LHPolicy == "" {
+		_input.LHPolicy = _input.TestSols[0].TypeName()
+	}
+
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
 		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
@@ -152,7 +157,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// diluent first
 
 					// change lhpolicy if desired
-					if _input.UseLHPolicyDoeforDiluent {
+					if _input.UseLHPolicyforDiluent {
 						_input.Diluent.Type, err = wtype.LiquidTypeFromString(_input.LHPolicy)
 						if err != nil {
 							_output.Errors = append(_output.Errors, err)
@@ -331,7 +336,18 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 	}
 
 	// export overall DOE design file showing all well locations for all conditions
-	doe.XLSXFileFromRuns(newruns, _input.OutputFilename, _input.DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns, _input.OutputFilename, _input.DXORJMP)
+
+	var out bytes.Buffer
+
+	err = xlsxfile.Write(&out)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	_output.ExportedFile.Name = _input.OutputFilename
+	_output.ExportedFile.WriteAll(out.Bytes())
 
 	// add blanks after
 
@@ -442,7 +458,7 @@ type AccuracyTest_ConcentrationInput struct {
 	TestSols                        []*wtype.LHComponent
 	TotalVolume                     wunit.Volume
 	URL                             string
-	UseLHPolicyDoeforDiluent        bool
+	UseLHPolicyforDiluent           bool
 	UseLiquidPolicyForTestSolutions bool
 	UseURL                          bool
 	WellsUsed                       int
@@ -451,6 +467,7 @@ type AccuracyTest_ConcentrationInput struct {
 type AccuracyTest_ConcentrationOutput struct {
 	Blankwells           []string
 	Errors               []error
+	ExportedFile         wtype.File
 	Pixelcount           int
 	Reactions            []*wtype.LHComponent
 	Runcount             int
@@ -463,6 +480,7 @@ type AccuracyTest_ConcentrationSOutput struct {
 	Data struct {
 		Blankwells           []string
 		Errors               []error
+		ExportedFile         wtype.File
 		Pixelcount           int
 		Runcount             int
 		Runs                 []doe.Run
@@ -498,12 +516,13 @@ func init() {
 				{Name: "TestSols", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseLHPolicyDoeforDiluent", Desc: "", Kind: "Parameters"},
+				{Name: "UseLHPolicyforDiluent", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidPolicyForTestSolutions", Desc: "", Kind: "Parameters"},
 				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
 				{Name: "Blankwells", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
+				{Name: "ExportedFile", Desc: "", Kind: "Data"},
 				{Name: "Pixelcount", Desc: "", Kind: "Data"},
 				{Name: "Reactions", Desc: "", Kind: "Outputs"},
 				{Name: "Runcount", Desc: "", Kind: "Data"},
