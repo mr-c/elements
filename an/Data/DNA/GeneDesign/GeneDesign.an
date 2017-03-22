@@ -14,7 +14,7 @@ Parameters (
 	Parts []string // dna sequences as strings "ACTTGCGTC","GGTCCA"
 	Vector string // dna sequence as string
 	ConstructName string // name you want to give your construct
-	RE string // typeIIs restriction enzyme name
+	RestrictionEnzymeName string // typeIIs restriction enzyme name
 	EndsAlreadyAdded bool // have the typeIIs assembly ends been added already? true/false
 	SynthesisProvider string // name of synthesis provider e.g. GenScript
 	ExporttoFastaFile bool // Whether or not you want to export the sequences generated to a fasta file
@@ -52,7 +52,7 @@ Steps {
 	}
 	
 	// Look up the restriction enzyme
-	EnzymeInf, err := lookup.TypeIIsLookup(RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(RestrictionEnzymeName)
 	
 	if err != nil {
 		Errorf(err.Error())
@@ -74,7 +74,7 @@ Steps {
 	}
 	
 	// validation
-	assembly := enzymes.Assemblyparameters{ConstructName, RE, VectorSeq, PartsWithOverhangs}
+	assembly := enzymes.Assemblyparameters{ConstructName, RestrictionEnzymeName, VectorSeq, PartsWithOverhangs}
 	SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
 	
 	

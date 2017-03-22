@@ -43,7 +43,7 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	}
 
 	// Look up the restriction enzyme
-	EnzymeInf, err := lookup.TypeIIsLookup(_input.RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(_input.RestrictionEnzymeName)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
@@ -65,7 +65,7 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	}
 
 	// validation
-	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RE, VectorSeq, _output.PartsWithOverhangs}
+	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RestrictionEnzymeName, VectorSeq, _output.PartsWithOverhangs}
 	_output.SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
 
 	// check if sequence meets requirements for synthesis
@@ -137,13 +137,13 @@ type GeneDesignElement struct {
 }
 
 type GeneDesignInput struct {
-	ConstructName     string
-	EndsAlreadyAdded  bool
-	ExporttoFastaFile bool
-	Parts             []string
-	RE                string
-	SynthesisProvider string
-	Vector            string
+	ConstructName         string
+	EndsAlreadyAdded      bool
+	ExporttoFastaFile     bool
+	Parts                 []string
+	RestrictionEnzymeName string
+	SynthesisProvider     string
+	Vector                string
 }
 
 type GeneDesignOutput struct {
@@ -177,7 +177,7 @@ func init() {
 				{Name: "EndsAlreadyAdded", Desc: "have the typeIIs assembly ends been added already? true/false\n", Kind: "Parameters"},
 				{Name: "ExporttoFastaFile", Desc: "Whether or not you want to export the sequences generated to a fasta file\n", Kind: "Parameters"},
 				{Name: "Parts", Desc: "dna sequences as strings \"ACTTGCGTC\",\"GGTCCA\"\n", Kind: "Parameters"},
-				{Name: "RE", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
+				{Name: "RestrictionEnzymeName", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
 				{Name: "SynthesisProvider", Desc: "name of synthesis provider e.g. GenScript\n", Kind: "Parameters"},
 				{Name: "Vector", Desc: "dna sequence as string\n", Kind: "Parameters"},
 				{Name: "PartsToOrder", Desc: "", Kind: "Data"},

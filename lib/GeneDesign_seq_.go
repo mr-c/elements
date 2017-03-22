@@ -43,7 +43,7 @@ func _GeneDesign_seqSteps(_ctx context.Context, _input *GeneDesign_seqInput, _ou
 	VectorSeq := wtype.MakePlasmidDNASequence("Vector", _input.Vector)
 
 	// Look up the restriction enzyme
-	EnzymeInf, err := lookup.TypeIIsLookup(_input.RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(_input.RestrictionEnzymeName)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -56,7 +56,7 @@ func _GeneDesign_seqSteps(_ctx context.Context, _input *GeneDesign_seqInput, _ou
 	}
 
 	// validation
-	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RE, VectorSeq, _output.PartsWithOverhangs}
+	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RestrictionEnzymeName, VectorSeq, _output.PartsWithOverhangs}
 	_output.SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
 
 	// check if sequence meets requirements for synthesis
@@ -128,13 +128,13 @@ type GeneDesign_seqElement struct {
 }
 
 type GeneDesign_seqInput struct {
-	ConstructName     string
-	EndsAlreadyAdded  bool
-	ExporttoFastaFile bool
-	Parts             []string
-	RE                string
-	SynthesisProvider string
-	Vector            string
+	ConstructName         string
+	EndsAlreadyAdded      bool
+	ExporttoFastaFile     bool
+	Parts                 []string
+	RestrictionEnzymeName string
+	SynthesisProvider     string
+	Vector                string
 }
 
 type GeneDesign_seqOutput struct {
@@ -168,7 +168,7 @@ func init() {
 				{Name: "EndsAlreadyAdded", Desc: "have the typeIIs assembly ends been added already? true/false\n", Kind: "Parameters"},
 				{Name: "ExporttoFastaFile", Desc: "Whether or not you want to export the sequences generated to a fasta file\n", Kind: "Parameters"},
 				{Name: "Parts", Desc: "dna sequences as strings \"ACTTGCGTC\",\"GGTCCA\"\n", Kind: "Parameters"},
-				{Name: "RE", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
+				{Name: "RestrictionEnzymeName", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
 				{Name: "SynthesisProvider", Desc: "name of synthesis provider e.g. GenScript\n", Kind: "Parameters"},
 				{Name: "Vector", Desc: "dna sequence as string\n", Kind: "Parameters"},
 				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
