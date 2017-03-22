@@ -7,6 +7,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	
 )
 
 
@@ -47,6 +49,21 @@ Setup {
 // for every input
 Steps {
 	
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * 1.2
+	
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	roundedUpReactions := roundedReactions + 1
+	
+	if roundedUpReactions <= Reactionspermastermix  {
+		Reactionspermastermix = Reactionspermastermix + 1
+	}
+	
 	
 	var mastermix *wtype.LHComponent
 	
@@ -64,7 +81,7 @@ Steps {
 				lhComponents = append(lhComponents,factory.GetComponentByType(component))
 			}else {
 				// if component not in factory use dna as default component type
-				defaultcomponent := factory.GetComponentByType("dna")
+				defaultcomponent := factory.GetComponentByType("dna_mix")
 				defaultcomponent.CName = component
 				lhComponents = append(lhComponents,defaultcomponent)
 			}
@@ -80,7 +97,7 @@ Steps {
 		lhComponents[0] = Handle(setup.PlatePrep(lhComponents[0]))
 
 		// a setup step
-    	lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
+    		lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
 		}
 		
 		// now make mastermix
@@ -89,6 +106,7 @@ Steps {
 		
 		
 		for k, component := range lhComponents { 	
+			
 			if k == len(lhComponents)-1{
 				component.Type = wtype.LTPostMix 
 			}

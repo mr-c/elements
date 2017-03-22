@@ -8,6 +8,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
@@ -32,6 +33,21 @@ func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
+
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(_input.Reactionspermastermix) * 1.2
+
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	roundedUpReactions := roundedReactions + 1
+
+	if roundedUpReactions <= _input.Reactionspermastermix {
+		_input.Reactionspermastermix = _input.Reactionspermastermix + 1
+	}
 
 	var mastermix *wtype.LHComponent
 
