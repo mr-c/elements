@@ -35,7 +35,8 @@ Data (
 	AllOutputs []string
 	AllPrimers []oligos.Primer
 	PrimerPairs []PrimerPair
-	//PrimerData []oligos.Primer
+	PrimersFile File
+	PrimerBindingReport File
 	
 )
 
@@ -80,7 +81,7 @@ Steps {
 	
 	d, err := os.Open(dirname)
 	if err != nil {
-                panic(err)
+                Errorf(err.Error())
 	}
 	defer d.Close()
 
@@ -131,10 +132,10 @@ Steps {
 	
 	
 	if ExportToFile {
-	err = export.ExporttoTextFile("exported_primers.csv", AllOutputs)
+	PrimersFile, err = export.TextFile("exported_primers.csv", AllOutputs)
 	
 	if err != nil {
-		panic(err.Error())
+		Errorf(err.Error())
 	}
 	
 	}
@@ -220,10 +221,10 @@ for _, file := range files {
 }
 
 if ExportToFile {
-	err = export.ExporttoTextFile("exported_primers_bindingReport.csv", nonspecificbinding)
+	PrimerBindingReport, err = export.TextFile("exported_primers_bindingReport.csv", nonspecificbinding)
 	
 	if err != nil {
-		panic(err.Error())
+		Errorf(err.Error())
 	}
 	
 	}

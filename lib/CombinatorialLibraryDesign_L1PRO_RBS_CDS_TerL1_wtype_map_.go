@@ -126,7 +126,7 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 	if _input.FolderPerProject {
 
 		// export simulated sequences to file
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+		export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
 		// add fasta file for each set of parts with overhangs
 		labels := []string{"Promoters", "RBSs", "CDSs", "Ters"}
@@ -148,7 +148,7 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 
 			duplicateremoved := search.RemoveDuplicateSequences(value)
 
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 		}
 
 		// add fasta file for each set of primers
@@ -171,7 +171,7 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 
 			duplicateremoved := search.RemoveDuplicateSequences(value)
 
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 		}
 
 	}

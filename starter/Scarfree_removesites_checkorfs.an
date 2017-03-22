@@ -20,7 +20,6 @@ import (
 	"strings"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 )
 
 // Input parameters for this protocol (data)
@@ -62,7 +61,8 @@ Data (
 	Plasmid bool
 	ORIpresent bool
 	SelectionMarkerPresent bool
-	
+	AssembledSequenceFile File
+	PartsToOrder File
 )
 // Input Requirement specification
 Requirements {
@@ -381,10 +381,7 @@ Steps {
 		text.Print("Any Orfs to confirm missing from new DNA sequence:", ORFmissing),
 		partstoorder,
 		)
-		// export data to file
-		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-	//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-	fmt.Println(Status)
+
 	}
 	
 	// export sequence to fasta
@@ -394,15 +391,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
-		
+		AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		PartsToOrder, _, err = export.FastaSerial(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	
