@@ -125,9 +125,13 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 	// export sequence to fasta
 	if _input.FolderPerProject {
 
+		var err error
 		// export simulated sequences to file
-		export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+		_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
+		if err != nil {
+			execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
+		}
 		// add fasta file for each set of parts with overhangs
 		labels := []string{"Promoters", "RBSs", "CDSs", "Ters"}
 
@@ -148,7 +152,13 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 
 			duplicateremoved := search.RemoveDuplicateSequences(value)
 
-			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+			file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+
+			if err != nil {
+				execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
+			}
+
+			_output.PartsToOrder = append(_output.PartsToOrder, file)
 		}
 
 		// add fasta file for each set of primers
@@ -171,7 +181,13 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 
 			duplicateremoved := search.RemoveDuplicateSequences(value)
 
-			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+			primerFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+
+			if err != nil {
+				execute.Errorf(_ctx, "Error exporting primers to order file for %s %s: %s", _input.ProjectName, key, err.Error())
+			}
+
+			_output.PrimersToOrder = append(_output.PrimersToOrder, primerFile)
 		}
 
 	}
@@ -250,13 +266,16 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput struct {
 }
 
 type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
+	AssembledSequences    wtype.File
 	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
 	Parts                 [][]wtype.DNASequence
+	PartsToOrder          []wtype.File
 	PartswithOverhangsMap map[string][]wtype.DNASequence
 	PassMap               map[string]bool
 	PositionReportMap     map[string][]string
 	PrimerMap             map[string]oligos.Primer
+	PrimersToOrder        []wtype.File
 	SeqsMap               map[string]wtype.DNASequence
 	Sequences             []wtype.DNASequence
 	SequencingPrimers     [][]wtype.DNASequence
@@ -265,13 +284,16 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
 
 type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput struct {
 	Data struct {
+		AssembledSequences    wtype.File
 		Assemblies            map[string][]wtype.DNASequence
 		EndreportMap          map[string]string
 		Parts                 [][]wtype.DNASequence
+		PartsToOrder          []wtype.File
 		PartswithOverhangsMap map[string][]wtype.DNASequence
 		PassMap               map[string]bool
 		PositionReportMap     map[string][]string
 		PrimerMap             map[string]oligos.Primer
+		PrimersToOrder        []wtype.File
 		SeqsMap               map[string]wtype.DNASequence
 		Sequences             []wtype.DNASequence
 		SequencingPrimers     [][]wtype.DNASequence
@@ -299,13 +321,16 @@ func init() {
 				{Name: "Standard", Desc: "Custom design, may support MoClo, EcoFlex and GoldenBraid.\n", Kind: "Parameters"},
 				{Name: "TERs", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequences", Desc: "", Kind: "Data"},
 				{Name: "Assemblies", Desc: "parts + vector map ready for feeding into downstream AutoAssembly element\n", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
 				{Name: "Parts", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PassMap", Desc: "", Kind: "Data"},
 				{Name: "PositionReportMap", Desc: "", Kind: "Data"},
 				{Name: "PrimerMap", Desc: "", Kind: "Data"},
+				{Name: "PrimersToOrder", Desc: "", Kind: "Data"},
 				{Name: "SeqsMap", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "Sequences", Desc: "", Kind: "Data"},
 				{Name: "SequencingPrimers", Desc: "", Kind: "Data"},
