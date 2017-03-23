@@ -7,8 +7,8 @@ package lib
 
 import (
 	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -109,16 +109,43 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 		if _input.FolderPerProject {
 
 			// export simulated assembled sequences to file
-			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+			var err error
 
-			// add fasta files of all parts with overhangs
-			labels := []string{"Device1", "Device2", "Device3"}
-			for j := range labels {
-				for i := range _output.Parts {
-					fmt.Println(i, len(labels), len(_output.Parts))
-					export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, labels[j]), _output.Parts[i])
+			_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+
+			if err != nil {
+				execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
+			}
+
+			// add fasta file for each set of parts with overhangs
+			labels := []string{"Part1", "Part2", "Part3"}
+
+			refactoredparts := make(map[string][]wtype.DNASequence)
+
+			newparts := make([]wtype.DNASequence, 0)
+
+			for _, parts := range _output.Parts {
+
+				for j := range parts {
+					newparts = refactoredparts[labels[j]]
+					newparts = append(newparts, parts[j])
+					refactoredparts[labels[j]] = newparts
 				}
 			}
+
+			for key, value := range refactoredparts {
+
+				duplicateremoved := search.RemoveDuplicateSequences(value)
+
+				file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+
+				if err != nil {
+					execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
+				}
+
+				_output.PartsToOrder = append(_output.PartsToOrder, file)
+			}
+
 		}
 
 	}
@@ -199,9 +226,11 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeInput struct {
 }
 
 type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
+	AssembledSequences    wtype.File
 	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
 	Parts                 [][]wtype.DNASequence
+	PartsToOrder          []wtype.File
 	PartswithOverhangsMap map[string][]wtype.DNASequence
 	PassMap               map[string]bool
 	PositionReportMap     map[string][]string
@@ -213,9 +242,11 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
 
 type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
 	Data struct {
+		AssembledSequences    wtype.File
 		Assemblies            map[string][]wtype.DNASequence
 		EndreportMap          map[string]string
 		Parts                 [][]wtype.DNASequence
+		PartsToOrder          []wtype.File
 		PartswithOverhangsMap map[string][]wtype.DNASequence
 		PassMap               map[string]bool
 		PositionReportMap     map[string][]string
@@ -248,9 +279,11 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequences", Desc: "", Kind: "Data"},
 				{Name: "Assemblies", Desc: "parts + vector map ready for feeding into downstream AutoAssembly element\n", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
 				{Name: "Parts", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PassMap", Desc: "", Kind: "Data"},
 				{Name: "PositionReportMap", Desc: "", Kind: "Data"},

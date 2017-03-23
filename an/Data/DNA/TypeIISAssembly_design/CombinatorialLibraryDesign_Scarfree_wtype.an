@@ -9,8 +9,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"path/filepath"
-	"fmt"
 )
 
 // Input parameters for this protocol (data)
@@ -27,7 +27,7 @@ Parameters (
 	EndsAlreadyadded 			bool
 	RemoveproblemRestrictionSites bool
 	FolderPerConstruct			bool
-	FolderPerProject				bool
+	FolderPerProject			bool
 )
 
 // Physical Inputs to this protocol with types
@@ -52,6 +52,8 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
+	AssembledSequences wtype.File
+	PartsToOrder []wtype.File
 	
 )
 // Input Requirement specification
@@ -141,16 +143,43 @@ Steps {
 	if FolderPerProject{
 		
 		// export simulated assembled sequences to file
-		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		var err error
+
+		AssembledSequences, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
 		
-		// add fasta files of all parts with overhangs 
-		labels:= []string{"Device1","Device2","Device3"}
-		for j := range labels {
-		for i := range Parts{
-		fmt.Println(i,len(labels),len(Parts))
-		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,labels[j]), Parts[i])
+		if err != nil {
+			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
+		}
+		
+		// add fasta file for each set of parts with overhangs
+		labels:= []string{"Part1","Part2","Part3"}
+		
+		refactoredparts:= make(map[string][]wtype.DNASequence)
+		
+		newparts := make([]wtype.DNASequence,0)
+		
+		for _, parts := range Parts{
+		
+		for j := range parts{
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts,parts[j])
+			refactoredparts[labels[j]]=newparts
 		}
 		}
+		
+		for key,value := range refactoredparts{
+			
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+		
+		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PartsToOrder = append(PartsToOrder,file)
+		}
+		
 	}
 	
 	}
