@@ -51,7 +51,9 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	
+	AssembledSequences wtype.File
+	PartsToOrder []wtype.File
+	PrimersToOrder []wtype.File
 )
 // Input Requirement specification
 Requirements {
@@ -154,9 +156,13 @@ Steps {
 	// export sequence to fasta
 	if FolderPerProject{
 		
+		var err error
 		// export simulated sequences to file
-		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
-
+		AssembledSequences, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		
+		if err != nil {
+			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
+		}
 		// add fasta file for each set of parts with overhangs
 		labels:= []string{"Promoters","RBSs","CDSs","Ters"}
 		
@@ -177,7 +183,13 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PartsToOrder = append(PartsToOrder,file)
 		}
 		
 		// add fasta file for each set of primers
@@ -200,7 +212,13 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PrimersToOrder = append(PrimersToOrder, primerFile)
 		}
 	
 	 }
