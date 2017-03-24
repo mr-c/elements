@@ -17,11 +17,29 @@ import (
 
 // Input parameters for this protocol (data)
 
-// Specify volume per component name or specify a "default" to apply to all
+// Specify volume per component name per reaction or specify a "default" to apply to all.
+// The actual volume added will be multiplied by the number of Reactionspermastermix
+
+// List of names of components to be added
+// These will be used to look up components by name in the factory.
+// If not found in the factory, new components will be created using dna_mix as a template
+// If empty, the the ComponentIn will be returned as an output
+
+// This specifies the multiplier of each of the Volumes for each component to add
+// e.g. if "glucose": "1ul" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix
+
+// If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.
+
+// If this is selected the mastermix will be moved to a new location specified by OutPlate type
+// If not selected, the components will be added to the ComponentIn
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
+
+// The component to add all new components to.
+
+// if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.
 
 // Physical outputs from this protocol with types
 
@@ -36,83 +54,95 @@ func _AddToMastermixSetup(_ctx context.Context, _input *AddToMastermixInput) {
 // for every input
 func _AddToMastermixSteps(_ctx context.Context, _input *AddToMastermixInput, _output *AddToMastermixOutput) {
 
-	var mastermix *wtype.LHComponent
+	// if no components to add, return original component in as output
+	if len(_input.ComponentsToAdd) == 0 {
 
-	// get components from factory and if not present use default dna component
-
-	lhComponents := make([]*wtype.LHComponent, 0)
-
-	if _input.MixToNewLocation {
-		lhComponents = append(lhComponents, _input.ComponentIn)
-	}
-	for _, component := range _input.ComponentsToAdd {
-
-		if factory.ComponentInFactory(component) {
-			lhComponents = append(lhComponents, factory.GetComponentByType(component))
+		if _input.MixToNewLocation {
+			_output.Mastermix = execute.MixInto(_ctx, _input.OutPlate, "", _input.ComponentIn)
 		} else {
-			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna")
-			defaultcomponent.CName = component
-			lhComponents = append(lhComponents, defaultcomponent)
+			_output.Mastermix = _input.ComponentIn
 		}
+		_output.Status = "No Components added to Mastermix"
 
-	}
-
-	if _input.CheckPartsInInventory {
-
-		// First specify some handles for UI interaction
-		// Adds Ordering handle for the UI
-		lhComponents[0] = execute.Handle(_ctx, setup.OrderInfo(lhComponents[0]))
-		// we need a plate prep step
-		lhComponents[0] = execute.Handle(_ctx, setup.PlatePrep(lhComponents[0]))
-
-		// a setup step
-		lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
-	}
-
-	// now make mastermix
-
-	eachmastermix := make([]*wtype.LHComponent, 0)
-
-	for k, component := range lhComponents {
-		if k == len(lhComponents)-1 {
-			component.Type = wtype.LTPostMix
-		}
-
-		var volToUse wunit.Volume
-
-		if vol, found := _input.VolumesToAdd[component.CName]; found {
-			volToUse = vol
-		} else if vol, found := _input.VolumesToAdd["default"]; found {
-			volToUse = vol
-		} else {
-			execute.Errorf(_ctx, "No volume for %s or default volume specified.", component.CName)
-		}
-
-		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(volToUse, float64(_input.Reactionspermastermix))
-
-		componentSample := mixer.Sample(component, adjustedvol)
-
-		eachmastermix = append(eachmastermix, componentSample)
-
-	}
-	if _input.MixToNewLocation {
-		mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
 	} else {
-		for i := range eachmastermix {
 
-			if i == 0 {
-				mastermix = _input.ComponentIn
+		var mastermix *wtype.LHComponent
+
+		// get components from factory and if not present use default dna component
+
+		lhComponents := make([]*wtype.LHComponent, 0)
+
+		if _input.MixToNewLocation {
+			lhComponents = append(lhComponents, _input.ComponentIn)
+		}
+		for _, component := range _input.ComponentsToAdd {
+
+			if factory.ComponentInFactory(component) {
+				lhComponents = append(lhComponents, factory.GetComponentByType(component))
+			} else {
+				// if component not in factory use dna as default component type
+				defaultcomponent := factory.GetComponentByType("dna")
+				defaultcomponent.CName = component
+				lhComponents = append(lhComponents, defaultcomponent)
 			}
 
-			mastermix = execute.Mix(_ctx, mastermix, eachmastermix[i])
 		}
+
+		if _input.CheckPartsInInventory {
+
+			// First specify some handles for UI interaction
+			// Adds Ordering handle for the UI
+			lhComponents[0] = execute.Handle(_ctx, setup.OrderInfo(lhComponents[0]))
+			// we need a plate prep step
+			lhComponents[0] = execute.Handle(_ctx, setup.PlatePrep(lhComponents[0]))
+
+			// a setup step
+			lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
+		}
+
+		// now make mastermix
+
+		eachmastermix := make([]*wtype.LHComponent, 0)
+
+		for k, component := range lhComponents {
+			if k == len(lhComponents)-1 {
+				component.Type = wtype.LTPostMix
+			}
+
+			var volToUse wunit.Volume
+
+			if vol, found := _input.VolumesToAdd[component.CName]; found {
+				volToUse = vol
+			} else if vol, found := _input.VolumesToAdd["default"]; found {
+				volToUse = vol
+			} else {
+				execute.Errorf(_ctx, "No volume for %s or default volume specified.", component.CName)
+			}
+
+			// multiply volume of each component by number of reactions per mastermix
+			adjustedvol := wunit.MultiplyVolume(volToUse, float64(_input.Reactionspermastermix))
+
+			componentSample := mixer.Sample(component, adjustedvol)
+
+			eachmastermix = append(eachmastermix, componentSample)
+
+		}
+		if _input.MixToNewLocation {
+			mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+		} else {
+			for i := range eachmastermix {
+
+				if i == 0 {
+					mastermix = _input.ComponentIn
+				}
+
+				mastermix = execute.Mix(_ctx, mastermix, eachmastermix[i])
+			}
+		}
+		_output.Mastermix = mastermix
+
+		_output.Status = "Mastermix Made"
 	}
-	_output.Mastermix = mastermix
-
-	_output.Status = "Mastermix Made"
-
 }
 
 // Run after controls and a steps block are completed to
@@ -204,13 +234,13 @@ func init() {
 			Desc: "Adds a list of components to a mastermix\nVolumes of each component are specified by a map.\nA default volume may be specified which applies to all which are not present explicitely in the map\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/AddToMastermix.an",
 			Params: []component.ParamDesc{
-				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentIn", Desc: "", Kind: "Inputs"},
-				{Name: "ComponentsToAdd", Desc: "", Kind: "Parameters"},
-				{Name: "MixToNewLocation", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
-				{Name: "VolumesToAdd", Desc: "Specify volume per component name or specify a \"default\" to apply to all\n", Kind: "Parameters"},
+				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
+				{Name: "ComponentIn", Desc: "The component to add all new components to.\n", Kind: "Inputs"},
+				{Name: "ComponentsToAdd", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
+				{Name: "MixToNewLocation", Desc: "If this is selected the mastermix will be moved to a new location specified by OutPlate type\nIf not selected, the components will be added to the ComponentIn\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.\n", Kind: "Inputs"},
+				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\": \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
+				{Name: "VolumesToAdd", Desc: "Specify volume per component name per reaction or specify a \"default\" to apply to all.\nThe actual volume added will be multiplied by the number of Reactionspermastermix\n", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 			},
