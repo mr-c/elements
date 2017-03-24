@@ -49,10 +49,17 @@ Setup {
 // for every input
 Steps {
 	
+		// if no components to add, return original component in as output
+		if len(ComponentsToAdd)==0{
+			
+			Mastermix = ComponentIn
 	
-	var mastermix *wtype.LHComponent
+ 			Status = "No Components added to Mastermix"
+			
+			}else{
 	
-		
+		var mastermix *wtype.LHComponent
+	
 		// get components from factory and if not present use default dna component
 		
 		lhComponents := make([]*wtype.LHComponent,0)
@@ -130,7 +137,7 @@ Steps {
 
 	
  	Status = "Mastermix Made"
-	
+	}
 }
 
 // Run after controls and a steps block are completed to

@@ -36,83 +36,92 @@ func _AddToMastermixSetup(_ctx context.Context, _input *AddToMastermixInput) {
 // for every input
 func _AddToMastermixSteps(_ctx context.Context, _input *AddToMastermixInput, _output *AddToMastermixOutput) {
 
-	var mastermix *wtype.LHComponent
+	// if no components to add, return original component in as output
+	if len(_input.ComponentsToAdd) == 0 {
 
-	// get components from factory and if not present use default dna component
+		_output.Mastermix = _input.ComponentIn
 
-	lhComponents := make([]*wtype.LHComponent, 0)
+		_output.Status = "No Components added to Mastermix"
 
-	if _input.MixToNewLocation {
-		lhComponents = append(lhComponents, _input.ComponentIn)
-	}
-	for _, component := range _input.ComponentsToAdd {
-
-		if factory.ComponentInFactory(component) {
-			lhComponents = append(lhComponents, factory.GetComponentByType(component))
-		} else {
-			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna")
-			defaultcomponent.CName = component
-			lhComponents = append(lhComponents, defaultcomponent)
-		}
-
-	}
-
-	if _input.CheckPartsInInventory {
-
-		// First specify some handles for UI interaction
-		// Adds Ordering handle for the UI
-		lhComponents[0] = execute.Handle(_ctx, setup.OrderInfo(lhComponents[0]))
-		// we need a plate prep step
-		lhComponents[0] = execute.Handle(_ctx, setup.PlatePrep(lhComponents[0]))
-
-		// a setup step
-		lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
-	}
-
-	// now make mastermix
-
-	eachmastermix := make([]*wtype.LHComponent, 0)
-
-	for k, component := range lhComponents {
-		if k == len(lhComponents)-1 {
-			component.Type = wtype.LTPostMix
-		}
-
-		var volToUse wunit.Volume
-
-		if vol, found := _input.VolumesToAdd[component.CName]; found {
-			volToUse = vol
-		} else if vol, found := _input.VolumesToAdd["default"]; found {
-			volToUse = vol
-		} else {
-			execute.Errorf(_ctx, "No volume for %s or default volume specified.", component.CName)
-		}
-
-		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(volToUse, float64(_input.Reactionspermastermix))
-
-		componentSample := mixer.Sample(component, adjustedvol)
-
-		eachmastermix = append(eachmastermix, componentSample)
-
-	}
-	if _input.MixToNewLocation {
-		mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
 	} else {
-		for i := range eachmastermix {
 
-			if i == 0 {
-				mastermix = _input.ComponentIn
+		var mastermix *wtype.LHComponent
+
+		// get components from factory and if not present use default dna component
+
+		lhComponents := make([]*wtype.LHComponent, 0)
+
+		if _input.MixToNewLocation {
+			lhComponents = append(lhComponents, _input.ComponentIn)
+		}
+		for _, component := range _input.ComponentsToAdd {
+
+			if factory.ComponentInFactory(component) {
+				lhComponents = append(lhComponents, factory.GetComponentByType(component))
+			} else {
+				// if component not in factory use dna as default component type
+				defaultcomponent := factory.GetComponentByType("dna")
+				defaultcomponent.CName = component
+				lhComponents = append(lhComponents, defaultcomponent)
 			}
 
-			mastermix = execute.Mix(_ctx, mastermix, eachmastermix[i])
 		}
+
+		if _input.CheckPartsInInventory {
+
+			// First specify some handles for UI interaction
+			// Adds Ordering handle for the UI
+			lhComponents[0] = execute.Handle(_ctx, setup.OrderInfo(lhComponents[0]))
+			// we need a plate prep step
+			lhComponents[0] = execute.Handle(_ctx, setup.PlatePrep(lhComponents[0]))
+
+			// a setup step
+			lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
+		}
+
+		// now make mastermix
+
+		eachmastermix := make([]*wtype.LHComponent, 0)
+
+		for k, component := range lhComponents {
+			if k == len(lhComponents)-1 {
+				component.Type = wtype.LTPostMix
+			}
+
+			var volToUse wunit.Volume
+
+			if vol, found := _input.VolumesToAdd[component.CName]; found {
+				volToUse = vol
+			} else if vol, found := _input.VolumesToAdd["default"]; found {
+				volToUse = vol
+			} else {
+				execute.Errorf(_ctx, "No volume for %s or default volume specified.", component.CName)
+			}
+
+			// multiply volume of each component by number of reactions per mastermix
+			adjustedvol := wunit.MultiplyVolume(volToUse, float64(_input.Reactionspermastermix))
+
+			componentSample := mixer.Sample(component, adjustedvol)
+
+			eachmastermix = append(eachmastermix, componentSample)
+
+		}
+		if _input.MixToNewLocation {
+			mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+		} else {
+			for i := range eachmastermix {
+
+				if i == 0 {
+					mastermix = _input.ComponentIn
+				}
+
+				mastermix = execute.Mix(_ctx, mastermix, eachmastermix[i])
+			}
+		}
+		_output.Mastermix = mastermix
+
+		_output.Status = "Mastermix Made"
 	}
-	_output.Mastermix = mastermix
-
-	_output.Status = "Mastermix Made"
-
 }
 
 // Run after controls and a steps block are completed to
