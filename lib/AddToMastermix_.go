@@ -17,11 +17,29 @@ import (
 
 // Input parameters for this protocol (data)
 
-// Specify volume per component name or specify a "default" to apply to all
+// Specify volume per component name per reaction or specify a "default" to apply to all.
+// The actual volume added will be multiplied by the number of Reactionspermastermix
+
+// List of names of components to be added
+// These will be used to look up components by name in the factory.
+// If not found in the factory, new components will be created using dna_mix as a template
+// If empty, the the ComponentIn will be returned as an output
+
+// This specifies the multiplier of each of the Volumes for each component to add
+// e.g. if "glucose": "1ul" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix
+
+// If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.
+
+// If this is selected the mastermix will be moved to a new location specified by OutPlate type
+// If not selected, the components will be added to the ComponentIn
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
+
+// The component to add all new components to.
+
+// if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.
 
 // Physical outputs from this protocol with types
 
@@ -216,13 +234,13 @@ func init() {
 			Desc: "Adds a list of components to a mastermix\nVolumes of each component are specified by a map.\nA default volume may be specified which applies to all which are not present explicitely in the map\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/AddToMastermix.an",
 			Params: []component.ParamDesc{
-				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentIn", Desc: "", Kind: "Inputs"},
-				{Name: "ComponentsToAdd", Desc: "", Kind: "Parameters"},
-				{Name: "MixToNewLocation", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
-				{Name: "VolumesToAdd", Desc: "Specify volume per component name or specify a \"default\" to apply to all\n", Kind: "Parameters"},
+				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
+				{Name: "ComponentIn", Desc: "The component to add all new components to.\n", Kind: "Inputs"},
+				{Name: "ComponentsToAdd", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
+				{Name: "MixToNewLocation", Desc: "If this is selected the mastermix will be moved to a new location specified by OutPlate type\nIf not selected, the components will be added to the ComponentIn\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.\n", Kind: "Inputs"},
+				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\": \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
+				{Name: "VolumesToAdd", Desc: "Specify volume per component name per reaction or specify a \"default\" to apply to all.\nThe actual volume added will be multiplied by the number of Reactionspermastermix\n", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 			},
