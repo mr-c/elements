@@ -8,6 +8,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
@@ -15,6 +16,8 @@ import (
 )
 
 // Input parameters for this protocol (data)
+
+// If set to true the mix will be prepared on the next available position on the input plate
 
 // Data which is returned from this protocol, and data types
 
@@ -33,6 +36,21 @@ func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 // for every input
 func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
 
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(_input.Reactionspermastermix) * 1.2
+
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	roundedUpReactions := roundedReactions + 1
+
+	if roundedUpReactions <= _input.Reactionspermastermix {
+		_input.Reactionspermastermix = _input.Reactionspermastermix + 1
+	}
+
 	var mastermix *wtype.LHComponent
 
 	if len(_input.Components) != len(_input.ComponentVolumesperReaction) {
@@ -49,7 +67,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 			lhComponents = append(lhComponents, factory.GetComponentByType(component))
 		} else {
 			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna")
+			defaultcomponent := factory.GetComponentByType("dna_mix")
 			defaultcomponent.CName = component
 			lhComponents = append(lhComponents, defaultcomponent)
 		}
@@ -73,6 +91,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	eachmastermix := make([]*wtype.LHComponent, 0)
 
 	for k, component := range lhComponents {
+
 		if k == len(lhComponents)-1 {
 			component.Type = wtype.LTPostMix
 		}
@@ -85,7 +104,11 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 		eachmastermix = append(eachmastermix, componentSample)
 
 	}
-	mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+	if _input.OptimisePlateUsage {
+		mastermix = execute.Mix(_ctx, eachmastermix...)
+	} else {
+		mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+	}
 
 	_output.Mastermix = mastermix
 	_output.PlateWithMastermix = _input.OutPlate
@@ -156,6 +179,7 @@ type MasterMixMakerInput struct {
 	CheckPartsInInventory       bool
 	ComponentVolumesperReaction []wunit.Volume
 	Components                  []string
+	OptimisePlateUsage          bool
 	OutPlate                    *wtype.LHPlate
 	Reactionspermastermix       int
 }
@@ -186,6 +210,7 @@ func init() {
 				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
 				{Name: "Components", Desc: "", Kind: "Parameters"},
+				{Name: "OptimisePlateUsage", Desc: "If set to true the mix will be prepared on the next available position on the input plate\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
