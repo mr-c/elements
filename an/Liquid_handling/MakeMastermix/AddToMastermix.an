@@ -52,8 +52,11 @@ Steps {
 		// if no components to add, return original component in as output
 		if len(ComponentsToAdd)==0{
 			
-			Mastermix = ComponentIn
-	
+			if MixToNewLocation {
+				Mastermix = MixInto(OutPlate, "",  ComponentIn)
+			}else{
+				Mastermix = ComponentIn
+			}
  			Status = "No Components added to Mastermix"
 			
 			}else{

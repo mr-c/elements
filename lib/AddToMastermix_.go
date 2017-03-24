@@ -39,8 +39,11 @@ func _AddToMastermixSteps(_ctx context.Context, _input *AddToMastermixInput, _ou
 	// if no components to add, return original component in as output
 	if len(_input.ComponentsToAdd) == 0 {
 
-		_output.Mastermix = _input.ComponentIn
-
+		if _input.MixToNewLocation {
+			_output.Mastermix = execute.MixInto(_ctx, _input.OutPlate, "", _input.ComponentIn)
+		} else {
+			_output.Mastermix = _input.ComponentIn
+		}
 		_output.Status = "No Components added to Mastermix"
 
 	} else {
