@@ -8,6 +8,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
@@ -16,9 +17,27 @@ import (
 
 // Input parameters for this protocol (data)
 
+// This specifies the multiplier of each of the Volumes for each component to add
+// e.g. if "glucose" vol is "1ul" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix
+
+// Specify volumes per component in same order of components.
+// The actual volume added will be multiplied by the number of Reactionspermastermix
+
+// List of names of components to be added
+// These will be used to look up components by name in the factory.
+// If not found in the factory, new components will be created using dna_mix as a template
+// If empty, the the ComponentIn will be returned as an output
+
+// If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.
+
+// If set to true the mix will be prepared on the next available position on the input plate
+// Otherwise the mastermix will be added to OutPlate
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
+
+// if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.
 
 // Physical outputs from this protocol with types
 
@@ -32,6 +51,21 @@ func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
+
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(_input.Reactionspermastermix) * 1.2
+
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	roundedUpReactions := roundedReactions + 1
+
+	if roundedUpReactions <= _input.Reactionspermastermix {
+		_input.Reactionspermastermix = _input.Reactionspermastermix + 1
+	}
 
 	var mastermix *wtype.LHComponent
 
@@ -49,7 +83,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 			lhComponents = append(lhComponents, factory.GetComponentByType(component))
 		} else {
 			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna")
+			defaultcomponent := factory.GetComponentByType("dna_mix")
 			defaultcomponent.CName = component
 			lhComponents = append(lhComponents, defaultcomponent)
 		}
@@ -73,6 +107,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	eachmastermix := make([]*wtype.LHComponent, 0)
 
 	for k, component := range lhComponents {
+
 		if k == len(lhComponents)-1 {
 			component.Type = wtype.LTPostMix
 		}
@@ -85,7 +120,11 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 		eachmastermix = append(eachmastermix, componentSample)
 
 	}
-	mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+	if _input.OptimisePlateUsage {
+		mastermix = execute.Mix(_ctx, eachmastermix...)
+	} else {
+		mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
+	}
 
 	_output.Mastermix = mastermix
 	_output.PlateWithMastermix = _input.OutPlate
@@ -156,6 +195,7 @@ type MasterMixMakerInput struct {
 	CheckPartsInInventory       bool
 	ComponentVolumesperReaction []wunit.Volume
 	Components                  []string
+	OptimisePlateUsage          bool
 	OutPlate                    *wtype.LHPlate
 	Reactionspermastermix       int
 }
@@ -183,11 +223,12 @@ func init() {
 			Desc: "Make a general mastermix comprising of a list of components, list of volumes\nand specifying the number of reactions required\n",
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/MasterMixMaker.an",
 			Params: []component.ParamDesc{
-				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
-				{Name: "Components", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
+				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
+				{Name: "ComponentVolumesperReaction", Desc: "Specify volumes per component in same order of components.\nThe actual volume added will be multiplied by the number of Reactionspermastermix\n", Kind: "Parameters"},
+				{Name: "Components", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
+				{Name: "OptimisePlateUsage", Desc: "If set to true the mix will be prepared on the next available position on the input plate\nOtherwise the mastermix will be added to OutPlate\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.\n", Kind: "Inputs"},
+				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\" vol is \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
 				{Name: "PlateWithMastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
