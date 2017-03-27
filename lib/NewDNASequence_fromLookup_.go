@@ -48,6 +48,10 @@ func _NewDNASequence_fromLookupSteps(_ctx context.Context, _input *NewDNASequenc
 
 			_output.DNA, _, err = entrez.RetrieveSequence(_input.ID, "nucleotide", filename)
 
+			if err != nil {
+				execute.Errorf(_ctx, "Error retrieving sequence %s from entrez nucleotide database: %s", _input.ID, err.Error())
+			}
+
 		}
 	} else if _input.BiobrickID {
 

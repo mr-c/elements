@@ -61,6 +61,10 @@ Steps {
 			
 			DNA,_, err = entrez.RetrieveSequence(ID, "nucleotide",filename)
 			
+				if err != nil {
+					Errorf("Error retrieving sequence %s from entrez nucleotide database: %s", ID,err.Error())
+				}
+			
 			}
 		} else if BiobrickID {
 			
