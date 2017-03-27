@@ -4,7 +4,6 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
-
 protocol Scarfree_siteremove_orfcheck_wtype
 
 import (
@@ -16,9 +15,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"strconv"
 	"strings"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 )
 
 // Input parameters for this protocol (data)
@@ -52,6 +49,7 @@ Data (
 	Simulationpass bool
 	PartswithOverhangs []wtype.DNASequence // parts to order
 	PartsWithSitesRemoved []wtype.DNASequence
+ 	PartsAndVector []wtype.DNASequence// parts + vector 
 	OriginalParts []wtype.DNASequence 
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
 	ORFmissing bool
@@ -91,15 +89,24 @@ Steps {
 			
 	
 	// check parts for restriction sites first and remove if the user has chosen to
-	enz := lookup.EnzymeLookup(Enzymename)
+	enz, err := lookup.EnzymeLookup(Enzymename)
 
+	if err!=nil{
+		Errorf(err.Error())
+	}
 
 	// get properties of other enzyme sites to remove
 	removetheseenzymes := make([]wtype.RestrictionEnzyme,0)
 	removetheseenzymes = append(removetheseenzymes,enz)
 	
 	for _,enzyme := range OtherEnzymeSitesToRemove {
-		removetheseenzymes = append(removetheseenzymes,lookup.EnzymeLookup(enzyme))
+		
+		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
+		if err!=nil{
+		Errorf(err.Error())
+		}
+		
+		removetheseenzymes = append(removetheseenzymes,enzyTypeII)
 	}
 
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
@@ -277,11 +284,16 @@ Steps {
 	partsummary = append(partsummary, fmt.Sprint("Vector:"+ vectordata.Nm, vectordata.Seq))
 	partstoorder := fmt.Sprint("PartswithOverhangs: ", partsummary)
 	
+	// export parts + vector as one array
+	for _, part := range PartswithOverhangs {
+		PartsAndVector = append(PartsAndVector,part)
+	}
+	
+	// now add vector 
+	PartsAndVector = append(PartsAndVector,vectordata)
 
 	// Print status
-	/*if Status != "all parts available"{
-		Status = fmt.Sprintln(status)
-	} else {*/Status = fmt.Sprintln(
+		Status = fmt.Sprintln(
 		fmt.Sprint("simulator status: ", status),
 		fmt.Sprint("Endreport after digestion: ",endreport),
 		fmt.Sprint("Sites per part for " + Enzymename, sites),
@@ -305,7 +317,7 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
+		export.FastaSerial(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
 		
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
@@ -313,7 +325,7 @@ Steps {
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		export.FastaSerial(export.LOCAL,Constructname+"_Parts", exportedsequences)
 	}
 	
 	

@@ -1,6 +1,7 @@
 {
   "Parameters": {
     "MMX": {
+      "CheckPartsInInventory": true,
       "ComponentVolumesperReaction": [
         "5ul",
         "1ul",
@@ -14,7 +15,7 @@
         "water"
       ],
       "OutPlate": "pcrplate_skirted_riser20",
-      "Reactionspermastermix": 1
+      "Reactionspermastermix": 5
     }
   },
   "connections": [],

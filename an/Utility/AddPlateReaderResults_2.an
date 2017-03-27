@@ -1,61 +1,75 @@
+// Protocol to parse plate reader results and match up with a plate set up by the accuracy test. 
+// Some processing is carried out to:
+// A: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)
+// B: Plot volume by correctness factor (Actual conc / Expected conc)
+// C: Plot Actual conc vs correctness factor
+// D: Plot run order vs correctness factor
+// E: Calculate R2
+// F: Calculate Coefficent of variance for each pipetting volume
+// G: Validate results against success thresholds for R2 and %CV
+// Additional optional features will return 
+// (1) the wavelength with optimal signal to noise for an aborbance spectrum
+// (2) Comparision with manual pipetting steps
 protocol AddPlateReaderresults_2
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	 "github.com/montanaflynn/stats"
-	// "github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/montanaflynn/stats"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
-	// "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
-	// "path/filepath"
-	// antha "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
-	 "fmt"
+	"math"
+	"fmt"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+	"bytes"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
+	MarsResultsFileXLSX File // input file containing the Plate reader results exported from Mars
+	DesignFile File // Design file for the executed experiment containing the corresponding plate and well locations
 
-	MarsResultsFileXLSX string //= "250516CCFbubbles/260516ccfbubbles.xlsx" //"lhdoe110216_postspin_postshake.xlsx"
-	Sheet               int    //= 0                                        //PRESHAKEPRESPIN
-	DesignFile             string //= "250516CCFbubbles/240516DXCFFDoeoutputgilsonright_TEST.xlsx"
-	DesignFiletype         string //= "JMP"
-	OutputFilename      string //= "250516CCFbubbles/2501516bubblesresults.xlsx"
+	SheetNumber         int    // i.e. the sheet position in the plate reader results excel file; starting from 0                                      
+	DesignFiletype      string // current supported formats are "JMP" and "DX"
+	OutputFilename      string // set the desired name for the output file, if this is blank it will append the design file name with _output
 
-	Wavelength            int   // = 472
-	ReadingTypeinMarsFile string //= "Abs Spectrum"
-
-	Blanks []string //= []string{"P24"}
-
-	FindOptWavelength   bool    // = false
-	WellForScanAnalysis []string //= []string{"J5"}
-
-	Responsecolumnstofill []string //= []string{"AbsVLV"}
-
-	ManualComparison      bool  //              = false
-	VolumeToManualwells map[string][]string // = map[string][]string{	"AbsVLV": []string{""},}
-	Stockvol wunit.Volume //= wunit.NewVolume(20, "ul")
-
-	// of target molecule at wavelength
-	Extinctioncoefficient float64 //= 20330
+	Wavelength          int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
+	Extinctioncoefficient float64 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
 	StockconcinMperL wunit.Concentration //= 0.0002878191305957933
 	
+	ReadingTypeinMarsFile string // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
+
+	Blanks []string /// wells of the blank sample locations on the plate
+
+	FindOptWavelength   bool    // whether the scan should be used to return the wavelength with maximum signal to noise found
+	WellForScanAnalysis string // well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false
+
+	Responsecolumntofill string // name your response
+
+	ManualComparison      bool  //  Option to compare to manual pipetting
+	VolumeToManualwells map[string][]string // if comparing to manual pipetting set the wells to use for each concentration here
+	Stockvol wunit.Volume // volume of diluent per well
+	StockEqualsTotalVolPerWell bool // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
 	
 	// validation requirements
-	R2threshold float64
-	CVthreshold float64
+	R2threshold float64 // set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
+	CVthreshold float64 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
 )
 
 // Data which is returned from this protocol, and data types
 Data (
+	OutPutDesignFile File
+	ActualVsExpectedPlot File
+	CorrectnessFactorPlot File
 	BlankValues []float64
 	ResponsetoManualValuesmap map[string][]float64
 	MeasuredOptimalWavelength int
@@ -96,13 +110,15 @@ Setup {
 // for every input
 Steps {
 	
-	
+	if OutputFilename == "" {
+		
+		_, filename := filepath.Split(DesignFile.Name)
+		
+		OutputFilename = strings.Split(filename,".")[0] + "_output" +fmt.Sprint(time.Now().Format("20060102150405")) +".xlsx"
+	}
 	
 	var actualconcentrations = make(map[string]wunit.Concentration)
 	ResponsetoManualValuesmap = make(map[string][]float64)
-
-	//var volumetovalues = make(map[wunit.Volume][]float64)
-	//var testsolstovalues = make(map[string]map[wunit.Volume][]float64)
 
 	molecule, err := pubchem.MakeMolecule(Molecule.CName)
 	if err != nil {
@@ -110,12 +126,16 @@ Steps {
 	}
 	
 	Molecularweight := molecule.MolecularWeight
-	
-	var marsdata parser.MarsData
-	
+		
+	data, err := MarsResultsFileXLSX.ReadAll()
 
-	marsdata, err = parser.ParseMarsXLSXOutput(MarsResultsFileXLSX, Sheet)
 	if err != nil {
+		Errorf("Error reading Mars file %s", err.Error())
+	}
+
+	marsdata, err := parser.ParseMarsXLSXBinary(data,SheetNumber)
+	if err != nil {
+		Errors = append(Errors,err.Error())
 		Errorf(err.Error())
 	}
 
@@ -134,23 +154,31 @@ Steps {
 		}
 	}
 
+	designFileData, err := DesignFile.ReadAll()
+
+	if err != nil {
+		Errorf("Error reading Design file %s", err.Error())
+	}
+
 	if DesignFiletype == "DX" {
-		runs, err = doe.RunsFromDXDesign(DesignFile, intfactors)
+		runs, err = doe.RunsFromDXDesignContents(designFileData, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	} else if DesignFiletype == "JMP" {
-		runs, err = doe.RunsFromJMPDesign(DesignFile, []int{}, []int{}, intfactors)
+		runs, err = doe.RunsFromJMPDesignContents(designFileData, []int{}, []int{}, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	}
-	
 	BlankValues = make([]float64,0)
 	
 	
 	for i := range Blanks {
-	blankValue, _ := marsdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
+	blankValue, err := marsdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
+	if err != nil {
+		Errorf(fmt.Sprint("blank sample not found. ", err.Error()))
+	}
 	BlankValues = append(BlankValues,blankValue)
 	}
 
@@ -168,8 +196,6 @@ Steps {
 		//xvalues = append(xvalues, 0.0)
 		//yvalues = append(yvalues, 0.0)
 
-		for _, response := range Responsecolumnstofill {
-
 			var samples []string
 			var manualsamples []string
 			var ManualValues = make([]float64,0)
@@ -179,11 +205,8 @@ Steps {
 			//var actualconcreplicates = make([]float64, 0)
 			var manualCorrectnessFactorValues = make([]float64,0)
 			var correctnessFactorValues = make([]float64,0)
-		
-			// intialise
-			Responsecolumntofill := response
 
-			experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume") //  ResponseToVolumeMap[response]
+			experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume") 
 			
 			experimentalvolumestr :=  experimentalvolumeinterface.(string)
 			
@@ -206,29 +229,43 @@ Steps {
 			experimentalvolume := wunit.NewVolume(vol,strings.TrimSpace(volandunit[1]))
 			
 			
-			actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, StockconcinMperL, experimentalvolume, Diluent.CName, wunit.NewVolume(Stockvol.RawValue()-experimentalvolume.RawValue(), "ul"))
+			actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, StockconcinMperL, experimentalvolume, Diluent.CName, wunit.SubtractVolumes(Stockvol, []Volume{experimentalvolume}))
 	
 
 			//locationHeaders := ResponsetoLocationMap[response]
 
 			//  manual pipetting well
-			if ManualComparison {
+			if wellsmap, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok {
 
-				manualwell := VolumeToManualwells[experimentalvolumestr][0] // 1st well of array only
+				
+				manualwell := wellsmap[0] // 1st well of array only
 
-				manual, _ = marsdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
+				manual, err = marsdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
 
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), manual)
+				if err !=nil {
+					Errorf(err.Error())
+				}
+
+				
 
 				manualsamples = VolumeToManualwells[experimentalvolumestr]
 				
 				for i:= range manualsamples {
-				manualvalue, _ := marsdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
+				manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
+				
+				if err !=nil {
+					Errorf(err.Error())
+				}
+				
 				ManualValues = append(ManualValues,manualvalue)
 				}
 				
 				ResponsetoManualValuesmap[experimentalvolumestr] = ManualValues
 				
+				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), manual)
+				
+			} else if ManualComparison {
+				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), 0.0)
 			}
 			
 
@@ -241,13 +278,12 @@ Steps {
 				}
 
 				// check optimal difference for each well
-
-				//Responsecolumntofill = response + "replicate_" + strconv.Itoa(i+1)
-
 				if FindOptWavelength {
-					MeasuredOptimalWavelength = marsdata.FindOptimalWavelength(well.(string), Blanks[0], "Raw Data")
-					//measuredoptimalwavelengths = append(measuredoptimalwavelengths, meassuredoptwavelength)
+					MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(WellForScanAnalysis, Blanks[0], "Raw Data")
 					
+					if err!= nil {
+						Errorf(fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
+					}
 				}
 
 				
@@ -264,7 +300,13 @@ Steps {
 				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" BlankCorrected "+strconv.Itoa(Wavelength), blankcorrected)
 
 				// path length correct
-				pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType("greiner384_riser"), wunit.NewVolume(Stockvol.RawValue()+experimentalvolume.RawValue(), "ul"))
+				var volused Volume
+				if StockEqualsTotalVolPerWell {
+					volused = Stockvol 
+				}else{
+					volused = wunit.AddVolumes([]Volume{Stockvol, experimentalvolume})
+				}
+				pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(PlateType.Type), volused)
 
 				if err != nil {
 					panic(err)
@@ -292,67 +334,56 @@ Steps {
 				correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
 
 				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ExpectedConc "+strconv.Itoa(Wavelength), expectedconc.SIValue())
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(Wavelength), correctnessfactor)
-				correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
 				
+				// if Infinity or Not a number set to 0
+				if math.IsInf(correctnessfactor,0) || math.IsNaN(correctnessfactor){
+					correctnessfactor = 0.0
+				}
+				
+				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(Wavelength), correctnessfactor)
 
-				//xvalues = append(xvalues, expectedconc.SIValue())
-				//yvalues = append(yvalues, actualconc.SIValue())
-				//actualconcreplicates = append(actualconcreplicates, actualconc.SIValue())
-			
+				
+				correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
+							
 				// add comparison to manually pipetted wells
-				if ManualComparison {
-					manualblankcorrected, _ := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
+				if _, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok  {
+					manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
+					if err != nil {
+						Errorf(err.Error())
+					}
 					manualabsorbance.Reading = manualblankcorrected
 					manualpathlengthcorrect := platereader.PathlengthCorrect(pathlength, manualabsorbance)
 					manualactualconc := platereader.Concentration(manualpathlengthcorrect, Extinctioncoefficient)
-					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
 					manualcorrectnessfactor := actualconc.SIValue() / manualactualconc.SIValue()
 					manualCorrectnessFactorValues = append(manualCorrectnessFactorValues,manualcorrectnessfactor)
+				
+					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
 					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength), manualcorrectnessfactor)
+				} else if ManualComparison {
+					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", 0.0)
+					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength),  0.0)
+					
 				}
 
-			
-
-			// process replicates into mean and cv
-			//mean := stats.Mean(actualconcreplicates)
-			//stdev := stats.StdDevS(actualconcreplicates)
-
-			//cv := stdev / mean
-
-			//run = doe.AddNewResponseFieldandValue(run, response+"_Average_ActualConc", mean)
-			//run = doe.AddNewResponseFieldandValue(run, response+"_CV_ActualConc", cv)
-			
-			
-			// average of correctness factor values
-			//meanCF := stats.Mean(correctnessFactorValues)
-			//run = doe.AddNewResponseFieldandValue(run, response+"_Average_CorrectnessFactor", meanCF)
-			
-		/*	if ManualComparison {
-			
-			meanManCF := stats.Mean(manualCorrectnessFactorValues)
-			run = doe.AddNewResponseFieldandValue(run, response+"_Average_ManualCorrectnessFactor", meanManCF)
-			}
-		*/
-		
-		}
 
 		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-		
-		//rsquared := plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
-		//run.AddResponseValue("R2", rsquared)
 
-		//xygraph := plot.Plot(xvalues, [][]float64{yvalues})
-		//filenameandextension := strings.Split(OutputFilename, ".")
-		//plot.Export(xygraph, filenameandextension[0]+".png")
 
 		runswithresponses = append(runswithresponses, run)
 	}
 	
-	doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
+	xlsxfile := doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
 	
 	Runs = runswithresponses
 
+	var buffer bytes.Buffer
+	
+	xlsxfile.Write(&buffer)
+
+	OutPutDesignFile.Name = OutputFilename
+
+	OutPutDesignFile.WriteAll(buffer.Bytes())
+	
 }
 
 // Run after controls and a steps block are completed to
@@ -419,8 +450,19 @@ Analysis {
 	if err != nil{
 		Errors = append(Errors,err.Error())
 	}
+	
+	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+			
+	xygraph.Title.Text = Molecule.CName + ": Expected vs Measured Concentration"
+			
 	filenameandextension := strings.Split(OutputFilename, ".")
-	plot.Export(xygraph, "10cm","10cm",filenameandextension[0]+"_plot"+".png")
+	
+	ActualVsExpectedPlot, err =  plot.Export(xygraph, "20cm","20cm",filenameandextension[0]+"_plot"+".png")
+	
+	if err != nil{
+		Errors = append(Errors,err.Error())
+		Errorf(err.Error())
+	}
 	
 	// reset
 		xvalues = make([]float64, 0)
@@ -478,7 +520,19 @@ Analysis {
 		Errors = append(Errors,err.Error())
 	}
 	
-	plot.Export(correctnessgraph, "10cm","10cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+			
+	correctnessgraph.Title.Text = Molecule.CName + ": Correctness Factor vs Target Concentration"
+	
+	
+	
+	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm","20cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	
+	if err != nil{
+		Errors = append(Errors,err.Error())
+		Errorf(err.Error())
+
+	}
 	
 	// reset
 		xvalues = make([]float64, 0)
@@ -707,6 +761,12 @@ Analysis {
 	dataset.Values = values
 
 	dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
+	
+	// if CV == Infinity or Not a number set to -1.0
+	if math.IsInf(dataset.CV,0)|| math.IsNaN(dataset.CV){
+		dataset.CV = -1.0
+	}
+	
 	VolumeToCorrectnessFactor[key] = dataset
 	
 	
@@ -777,7 +837,6 @@ if ManualComparison {
 	
 	
 }
-
 
 	
 }

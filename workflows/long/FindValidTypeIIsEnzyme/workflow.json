@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "FindValidTypeIIsEnzyme": {
+      "component": "FindValidTypeIIsEnzyme"
+    }
+  }
+}

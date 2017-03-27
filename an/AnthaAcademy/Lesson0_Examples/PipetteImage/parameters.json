@@ -4,26 +4,26 @@
       "AutoRotate": true,
       "Black": "Black",
       "Cyan": "Cyan",
-      "Imagefilename": "cmyk3.jpg",
+      "Imagefilename": "spaceinvader.png",
       "Magenta": "Magenta",
       "OutPlate": "greiner384_riser",
       "PalettePlate": "pcrplate_skirted_riser20",
       "PosterizeImage": false,
       "PosterizeLevels": 2,
       "Rotate": false,
-      "VolumeForFullcolour": "300ul",
+      "VolumeForFullcolour": "75ul",
       "Yellow": "Yellow_ink"
     },
     "Pipette1": {
       "AutoRotate": true,
-      "Imagefilename": "cmyk3.jpg",
-      "NotthisColour": "",
+      "Imagefilename": "spaceinvader.png",
+      "NotthisColour": "Black",
       "OnlythisColour": "",
       "OutPlate": "greiner384_riser20",
       "PosterizeImage": false,
       "PosterizeLevels": 2,
       "Rotate": false,
-      "VolumePerWell": "5ul"
+      "VolumePerWell": "2ul"
     }
   },
   "config": {

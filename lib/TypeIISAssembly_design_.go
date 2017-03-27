@@ -3,7 +3,6 @@
 // A simulation is performed and status returned to the user
 // The user can also specify the names of enzyme sites they wish to avoid to check if these are present in the
 // new dna sequence (if simulation passes that is).
-
 package lib
 
 import (
@@ -132,7 +131,12 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 	// first lookup enzyme properties
 	enzlist := make([]wtype.RestrictionEnzyme, 0)
 	for _, site := range _input.RestrictionsitetoAvoid {
-		enzsite := lookup.EnzymeLookup(site)
+		enzsite, err := lookup.EnzymeLookup(site)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
 		enzlist = append(enzlist, enzsite)
 	}
 	othersitesfound := enzymes.Restrictionsitefinder(newDNASequence, enzlist)
@@ -142,7 +146,11 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 	}
 
 	// Now let's find out the size of fragments we would get if digested with a common site cutter
-	tspEI := lookup.EnzymeLookup("TspEI")
+	tspEI, err := lookup.EnzymeLookup("TspEI")
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	Testdigestionsizes := enzymes.RestrictionMapper(newDNASequence, tspEI)
 
@@ -161,14 +169,20 @@ func _TypeIISAssembly_designSteps(_ctx context.Context, _input *TypeIISAssembly_
 
 	// Export sequences to order into a fasta file
 
-	partswithOverhangs := make([]*wtype.DNASequence, 0)
+	partswithOverhangs := make([]wtype.DNASequence, 0)
 	for _, part := range _output.PartswithOverhangs {
-		export.ExportFasta(_input.Constructname, &part)
-		partswithOverhangs = append(partswithOverhangs, &part)
+		partFile, _, err := export.Fasta(_input.Constructname, &part)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+		_output.IndividualPartFiles = append(_output.IndividualPartFiles, partFile)
+		partswithOverhangs = append(partswithOverhangs, part)
 
 	}
-	export.Makefastaserial(_input.Constructname, partswithOverhangs)
-
+	_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.Constructname, partswithOverhangs)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 	//partstoorder := ansi.Color(fmt.Sprintln("PartswithOverhangs", PartswithOverhangs),"red")
 	partstoorder := fmt.Sprintln("PartswithOverhangs", _output.PartswithOverhangs)
 
@@ -245,6 +259,7 @@ func TypeIISAssembly_designNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -263,24 +278,28 @@ type TypeIISAssembly_designInput struct {
 }
 
 type TypeIISAssembly_designOutput struct {
-	BackupParts        []string
-	NewDNASequence     wtype.DNASequence
-	PartswithOverhangs []wtype.DNASequence
-	Simulationpass     bool
-	Sitesfound         []enzymes.Restrictionsites
-	Status             string
-	Warnings           string
+	BackupParts         []string
+	IndividualPartFiles []wtype.File
+	NewDNASequence      wtype.DNASequence
+	PartsToOrder        wtype.File
+	PartswithOverhangs  []wtype.DNASequence
+	Simulationpass      bool
+	Sitesfound          []enzymes.Restrictionsites
+	Status              string
+	Warnings            string
 }
 
 type TypeIISAssembly_designSOutput struct {
 	Data struct {
-		BackupParts        []string
-		NewDNASequence     wtype.DNASequence
-		PartswithOverhangs []wtype.DNASequence
-		Simulationpass     bool
-		Sitesfound         []enzymes.Restrictionsites
-		Status             string
-		Warnings           string
+		BackupParts         []string
+		IndividualPartFiles []wtype.File
+		NewDNASequence      wtype.DNASequence
+		PartsToOrder        wtype.File
+		PartswithOverhangs  []wtype.DNASequence
+		Simulationpass      bool
+		Sitesfound          []enzymes.Restrictionsites
+		Status              string
+		Warnings            string
 	}
 	Outputs struct {
 	}
@@ -290,7 +309,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "TypeIISAssembly_design",
 		Constructor: TypeIISAssembly_designNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using either an assembly standard or a specified enzyme.\nparts are added as biobrick IDs, or looked up from the inventory package\nA simulation is performed and status returned to the user\nThe user can also specify the names of enzyme sites they wish to avoid to check if these are present in the\nnew dna sequence (if simulation passes that is).\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/TypeIISAssembly_design.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "", Kind: "Parameters"},
@@ -301,7 +320,9 @@ func init() {
 				{Name: "RestrictionsitetoAvoid", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "BackupParts", Desc: "", Kind: "Data"},
+				{Name: "IndividualPartFiles", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "i.e. parts to order\n", Kind: "Data"},
 				{Name: "Simulationpass", Desc: "", Kind: "Data"},
 				{Name: "Sitesfound", Desc: "", Kind: "Data"},

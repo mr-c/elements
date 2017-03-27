@@ -1,10 +1,8 @@
-// This protocol is intended to design assembly parts using a specified enzyme.
-// overhangs are added to complement the adjacent parts and leave no scar.
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
+// This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.
+// Overhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme.
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
-
 package lib
 
 import (
@@ -18,7 +16,6 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"path/filepath"
-	"strconv"
 )
 
 // Input parameters for this protocol (data)
@@ -30,6 +27,7 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+// parts + vector map ready for feeding into downstream AutoAssembly element
 
 // desired sequence to end up with after assembly
 
@@ -47,6 +45,7 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSetup(_ctx context.Context, 
 func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput, _output *CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput) {
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	_output.Assemblies = make(map[string][]wtype.DNASequence)
 	_output.PassMap = make(map[string]bool)
 	_output.SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
 	_output.Sequences = make([]wtype.DNASequence, 0)
@@ -63,7 +62,7 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 			for l := range _input.Part2s {
 				for m := range _input.Part3s {
 
-					key := _input.ProjectName + "_" + "Vector" + strconv.Itoa(j+1) + "_1." + strconv.Itoa(k+1) + "_2." + strconv.Itoa(l+1) + "_3." + strconv.Itoa(m+1)
+					key := _input.ProjectName + "_" + _input.Vectors[j].Name() + "_" + _input.Part1s[k].Name() + "_" + _input.Part2s[l].Name() + "_" + _input.Part3s[m].Name()
 					assembly := Scarfree_siteremove_orfcheck_wtypeRunSteps(_ctx, &Scarfree_siteremove_orfcheck_wtypeInput{Constructname: key,
 						Seqsinorder: []wtype.DNASequence{_input.Part1s[k], _input.Part2s[l], _input.Part3s[m]},
 						Enzymename:  _input.EnzymeName,
@@ -77,6 +76,7 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 					)
 					key = key                                                             //+ Vectors[j]
 					_output.PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+					_output.Assemblies[key] = assembly.Data.PartsAndVector                // parts + vector to be fed into assembly element
 					_output.PassMap[key] = assembly.Data.Simulationpass
 					_output.EndreportMap[key] = assembly.Data.Endreport
 					_output.PositionReportMap[key] = assembly.Data.PositionReport
@@ -109,14 +109,14 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 		if _input.FolderPerProject {
 
 			// export simulated assembled sequences to file
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
 			// add fasta files of all parts with overhangs
 			labels := []string{"Device1", "Device2", "Device3"}
 			for j := range labels {
 				for i := range _output.Parts {
 					fmt.Println(i, len(labels), len(_output.Parts))
-					export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, labels[j]), _output.Parts[i])
+					export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, labels[j]), _output.Parts[i])
 				}
 			}
 		}
@@ -174,6 +174,7 @@ func CombinatorialLibraryDesign_Scarfree3Part_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -198,6 +199,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeInput struct {
 }
 
 type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
+	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
 	Parts                 [][]wtype.DNASequence
 	PartswithOverhangsMap map[string][]wtype.DNASequence
@@ -211,6 +213,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
 
 type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
 	Data struct {
+		Assemblies            map[string][]wtype.DNASequence
 		EndreportMap          map[string]string
 		Parts                 [][]wtype.DNASequence
 		PartswithOverhangsMap map[string][]wtype.DNASequence
@@ -229,7 +232,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_Scarfree3Part_wtype",
 		Constructor: CombinatorialLibraryDesign_Scarfree3Part_wtypeNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.\nOverhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme.\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialLibraryDesign_Scarfree_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
@@ -245,6 +248,7 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "Assemblies", Desc: "parts + vector map ready for feeding into downstream AutoAssembly element\n", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
 				{Name: "Parts", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},

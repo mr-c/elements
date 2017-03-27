@@ -4,28 +4,24 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
-
 package lib
 
 import (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"strconv"
-	"strings"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"context"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"strconv"
+	"strings"
 )
-
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 
 // Input parameters for this protocol (data)
 
@@ -38,6 +34,8 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+
+// parts + vector
 
 // desired sequence to end up with after assembly
 
@@ -70,14 +68,24 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	warnings = append(warnings, fmt.Sprintln(_input.Seqsinorder))
 
 	// check parts for restriction sites first and remove if the user has chosen to
-	enz := lookup.EnzymeLookup(_input.Enzymename)
+	enz, err := lookup.EnzymeLookup(_input.Enzymename)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// get properties of other enzyme sites to remove
 	removetheseenzymes := make([]wtype.RestrictionEnzyme, 0)
 	removetheseenzymes = append(removetheseenzymes, enz)
 
 	for _, enzyme := range _input.OtherEnzymeSitesToRemove {
-		removetheseenzymes = append(removetheseenzymes, lookup.EnzymeLookup(enzyme))
+
+		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
@@ -254,10 +262,16 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	partsummary = append(partsummary, fmt.Sprint("Vector:"+vectordata.Nm, vectordata.Seq))
 	partstoorder := fmt.Sprint("PartswithOverhangs: ", partsummary)
 
+	// export parts + vector as one array
+	for _, part := range _output.PartswithOverhangs {
+		_output.PartsAndVector = append(_output.PartsAndVector, part)
+	}
+
+	// now add vector
+	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
+
 	// Print status
-	/*if Status != "all parts available"{
-		Status = fmt.Sprintln(status)
-	} else {*/_output.Status = fmt.Sprintln(
+	_output.Status = fmt.Sprintln(
 		fmt.Sprint("simulator status: ", status),
 		fmt.Sprint("Endreport after digestion: ", endreport),
 		fmt.Sprint("Sites per part for "+_input.Enzymename, sites),
@@ -281,7 +295,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
+		export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
 
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
@@ -289,7 +303,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
 	}
 
 }
@@ -344,6 +358,7 @@ func Scarfree_siteremove_orfcheck_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -370,6 +385,7 @@ type Scarfree_siteremove_orfcheck_wtypeOutput struct {
 	ORFmissing             bool
 	ORIpresent             bool
 	OriginalParts          []wtype.DNASequence
+	PartsAndVector         []wtype.DNASequence
 	PartsWithSitesRemoved  []wtype.DNASequence
 	PartswithOverhangs     []wtype.DNASequence
 	Plasmid                bool
@@ -387,6 +403,7 @@ type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
 		ORFmissing             bool
 		ORIpresent             bool
 		OriginalParts          []wtype.DNASequence
+		PartsAndVector         []wtype.DNASequence
 		PartsWithSitesRemoved  []wtype.DNASequence
 		PartswithOverhangs     []wtype.DNASequence
 		Plasmid                bool
@@ -404,7 +421,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "Scarfree_siteremove_orfcheck_wtype",
 		Constructor: Scarfree_siteremove_orfcheck_wtypeNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree_removesites_checkorfs_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
@@ -422,6 +439,7 @@ func init() {
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsAndVector", Desc: "parts + vector\n", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "Plasmid", Desc: "", Kind: "Data"},

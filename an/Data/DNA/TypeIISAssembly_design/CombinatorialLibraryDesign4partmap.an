@@ -56,7 +56,14 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	
+	PartsToOrderFile File
+	AssembledSequencesFile File
+	UniqueSequencesFile File
+    UniqueSequencesFileRevComp File
+	PartsToorderFiles []File
+	SequenceListFile File
+	SequencingPrimersFile File
+
 )
 // Input Requirement specification
 Requirements {
@@ -69,6 +76,7 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
 	StatusMap = make(map[string]string)
 	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
 	PassMap = make(map[string]bool)
@@ -161,10 +169,12 @@ Steps {
 	
 	// export sequence to fasta
 	if FolderPerProject{
-		
+		var err error
 		// export simulated sequences to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
-
+		AssembledSequencesFile, _, err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		if err != nil {
+		Errorf(err.Error())
+		}
 		// add fasta file for each set of parts with overhangs
 		labels:= StandardLabels //[]string{"Promoters","RBSs","CDSs","Ters"}
 		
@@ -194,12 +204,22 @@ Steps {
 			csv = append(csv, output)
 		}
 				
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key+"_RevComp"), revcompseqs)
-		err := export.ExporttoTextFile(filepath.Join(ProjectName,key)+".csv", csv)
+		UniqueSequencesFile, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+		Errorf(err.Error())
+		}
+		
+		UniqueSequencesFileRevComp, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key+"_RevComp"), revcompseqs)
+		
+		if err != nil {
+		Errorf(err.Error())
+		}
+		
+		SequenceListFile, err = export.TextFile(filepath.Join(ProjectName,key)+".csv", csv)
 	
 		if err != nil {
-		panic(err.Error())
+		Errorf(err.Error())
 		}
 		}
 		
@@ -224,14 +244,20 @@ Steps {
 		for key,value := range refactoredparts{
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
+		var partsfile File
+		partsfile, _, err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
 		
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		if err != nil {
+		Errorf(err.Error())
+		}
+		
+		PartsToorderFiles = append(PartsToorderFiles,partsfile)
 		}
 	
-		err := export.ExporttoTextFile(filepath.Join(ProjectName,"Primers")+".csv", csv)
+		SequencingPrimersFile, err = export.TextFile(filepath.Join(ProjectName,"Primers")+".csv", csv)
 	
 		if err != nil {
-		panic(err.Error())
+		Errorf(err.Error())
 		}
 	
 	 }

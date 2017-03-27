@@ -1,0 +1,181 @@
+// Protocol PlotSpreadsheet creates a plot from a spreadsheet
+protocol PlotSpreadsheet
+
+import (
+	"unicode"
+	"strings"
+	"strconv"
+	"bytes"
+
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	"github.com/gonum/plot"
+	"github.com/gonum/plot/plotter"
+	"github.com/gonum/plot/plotutil"
+	"github.com/gonum/plot/vg"
+	"github.com/tealeg/xlsx"
+)
+
+// Input parameters for this protocol (data)
+Parameters  (
+	XlsFile File
+	// Which sheet to load from XlsFile. 0 is the first sheet.
+	Sheet int
+	// Address range (e.g., A1:A8, B7:G7) of X values in sheet.
+	XRange string
+	// Address ranges of Y values in sheet (e.g., ["B4:B16", "C4:C16"])
+	YRanges []string
+	// Output plot format. Supported values are eps, jpg, jpeg, pdf, png,
+	// tif and tiff. Default is png.
+	PlotFormat string
+	// Plot width with units. Default is "10cm".
+	PlotWidth string
+	// Plot height with units. Default is "10cm".
+	PlotHeight string
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	// Generated plot
+	Plot File
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed for every
+// input
+Steps {
+	// Convert spreadsheet address to index
+	index := func(address string) (col, row int) {
+		idx := strings.IndexFunc(address, unicode.IsDigit)
+		colStr := address
+		rowStr := ""
+		if idx >= 0 {
+			colStr = address[:idx]
+			rowStr = address[idx:]
+		}
+		row, _ = strconv.Atoi(rowStr)
+		col = wutil.AlphaToNum(strings.ToUpper(colStr))
+		if row > 0 {
+			row = row - 1
+		}
+		if col > 0 {
+			col = col - 1
+		}
+		return
+	}
+
+	// Read cell range from sheet
+	readCells := func(sheet *xlsx.Sheet, cellRange string) []float64 {
+		c := strings.SplitN(cellRange, ":", 2)
+		if len(c) < 2 {
+			c = []string {"A1", "A1"}
+		}
+		startCol, startRow := index(c[0])
+		endCol, endRow := index(c[1])
+
+		if startCol >= endCol {
+			startCol, endCol = endCol, startCol
+		}
+		if startRow >= endRow {
+			startRow, endRow = endRow, startRow
+		}
+
+		total := (endRow - startRow + 1) * (endCol - startCol + 1)
+		vs := make([]float64, total)
+		idx := 0
+		for i := startRow; i < endRow + 1; i++ {
+			for j := startCol; j < endCol + 1; j++ {
+				v, _ := sheet.Rows[i].Cells[j].Float()
+				if len(sheet.Rows) <= i {
+					Errorf("invalid cell %s%d", wutil.NumToAlpha(j+1), i+1)
+				}
+				if len(sheet.Rows[i].Cells) <= j {
+					Errorf("invalid cell %s%d", wutil.NumToAlpha(j+1), i+1)
+				}
+				vs[idx] = v
+				idx++
+			}
+		}
+		return vs
+	}
+
+	data, _ := XlsFile.ReadAll()
+	file, err := xlsx.OpenBinary(data)
+	if err != nil {
+		Errorf("cannot read spreadsheet: %s", err)
+	}
+
+	sheet := file.Sheets[Sheet]
+
+	xvalues := readCells(sheet, XRange)
+	var yvalues [][]float64
+	for idx, yrange := range YRanges {
+		ys := readCells(sheet, yrange)
+		if lx, ly := len(xvalues) , len(ys); lx != ly {
+			Errorf("number of x values (%d) does not equal number of y values (%d) for %dth y range",
+				lx, ly, idx) 
+		}
+		yvalues = append(yvalues, ys)
+	}
+
+	var points []interface{}
+	for _, ys := range yvalues {
+		xys := make(plotter.XYs, len(ys))
+		for i, n := 0, len(ys); i < n; i++ {
+			xys[i].X = xvalues[i]
+			xys[i].Y = ys[i]
+		}
+		points = append(points, xys)
+	}
+
+	// now plot the graph
+	plt, err := plot.New()
+	if err != nil {
+		Errorf("cannot make plot: %s", err)
+	}
+	plotutil.AddScatters(plt, points...)
+
+	width, err := vg.ParseLength(PlotWidth)
+	if err != nil {
+		width = 10 * vg.Centimeter
+	}
+
+	height, err := vg.ParseLength(PlotWidth)
+	if err != nil {
+		height = 10 * vg.Centimeter
+	}
+
+	if len(PlotFormat) == 0 {
+		PlotFormat = "png"
+	}
+
+	w, err := plt.WriterTo(width, height, PlotFormat)
+	if err != nil {
+		Errorf("cannot write plot: %s", err)
+	}
+
+	var out bytes.Buffer
+	w.WriteTo(&out)
+
+	Plot.Name = "plot."+PlotFormat
+	Plot.WriteAll(out.Bytes())
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}

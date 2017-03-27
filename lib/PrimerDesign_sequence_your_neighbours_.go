@@ -11,6 +11,7 @@ import (
 	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -32,8 +33,6 @@ import (
 // number of nucleotides which primers can overlap by
 
 // Data which is returned from this protocol
-
-//PrimerData []oligos.Primer
 
 // Physical inputs to this protocol
 
@@ -72,7 +71,7 @@ func _PrimerDesign_sequence_your_neighboursSteps(_ctx context.Context, _input *P
 
 	d, err := os.Open(dirname)
 	if err != nil {
-		panic(err)
+		execute.Errorf(_ctx, err.Error())
 	}
 	defer d.Close()
 
@@ -119,10 +118,10 @@ func _PrimerDesign_sequence_your_neighboursSteps(_ctx context.Context, _input *P
 	_output.AllOutputs = alloutputs
 
 	if _input.ExportToFile {
-		err = export.ExporttoTextFile("exported_primers.csv", _output.AllOutputs)
+		_output.PrimersFile, err = export.TextFile("exported_primers.csv", _output.AllOutputs)
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
 	}
@@ -204,10 +203,10 @@ func _PrimerDesign_sequence_your_neighboursValidation(_ctx context.Context, _inp
 	}
 
 	if _input.ExportToFile {
-		err = export.ExporttoTextFile("exported_primers_bindingReport.csv", nonspecificbinding)
+		_output.PrimerBindingReport, err = export.TextFile("exported_primers_bindingReport.csv", nonspecificbinding)
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
 	}
@@ -258,6 +257,7 @@ func PrimerDesign_sequence_your_neighboursNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -277,16 +277,20 @@ type PrimerDesign_sequence_your_neighboursInput struct {
 }
 
 type PrimerDesign_sequence_your_neighboursOutput struct {
-	AllOutputs  []string
-	AllPrimers  []oligos.Primer
-	PrimerPairs []PrimerPair
+	AllOutputs          []string
+	AllPrimers          []oligos.Primer
+	PrimerBindingReport wtype.File
+	PrimerPairs         []PrimerPair
+	PrimersFile         wtype.File
 }
 
 type PrimerDesign_sequence_your_neighboursSOutput struct {
 	Data struct {
-		AllOutputs  []string
-		AllPrimers  []oligos.Primer
-		PrimerPairs []PrimerPair
+		AllOutputs          []string
+		AllPrimers          []oligos.Primer
+		PrimerBindingReport wtype.File
+		PrimerPairs         []PrimerPair
+		PrimersFile         wtype.File
 	}
 	Outputs struct {
 	}
@@ -309,7 +313,9 @@ func init() {
 				{Name: "PermittednucleotideOverlapBetweenPrimers", Desc: "number of nucleotides which primers can overlap by\n", Kind: "Parameters"},
 				{Name: "AllOutputs", Desc: "", Kind: "Data"},
 				{Name: "AllPrimers", Desc: "", Kind: "Data"},
+				{Name: "PrimerBindingReport", Desc: "", Kind: "Data"},
 				{Name: "PrimerPairs", Desc: "", Kind: "Data"},
+				{Name: "PrimersFile", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

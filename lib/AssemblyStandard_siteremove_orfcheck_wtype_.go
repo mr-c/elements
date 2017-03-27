@@ -4,7 +4,6 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
-
 package lib
 
 import (
@@ -44,6 +43,7 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+// parts to order + vector
 // desired sequence to end up with after assembly
 
 // Input Requirement specification
@@ -86,7 +86,14 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	removetheseenzymes = append(removetheseenzymes, enz.RestrictionEnzyme)
 
 	for _, enzyme := range _input.OtherEnzymeSitesToRemove {
-		removetheseenzymes = append(removetheseenzymes, lookup.EnzymeLookup(enzyme))
+
+		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
 	warning = text.Print("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
@@ -191,6 +198,14 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 		execute.Errorf(_ctx, err.Error())
 	}
 
+	// export parts + vector as one array
+	for _, part := range _output.PartswithOverhangs {
+		_output.PartsAndVector = append(_output.PartsAndVector, part)
+	}
+
+	// now add vector
+	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
+
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
 	newDNASequence.Nm = _input.Constructname
@@ -292,15 +307,20 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		_output.PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 }
@@ -355,6 +375,7 @@ func AssemblyStandard_siteremove_orfcheck_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -379,10 +400,13 @@ type AssemblyStandard_siteremove_orfcheck_wtypeInput struct {
 }
 
 type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
+	AssembledSequenceFile wtype.File
 	Endreport             string
 	NewDNASequence        wtype.DNASequence
 	ORFmissing            bool
 	OriginalParts         []wtype.DNASequence
+	PartsAndVector        []wtype.DNASequence
+	PartsToOrderFile      wtype.File
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs    []wtype.DNASequence
 	PositionReport        []string
@@ -393,10 +417,13 @@ type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
 
 type AssemblyStandard_siteremove_orfcheck_wtypeSOutput struct {
 	Data struct {
+		AssembledSequenceFile wtype.File
 		Endreport             string
 		NewDNASequence        wtype.DNASequence
 		ORFmissing            bool
 		OriginalParts         []wtype.DNASequence
+		PartsAndVector        []wtype.DNASequence
+		PartsToOrderFile      wtype.File
 		PartsWithSitesRemoved []wtype.DNASequence
 		PartswithOverhangs    []wtype.DNASequence
 		PositionReport        []string
@@ -412,7 +439,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "AssemblyStandard_siteremove_orfcheck_wtype",
 		Constructor: AssemblyStandard_siteremove_orfcheck_wtypeNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/AssemblyStandard_removesites_checkorfs_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "MoClo\n", Kind: "Parameters"},
@@ -428,10 +455,13 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsAndVector", Desc: "parts to order + vector\n", Kind: "Data"},
+				{Name: "PartsToOrderFile", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PositionReport", Desc: "", Kind: "Data"},

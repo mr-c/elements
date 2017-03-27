@@ -3,7 +3,6 @@
 // A simulation is performed and status returned to the user
 // The user can also specify the names of enzyme sites they wish to avoid to check if these are present in the 
 // new dna sequence (if simulation passes that is).
-
 protocol TypeIISAssembly_design
 
 import (
@@ -47,6 +46,8 @@ Data (
 	NewDNASequence wtype.DNASequence
 	Sitesfound []enzymes.Restrictionsites
 	BackupParts []string
+	PartsToOrder File
+	IndividualPartFiles []File
 )
 // Input Requirement specification
 Requirements {
@@ -153,7 +154,12 @@ Steps {
 	// first lookup enzyme properties
 	enzlist := make([]wtype.RestrictionEnzyme, 0)
 	for _, site := range RestrictionsitetoAvoid {
-		enzsite := lookup.EnzymeLookup(site)
+		enzsite, err  := lookup.EnzymeLookup(site)
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+	
 	enzlist = append(enzlist, enzsite)
 	}
 	othersitesfound := enzymes.Restrictionsitefinder(newDNASequence,enzlist) 
@@ -163,7 +169,11 @@ Steps {
 	}
 	
 	// Now let's find out the size of fragments we would get if digested with a common site cutter
-	tspEI := lookup.EnzymeLookup("TspEI")
+	tspEI, err := lookup.EnzymeLookup("TspEI")
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
 	
 	Testdigestionsizes := enzymes.RestrictionMapper(newDNASequence, tspEI)
 	
@@ -182,15 +192,21 @@ Steps {
 	
 	// Export sequences to order into a fasta file
 	
-	partswithOverhangs := make([]*wtype.DNASequence,0)
+	partswithOverhangs := make([]wtype.DNASequence,0)
 	for _, part := range PartswithOverhangs{
-		export.ExportFasta(Constructname,&part)
-		partswithOverhangs=append(partswithOverhangs,&part)
+		partFile,_, err := export.Fasta(Constructname,&part)
+		if err != nil{
+			Errorf(err.Error())
+		}
+		IndividualPartFiles = append(IndividualPartFiles, partFile)
+		partswithOverhangs=append(partswithOverhangs,part)
 		
 		
 	}
-	export.Makefastaserial(Constructname,partswithOverhangs)
-	
+	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,Constructname,partswithOverhangs)
+	if err != nil {
+		Errorf(err.Error())
+	}
 	//partstoorder := ansi.Color(fmt.Sprintln("PartswithOverhangs", PartswithOverhangs),"red")
 	partstoorder := fmt.Sprintln("PartswithOverhangs", PartswithOverhangs)
 	

@@ -4,7 +4,6 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
-
 protocol AssemblyStandard_siteremove_orfcheck_wtype
 
 import (
@@ -58,10 +57,13 @@ Data (
 	OriginalParts []wtype.DNASequence 
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs []wtype.DNASequence // parts to order
+	PartsAndVector []wtype.DNASequence // parts to order + vector
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
+	AssembledSequenceFile File
+	PartsToOrderFile File
 	
 )
 // Input Requirement specification
@@ -103,7 +105,14 @@ Steps {
 	removetheseenzymes = append(removetheseenzymes,enz.RestrictionEnzyme)
 	
 	for _,enzyme := range OtherEnzymeSitesToRemove {
-		removetheseenzymes = append(removetheseenzymes,lookup.EnzymeLookup(enzyme))
+		
+		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
+		
+		if err!= nil {
+			Errorf(err.Error())
+		}
+		
+		removetheseenzymes = append(removetheseenzymes,enzyTypeII)
 	}
 
 	warning = text.Print("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
@@ -209,6 +218,14 @@ Steps {
 		Errorf(err.Error())
 	}
 
+	// export parts + vector as one array
+	for _, part := range PartswithOverhangs {
+		PartsAndVector = append(PartsAndVector,part)
+	}
+	
+	// now add vector 
+	PartsAndVector = append(PartsAndVector,vectordata)
+
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
 	newDNASequence.Nm = Constructname
@@ -310,15 +327,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
-		
+		AssembledSequenceFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	

@@ -1,9 +1,18 @@
 SHELL=/bin/bash
 
-all: fmt_json compile
+AN_DIRS=an starter
+AN_OUT=lib
+INPUT_DIRS=workflows starter defaults
+PACKAGE=github.com/antha-lang/elements
 
-gen_comp:
-	go run $(GOPATH)/src/github.com/antha-lang/antha/cmd/antha/antha.go -outdir=lib an starter
+# Compile after downloading dependencies
+all: update_deps fmt_json compile
+
+# Compile using current state of working directories
+current: fmt_json compile
+
+gen_comp: anthac
+	antha -outdir=$(AN_OUT) $(AN_DIRS)
 	gofmt -w -s lib
 
 test: check_json gen_comp
@@ -11,15 +20,25 @@ test: check_json gen_comp
 
 check: check_json check_elements
 
-check_elements:
-	go run $(GOPATH)/src/github.com/antha-lang/antha/cmd/antha/antha.go -outdir= an starter
+check_elements: anthac
+	antha -outdir= $(AN_DIRS)
 
 check_json:
-	go run cmd/format-json/main.go workflows starter defaults > /dev/null
+	go run cmd/format-json/main.go $(INPUT_DIRS) > /dev/null
 
 fmt_json:
-	go run cmd/format-json/main.go -inPlace workflows starter defaults
+	go run cmd/format-json/main.go -inPlace $(INPUT_DIRS)
+
+update_deps:
+	go list -f '{{join .Deps "\n"}}' $(PACKAGE)/cmd/antharun \
+	  | grep -v vendor \
+	  | grep -v $(PACKAGE) \
+	  | xargs go list -f '{{if .Standard}}{{else}}{{.ImportPath}}{{end}}' \
+	  | xargs go get -f -u -d -v
+
+anthac:
+	go install -v github.com/antha-lang/antha/cmd/antha
 
 compile: gen_comp
-	go install -v github.com/antha-lang/elements/cmd/antharun
-	antharun list > /dev/null
+	go install -v $(PACKAGE)/cmd/antharun
+	antharun list elements > /dev/null

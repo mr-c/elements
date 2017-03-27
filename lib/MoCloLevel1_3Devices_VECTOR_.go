@@ -5,7 +5,6 @@
 // Level 0 parts can then be assembled together by using level 1 enzymes and overhangs.
 // currently this protocol only supports level 0 steps.
 // see http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0016765
-
 package lib
 
 import (
@@ -183,6 +182,7 @@ func MoCloLevel1_3Devices_VECTORNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -224,7 +224,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "MoCloLevel1_3Devices_VECTOR",
 		Constructor: MoCloLevel1_3Devices_VECTORNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "This protocol is intended to design assembly parts using the MoClo assembly standard.\nOverhangs for a part are chosen according to the designated class of each part (e.g. promoter).\nThe MoClo standard is hierarchical so the enzyme is chosen based on the level of assembly.\ni.e. first level 0 parts are made which may comprise of a promoter, 5prime upstream part, coding sequene, and terminator.\nLevel 0 parts can then be assembled together by using level 1 enzymes and overhangs.\ncurrently this protocol only supports level 0 steps.\nsee http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0016765\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/MoClo_level1.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "MoClo\n", Kind: "Parameters"},

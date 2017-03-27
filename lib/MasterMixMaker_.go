@@ -5,6 +5,7 @@ package lib
 import (
 	"context"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
@@ -55,6 +56,18 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 
 	}
 
+	if _input.CheckPartsInInventory {
+
+		// First specify some handles for UI interaction
+		// Adds Ordering handle for the UI
+		lhComponents[0] = execute.Handle(_ctx, setup.OrderInfo(lhComponents[0]))
+		// we need a plate prep step
+		lhComponents[0] = execute.Handle(_ctx, setup.PlatePrep(lhComponents[0]))
+
+		// a setup step
+		lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
+	}
+
 	// now make mastermix
 
 	eachmastermix := make([]*wtype.LHComponent, 0)
@@ -75,6 +88,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	mastermix = execute.MixInto(_ctx, _input.OutPlate, "", eachmastermix...)
 
 	_output.Mastermix = mastermix
+	_output.PlateWithMastermix = _input.OutPlate
 
 	_output.Status = "Mastermix Made"
 
@@ -130,6 +144,7 @@ func MasterMixMakerNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -138,6 +153,7 @@ type MasterMixMakerElement struct {
 }
 
 type MasterMixMakerInput struct {
+	CheckPartsInInventory       bool
 	ComponentVolumesperReaction []wunit.Volume
 	Components                  []string
 	OutPlate                    *wtype.LHPlate
@@ -145,8 +161,9 @@ type MasterMixMakerInput struct {
 }
 
 type MasterMixMakerOutput struct {
-	Mastermix *wtype.LHComponent
-	Status    string
+	Mastermix          *wtype.LHComponent
+	PlateWithMastermix *wtype.LHPlate
+	Status             string
 }
 
 type MasterMixMakerSOutput struct {
@@ -154,7 +171,8 @@ type MasterMixMakerSOutput struct {
 		Status string
 	}
 	Outputs struct {
-		Mastermix *wtype.LHComponent
+		Mastermix          *wtype.LHComponent
+		PlateWithMastermix *wtype.LHPlate
 	}
 }
 
@@ -165,11 +183,13 @@ func init() {
 			Desc: "Make a general mastermix comprising of a list of components, list of volumes\nand specifying the number of reactions required\n",
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/MasterMixMaker.an",
 			Params: []component.ParamDesc{
+				{Name: "CheckPartsInInventory", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
 				{Name: "Components", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
+				{Name: "PlateWithMastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 			},
 		},

@@ -16,6 +16,7 @@ Parameters (
 	NumberofAliquots int
 	PreMix bool // optional field. Select if the solution to be aliquoted should be premixed prior to transer
 	ChangeSolutionName string // optional field to change the name of the component
+	OptimisePlateUsage bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -80,8 +81,15 @@ Steps {
 		// 1. the plate 
 		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
 		// 3. the sample or array of samples to be mixed
-		aliquot := MixInto(OutPlate, "", aliquotSample)
-		aliquots = append(aliquots,aliquot)
+		var aliquot *wtype.LHComponent
+		if OptimisePlateUsage{
+		aliquot = MixNamed(OutPlate.Type, "","AliquotPlate", aliquotSample)
+		}else{
+		aliquot = MixInto(OutPlate, "", aliquotSample)	
+		}
+		if aliquot != nil{
+				aliquots = append(aliquots,aliquot)
+			}
 	}
 	Aliquots = aliquots
 }
