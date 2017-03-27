@@ -83,7 +83,8 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 			lhComponents = append(lhComponents, factory.GetComponentByType(component))
 		} else {
 			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna_mix")
+			defaultcomponent := factory.GetComponentByType("dna_part")
+			defaultcomponent.Type = wtype.LTDNAMIX
 			defaultcomponent.CName = component
 			lhComponents = append(lhComponents, defaultcomponent)
 		}
