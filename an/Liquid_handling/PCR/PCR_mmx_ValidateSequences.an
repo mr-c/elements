@@ -1,9 +1,11 @@
 // Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.
-// Thermocycle conditions are calculated from the input sequences and polymerase name
+// Thermocycle conditions are calculated from the input sequences and polymerase name. 
+// Valid Polymerases for calculation of properties are "Q5Polymerase" and "Taq".
 protocol PCR_mmx_ValidateSequences
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -20,55 +22,120 @@ import (
 Parameters (
 	// PCRprep parameters:
 	ReactionName string
+	
+	// DNA sequence of template from which amplicon will be amplified
 	TemplateSequence wtype.DNASequence
+	
+	// Forward primer sequence
 	FwdPrimerSeq wtype.DNASequence
+	
+	// Reverse primer sequence
 	RevPrimerSeq wtype.DNASequence
 	
+	// Volume of mastermix to add to the reaction
 	MasterMixVolume Volume
+	
+	// Select this if the primers have already been added to the mastermix. 
+	// If this is selected no primers will be added to any reactions.
+	// Should only be used if all reactions share the same primers.
 	PrimersalreadyAddedtoMasterMix bool
+	
+	// Select this if the polymerase has already been added to the mastermix. 
 	PolymeraseAlreadyaddedtoMastermix bool
+	
+	// Volume of forward primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	FwdPrimerVol Volume
+	
+	// Volume of reverse primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	RevPrimerVol Volume
+	
+	// Volume of template to add
 	Templatevolume Volume
+	
+	// Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
 	PolymeraseVolume Volume
 
-	OptionalWellPosition string // Leave blank for Antha to decide
+	// Optionally specify a specific well position here or leave blank for Antha to decide
+	OptionalWellPosition string 
 	
 	// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
+	
 	NumberOfCycles int 
+	
+	// Initial denaturation time prior to starting cycles
 	InitDenaturationTime Time
+	
+	// Denaturation time per cycle
 	DenaturationTime Time
+	
+	// Annealing time per cycle
 	AnnealingTime Time
+	
+	// Time that extension conditions will be held for following completion of all cycles.
 	FinalExtensionTime Time
-	AnnealingTempOffset Temperature // degrees C below lowest MeltingTemp to set annealing Temperature.
+	
+	// Degrees C below lowest MeltingTemp to set annealing Temperature.
+	AnnealingTempOffset Temperature 
 )
 
 // Data which is returned from this protocol, and data types
 Data (
+	
+	// Sequence of the expected product of the PCR reaction
 	Amplicon wtype.DNASequence
+	
+	// All exact binding site of the fwd primer found in the template
 	FwdPrimerSites []search.Thingfound
+	
+	// All exact binding site of the rev primer found in the template
 	RevPrimerSites []search.Thingfound
+	
+	// Melting temperature calculated for the forward primer
 	FwdPrimerMeltingTemp Temperature
+	
+	// Melting temperature calculated for the reverse primer
 	RevPrimerMeltingTemp Temperature
+	
+	// Annealing temperature used based upon calculated primer melting temperatures and AnnealingTempOffset.
 	AnnealingTemp Temperature
+	
+	// Extension time calculated based upon Polymerase properties and length of amplicon
 	ExtensionTime Time
+	
+	// Extension time calculated based upon Polymerase properties
 	ExtensionTemp Temperature
+	
+	// Melting temperature calculated based on lowest of primer melting temperatures.
 	MeltingTemp Temperature
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
+	
+	// Actual FWD primer component to use. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	FwdPrimer *wtype.LHComponent
+	
+	// Actual REV primer component to use. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	RevPrimer *wtype.LHComponent
+	
+	// Actual Master mix to use
 	MasterMix *wtype.LHComponent
+	
+	// Valid options are Q5Polymerase and Taq. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
 	PCRPolymerase *wtype.LHComponent
+	
+	// Actual Template component to use
 	Template *wtype.LHComponent
+	
+	// Type of plate to set up reaction on. Recommended plate is pcrplate
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+	
+	// The output PCR reaction
 	Reaction *wtype.LHComponent
 )
 
@@ -88,7 +155,6 @@ Setup {
 Steps {
 		
 	// rename components
-
 	Template.CName = TemplateSequence.Name()
 	FwdPrimer.CName = FwdPrimerSeq.Name()
 	RevPrimer.CName = RevPrimerSeq.Name()
@@ -110,8 +176,6 @@ Steps {
 	Errorf(errordescription)	
 	}
 	
-	
-
 	fwdposition := FwdPrimerSites[0].Positions[0]
 	
 	revposition := RevPrimerSites[0].Positions[0]
@@ -127,25 +191,18 @@ Steps {
 		endposition = fwdposition
 	}
 	
-	
 	// work out what the pcr product will be
 	Amplicon = oligos.DNAregion(TemplateSequence,startposition,endposition)
 	
-	
-	
 	// Make a mastermix
-
 	mmxSample := mixer.Sample(MasterMix, MasterMixVolume)
-	
-	
+		
 	// pipette out to make mastermix
 	mastermix := MixInto(OutPlate, OptionalWellPosition, mmxSample)
 	
 	// rest samples to zero
 	samples := make([]*wtype.LHComponent, 0)
-	
-	// if this is false do stuff inside {}
-	
+		
 	// add primers
 	
 	if !PrimersalreadyAddedtoMasterMix {
@@ -154,12 +211,10 @@ Steps {
 	RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
 	samples = append(samples, RevPrimerSample)
 	}
-	
-	
+		
 	// add template
 	templateSample := mixer.Sample(Template, Templatevolume)
 	samples = append(samples, templateSample)
-
 	
 	for j := range samples { 
 	mastermix = Mix(mastermix, samples[j])
@@ -174,9 +229,7 @@ Steps {
 	}
 
 	// thermocycle parameters called from enzyme lookup:
-
 	polymerase := PCRPolymerase.CName
-
 
 	polymeraseproperties, polymerasefound := enzymes.DNApolymerasetemps[polymerase]
 	
@@ -186,18 +239,18 @@ Steps {
 			validoptions = append(validoptions,polymerasename)
 			}
 		
-		Errorf("No Properties for", polymerase, "found.", "Valid options are:",strings.Join(validoptions,","))
+		Errorf("No Properties for %s found. Valid options are: %s", polymerase, strings.Join(validoptions,","))
 	}
 
 	var found bool
 
 	ExtensionTemp, found = polymeraseproperties["extensiontemp"]
 	if !found{
-		Errorf("No extension temp found for polymerase ",polymerase )
+		Errorf("No extension temp found for polymerase %s",polymerase )
 	}
 	MeltingTemp, found = polymeraseproperties["meltingtemp"]
 	if !found{
-		Errorf("No melting temp found for polymerase ",polymerase )
+		Errorf("No melting temp found for polymerase %s",polymerase )
 	}
 
 	var err error
@@ -205,24 +258,21 @@ Steps {
 	ExtensionTime, err = enzymes.CalculateExtensionTime(PCRPolymerase, Amplicon) 
 	
 	if err != nil {
-		Errorf("Can't calculate extension time of polymerase.",  err.Error())
+		Errorf("Can't calculate extension time of polymerase: %s",  err.Error())
 	}
 
 
 	// work out annealing temperature
-	
 	FwdPrimerMeltingTemp = oligos.BasicMeltingTemp(FwdPrimerSeq)
 	
 	RevPrimerMeltingTemp = oligos.BasicMeltingTemp(RevPrimerSeq)
 
 	// check which primer has the lowest melting temperature
-	if FwdPrimerMeltingTemp.SIValue() < RevPrimerMeltingTemp.SIValue(){
-		// start PCR AnnealingTempOffset degrees below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(FwdPrimerMeltingTemp.SIValue()- AnnealingTempOffset.SIValue(),"C")
-	}else{
-		// start PCR AnnealingTempOffset degrees below lowest melting temp
-		AnnealingTemp = wunit.NewTemperature(RevPrimerMeltingTemp.SIValue()- AnnealingTempOffset.SIValue(),"C")
-	}
+	lowest := math.Min(FwdPrimerMeltingTemp.SIValue(),RevPrimerMeltingTemp.SIValue())
+	
+	// start PCR AnnealingTempOffset degrees below lowest melting temp
+	AnnealingTemp = wunit.NewTemperature(lowest - AnnealingTempOffset.SIValue(),"C")
+	
 
 	// initial Denaturation
 
