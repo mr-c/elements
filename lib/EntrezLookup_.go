@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -10,17 +11,19 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-// Valid Database list: http://www.ncbi.nlm.nih.gov/books/NBK25497/table/chapter2.T._entrez_unique_identifiers_ui/?report=objectonly
-
-// Valid ReturnType List: http://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/?report=objectonly
-
 // Input parameters for this protocol
 
 // e.g. "EF208560"
-// e.g. "nucleotide", "Protein", "Gene"
+
+// e.g. "nucleotide", "Protein", "Gene".
+// Valid Database list: http://www.ncbi.nlm.nih.gov/books/NBK25497/table/chapter2.T._entrez_unique_identifiers_ui/?report=objectonly
+
 // e.g. 1
-// e.g. "gb", "fasta"
-// e.g myproject/GFPReporter.gb. if Filename == "" no file will be generated
+
+// e.g. "gb", "fasta".
+// Valid ReturnType List: http://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/?report=objectonly
+
+// e.g myproject/GFPReporter.gb. if Filename == "" no file will be generated.
 
 // Data which is returned from this protocol
 
@@ -40,11 +43,22 @@ func _EntrezLookupSetup(_ctx context.Context, _input *EntrezLookupInput) {
 // Core process of the protocol: steps to be performed for each input
 func _EntrezLookupSteps(_ctx context.Context, _input *EntrezLookupInput, _output *EntrezLookupOutput) {
 
-	var output []byte
+	if _input.Filename == "" {
+		_input.Filename = _input.ID + "." + _input.ReturnType
+	}
 
-	_output.Filenameused, output, _output.Err = entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType, _input.Filename)
+	fmt.Println("Filename in .an file: ", _input.Filename)
+	filenameused, output, err := entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType, _input.Filename)
 
-	_output.Output = string(output)
+	if err != nil {
+		execute.Errorf(_ctx, "Error looking up record %s in entrez database %s: %s", _input.ID, _input.Database, err.Error())
+	}
+
+	_output.OutPutFile.WriteAll(output)
+
+	_output.OutPutFile.Name = filenameused
+
+	_output.Err = err
 }
 
 // Actions to perform after steps block to analyze data
@@ -112,16 +126,14 @@ type EntrezLookupInput struct {
 }
 
 type EntrezLookupOutput struct {
-	Err          error
-	Filenameused string
-	Output       string
+	Err        error
+	OutPutFile wtype.File
 }
 
 type EntrezLookupSOutput struct {
 	Data struct {
-		Err          error
-		Filenameused string
-		Output       string
+		Err        error
+		OutPutFile wtype.File
 	}
 	Outputs struct {
 	}
@@ -134,14 +146,13 @@ func init() {
 			Desc: "",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/EntrezLookup/EntrezLookup.an",
 			Params: []component.ParamDesc{
-				{Name: "Database", Desc: "e.g. \"nucleotide\", \"Protein\", \"Gene\"\n", Kind: "Parameters"},
-				{Name: "Filename", Desc: "e.g myproject/GFPReporter.gb. if Filename == \"\" no file will be generated\n", Kind: "Parameters"},
+				{Name: "Database", Desc: "e.g. \"nucleotide\", \"Protein\", \"Gene\".\nValid Database list: http://www.ncbi.nlm.nih.gov/books/NBK25497/table/chapter2.T._entrez_unique_identifiers_ui/?report=objectonly\n", Kind: "Parameters"},
+				{Name: "Filename", Desc: "e.g myproject/GFPReporter.gb. if Filename == \"\" no file will be generated.\n", Kind: "Parameters"},
 				{Name: "ID", Desc: "e.g. \"EF208560\"\n", Kind: "Parameters"},
 				{Name: "MaxReturns", Desc: "e.g. 1\n", Kind: "Parameters"},
-				{Name: "ReturnType", Desc: "e.g. \"gb\", \"fasta\"\n", Kind: "Parameters"},
+				{Name: "ReturnType", Desc: "e.g. \"gb\", \"fasta\".\nValid ReturnType List: http://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/?report=objectonly\n", Kind: "Parameters"},
 				{Name: "Err", Desc: "", Kind: "Data"},
-				{Name: "Filenameused", Desc: "", Kind: "Data"},
-				{Name: "Output", Desc: "", Kind: "Data"},
+				{Name: "OutPutFile", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
