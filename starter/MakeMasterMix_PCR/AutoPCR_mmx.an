@@ -8,14 +8,36 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Projectname string
-	Reactiontotemplate map[string]string // map of which reaction uses which template e.g. ["left homology arm"]:"templatename"
-	Reactiontoprimerpair map[string][2]string // map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer"
-	DefaultTemplateVol Volume // Volume of template in each reaction
-	DefaultBufferConcinX int // e.g. for  10X Q5 buffer this would be 10
+	
+	// map of which reaction uses which template e.g. ["left homology arm"]:"templatename".
+	// A "default" may also be specified which will be used for any reaction which has no entry specified.
+	Reactiontotemplate map[string]string 
+	
+	// map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer".
+	// A "default" may also be specified which will be used for any reaction which has no entry specified.
+	Reactiontoprimerpair map[string][2]string 
+	
+	// Volume of template in each reaction
+	DefaultTemplateVol Volume 
+	
+	// e.g. for  10X Q5 buffer this would be 10
+	DefaultBufferConcinX int 
+	
+	// Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	DefaultPrimerVolume Volume 
+	
+	// Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
 	DefaultPolymeraseVolume Volume
+	
+	// Volume of mastermix to add to the reaction.
 	DefaultMasterMixVolume Volume
+	
+	// Select this if the primers have already been added to the mastermix. 
+	// If this is selected no primers will be added to any reactions.
+	// Should only be used if all reactions share the same primers.
 	PrimersalreadyAddedtoMasterMix bool
+	
+	// Select this if the polymerase has already been added to the mastermix. 
 	PolymeraseAlreadyaddedtoMastermix bool
 )
 
@@ -27,17 +49,35 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
+	
+	// Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	FwdPrimertype *wtype.LHComponent
+	
+	// Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	RevPrimertype *wtype.LHComponent
+	
+	// Actual Template type to use. e.g. dna_part, culture
 	Templatetype *wtype.LHComponent
+	
+	// Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.
+	// This input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
 	DefaultPolymerase *wtype.LHComponent
+	
+	// Use the MasterMixMaker element to make the mastermix and wire it in here.
 	MasterMix *wtype.LHComponent
+	
+	// Type of plate to use for the reaction.
+	// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
+	// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
 	Plate *wtype.LHPlate	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+	// The PCR reaction products as a slice.
 	Reactions []*wtype.LHComponent
+	
+	// The PCR reaction products in the form of a map of components.
 	ReactionMap map[string]*wtype.LHComponent
 )
 
