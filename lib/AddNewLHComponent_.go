@@ -183,7 +183,7 @@ func init() {
 		Constructor: AddNewLHComponentNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol AddNewLHComponent allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AddNewLHComponent.an",
+			Path: "src/github.com/antha-lang/elements/starter/AddNewLHComponent.an",
 			Params: []component.ParamDesc{
 				{Name: "Name", Desc: "Name of new LHComponent, if empty defaults to TemplateComponent name\n", Kind: "Parameters"},
 				{Name: "StockConcentration", Desc: "Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration\n", Kind: "Parameters"},

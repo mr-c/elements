@@ -307,15 +307,20 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		_output.PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 }
@@ -395,11 +400,13 @@ type AssemblyStandard_siteremove_orfcheck_wtypeInput struct {
 }
 
 type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
+	AssembledSequenceFile wtype.File
 	Endreport             string
 	NewDNASequence        wtype.DNASequence
 	ORFmissing            bool
 	OriginalParts         []wtype.DNASequence
 	PartsAndVector        []wtype.DNASequence
+	PartsToOrderFile      wtype.File
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs    []wtype.DNASequence
 	PositionReport        []string
@@ -410,11 +417,13 @@ type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
 
 type AssemblyStandard_siteremove_orfcheck_wtypeSOutput struct {
 	Data struct {
+		AssembledSequenceFile wtype.File
 		Endreport             string
 		NewDNASequence        wtype.DNASequence
 		ORFmissing            bool
 		OriginalParts         []wtype.DNASequence
 		PartsAndVector        []wtype.DNASequence
+		PartsToOrderFile      wtype.File
 		PartsWithSitesRemoved []wtype.DNASequence
 		PartswithOverhangs    []wtype.DNASequence
 		PositionReport        []string
@@ -446,11 +455,13 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
 				{Name: "PartsAndVector", Desc: "parts to order + vector\n", Kind: "Data"},
+				{Name: "PartsToOrderFile", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PositionReport", Desc: "", Kind: "Data"},

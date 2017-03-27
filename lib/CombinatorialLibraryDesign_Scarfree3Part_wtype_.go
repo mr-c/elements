@@ -109,14 +109,14 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 		if _input.FolderPerProject {
 
 			// export simulated assembled sequences to file
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+			export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
 			// add fasta files of all parts with overhangs
 			labels := []string{"Device1", "Device2", "Device3"}
 			for j := range labels {
 				for i := range _output.Parts {
 					fmt.Println(i, len(labels), len(_output.Parts))
-					export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, labels[j]), _output.Parts[i])
+					export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, labels[j]), _output.Parts[i])
 				}
 			}
 		}

@@ -50,6 +50,8 @@ func _CombinatorialLibraryDesign_Scarfree3PartSteps(_ctx context.Context, _input
 	_output.PositionReportMap = make(map[string][]string)
 	_output.StatusMap = make(map[string]string)
 	_output.PrimerMap = make(map[string]oligos.Primer)
+	_output.AssembledSequenceFiles = make(map[string]wtype.File)
+	_output.PartsToOrder = make(map[string]wtype.File)
 
 	var counter int = 1
 
@@ -77,6 +79,8 @@ func _CombinatorialLibraryDesign_Scarfree3PartSteps(_ctx context.Context, _input
 					_output.PositionReportMap[key] = assembly.Data.PositionReport
 					_output.SeqsMap[key] = assembly.Data.NewDNASequence
 					_output.StatusMap[key] = assembly.Data.Status
+					_output.AssembledSequenceFiles[key] = assembly.Data.AssembledSequenceFile
+					_output.PartsToOrder[key] = assembly.Data.PartsToOrder
 
 					// for each vector we'll also design sequencing primers
 
@@ -172,24 +176,28 @@ type CombinatorialLibraryDesign_Scarfree3PartInput struct {
 }
 
 type CombinatorialLibraryDesign_Scarfree3PartOutput struct {
-	EndreportMap          map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence
-	PassMap               map[string]bool
-	PositionReportMap     map[string][]string
-	PrimerMap             map[string]oligos.Primer
-	SeqsMap               map[string]wtype.DNASequence
-	StatusMap             map[string]string
+	AssembledSequenceFiles map[string]wtype.File
+	EndreportMap           map[string]string
+	PartsToOrder           map[string]wtype.File
+	PartswithOverhangsMap  map[string][]wtype.DNASequence
+	PassMap                map[string]bool
+	PositionReportMap      map[string][]string
+	PrimerMap              map[string]oligos.Primer
+	SeqsMap                map[string]wtype.DNASequence
+	StatusMap              map[string]string
 }
 
 type CombinatorialLibraryDesign_Scarfree3PartSOutput struct {
 	Data struct {
-		EndreportMap          map[string]string
-		PartswithOverhangsMap map[string][]wtype.DNASequence
-		PassMap               map[string]bool
-		PositionReportMap     map[string][]string
-		PrimerMap             map[string]oligos.Primer
-		SeqsMap               map[string]wtype.DNASequence
-		StatusMap             map[string]string
+		AssembledSequenceFiles map[string]wtype.File
+		EndreportMap           map[string]string
+		PartsToOrder           map[string]wtype.File
+		PartswithOverhangsMap  map[string][]wtype.DNASequence
+		PassMap                map[string]bool
+		PositionReportMap      map[string][]string
+		PrimerMap              map[string]oligos.Primer
+		SeqsMap                map[string]wtype.DNASequence
+		StatusMap              map[string]string
 	}
 	Outputs struct {
 	}
@@ -211,7 +219,9 @@ func init() {
 				{Name: "ProjectName", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFiles", Desc: "", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PassMap", Desc: "", Kind: "Data"},
 				{Name: "PositionReportMap", Desc: "", Kind: "Data"},
