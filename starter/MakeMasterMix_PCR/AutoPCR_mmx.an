@@ -2,25 +2,21 @@
 protocol AutoPCR_mmx_multi
 
 import (
-"github.com/antha-lang/antha/antha/anthalib/wtype"
-//"github.com/antha-lang/antha/antha/anthalib/thermocycle"
-
-
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-// PCRprep parameters
-Projectname string
-Reactiontotemplate map[string]string // map of which reaction uses which template e.g. ["left homology arm"]:"templatename"
-Reactiontoprimerpair map[string][2]string // map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer"
-DefaultTemplateVol Volume // Volume of template in each reaction
-DefaultBufferConcinX int // e.g. for  10X Q5 buffer this would be 10
-DefaultPrimerVolume Volume 
-DefaultPolymeraseVolume Volume
-DefaultMasterMixVolume Volume
-PrimersalreadyAddedtoMasterMix bool
-PolymeraseAlreadyaddedtoMastermix bool
+	Projectname string
+	Reactiontotemplate map[string]string // map of which reaction uses which template e.g. ["left homology arm"]:"templatename"
+	Reactiontoprimerpair map[string][2]string // map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer"
+	DefaultTemplateVol Volume // Volume of template in each reaction
+	DefaultBufferConcinX int // e.g. for  10X Q5 buffer this would be 10
+	DefaultPrimerVolume Volume 
+	DefaultPolymeraseVolume Volume
+	DefaultMasterMixVolume Volume
+	PrimersalreadyAddedtoMasterMix bool
+	PolymeraseAlreadyaddedtoMastermix bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -31,18 +27,18 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-FwdPrimertype *wtype.LHComponent
-RevPrimertype *wtype.LHComponent
-Templatetype *wtype.LHComponent
-DefaultPolymerase *wtype.LHComponent
-MasterMix *wtype.LHComponent
-Plate *wtype.LHPlate
+	FwdPrimertype *wtype.LHComponent
+	RevPrimertype *wtype.LHComponent
+	Templatetype *wtype.LHComponent
+	DefaultPolymerase *wtype.LHComponent
+	MasterMix *wtype.LHComponent
+	Plate *wtype.LHPlate	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-Reactions []*wtype.LHComponent
-ReactionMap map[string]*wtype.LHComponent
+	Reactions []*wtype.LHComponent
+	ReactionMap map[string]*wtype.LHComponent
 )
 
 Requirements {
@@ -59,7 +55,6 @@ Steps {
 	// set up a counter to use as an index for increasing well position 
 	var counter int
 	
-	
 	// set up some empty slices to fill as we iterate through the reactions
 	Reactions = make([]*wtype.LHComponent,0)
 	volumes := make([]wunit.Volume,0)
@@ -67,9 +62,45 @@ Steps {
 	// initialise map
 	ReactionMap = make(map[string]*wtype.LHComponent)
 
- 	
-	for reactionname, templatename := range Reactiontotemplate {
+	// To allow the use of specifying defaults in either the template map or the primer map, 
+	// we first evaluate which map has more entries and make a slice of reactions to iterate through based on that.
+	var reactions []string 
 	
+	if len(Reactiontotemplate) >= len(Reactiontoprimerpair){
+		for reactionname, _ := range Reactiontotemplate {
+			reactions = append(reactions,reactionname)
+		}
+	}else {
+		for reactionname, _ := range Reactiontoprimerpair {
+			reactions = append(reactions,reactionname)
+		}
+	}
+ 	
+	for _, reactionname := range reactions {
+		
+		// look up template from map
+		var template string
+		
+		if templateName, found := Reactiontotemplate[reactionname]; found{
+			template = templateName
+		}else if templateName, found := Reactiontotemplate["default"]; found{
+			template = templateName	
+		}else{
+			Errorf(`No template set for %s and no "default" primers set`,reactionname)
+		}
+			
+		// look up primers from map
+		var fwdPrimer string
+		var revPrimer string
+		
+		if primers, found := Reactiontoprimerpair[reactionname]; found{
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		}else if primers, found := Reactiontoprimerpair["default"]; found{
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		}else{
+			Errorf(`No primers set for %s and no "default" primers set`,reactionname)
+		}
+			
 	// use counter to find next available well position in plate
 	
 	var allwellpositionsforplate []string 
@@ -77,19 +108,16 @@ Steps {
 	allwellpositionsforplate =  Plate.AllWellPositions(wtype.BYCOLUMN)
 	
 	wellposition := allwellpositionsforplate[counter]
-	
-	// handle to set up thermocycler
- 	//MasterMix = Handle(thermocycle.SetUp(MasterMix))
-	
+		
 	// Run PCR_vol element
 	result := RunSteps(PCR_vol_mmx,
         Parameters{
         	MasterMixVolume: DefaultMasterMixVolume,
 			PrimersalreadyAddedtoMasterMix: PrimersalreadyAddedtoMasterMix,
 			PolymeraseAlreadyaddedtoMastermix: PolymeraseAlreadyaddedtoMastermix,
-			FwdPrimerName: Reactiontoprimerpair[reactionname][0],
-			RevPrimerName: Reactiontoprimerpair[reactionname][1],
-			TemplateName: templatename,
+			FwdPrimerName: fwdPrimer,
+			RevPrimerName: revPrimer,
+			TemplateName: template,
 	 		ReactionName: reactionname,
 	          FwdPrimerVol: DefaultPrimerVolume,
 	          RevPrimerVol: DefaultPrimerVolume,
@@ -106,14 +134,10 @@ Steps {
      		}, Inputs{
           		FwdPrimer:FwdPrimertype,
           		RevPrimer: RevPrimertype,
-         
           		PCRPolymerase:DefaultPolymerase,
           		MasterMix: MasterMix,
-          	
           		Template: Templatetype,
-          
-          		OutPlate: Plate,
-                        
+          		OutPlate: Plate,              
                 })
 
 	// add result to reactions slice

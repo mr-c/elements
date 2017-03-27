@@ -14,8 +14,6 @@ import (
 
 // Input parameters for this protocol (data)
 
-// PCRprep parameters
-
 // map of which reaction uses which template e.g. ["left homology arm"]:"templatename"
 // map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer"
 // Volume of template in each reaction
@@ -50,7 +48,44 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 	// initialise map
 	_output.ReactionMap = make(map[string]*wtype.LHComponent)
 
-	for reactionname, templatename := range _input.Reactiontotemplate {
+	// To allow using defaults in either the template map or the primer map,
+	// evaluate which is longer and make a slice or reactions to range through
+	var reactions []string
+
+	if len(_input.Reactiontotemplate) >= len(_input.Reactiontoprimerpair) {
+		for reactionname := range _input.Reactiontotemplate {
+			reactions = append(reactions, reactionname)
+		}
+	} else {
+		for reactionname := range _input.Reactiontoprimerpair {
+			reactions = append(reactions, reactionname)
+		}
+	}
+
+	for _, reactionname := range reactions {
+
+		// look up template from map
+		var template string
+
+		if templateName, found := _input.Reactiontotemplate[reactionname]; found {
+			template = templateName
+		} else if templateName, found := _input.Reactiontotemplate["default"]; found {
+			template = templateName
+		} else {
+			execute.Errorf(_ctx, `No template set for %s and no "default" primers set`, reactionname)
+		}
+
+		// look up primers from map
+		var fwdPrimer string
+		var revPrimer string
+
+		if primers, found := _input.Reactiontoprimerpair[reactionname]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else if primers, found := _input.Reactiontoprimerpair["default"]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else {
+			execute.Errorf(_ctx, `No primers set for %s and no "default" primers set`, reactionname)
+		}
 
 		// use counter to find next available well position in plate
 
@@ -67,9 +102,9 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 		result := PCR_vol_mmxRunSteps(_ctx, &PCR_vol_mmxInput{MasterMixVolume: _input.DefaultMasterMixVolume,
 			PrimersalreadyAddedtoMasterMix:    _input.PrimersalreadyAddedtoMasterMix,
 			PolymeraseAlreadyaddedtoMastermix: _input.PolymeraseAlreadyaddedtoMastermix,
-			FwdPrimerName:                     _input.Reactiontoprimerpair[reactionname][0],
-			RevPrimerName:                     _input.Reactiontoprimerpair[reactionname][1],
-			TemplateName:                      templatename,
+			FwdPrimerName:                     fwdPrimer,
+			RevPrimerName:                     revPrimer,
+			TemplateName:                      template,
 			ReactionName:                      reactionname,
 			FwdPrimerVol:                      _input.DefaultPrimerVolume,
 			RevPrimerVol:                      _input.DefaultPrimerVolume,
@@ -84,15 +119,12 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 			Finalextensiontime:                wunit.NewTime(180, "s"),
 			WellPosition:                      wellposition,
 
-			FwdPrimer: _input.FwdPrimertype,
-			RevPrimer: _input.RevPrimertype,
-
+			FwdPrimer:     _input.FwdPrimertype,
+			RevPrimer:     _input.RevPrimertype,
 			PCRPolymerase: _input.DefaultPolymerase,
 			MasterMix:     _input.MasterMix,
-
-			Template: _input.Templatetype,
-
-			OutPlate: _input.Plate},
+			Template:      _input.Templatetype,
+			OutPlate:      _input.Plate},
 		)
 
 		// add result to reactions slice
@@ -222,7 +254,7 @@ func init() {
 				{Name: "Plate", Desc: "", Kind: "Inputs"},
 				{Name: "PolymeraseAlreadyaddedtoMastermix", Desc: "", Kind: "Parameters"},
 				{Name: "PrimersalreadyAddedtoMasterMix", Desc: "", Kind: "Parameters"},
-				{Name: "Projectname", Desc: "PCRprep parameters\n", Kind: "Parameters"},
+				{Name: "Projectname", Desc: "", Kind: "Parameters"},
 				{Name: "Reactiontoprimerpair", Desc: "map of which reaction uses which primer pair e.g. [\"left homology arm\"]:\"fwdprimer\",\"revprimer\"\n", Kind: "Parameters"},
 				{Name: "Reactiontotemplate", Desc: "map of which reaction uses which template e.g. [\"left homology arm\"]:\"templatename\"\n", Kind: "Parameters"},
 				{Name: "RevPrimertype", Desc: "", Kind: "Inputs"},
