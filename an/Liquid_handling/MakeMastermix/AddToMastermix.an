@@ -1,10 +1,12 @@
-// Adds a list of components to a mastermix 
+// Adds a list of components to a mastermix.
 // Volumes of each component are specified by a map. 
-// A default volume may be specified which applies to all which are not present explicitely in the map
+// A default volume may be specified which applies to all which are not present explicitely in the map.
+// 20% extra volume is made up to ensure sufficient volume is made i.e. accounting for dead volumes etc.
 protocol AddToMastermix
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
@@ -65,6 +67,21 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * 1.2
+	
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	roundedUpReactions := roundedReactions + 1
+	
+	if roundedUpReactions <= Reactionspermastermix  {
+		Reactionspermastermix = Reactionspermastermix + 1
+	}
 	
 		// if no components to add, return original component in as output
 		if len(ComponentsToAdd)==0{
@@ -134,6 +151,7 @@ Steps {
 		
 		// multiply volume of each component by number of reactions per mastermix
 		adjustedvol := wunit.MultiplyVolume(volToUse,float64(Reactionspermastermix))
+		
 			
 		componentSample := mixer.Sample(component,adjustedvol)
 		
