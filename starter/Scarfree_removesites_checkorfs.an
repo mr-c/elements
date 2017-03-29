@@ -55,6 +55,7 @@ Data (
 	PartsWithSitesRemoved []wtype.DNASequence
 	OriginalParts []wtype.DNASequence 
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	Insert wtype.DNASequence
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
@@ -285,6 +286,13 @@ Steps {
 	
 	if simerr != nil {
 		warnings = append(warnings, text.Print("Error", simerr.Error()))
+	}
+	
+	Insert, err = assembly.Insert()
+	
+	if err != nil {
+		
+		Errorf("Error calculating insert: %s ",err.Error())
 	}
 
 	Plasmid, ORIpresent, SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
