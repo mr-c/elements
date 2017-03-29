@@ -17,13 +17,11 @@ Parameters (
 	
 	// Stock concentration being used, 
 	// if empty this defaults to TemplateComponent concentration, 
-	// if only 1 entry, the entry for that will be used as a default for all
 	// if a "default" is specified then that will be used as the default for all entries with no value
 	// if there is no concentration associated with TemplateComponent and no default is specified, no concentration is set
 	StockConcentrations map[string]Concentration 
 	
 	// If empty this defaults to LHPolicy of TemplateComponent LHComponent, 
-	// if only 1 entry this policy is used for all
 	// if a "default" is specified this policy is used for all entries with no value
 	UseLHPolicy map[string]string 
 )
@@ -76,7 +74,7 @@ Steps {
 	if _, found := TemplateComponents["default"];found{
 		defaultTemplate = TemplateComponents["default"]
 	}else if len(TemplateComponents)==0{
-		Errorf("No template components specified or default component")
+		Errorf("No template components specified. Please specify at least a default to use as template for all components")
 	}
 	
 	// if the length of the map is 1 this lhpolicy will be used for all components

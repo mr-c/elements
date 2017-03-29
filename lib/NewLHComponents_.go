@@ -72,7 +72,7 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 	if _, found := _input.TemplateComponents["default"]; found {
 		defaultTemplate = _input.TemplateComponents["default"]
 	} else if len(_input.TemplateComponents) == 0 {
-		execute.Errorf(_ctx, "No template components specified or default component")
+		execute.Errorf(_ctx, "No template components specified. Please specify at least a default to use as template for all components")
 	}
 
 	// if the length of the map is 1 this lhpolicy will be used for all components
