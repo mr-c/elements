@@ -69,6 +69,8 @@ func _AddToMastermixSteps(_ctx context.Context, _input *AddToMastermixInput, _ou
 
 	if roundedUpReactions <= _input.Reactionspermastermix {
 		_input.Reactionspermastermix = _input.Reactionspermastermix + 1
+	} else {
+		_input.Reactionspermastermix = roundedUpReactions
 	}
 
 	// if no components to add, return original component in as output

@@ -81,6 +81,8 @@ Steps {
 	
 	if roundedUpReactions <= Reactionspermastermix  {
 		Reactionspermastermix = Reactionspermastermix + 1
+	}else {
+		Reactionspermastermix = roundedUpReactions
 	}
 	
 		// if no components to add, return original component in as output
