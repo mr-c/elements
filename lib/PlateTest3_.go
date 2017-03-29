@@ -322,7 +322,7 @@ func init() {
 		Constructor: PlateTest3New,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to allow for rapid combinatorial testing of plate, liquid class combinations.\nAllows testing of effect of liquid handling changes such as offsets and liquid class changes\nIntended to be run prior to any liquid handling change before accepting pull requests.\nThe element creates an output csv file which can be filled in by the user to log observed offsets\nfor each condition\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/PlateHeightTest3.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/PlateHeightTest/PlateHeightTest3.an",
 			Params: []component.ParamDesc{
 				{Name: "LiquidTypes", Desc: "corresponding to valid antha liquid types\n", Kind: "Parameters"},
 				{Name: "LiquidVolumes", Desc: "List of volumes to test\n", Kind: "Parameters"},
