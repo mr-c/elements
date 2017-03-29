@@ -188,7 +188,7 @@ func init() {
 		Constructor: TransformationEfficiencyNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol TransformationEfficiency calculates transformation efficiency based on colony count and transformation parameters.\n",
-			Path: "src/github.com/antha-lang/elements/an/TransformationEfficiency/TransformationEfficiency.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/TransformationEfficiency/TransformationEfficiency.an",
 			Params: []component.ParamDesc{
 				{Name: "ColonyCount", Desc: "", Kind: "Parameters"},
 				{Name: "ControlColonyCount", Desc: "", Kind: "Parameters"},
