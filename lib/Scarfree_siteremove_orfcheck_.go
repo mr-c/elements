@@ -258,6 +258,13 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 		warnings = append(warnings, text.Print("Error", simerr.Error()))
 	}
 
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+
+		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+	}
+
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
 
 	if err != nil {
@@ -454,6 +461,7 @@ type Scarfree_siteremove_orfcheckInput struct {
 type Scarfree_siteremove_orfcheckOutput struct {
 	AssembledSequenceFile  wtype.File
 	Endreport              string
+	Insert                 wtype.DNASequence
 	NewDNASequence         wtype.DNASequence
 	ORFmissing             bool
 	ORIpresent             bool
@@ -473,6 +481,7 @@ type Scarfree_siteremove_orfcheckSOutput struct {
 	Data struct {
 		AssembledSequenceFile  wtype.File
 		Endreport              string
+		Insert                 wtype.DNASequence
 		NewDNASequence         wtype.DNASequence
 		ORFmissing             bool
 		ORIpresent             bool
@@ -510,6 +519,7 @@ func init() {
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
