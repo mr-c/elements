@@ -177,7 +177,7 @@ func init() {
 		Constructor: ParsePlateNew,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol for parsing the contents of a plate from a csv file\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/ParsePlate.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/ParsePlate/ParsePlate.an",
 			Params: []component.ParamDesc{
 				{Name: "InputCSVfile", Desc: "", Kind: "Parameters"},
 				{Name: "AllComponents", Desc: "Gel\n", Kind: "Outputs"},

@@ -185,7 +185,7 @@ func init() {
 		Constructor: PipetteImage_fromPaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of colours\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage_fromPalette.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/PipetteImage_fromPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ColourIndextoComponentMap", Desc: "", Kind: "Parameters"},
