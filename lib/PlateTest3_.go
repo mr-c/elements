@@ -7,8 +7,8 @@ package lib
 
 import (
 	"context"
-	"encoding/csv"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -18,7 +18,6 @@ import (
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
-	"os"
 	"time"
 )
 
@@ -60,13 +59,6 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 		_input.TestName = _input.TestName + fmt.Sprint(time.Now().Format("20060102150405"))
 	}
 	outputfilename := _input.TestName + ".csv"
-
-	csvfile, err := os.Create(outputfilename)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
-
-	defer csvfile.Close()
 
 	records := make([][]string, 0)
 
@@ -169,14 +161,7 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 
 				plateheight := lhplate.Height
 				zstart := lhplate.WellZStart
-				/*
-					Height float64
-					WellXOffset float64            // distance (mm) between well centres in X direction
-					WellYOffset float64            // distance (mm) between well centres in Y direction
-					WellXStart  float64            // offset (mm) to first well in X direction
-					WellYStart  float64            // offset (mm) to first well in Y direction
-					WellZStart  float64            // offset (mm) to bottom of well in Z direction
-				*/
+
 				// get lhpolicyinfo
 
 				// print out LHPolicy info
@@ -216,17 +201,11 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 		}
 	}
 
-	csvwriter := csv.NewWriter(csvfile)
+	_output.Report, err = export.CSV(records, outputfilename)
 
-	for _, record := range records {
-
-		err = csvwriter.Write(record)
-
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	if err != nil {
+		execute.Errorf(_ctx, "Error writing csv to file: %s", err.Error())
 	}
-	csvwriter.Flush()
 
 }
 
@@ -302,6 +281,7 @@ type PlateTest3Input struct {
 type PlateTest3Output struct {
 	FinalSolutions                []*wtype.LHComponent
 	PlatesUsedPostRunPerPlateType []int
+	Report                        wtype.File
 	Status                        string
 	WellsUsedPostRunPerPlate      []int
 }
@@ -309,6 +289,7 @@ type PlateTest3Output struct {
 type PlateTest3SOutput struct {
 	Data struct {
 		PlatesUsedPostRunPerPlateType []int
+		Report                        wtype.File
 		Status                        string
 		WellsUsedPostRunPerPlate      []int
 	}
@@ -333,6 +314,7 @@ func init() {
 				{Name: "WellsUsedperOutPlateInorder", Desc: "optional slice of ints which should match the length and order of the OutPlates slice\n", Kind: "Parameters"},
 				{Name: "FinalSolutions", Desc: "", Kind: "Outputs"},
 				{Name: "PlatesUsedPostRunPerPlateType", Desc: "", Kind: "Data"},
+				{Name: "Report", Desc: "", Kind: "Data"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 				{Name: "WellsUsedPostRunPerPlate", Desc: "", Kind: "Data"},
 			},
