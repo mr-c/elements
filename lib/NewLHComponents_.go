@@ -40,7 +40,6 @@ import
 // Physical inputs to this protocol
 
 // This TemplateComponent must be specified in the parameters file or the element will have a run time error,
-// if length 1, the same template is used for all
 // if "default" is specified that will be used as default for all entries with no value
 
 // Physical outputs to this protocol
@@ -70,24 +69,20 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 	// if empty the protocol will terminate with an error
 	var defaultTemplate *wtype.LHComponent
 
-	if len(_input.TemplateComponents) == 1 {
-		for _, v := range _input.TemplateComponents {
-			defaultTemplate = v
-		}
-	} else if _, found := _input.TemplateComponents["default"]; found {
+	if _, found := _input.TemplateComponents["default"]; found {
 		defaultTemplate = _input.TemplateComponents["default"]
 	} else if len(_input.TemplateComponents) == 0 {
-		execute.Errorf(_ctx, "No template components specified")
+		execute.Errorf(_ctx, "No template components specified or default component")
 	}
 
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
 	var defaultLHPolicy string
 
-	if len(_input.UseLHPolicy) == 1 {
-		for _, v := range _input.UseLHPolicy {
-			defaultLHPolicy = v
-		}
+	if policy, found := _input.UseLHPolicy["default"]; found {
+		defaultLHPolicy = policy
+	} else {
+		defaultLHPolicy = ""
 	}
 
 	// initialise map for appending with results
@@ -108,7 +103,7 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 			status = "No concentration specified for " + name + "; "
 		}
 
-		// check if a template component is specified
+		// check if a template component is specified  otherwise use default template
 		if template, found = _input.TemplateComponents[name]; !found {
 			template = factory.GetComponentByType(defaultTemplate.CName)
 			status = status + "No template specified so using default " + defaultTemplate.CName + "; "
@@ -228,7 +223,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "Names", Desc: "list of desired names for new LHComponents, if empty returns an error\n", Kind: "Parameters"},
 				{Name: "StockConcentrations", Desc: "Stock concentration being used,\nif empty this defaults to TemplateComponent concentration,\nif only 1 entry, the entry for that will be used as a default for all\nif a \"default\" is specified then that will be used as the default for all entries with no value\nif there is no concentration associated with TemplateComponent and no default is specified, no concentration is set\n", Kind: "Parameters"},
-				{Name: "TemplateComponents", Desc: "This TemplateComponent must be specified in the parameters file or the element will have a run time error,\nif length 1, the same template is used for all\nif \"default\" is specified that will be used as default for all entries with no value\n", Kind: "Inputs"},
+				{Name: "TemplateComponents", Desc: "This TemplateComponent must be specified in the parameters file or the element will have a run time error,\nif \"default\" is specified that will be used as default for all entries with no value\n", Kind: "Inputs"},
 				{Name: "UseLHPolicy", Desc: "If empty this defaults to LHPolicy of TemplateComponent LHComponent,\nif only 1 entry this policy is used for all\nif a \"default\" is specified this policy is used for all entries with no value\n", Kind: "Parameters"},
 				{Name: "NewLHComponentNames", Desc: "Outputs the NewLHComponent names\n", Kind: "Data"},
 				{Name: "NewLHComponents", Desc: "This is the list of NewLHComponents output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},

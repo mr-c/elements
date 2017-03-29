@@ -39,7 +39,6 @@ Data (
 // Physical inputs to this protocol
 Inputs (
 	// This TemplateComponent must be specified in the parameters file or the element will have a run time error, 
-	// if length 1, the same template is used for all
 	// if "default" is specified that will be used as default for all entries with no value
 	TemplateComponents map[string]*wtype.LHComponent 
 )
@@ -74,24 +73,20 @@ Steps {
 	// if empty the protocol will terminate with an error
 	var defaultTemplate *wtype.LHComponent
 	
-	if len(TemplateComponents)==1{
-		for _,v := range TemplateComponents{
-			defaultTemplate = v
-		}
-	}else if _, found := TemplateComponents["default"];found{
+	if _, found := TemplateComponents["default"];found{
 		defaultTemplate = TemplateComponents["default"]
 	}else if len(TemplateComponents)==0{
-		Errorf("No template components specified")
+		Errorf("No template components specified or default component")
 	}
 	
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
 	var defaultLHPolicy string
 	
-	if len(UseLHPolicy)==1{
-		for _,v := range UseLHPolicy{
-			defaultLHPolicy = v
-		}
+	if policy,found := UseLHPolicy["default"];found{
+			defaultLHPolicy = policy
+	}else{
+		defaultLHPolicy = ""
 	}
 	
 	// initialise map for appending with results
@@ -112,7 +107,7 @@ Steps {
 			status = "No concentration specified for " + name + "; "
 		}
 		
-		// check if a template component is specified 
+		// check if a template component is specified  otherwise use default template
 		if template, found = TemplateComponents[name];!found{
 			template = factory.GetComponentByType(defaultTemplate.CName)
 			status = status + "No template specified so using default " + defaultTemplate.CName + "; "
