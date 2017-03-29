@@ -251,7 +251,7 @@ func init() {
 		Constructor: AddToMastermixNew,
 		Desc: component.ComponentDesc{
 			Desc: "Adds a list of components to a mastermix.\nVolumes of each component are specified by a map.\nA default volume may be specified which applies to all which are not present explicitely in the map.\n20% extra volume is made up to ensure sufficient volume is made i.e. accounting for dead volumes etc.\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/AddToMastermix.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/AddToMasterMix/AddToMastermix.an",
 			Params: []component.ParamDesc{
 				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
 				{Name: "ComponentIn", Desc: "The component to add all new components to.\n", Kind: "Inputs"},
