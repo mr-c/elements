@@ -65,6 +65,8 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 
 	if roundedUpReactions <= _input.Reactionspermastermix {
 		_input.Reactionspermastermix = _input.Reactionspermastermix + 1
+	} else {
+		_input.Reactionspermastermix = roundedUpReactions
 	}
 
 	var mastermix *wtype.LHComponent
