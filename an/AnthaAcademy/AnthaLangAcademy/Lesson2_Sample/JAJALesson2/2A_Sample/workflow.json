@@ -1,7 +1,7 @@
 {
   "processes": {
     "MyFirstProtocol": {
-      "component": "Sample"
+      "component": "SampleA"
     }
   }
 }
