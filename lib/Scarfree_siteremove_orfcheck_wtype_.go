@@ -38,6 +38,7 @@ import (
 // parts + vector
 
 // desired sequence to end up with after assembly
+// sequence of the assembled insert. Useful for sequencing validation and Primer design
 
 // Input Requirement specification
 func _Scarfree_siteremove_orfcheck_wtypeRequirements() {
@@ -183,6 +184,13 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		warnings = append(warnings, fmt.Sprint("Error", simerr.Error()))
 	}
 
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+
+		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+	}
+
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
 
 	if err != nil {
@@ -295,15 +303,20 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 }
@@ -380,12 +393,15 @@ type Scarfree_siteremove_orfcheck_wtypeInput struct {
 }
 
 type Scarfree_siteremove_orfcheck_wtypeOutput struct {
+	AssembledSequenceFile  wtype.File
 	Endreport              string
+	Insert                 wtype.DNASequence
 	NewDNASequence         wtype.DNASequence
 	ORFmissing             bool
 	ORIpresent             bool
 	OriginalParts          []wtype.DNASequence
 	PartsAndVector         []wtype.DNASequence
+	PartsToOrder           wtype.File
 	PartsWithSitesRemoved  []wtype.DNASequence
 	PartswithOverhangs     []wtype.DNASequence
 	Plasmid                bool
@@ -398,12 +414,15 @@ type Scarfree_siteremove_orfcheck_wtypeOutput struct {
 
 type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
 	Data struct {
+		AssembledSequenceFile  wtype.File
 		Endreport              string
+		Insert                 wtype.DNASequence
 		NewDNASequence         wtype.DNASequence
 		ORFmissing             bool
 		ORIpresent             bool
 		OriginalParts          []wtype.DNASequence
 		PartsAndVector         []wtype.DNASequence
+		PartsToOrder           wtype.File
 		PartsWithSitesRemoved  []wtype.DNASequence
 		PartswithOverhangs     []wtype.DNASequence
 		Plasmid                bool
@@ -434,12 +453,15 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "sequence of the assembled insert. Useful for sequencing validation and Primer design\n", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
 				{Name: "PartsAndVector", Desc: "parts + vector\n", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "Plasmid", Desc: "", Kind: "Data"},

@@ -45,6 +45,7 @@ import (
 // parts to order
 // parts to order + vector
 // desired sequence to end up with after assembly
+// sequence of the assembled insert. Useful for sequencing validation and Primer design
 
 // Input Requirement specification
 func _AssemblyStandard_siteremove_orfcheck_wtypeRequirements() {
@@ -196,6 +197,13 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
+	}
+
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+
+		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
 	}
 
 	// export parts + vector as one array
@@ -402,6 +410,7 @@ type AssemblyStandard_siteremove_orfcheck_wtypeInput struct {
 type AssemblyStandard_siteremove_orfcheck_wtypeOutput struct {
 	AssembledSequenceFile wtype.File
 	Endreport             string
+	Insert                wtype.DNASequence
 	NewDNASequence        wtype.DNASequence
 	ORFmissing            bool
 	OriginalParts         []wtype.DNASequence
@@ -419,6 +428,7 @@ type AssemblyStandard_siteremove_orfcheck_wtypeSOutput struct {
 	Data struct {
 		AssembledSequenceFile wtype.File
 		Endreport             string
+		Insert                wtype.DNASequence
 		NewDNASequence        wtype.DNASequence
 		ORFmissing            bool
 		OriginalParts         []wtype.DNASequence
@@ -457,6 +467,7 @@ func init() {
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "sequence of the assembled insert. Useful for sequencing validation and Primer design\n", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},

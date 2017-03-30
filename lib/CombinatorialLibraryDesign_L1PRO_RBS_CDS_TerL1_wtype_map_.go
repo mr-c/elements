@@ -103,8 +103,8 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 							Minlength:                                12,
 							Maxlength:                                30,
 							Seqstoavoid:                              []string{},
-							PermittednucleotideOverlapBetweenPrimers: 10,                                     // number of nucleotides which primers can overlap by
-							RegionSequence:                           assembly.Data.PartsWithSitesRemoved[0], // first part
+							PermittednucleotideOverlapBetweenPrimers: 10,                   // number of nucleotides which primers can overlap by
+							RegionSequence:                           assembly.Data.Insert, // first part
 							FlankTargetSequence:                      true},
 						)
 

@@ -52,12 +52,15 @@ Data (
  	PartsAndVector []wtype.DNASequence// parts + vector 
 	OriginalParts []wtype.DNASequence 
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	Insert wtype.DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
 	Plasmid bool
 	ORIpresent bool
 	SelectionMarkerPresent bool
+	AssembledSequenceFile wtype.File
+	PartsToOrder File
 	
 )
 // Input Requirement specification
@@ -204,6 +207,13 @@ Steps {
 	if simerr != nil {
 		warnings = append(warnings, fmt.Sprint("Error", simerr.Error()))
 	}
+	
+	Insert, err = assembly.Insert()
+	
+	if err != nil {
+		
+		Errorf("Error calculating insert: %s ",err.Error())
+	}
 
 	Plasmid, ORIpresent, SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
 	
@@ -317,15 +327,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.FastaSerial(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
-		
+		AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL,Constructname+"_AssemblyProduct", exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.FastaSerial(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		PartsToOrder, _, err = export.FastaSerial(export.LOCAL,Constructname+"_Parts", exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	
