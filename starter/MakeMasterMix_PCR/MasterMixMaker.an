@@ -79,6 +79,8 @@ Steps {
 	
 	if roundedUpReactions <= Reactionspermastermix  {
 		Reactionspermastermix = Reactionspermastermix + 1
+	}else {
+		Reactionspermastermix = roundedUpReactions
 	}
 	
 	

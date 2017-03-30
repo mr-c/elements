@@ -300,7 +300,7 @@ func init() {
 		Constructor: CombinatorialLibraryDesign_Scarfree3Part_wtypeNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.\nOverhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme.\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialLibraryDesign_Scarfree_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/scarfree/CombinatorialLibraryDesign_Scarfree_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "EndsAlreadyadded", Desc: "", Kind: "Parameters"},

@@ -450,7 +450,7 @@ func init() {
 		Constructor: AssemblyStandard_siteremove_orfcheck_wtypeNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/AssemblyStandard_removesites_checkorfs_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/MoClo/AssemblyStandard_removesites_checkorfs_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "AssemblyStandard", Desc: "MoClo\n", Kind: "Parameters"},
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
