@@ -201,7 +201,7 @@ func init() {
 		Constructor: FindValidTypeIIsEnzymeNew,
 		Desc: component.ComponentDesc{
 			Desc: "The protocol is intended to return a list of valid TypeIIs enzymes which are compatible with a set of sequences and optionally the vector sequence.\nA list of ApprovedEnzymes enzymes can be specified. If no enzyme\nfrom the list is feasible to use (i.e. due to the presence of existing restriction sites in a part)\nall typeIIs enzymes will be screened to find feasible backup options.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/FindValidTypeIIsEnzyme.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/FindValidTypeIIsEnzyme/FindValidTypeIIsEnzyme.an",
 			Params: []component.ParamDesc{
 				{Name: "ApprovedEnzymes", Desc: "list preferred enzyme names\n", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},
