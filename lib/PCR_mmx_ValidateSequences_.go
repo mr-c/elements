@@ -374,7 +374,7 @@ func init() {
 		Constructor: PCR_mmx_ValidateSequencesNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform a single pcr reaction per element and validate that the primers will be expected to bind once each to the template sequence. Exact primer matches only.\nThermocycle conditions are calculated from the input sequences and polymerase name.\nValid Polymerases for calculation of properties are \"Q5Polymerase\" and \"Taq\".\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/PCR_mmx_ValidateSequences.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/ValidateSequences/PCR_mmx_ValidateSequences.an",
 			Params: []component.ParamDesc{
 				{Name: "AnnealingTempOffset", Desc: "Degrees C below lowest MeltingTemp to set annealing Temperature.\n", Kind: "Parameters"},
 				{Name: "AnnealingTime", Desc: "Annealing time per cycle\n", Kind: "Parameters"},

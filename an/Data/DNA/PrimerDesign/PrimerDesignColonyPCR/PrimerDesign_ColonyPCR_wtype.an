@@ -10,8 +10,9 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+
 )
 // Input parameters for this protocol
 Parameters (
@@ -29,8 +30,16 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	FWDPrimer oligos.Primer // this needs to be changed to PrimerPair [2]oligo.Primer
+	FWDPrimer oligos.Primer 
+	
 	REVPrimer oligos.Primer
+	
+	// All exact binding site of the fwd primer found in the template
+	FwdPrimerSites []search.Thingfound
+	
+	// All exact binding site of the rev primer found in the template
+	RevPrimerSites []search.Thingfound
+	
 	Warnings error
 )
 
@@ -104,7 +113,22 @@ Steps {
 	
 	fmt.Println(text.Print("REVPrimer:",REVPrimer))
 	
+	// check for non-specific binding. Exact matches only.
+	FwdPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{FWDPrimer.Sequence()})
 	
+	RevPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{REVPrimer.Sequence()})
+
+	
+	if len(FwdPrimerSites)!=1 || len(RevPrimerSites)!=1{
+	
+	errordescription := fmt.Sprint(
+						fmt.Sprint("Unexpected number of primer binding sites found in template"),
+						text.Print("FwdPrimerSitesfound:", fmt.Sprint(FwdPrimerSites)),
+						text.Print("RevPrimerSitesfound:", fmt.Sprint(RevPrimerSites)),
+	)
+	
+	Warnings = fmt.Errorf(errordescription)
+	}
 
 }
 
