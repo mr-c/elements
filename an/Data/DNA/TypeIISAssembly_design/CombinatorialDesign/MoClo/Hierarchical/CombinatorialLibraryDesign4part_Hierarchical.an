@@ -185,7 +185,7 @@ Steps {
 				Maxlength:  30, 
 				Seqstoavoid: []string{},
 				PermittednucleotideOverlapBetweenPrimers: 10, // number of nucleotides which primers can overlap by
-				RegionSequence: assembly.Data.PartsWithSitesRemoved[0], // first part
+				RegionSequence: assembly.Data.Insert, // first part
 				FlankTargetSequence:true,
 	}, Inputs{
                     
