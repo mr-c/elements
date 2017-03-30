@@ -12,8 +12,7 @@ import (
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"encoding/csv"
-	"os"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"time"
 
 )
@@ -34,6 +33,7 @@ Data (
 	Status string
 	WellsUsedPostRunPerPlate []int
 	PlatesUsedPostRunPerPlateType []int
+	Report wtype.File
 )
 
 
@@ -46,7 +46,6 @@ Inputs (
 // Physical outputs from this protocol with types
 Outputs (
 	FinalSolutions []*wtype.LHComponent
-	
 )
 
 Requirements {
@@ -73,13 +72,6 @@ Steps {
 	TestName = TestName +fmt.Sprint(time.Now().Format("20060102150405"))
 	}
 	outputfilename := TestName+".csv"
-	
-	csvfile, err := os.Create(outputfilename)
-	if err != nil {
-		Errorf(err.Error())
-	}
-	
-	defer csvfile.Close()
 	
 	records := make([][]string,0)
 	
@@ -183,14 +175,7 @@ Steps {
 	
 			plateheight := lhplate.Height
 			zstart := lhplate.WellZStart
-	/*
-	Height float64
-	WellXOffset float64            // distance (mm) between well centres in X direction
-	WellYOffset float64            // distance (mm) between well centres in Y direction
-	WellXStart  float64            // offset (mm) to first well in X direction
-	WellYStart  float64            // offset (mm) to first well in Y direction
-	WellZStart  float64            // offset (mm) to bottom of well in Z direction
-	*/ 
+
 			// get lhpolicyinfo
 			
 			// print out LHPolicy info
@@ -199,8 +184,7 @@ Steps {
 			if !ok {
 				Errorf(fmt.Sprint("Liquid type, ",LiquidTypes[i], "not found"))
 			}
-			
-			
+				
 			aspz := policy["ASPZOFFSET"]
 			dspz := policy["DSPZOFFSET"]
 			
@@ -231,21 +215,11 @@ Steps {
 		}
 	}
 	
+	Report, err = export.CSV(records, outputfilename)
 
-	csvwriter := csv.NewWriter(csvfile)
-
-	for _, record := range records {
-
-		err = csvwriter.Write(record)
-
-		if err != nil {
-			Errorf(err.Error())
-		}
+	if err != nil {
+		Errorf("Error writing csv to file: %s", err.Error())
 	}
-	csvwriter.Flush()
-
-
-
 	
 	
 }

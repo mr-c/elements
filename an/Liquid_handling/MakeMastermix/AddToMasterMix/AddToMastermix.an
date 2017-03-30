@@ -1,10 +1,12 @@
-// Adds a list of components to a mastermix 
+// Adds a list of components to a mastermix.
 // Volumes of each component are specified by a map. 
-// A default volume may be specified which applies to all which are not present explicitely in the map
+// A default volume may be specified which applies to all which are not present explicitely in the map.
+// 20% extra volume is made up to ensure sufficient volume is made i.e. accounting for dead volumes etc.
 protocol AddToMastermix
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
@@ -13,12 +15,26 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	// Specify volume per component name or specify a "default" to apply to all
+	// Specify volume per component name per reaction or specify a "default" to apply to all.
+	// The actual volume added will be multiplied by the number of Reactionspermastermix
 	VolumesToAdd 			map[string]Volume 
-	ComponentsToAdd 			[]string
+	
+	// List of names of components to be added
+	// These will be used to look up components by name in the factory. 
+	// If not found in the factory, new components will be created using dna_mix as a template
+	// If empty, the the ComponentIn will be returned as an output
+	ComponentsToAdd 		[]string
+	
+	// This specifies the multiplier of each of the Volumes for each component to add
+	// e.g. if "glucose": "1ul" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix
 	Reactionspermastermix 	int
+	
+	// If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.
 	CheckPartsInInventory 	bool
-	MixToNewLocation			bool
+	
+	// If this is selected the mastermix will be moved to a new location specified by OutPlate type
+	// If not selected, the components will be added to the ComponentIn
+	MixToNewLocation		bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -29,7 +45,10 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
+	// The component to add all new components to.
 	ComponentIn *wtype.LHComponent
+	
+	// if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.
 	OutPlate *wtype.LHPlate
 )
 
@@ -49,10 +68,37 @@ Setup {
 // for every input
 Steps {
 	
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * 1.2
 	
-	var mastermix *wtype.LHComponent
+	roundedReactions, err := wutil.RoundDown(extraReactions)
 	
-		
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	roundedUpReactions := roundedReactions + 1
+	
+	if roundedUpReactions <= Reactionspermastermix  {
+		Reactionspermastermix = Reactionspermastermix + 1
+	}else {
+		Reactionspermastermix = roundedUpReactions
+	}
+	
+		// if no components to add, return original component in as output
+		if len(ComponentsToAdd)==0{
+			
+			if MixToNewLocation {
+				Mastermix = MixInto(OutPlate, "",  ComponentIn)
+			}else{
+				Mastermix = ComponentIn
+			}
+ 			Status = "No Components added to Mastermix"
+			
+			}else{
+	
+		var mastermix *wtype.LHComponent
+	
 		// get components from factory and if not present use default dna component
 		
 		lhComponents := make([]*wtype.LHComponent,0)
@@ -107,6 +153,7 @@ Steps {
 		
 		// multiply volume of each component by number of reactions per mastermix
 		adjustedvol := wunit.MultiplyVolume(volToUse,float64(Reactionspermastermix))
+		
 			
 		componentSample := mixer.Sample(component,adjustedvol)
 		
@@ -130,7 +177,7 @@ Steps {
 
 	
  	Status = "Mastermix Made"
-	
+	}
 }
 
 // Run after controls and a steps block are completed to

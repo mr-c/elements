@@ -936,7 +936,7 @@ func init() {
 		Constructor: AddPlateReaderresults_2New,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to parse plate reader results and match up with a plate set up by the accuracy test.\nSome processing is carried out to:\nA: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)\nB: Plot volume by correctness factor (Actual conc / Expected conc)\nC: Plot Actual conc vs correctness factor\nD: Plot run order vs correctness factor\nE: Calculate R2\nF: Calculate Coefficent of variance for each pipetting volume\nG: Validate results against success thresholds for R2 and %CV\nAdditional optional features will return\n(1) the wavelength with optimal signal to noise for an aborbance spectrum\n(2) Comparision with manual pipetting steps\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AddPlateReaderResults_2.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults_2.an",
 			Params: []component.ParamDesc{
 				{Name: "Blanks", Desc: "/ wells of the blank sample locations on the plate\n", Kind: "Parameters"},
 				{Name: "CVthreshold", Desc: "set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
