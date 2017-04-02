@@ -7,8 +7,10 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -88,15 +90,22 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 
 					// for each vector we'll also design sequencing primers
 
+					// check binding. Exact matches only.
+					sites := sequences.FindSeqsinSeqs(assembly.Data.NewDNASequence.Sequence(), []string{assembly.Data.Insert.Sequence()})
+
+					if len(sites) != 1 {
+						_output.Warnings[key] = fmt.Errorf("Found %d Insert %s sites in full assembled sequence %s", len(sites[0].Positions), assembly.Data.Insert.Sequence(), assembly.Data.NewDNASequence.Sequence())
+					}
+
 					primer := PrimerDesign_ColonyPCR_wtypeRunSteps(_ctx, &PrimerDesign_ColonyPCR_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
 						Maxtemp:                                  wunit.NewTemperature(72, "C"),
 						Mintemp:                                  wunit.NewTemperature(50, "C"),
 						Maxgc:                                    0.7,
-						Minlength:                                12,
-						Maxlength:                                30,
+						Minlength:                                15,
+						Maxlength:                                35,
 						Seqstoavoid:                              []string{},
-						PermittednucleotideOverlapBetweenPrimers: 10,                   // number of nucleotides which primers can overlap by
-						RegionSequence:                           assembly.Data.Insert, // first part
+						PermittednucleotideOverlapBetweenPrimers: 10, // number of nucleotides which primers can overlap by
+						RegionSequence:                           assembly.Data.Insert,
 						FlankTargetSequence:                      true},
 					)
 
@@ -123,7 +132,7 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 				execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
 			}
 			// add fasta file for each set of parts with overhangs
-			labels := []string{"Device1", "Device2", "Device3"}
+			labels := []string{"Part1s", "Part2s", "Part3s"}
 
 			refactoredparts := make(map[string][]wtype.DNASequence)
 
@@ -273,6 +282,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
 	SeqsMap               map[string]wtype.DNASequence
 	Sequences             []wtype.DNASequence
 	StatusMap             map[string]string
+	Warnings              map[string]error
 }
 
 type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
@@ -290,6 +300,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
 		SeqsMap               map[string]wtype.DNASequence
 		Sequences             []wtype.DNASequence
 		StatusMap             map[string]string
+		Warnings              map[string]error
 	}
 	Outputs struct {
 	}
@@ -328,6 +339,7 @@ func init() {
 				{Name: "SeqsMap", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "Sequences", Desc: "", Kind: "Data"},
 				{Name: "StatusMap", Desc: "", Kind: "Data"},
+				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
