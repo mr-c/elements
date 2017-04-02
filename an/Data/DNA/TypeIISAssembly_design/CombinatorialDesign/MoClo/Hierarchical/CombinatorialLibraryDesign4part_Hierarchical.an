@@ -1,35 +1,38 @@
-// This protocol is intended to design assembly parts using a specified enzyme. 
-// overhangs are added to complement the adjacent parts and leave no scar. 
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
-// If assembly simulation fails after overhangs are added. In order to help the user
-// diagnose the reason, a report of the part overhangs 
-// is returned to the user along with a list of cut sites in each part.
+// This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,
+// RBSs, CDSs and Terminators according to an assembly standard ensuring compatibility with level 1 design.
+// Level 1 adaptor sites (containing the correct restriction site are expected to be included in the promoter and terminator parts.
+// These level 1 sites can be designed such that a series of level 1 parts may be joined together in a second assembly reaction.
+// A list of sequencing primers to order will also be returned.
 protocol CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_map
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"path/filepath"
-	//"strconv"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	//Seqsinorder					map[string][]string // constructname to sequence combination
 	ProjectName				string
-	Standard					string //MoClo
-	StandardLevel			string // of assembly standard
+	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
 	Vectors					[]wtype.DNASequence
-	PROs						[]wtype.DNASequence
-	RBSs						[]wtype.DNASequence
-	CDSs						[]wtype.DNASequence
-	TERs						[]wtype.DNASequence
+	PROs					[]wtype.DNASequence
+	RBSs					[]wtype.DNASequence
+	CDSs					[]wtype.DNASequence
+	TERs					[]wtype.DNASequence
 	SitesToRemove			[]string
 	BlastSearchSeqs			bool
 	FolderPerConstruct		bool
 	FolderPerProject		bool
+	
+	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3". 
+	// If left empty no adaptor sequence is added.
+	MakeLevel1Device 		string
+	ReverseLevel1Orientation bool 
 )
 
 // Physical Inputs to this protocol with types
@@ -46,6 +49,7 @@ Outputs (
 Data (
 	StatusMap map[string]string
 	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
+	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
 	Sequences[]wtype.DNASequence
 	Parts[][]wtype.DNASequence
 	SequencingPrimers [][]wtype.DNASequence
@@ -54,7 +58,9 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	
+	AssembledSequences wtype.File
+	PartsToOrder []wtype.File
+	PrimersToOrder []wtype.File
 )
 // Input Requirement specification
 Requirements {
@@ -69,6 +75,7 @@ Setup {}
 Steps {
 	StatusMap = make(map[string]string)
 	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	Assemblies = make(map[string][]wtype.DNASequence)
 	PassMap = make(map[string]bool)
 	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
 	EndreportMap  = make(map[string]string)
@@ -80,7 +87,56 @@ Steps {
 	Parts = make([][]wtype.DNASequence,0)
 	SequencingPrimers = make([][]wtype.DNASequence,0)
 	
+
 	var counter int = 1
+
+	var StandardLevel string  = "Level0" 
+	
+	// Add adaptors for Level1 step
+	if MakeLevel1Device != ""{
+		
+		standard, found := enzymes.EndlinksString[Standard]
+		
+		if !found {
+			Errorf("No assembly standard %s found",Standard)
+		}
+		
+		level1, found := standard["Level1"]
+		
+		if !found {
+			Errorf("No Level1 found for standard %s",Standard)
+		}
+		
+		overhangs,found := level1[MakeLevel1Device]
+		
+		if !found {
+			Errorf("No overhangs found for %s in standard %s",MakeLevel1Device,Standard)
+		}
+		
+		if len(overhangs)!= 2 {
+			Errorf("found %d overhangs for %s in standard %s, expecting %d",len(overhangs), MakeLevel1Device,Standard, 2)
+
+		}
+		
+		if overhangs[0] == "" {
+			Errorf("blunt 5' overhang found for %s in standard %s, expecting %d", MakeLevel1Device,Standard, 2)
+		}
+		
+		for a := range PROs {
+			var err error
+			PROs[a], err = enzymes.AddL1UAdaptor(PROs[a],Standard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+			if err != nil {
+				Errorf(err.Error())
+			}
+		}
+		for b := range TERs {
+			var err error
+			TERs[b], err = enzymes.AddL1DAdaptor(TERs[b],Standard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+			if err != nil {
+				Errorf(err.Error())
+			}
+		}
+	}
 	
 	for j := range Vectors {
 		for k := range PROs {
@@ -102,12 +158,13 @@ Steps {
 					OnlyRemovesitesinORFs: 		false,
 					EndsAlreadyadded:			false,
 					ExporttoFastaFile: 			FolderPerConstruct,
-					BlastSeqswithNoName:			BlastSearchSeqs,
+					BlastSeqswithNoName:		BlastSearchSeqs,
 		}, Inputs{
                     
                 })
 				key = key  //+ Vectors[j]
 				PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+				Assemblies[key] = assembly.Data.PartsAndVector // parts + vector to be fed into assembly element
 				Parts = append(Parts,assembly.Data.PartswithOverhangs)
 				PassMap[key] = assembly.Data.Simulationpass
 				EndreportMap[key]  = assembly.Data.Endreport
@@ -128,7 +185,7 @@ Steps {
 				Maxlength:  30, 
 				Seqstoavoid: []string{},
 				PermittednucleotideOverlapBetweenPrimers: 10, // number of nucleotides which primers can overlap by
-				RegionSequence: assembly.Data.PartsWithSitesRemoved[0], // first part
+				RegionSequence: assembly.Data.Insert, // first part
 				FlankTargetSequence:true,
 	}, Inputs{
                     
@@ -152,9 +209,13 @@ Steps {
 	// export sequence to fasta
 	if FolderPerProject{
 		
+		var err error
 		// export simulated sequences to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
-
+		AssembledSequences, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		
+		if err != nil {
+			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
+		}
 		// add fasta file for each set of parts with overhangs
 		labels:= []string{"Promoters","RBSs","CDSs","Ters"}
 		
@@ -175,7 +236,13 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PartsToOrder = append(PartsToOrder,file)
 		}
 		
 		// add fasta file for each set of primers
@@ -198,7 +265,13 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PrimersToOrder = append(PrimersToOrder, primerFile)
 		}
 	
 	 }

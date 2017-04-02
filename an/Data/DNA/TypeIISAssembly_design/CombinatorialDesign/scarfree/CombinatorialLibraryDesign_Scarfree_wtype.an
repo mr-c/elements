@@ -1,6 +1,5 @@
-// This protocol is intended to design assembly parts using a specified enzyme. 
-// overhangs are added to complement the adjacent parts and leave no scar. 
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
+// This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.
+// Overhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme. 
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
@@ -10,9 +9,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"path/filepath"
-	"strconv"
-	"fmt"
 )
 
 // Input parameters for this protocol (data)
@@ -46,6 +44,7 @@ Outputs (
 Data (
 	StatusMap map[string]string
 	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
+	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
 	PassMap map[string]bool
 	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
 	Sequences []wtype.DNASequence
@@ -53,6 +52,9 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
+	AssembledSequences wtype.File
+	PartsToOrder []wtype.File
+	PrimersToOrder []wtype.File
 	
 )
 // Input Requirement specification
@@ -68,10 +70,12 @@ Setup {}
 Steps {
 	StatusMap = make(map[string]string)
 	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	Assemblies = make(map[string][]wtype.DNASequence)
 	PassMap = make(map[string]bool)
 	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
 	Sequences = make([]wtype.DNASequence,0)
 	Parts = make([][]wtype.DNASequence,0)
+	SequencingPrimers := make([][]wtype.DNASequence,0)
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
@@ -84,7 +88,7 @@ Steps {
 			for l := range Part2s {
 				for m := range Part3s {	
 					
-						key := 	ProjectName+"_"+"Vector"+strconv.Itoa(j+1)+"_1."+strconv.Itoa(k+1)+"_2."+strconv.Itoa(l+1)+"_3."+strconv.Itoa(m+1)
+						key := 	ProjectName+"_"+Vectors[j].Name()+"_"+Part1s[k].Name()+"_"+Part2s[l].Name()+"_"+Part3s[m].Name()
 						assembly := RunSteps(Scarfree_siteremove_orfcheck_wtype,
 		Parameters {
 					Constructname: 				key,
@@ -103,6 +107,7 @@ Steps {
                 })
 				key = key  //+ Vectors[j]
 				PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+				Assemblies[key] = assembly.Data.PartsAndVector // parts + vector to be fed into assembly element
 				PassMap[key] = assembly.Data.Simulationpass
 				EndreportMap[key]  = assembly.Data.Endreport
 				PositionReportMap[key] = assembly.Data.PositionReport
@@ -113,44 +118,103 @@ Steps {
 				
 	// for each vector we'll also design sequencing primers
 	
-	primer := RunSteps(PrimerDesign_FWD_wtype,
+	primer := RunSteps(PrimerDesign_ColonyPCR_wtype,
 	Parameters {
-				FullDNASeq:Vectors[j], // design sequencing primers in original vector assembly.Data.NewDNASequence,
-				Maxtemp:    wunit.NewTemperature(60,"C"),
+				FullDNASeq:assembly.Data.NewDNASequence,
+				Maxtemp:    wunit.NewTemperature(72,"C"),
 				Mintemp:    wunit.NewTemperature(50,"C"),
-				Maxgc:    0.6,
-				Minlength:   15, 
+				Maxgc:    0.7,
+				Minlength:   12, 
 				Maxlength:  30, 
 				Seqstoavoid: []string{},
 				PermittednucleotideOverlapBetweenPrimers: 10, // number of nucleotides which primers can overlap by
-				RegionSequence: wtype.MakeLinearDNASequence("PartofSacBPromoter","gatattatgatattttctgaattgtgattaaaaaggcaactttatgcccatgcaacagaaactataaaaaatacagagaatgaaaagaaacagatagattttttagttctttaggcccgtagtctgcaaatccttttatgattttctatcaaacaaaagaggaaaatagaccagttgcaatccaaacgagagtctaatagaatgaggtcgaaaagtaaatcgcgcgggtttgttactgataaagcaggcaagacctaaaatgtgtaaagggcaaagtgtatactttggcgtcaccccttacatattttaggtctttttttattgtgcgtaactaacttgccatcttcaaacaggagggctggaagaagcagaccgctaacacagtaca"), // SacB promoter sequence in vector //PartsWithSitesRemoved[0], // first part
+				RegionSequence: assembly.Data.Insert, // first part
 				FlankTargetSequence:true,
 	}, Inputs{
                     
                 })
-				PrimerMap[key]=primer.Data.FWDPrimer
 				
+				// rename primers
+				primer.Data.FWDPrimer.Nm = primer.Data.FWDPrimer.Nm+ProjectName+Vectors[j].Nm+"_FWD"
+				primer.Data.REVPrimer.Nm = primer.Data.REVPrimer.Nm+ProjectName+Vectors[j].Nm+"_REV"
 				
+				PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
+				PrimerMap[key+"_REV"]=primer.Data.REVPrimer
+				SequencingPrimers = append(SequencingPrimers,[]wtype.DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
 				counter++
+	}
+	}
+	}
 	
-	}
-	}
-	}
 	// export sequence to fasta
 	if FolderPerProject{
 		
-		// export simulated assembled sequences to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		var err error
+		// export simulated sequences to file
+		AssembledSequences, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
 		
-		// add fasta files of all parts with overhangs 
+		if err != nil {
+			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
+		}
+		// add fasta file for each set of parts with overhangs
 		labels:= []string{"Device1","Device2","Device3"}
-		for j := range labels {
-		for i := range Parts{
-		fmt.Println(i,len(labels),len(Parts))
-		export.Makefastaserial2(export.LOCAL,filepath.Join(ProjectName,labels[j]), Parts[i])
+		
+		refactoredparts:= make(map[string][]wtype.DNASequence)
+		
+		newparts := make([]wtype.DNASequence,0)
+		
+		for _, parts := range Parts{
+		
+		for j := range parts{
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts,parts[j])
+			refactoredparts[labels[j]]=newparts
 		}
 		}
-	}
+		
+		for key,value := range refactoredparts{
+			
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+		
+		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PartsToOrder = append(PartsToOrder,file)
+		}
+		
+		// add fasta file for each set of primers
+		labels= []string{"FWDPrimers","REVPrimers"}
+		
+		refactoredparts = make(map[string][]wtype.DNASequence)
+		
+		newparts = make([]wtype.DNASequence,0)
+		
+		for _, parts := range SequencingPrimers{
+		
+		for j := range parts{
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts,parts[j])
+			refactoredparts[labels[j]]=newparts
+		}
+		}
+		
+		for key,value := range refactoredparts{
+			
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+		
+		primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PrimersToOrder = append(PrimersToOrder, primerFile)
+		}
+	
+	 }
 	
 	}
 }

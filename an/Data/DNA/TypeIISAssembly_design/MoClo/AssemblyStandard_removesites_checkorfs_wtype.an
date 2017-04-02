@@ -57,10 +57,14 @@ Data (
 	OriginalParts []wtype.DNASequence 
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs []wtype.DNASequence // parts to order
+	PartsAndVector []wtype.DNASequence // parts to order + vector
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	Insert wtype.DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
+	AssembledSequenceFile File
+	PartsToOrderFile File
 	
 )
 // Input Requirement specification
@@ -214,6 +218,21 @@ Steps {
 	if err != nil {
 		Errorf(err.Error())
 	}
+	
+	Insert, err = assembly.Insert()
+	
+	if err != nil {
+		
+		Errorf("Error calculating insert: %s ",err.Error())
+	}	
+	
+	// export parts + vector as one array
+	for _, part := range PartswithOverhangs {
+		PartsAndVector = append(PartsAndVector,part)
+	}
+	
+	// now add vector 
+	PartsAndVector = append(PartsAndVector,vectordata)
 
 	endreport := "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
@@ -316,15 +335,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
-		
+		AssembledSequenceFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	

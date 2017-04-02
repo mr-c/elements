@@ -11,7 +11,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"fmt"
 	"strconv"
-
+	"bytes"
 )
 
 
@@ -31,7 +31,7 @@ Parameters (
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool
-	UseLHPolicyDoeforDiluent bool
+	UseLHPolicyforDiluent bool
 	DilutionFactor float64
 	WellsUsed int // optional parameter allowing pipetting to resume on partially filled plate
 	MinVolume Volume
@@ -46,7 +46,7 @@ Data (
 	Blankwells []string
 	Runs []doe.Run
 	Wellpositionarray []string
-	//NeatSamplewells []string 
+	ExportedFile File
 )
 
 
@@ -130,6 +130,12 @@ Steps {
 	reactions := make([]*wtype.LHComponent,0)
 	
 	// use first policy as reference to ensure consistent range through map values
+	
+	// if none is specified, use lhpolicy of first solution
+	if LHPolicy == ""{
+		LHPolicy = TestSols[0].TypeName()
+	}
+	
 	referencepolicy,found := liquidhandling.GetPolicyByName(LHPolicy)
 	if found == false {
 		Errorf("policy "+LHPolicy+" not found")
@@ -177,7 +183,7 @@ Steps {
 		// diluent first
 		
 		// change lhpolicy if desired
-		if UseLHPolicyDoeforDiluent {
+		if UseLHPolicyforDiluent {
 				Diluent.Type, err = wtype.LiquidTypeFromString(LHPolicy)
 				if err != nil {
 					Errors = append(Errors,err)
@@ -366,7 +372,18 @@ Steps {
 	}
 	
 	// export overall DOE design file showing all well locations for all conditions
-	doe.XLSXFileFromRuns(newruns,OutputFilename,DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns,OutputFilename,DXORJMP)
+			
+		var out bytes.Buffer
+		
+		err = xlsxfile.Write(&out)
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+	ExportedFile.Name = OutputFilename
+	ExportedFile.WriteAll(out.Bytes())
 	
 	// add blanks after
 	

@@ -34,8 +34,6 @@ import (
 
 // Data which is returned from this protocol
 
-//PrimerData []oligos.Primer
-
 // Physical inputs to this protocol
 
 // Physical outputs from this protocol
@@ -73,7 +71,7 @@ func _PrimerDesign_sequence_your_neighboursSteps(_ctx context.Context, _input *P
 
 	d, err := os.Open(dirname)
 	if err != nil {
-		panic(err)
+		execute.Errorf(_ctx, err.Error())
 	}
 	defer d.Close()
 
@@ -120,10 +118,10 @@ func _PrimerDesign_sequence_your_neighboursSteps(_ctx context.Context, _input *P
 	_output.AllOutputs = alloutputs
 
 	if _input.ExportToFile {
-		err = export.ExporttoTextFile("exported_primers.csv", _output.AllOutputs)
+		_output.PrimersFile, err = export.TextFile("exported_primers.csv", _output.AllOutputs)
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
 	}
@@ -205,10 +203,10 @@ func _PrimerDesign_sequence_your_neighboursValidation(_ctx context.Context, _inp
 	}
 
 	if _input.ExportToFile {
-		err = export.ExporttoTextFile("exported_primers_bindingReport.csv", nonspecificbinding)
+		_output.PrimerBindingReport, err = export.TextFile("exported_primers_bindingReport.csv", nonspecificbinding)
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
 	}
@@ -279,16 +277,20 @@ type PrimerDesign_sequence_your_neighboursInput struct {
 }
 
 type PrimerDesign_sequence_your_neighboursOutput struct {
-	AllOutputs  []string
-	AllPrimers  []oligos.Primer
-	PrimerPairs []PrimerPair
+	AllOutputs          []string
+	AllPrimers          []oligos.Primer
+	PrimerBindingReport wtype.File
+	PrimerPairs         []PrimerPair
+	PrimersFile         wtype.File
 }
 
 type PrimerDesign_sequence_your_neighboursSOutput struct {
 	Data struct {
-		AllOutputs  []string
-		AllPrimers  []oligos.Primer
-		PrimerPairs []PrimerPair
+		AllOutputs          []string
+		AllPrimers          []oligos.Primer
+		PrimerBindingReport wtype.File
+		PrimerPairs         []PrimerPair
+		PrimersFile         wtype.File
 	}
 	Outputs struct {
 	}
@@ -299,7 +301,7 @@ func init() {
 		Constructor: PrimerDesign_sequence_your_neighboursNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will design outward facing primers for all .gb file sequences in a specified folder.\nDesign criteria such as maximum gc content, acceptable ranges of melting temperatures and primer length may be specified by the user.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesign_sequence_your_neighbours.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesignSequenceYourNeightbours/PrimerDesign_sequence_your_neighbours.an",
 			Params: []component.ParamDesc{
 				{Name: "Dirname", Desc: "files     []string = []string{\"STAR_0023_VECTOR_BBSI.gb\", \"STAR_0023_VECTOR_BBSI+Grp7+Grp14+Grp3.gb\"}\n\n= \"current\" // this will check for all .gb files in the folder you select here\n", Kind: "Parameters"},
 				{Name: "ExportToFile", Desc: "", Kind: "Parameters"},
@@ -311,7 +313,9 @@ func init() {
 				{Name: "PermittednucleotideOverlapBetweenPrimers", Desc: "number of nucleotides which primers can overlap by\n", Kind: "Parameters"},
 				{Name: "AllOutputs", Desc: "", Kind: "Data"},
 				{Name: "AllPrimers", Desc: "", Kind: "Data"},
+				{Name: "PrimerBindingReport", Desc: "", Kind: "Data"},
 				{Name: "PrimerPairs", Desc: "", Kind: "Data"},
+				{Name: "PrimersFile", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

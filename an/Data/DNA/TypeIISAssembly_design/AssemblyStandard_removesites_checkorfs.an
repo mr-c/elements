@@ -61,7 +61,8 @@ Data (
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
-	
+	AssembledSequenceFile File
+	PartsToOrderFile File
 )
 // Input Requirement specification
 Requirements {
@@ -369,10 +370,6 @@ Steps {
 		text.Print("Any Orfs to confirm missing from new DNA sequence:", ORFmissing),
 		partstoorder,
 		)
-		// export data to file
-		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-	//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-	fmt.Println(Status)
 	}
 	
 	// export sequence to fasta
@@ -382,15 +379,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
-		
+		AssembledSequenceFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		PartsToOrderFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	

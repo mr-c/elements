@@ -50,6 +50,7 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSetup(_ctx context.Context, _inp
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_4part_wtype_mapInput, _output *CombinatorialLibraryDesign_4part_wtype_mapOutput) {
+
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
 	_output.PassMap = make(map[string]bool)
@@ -134,10 +135,12 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 
 	// export sequence to fasta
 	if _input.FolderPerProject {
-
+		var err error
 		// export simulated sequences to file
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
-
+		_output.AssembledSequencesFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// add fasta file for each set of parts with overhangs
 		labels := _input.StandardLabels //[]string{"Promoters","RBSs","CDSs","Ters"}
 
@@ -167,12 +170,22 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 				csv = append(csv, output)
 			}
 
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, key+"_RevComp"), revcompseqs)
-			err := export.ExporttoTextFile(filepath.Join(_input.ProjectName, key)+".csv", csv)
+			_output.UniqueSequencesFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 
 			if err != nil {
-				panic(err.Error())
+				execute.Errorf(_ctx, err.Error())
+			}
+
+			_output.UniqueSequencesFileRevComp, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key+"_RevComp"), revcompseqs)
+
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+
+			_output.SequenceListFile, err = export.TextFile(filepath.Join(_input.ProjectName, key)+".csv", csv)
+
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
 			}
 		}
 
@@ -197,14 +210,20 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 		for key, value := range refactoredparts {
 
 			duplicateremoved := search.RemoveDuplicateSequences(value)
+			var partsfile wtype.File
+			partsfile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 
-			export.Makefastaserial2(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+
+			_output.PartsToorderFiles = append(_output.PartsToorderFiles, partsfile)
 		}
 
-		err := export.ExporttoTextFile(filepath.Join(_input.ProjectName, "Primers")+".csv", csv)
+		_output.SequencingPrimersFile, err = export.TextFile(filepath.Join(_input.ProjectName, "Primers")+".csv", csv)
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
 
 	}
@@ -285,30 +304,44 @@ type CombinatorialLibraryDesign_4part_wtype_mapInput struct {
 }
 
 type CombinatorialLibraryDesign_4part_wtype_mapOutput struct {
-	EndreportMap          map[string]string
-	Parts                 [][]wtype.DNASequence
-	PartswithOverhangsMap map[string][]wtype.DNASequence
-	PassMap               map[string]bool
-	PositionReportMap     map[string][]string
-	PrimerMap             map[string]oligos.Primer
-	SeqsMap               map[string]wtype.DNASequence
-	Sequences             []wtype.DNASequence
-	SequencingPrimers     [][]wtype.DNASequence
-	StatusMap             map[string]string
+	AssembledSequencesFile     wtype.File
+	EndreportMap               map[string]string
+	Parts                      [][]wtype.DNASequence
+	PartsToOrderFile           wtype.File
+	PartsToorderFiles          []wtype.File
+	PartswithOverhangsMap      map[string][]wtype.DNASequence
+	PassMap                    map[string]bool
+	PositionReportMap          map[string][]string
+	PrimerMap                  map[string]oligos.Primer
+	SeqsMap                    map[string]wtype.DNASequence
+	SequenceListFile           wtype.File
+	Sequences                  []wtype.DNASequence
+	SequencingPrimers          [][]wtype.DNASequence
+	SequencingPrimersFile      wtype.File
+	StatusMap                  map[string]string
+	UniqueSequencesFile        wtype.File
+	UniqueSequencesFileRevComp wtype.File
 }
 
 type CombinatorialLibraryDesign_4part_wtype_mapSOutput struct {
 	Data struct {
-		EndreportMap          map[string]string
-		Parts                 [][]wtype.DNASequence
-		PartswithOverhangsMap map[string][]wtype.DNASequence
-		PassMap               map[string]bool
-		PositionReportMap     map[string][]string
-		PrimerMap             map[string]oligos.Primer
-		SeqsMap               map[string]wtype.DNASequence
-		Sequences             []wtype.DNASequence
-		SequencingPrimers     [][]wtype.DNASequence
-		StatusMap             map[string]string
+		AssembledSequencesFile     wtype.File
+		EndreportMap               map[string]string
+		Parts                      [][]wtype.DNASequence
+		PartsToOrderFile           wtype.File
+		PartsToorderFiles          []wtype.File
+		PartswithOverhangsMap      map[string][]wtype.DNASequence
+		PassMap                    map[string]bool
+		PositionReportMap          map[string][]string
+		PrimerMap                  map[string]oligos.Primer
+		SeqsMap                    map[string]wtype.DNASequence
+		SequenceListFile           wtype.File
+		Sequences                  []wtype.DNASequence
+		SequencingPrimers          [][]wtype.DNASequence
+		SequencingPrimersFile      wtype.File
+		StatusMap                  map[string]string
+		UniqueSequencesFile        wtype.File
+		UniqueSequencesFileRevComp wtype.File
 	}
 	Outputs struct {
 	}
@@ -334,16 +367,23 @@ func init() {
 				{Name: "StandardLevel", Desc: "of assembly standard\n", Kind: "Parameters"},
 				{Name: "TERs", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequencesFile", Desc: "", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
 				{Name: "Parts", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrderFile", Desc: "", Kind: "Data"},
+				{Name: "PartsToorderFiles", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PassMap", Desc: "", Kind: "Data"},
 				{Name: "PositionReportMap", Desc: "", Kind: "Data"},
 				{Name: "PrimerMap", Desc: "", Kind: "Data"},
 				{Name: "SeqsMap", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
+				{Name: "SequenceListFile", Desc: "", Kind: "Data"},
 				{Name: "Sequences", Desc: "", Kind: "Data"},
 				{Name: "SequencingPrimers", Desc: "", Kind: "Data"},
+				{Name: "SequencingPrimersFile", Desc: "", Kind: "Data"},
 				{Name: "StatusMap", Desc: "", Kind: "Data"},
+				{Name: "UniqueSequencesFile", Desc: "", Kind: "Data"},
+				{Name: "UniqueSequencesFileRevComp", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
