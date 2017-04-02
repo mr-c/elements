@@ -7,9 +7,11 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -146,6 +148,13 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 						_output.StatusMap[key] = assembly.Data.Status
 
 						// for each vector we'll also design sequencing primers
+
+						// check binding. Exact matches only.
+						sites := sequences.FindSeqsinSeqs(assembly.Data.NewDNASequence.Sequence(), []string{assembly.Data.Insert.Sequence()})
+
+						if len(sites) != 1 {
+							_output.Warnings[key] = fmt.Errorf("Found %d Insert %s sites in full assembled sequence %s", len(sites[0].Positions), assembly.Data.Insert.Sequence(), assembly.Data.NewDNASequence.Sequence())
+						}
 
 						primer := PrimerDesign_ColonyPCR_wtypeRunSteps(_ctx, &PrimerDesign_ColonyPCR_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
 							Maxtemp:                                  wunit.NewTemperature(72, "C"),
@@ -333,6 +342,7 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
 	Sequences             []wtype.DNASequence
 	SequencingPrimers     [][]wtype.DNASequence
 	StatusMap             map[string]string
+	Warnings              map[string]error
 }
 
 type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput struct {
@@ -351,6 +361,7 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput struct {
 		Sequences             []wtype.DNASequence
 		SequencingPrimers     [][]wtype.DNASequence
 		StatusMap             map[string]string
+		Warnings              map[string]error
 	}
 	Outputs struct {
 	}
@@ -390,6 +401,7 @@ func init() {
 				{Name: "Sequences", Desc: "", Kind: "Data"},
 				{Name: "SequencingPrimers", Desc: "", Kind: "Data"},
 				{Name: "StatusMap", Desc: "", Kind: "Data"},
+				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

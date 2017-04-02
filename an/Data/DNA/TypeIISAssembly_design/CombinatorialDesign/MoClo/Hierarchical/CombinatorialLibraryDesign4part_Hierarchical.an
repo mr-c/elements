@@ -11,21 +11,23 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"path/filepath"
+	"fmt"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	ProjectName				string
+	ProjectName			string
 	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
-	Vectors					[]wtype.DNASequence
+	Vectors				[]wtype.DNASequence
 	PROs					[]wtype.DNASequence
 	RBSs					[]wtype.DNASequence
 	CDSs					[]wtype.DNASequence
 	TERs					[]wtype.DNASequence
-	SitesToRemove			[]string
-	BlastSearchSeqs			bool
-	FolderPerConstruct		bool
+	SitesToRemove		[]string
+	BlastSearchSeqs		bool
+	FolderPerConstruct	bool
 	FolderPerProject		bool
 	
 	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
@@ -61,6 +63,7 @@ Data (
 	AssembledSequences wtype.File
 	PartsToOrder []wtype.File
 	PrimersToOrder []wtype.File
+	Warnings map[string]error
 )
 // Input Requirement specification
 Requirements {
@@ -174,7 +177,14 @@ Steps {
 				StatusMap[key] = assembly.Data.Status
 				
 	// for each vector we'll also design sequencing primers
-	
+		
+// check binding. Exact matches only.
+	sites := sequences.FindSeqsinSeqs(assembly.Data.NewDNASequence.Sequence(), []string{assembly.Data.Insert.Sequence()})
+
+	if len(sites)!= 1 {
+		Warnings[key] = fmt.Errorf("Found %d Insert %s sites in full assembled sequence %s",len(sites[0].Positions),assembly.Data.Insert.Sequence(), assembly.Data.NewDNASequence.Sequence())
+	}
+
 	primer := RunSteps(PrimerDesign_ColonyPCR_wtype,
 	Parameters {
 				FullDNASeq:assembly.Data.NewDNASequence,
