@@ -8,6 +8,8 @@ package lib
 import (
 	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -17,8 +19,6 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-
 // Input parameters for this protocol
 
 // as a proportion of 1, i.e. 1 == 100%
@@ -27,7 +27,9 @@ import (
 
 // Data which is returned from this protocol
 
-// this needs to be changed to PrimerPair [2]oligo.Primer
+// All exact binding site of the fwd primer found in the template
+
+// All exact binding site of the rev primer found in the template
 
 // Physical inputs to this protocol
 
@@ -73,6 +75,34 @@ func _PrimerDesign_ColonyPCR_wtypeSteps(_ctx context.Context, _input *PrimerDesi
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
 
+	// check for non-specific binding. Exact matches only.
+	_output.FwdPrimerSites = sequences.FindSeqsinSeqs(_input.FullDNASeq.Sequence(), []string{_output.FWDPrimer.Sequence()})
+
+	if len(_output.FwdPrimerSites[0].Positions) != 1 {
+
+		var seqstoavoid []string
+
+		for _, seq := range _input.Seqstoavoid {
+			seqstoavoid = append(seqstoavoid, seq)
+		}
+		var counter int
+		for len(_output.FwdPrimerSites[0].Positions) != 1 && counter < len(_input.FullDNASeq.Sequence()) {
+
+			seqstoavoid = append(seqstoavoid, _output.FWDPrimer.Sequence())
+
+			_output.FWDPrimer, _output.Warnings = oligos.FWDOligoSeq(region, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
+
+			if _output.Warnings != nil {
+				fmt.Println("FWDOligoSeqFail")
+				//Errorf(Warnings.Error())
+			}
+
+			// check for non-specific binding. Exact matches only.
+			_output.FwdPrimerSites = sequences.FindSeqsinSeqs(_input.FullDNASeq.Sequence(), []string{_output.FWDPrimer.Sequence()})
+			counter++
+		}
+	}
+
 	fmt.Println(text.Print("FWDPrimer:", _output.FWDPrimer))
 
 	if _input.FlankTargetSequence {
@@ -90,7 +120,45 @@ func _PrimerDesign_ColonyPCR_wtypeSteps(_ctx context.Context, _input *PrimerDesi
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
 
+	// check for non-specific binding. Exact matches only.
+	_output.RevPrimerSites = sequences.FindSeqsinSeqs(_input.FullDNASeq.Sequence(), []string{_output.REVPrimer.Sequence()})
+
+	if len(_output.RevPrimerSites[0].Positions) != 1 {
+		var seqstoavoid []string
+
+		for _, seq := range _input.Seqstoavoid {
+			seqstoavoid = append(seqstoavoid, seq)
+		}
+		var counter int
+		for len(_output.RevPrimerSites[0].Positions) != 1 && counter < len(_input.FullDNASeq.Sequence()) {
+
+			seqstoavoid = append(seqstoavoid, _output.REVPrimer.Sequence())
+
+			_output.REVPrimer, _output.Warnings = oligos.REVOligoSeq(region, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
+
+			if _output.Warnings != nil {
+				fmt.Println("REVOligoSeqFail")
+				//	Errorf(Warnings.Error())
+			}
+
+			// check for non-specific binding. Exact matches only.
+			_output.RevPrimerSites = sequences.FindSeqsinSeqs(_input.FullDNASeq.Sequence(), []string{_output.REVPrimer.Sequence()})
+			counter++
+		}
+	}
+
 	fmt.Println(text.Print("REVPrimer:", _output.REVPrimer))
+
+	if len(_output.FwdPrimerSites) != 1 || len(_output.RevPrimerSites) != 1 {
+
+		errordescription := fmt.Sprint(
+			fmt.Sprint("Unexpected number of primer binding sites found in template"),
+			text.Print("FwdPrimerSitesfound:", fmt.Sprint(_output.FwdPrimerSites)),
+			text.Print("RevPrimerSitesfound:", fmt.Sprint(_output.RevPrimerSites)),
+		)
+
+		_output.Warnings = fmt.Errorf(errordescription)
+	}
 
 }
 
@@ -164,16 +232,20 @@ type PrimerDesign_ColonyPCR_wtypeInput struct {
 }
 
 type PrimerDesign_ColonyPCR_wtypeOutput struct {
-	FWDPrimer oligos.Primer
-	REVPrimer oligos.Primer
-	Warnings  error
+	FWDPrimer      oligos.Primer
+	FwdPrimerSites []search.Thingfound
+	REVPrimer      oligos.Primer
+	RevPrimerSites []search.Thingfound
+	Warnings       error
 }
 
 type PrimerDesign_ColonyPCR_wtypeSOutput struct {
 	Data struct {
-		FWDPrimer oligos.Primer
-		REVPrimer oligos.Primer
-		Warnings  error
+		FWDPrimer      oligos.Primer
+		FwdPrimerSites []search.Thingfound
+		REVPrimer      oligos.Primer
+		RevPrimerSites []search.Thingfound
+		Warnings       error
 	}
 	Outputs struct {
 	}
@@ -196,8 +268,10 @@ func init() {
 				{Name: "PermittednucleotideOverlapBetweenPrimers", Desc: "number of nucleotides which primers can overlap by\n", Kind: "Parameters"},
 				{Name: "RegionSequence", Desc: "", Kind: "Parameters"},
 				{Name: "Seqstoavoid", Desc: "", Kind: "Parameters"},
-				{Name: "FWDPrimer", Desc: "this needs to be changed to PrimerPair [2]oligo.Primer\n", Kind: "Data"},
+				{Name: "FWDPrimer", Desc: "", Kind: "Data"},
+				{Name: "FwdPrimerSites", Desc: "All exact binding site of the fwd primer found in the template\n", Kind: "Data"},
 				{Name: "REVPrimer", Desc: "", Kind: "Data"},
+				{Name: "RevPrimerSites", Desc: "All exact binding site of the rev primer found in the template\n", Kind: "Data"},
 				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},

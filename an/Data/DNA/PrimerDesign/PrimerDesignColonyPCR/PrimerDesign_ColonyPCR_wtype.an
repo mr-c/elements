@@ -10,8 +10,9 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+
 )
 // Input parameters for this protocol
 Parameters (
@@ -29,8 +30,16 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	FWDPrimer oligos.Primer // this needs to be changed to PrimerPair [2]oligo.Primer
+	FWDPrimer oligos.Primer 
+
 	REVPrimer oligos.Primer
+
+	// All exact binding site of the fwd primer found in the template
+	FwdPrimerSites []search.Thingfound
+	
+	// All exact binding site of the rev primer found in the template
+	RevPrimerSites []search.Thingfound
+
 	Warnings error
 )
 
@@ -51,6 +60,8 @@ Requirements {
 Setup {
 
 }
+
+
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
@@ -84,6 +95,34 @@ Steps {
 		Errorf(Warnings.Error())
 	}
 	
+	// check for non-specific binding. Exact matches only.
+	FwdPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{FWDPrimer.Sequence()})
+	
+	if len(FwdPrimerSites[0].Positions) != 1 {
+		
+		var seqstoavoid []string
+		
+		for _, seq := range Seqstoavoid {
+			seqstoavoid = append(seqstoavoid,seq)
+		}
+		var counter int 
+		for len(FwdPrimerSites[0].Positions) != 1 && counter < len(FullDNASeq.Sequence()){
+			
+			seqstoavoid = append(seqstoavoid,FWDPrimer.Sequence())
+
+			FWDPrimer, Warnings = oligos.FWDOligoSeq(region, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, seqstoavoid, PermittednucleotideOverlapBetweenPrimers) 
+			
+			if Warnings != nil {
+				fmt.Println("FWDOligoSeqFail")
+				//Errorf(Warnings.Error())
+			}
+	
+			// check for non-specific binding. Exact matches only.
+			FwdPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{FWDPrimer.Sequence()})
+			counter++
+		}
+	}
+	
 	fmt.Println(text.Print("FWDPrimer:",FWDPrimer))
 
 	if FlankTargetSequence {
@@ -92,7 +131,6 @@ Steps {
 		region = oligos.DNAregion(FullDNASeq, regionstart, regionend)
 	}
 
-	
 	Seqstoavoid = append(Seqstoavoid,FWDPrimer.Seq)
 	
 	REVPrimer, Warnings = oligos.REVOligoSeq(region, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, Seqstoavoid, PermittednucleotideOverlapBetweenPrimers) 
@@ -102,9 +140,46 @@ Steps {
 		Errorf(Warnings.Error())
 	}
 	
+	// check for non-specific binding. Exact matches only.
+	RevPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{REVPrimer.Sequence()})
+	
+	if len(RevPrimerSites[0].Positions) != 1 {
+		var seqstoavoid []string
+		
+		for _, seq := range Seqstoavoid {
+			seqstoavoid = append(seqstoavoid,seq)
+		}
+		var counter int 
+		for len(RevPrimerSites[0].Positions) != 1  && counter < len(FullDNASeq.Sequence()){
+			
+			seqstoavoid = append(seqstoavoid,REVPrimer.Sequence())
+
+			REVPrimer, Warnings = oligos.REVOligoSeq(region, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, seqstoavoid, PermittednucleotideOverlapBetweenPrimers) 
+			
+			if Warnings != nil {
+				fmt.Println("REVOligoSeqFail")
+			//	Errorf(Warnings.Error())
+			}
+	
+			// check for non-specific binding. Exact matches only.
+			RevPrimerSites = sequences.FindSeqsinSeqs(FullDNASeq.Sequence(), []string{REVPrimer.Sequence()})
+			counter++
+		}
+	}
+	
 	fmt.Println(text.Print("REVPrimer:",REVPrimer))
+		
+	if len(FwdPrimerSites)!=1 || len(RevPrimerSites)!=1{
 	
+	errordescription := fmt.Sprint(
+						fmt.Sprint("Unexpected number of primer binding sites found in template"),
+						text.Print("FwdPrimerSitesfound:", fmt.Sprint(FwdPrimerSites)),
+						text.Print("RevPrimerSitesfound:", fmt.Sprint(RevPrimerSites)),
+	)
 	
+	Warnings = fmt.Errorf(errordescription)
+	}
+
 
 }
 
