@@ -21,6 +21,7 @@ Parameters (
 	PosterizeLevels int
 	Rotate bool
 	AutoRotate bool
+	LowerThreshold uint8
 )
 
 // Data which is returned from this protocol, and data types
@@ -61,7 +62,7 @@ Setup {
 // for every input
 Steps {
 	
-
+	
 	// if image is from url, download
 	if UseURL {
 		err := download.File(URL, Imagefilename)
@@ -102,7 +103,7 @@ Steps {
 		
 		var maxuint8 uint8 = 255		
 		
-		if cmyk.C ==0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+		if cmyk.C <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
 		
 		continue
 			
@@ -110,7 +111,7 @@ Steps {
 			
 		counter = counter + 1
 		
-		if cmyk.C > 0{
+		if cmyk.C > LowerThreshold{
 			
 		cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
@@ -123,7 +124,7 @@ Steps {
 		components = append(components, cyanSample)
 		}
 		
-		if cmyk.Y > 0{
+		if cmyk.Y > LowerThreshold{
 		yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul"{
@@ -134,7 +135,7 @@ Steps {
 		components = append(components, yellowSample)
 		}
 		
-		if cmyk.M > 0{
+		if cmyk.M > LowerThreshold{
 		magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul"{
@@ -145,7 +146,7 @@ Steps {
 		components = append(components, magentaSample)
 		}
 		
-		if cmyk.K > 0{
+		if cmyk.K > LowerThreshold{
 				
 		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		

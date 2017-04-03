@@ -79,7 +79,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 			var maxuint8 uint8 = 255
 
-			if cmyk.C == 0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+			if cmyk.C <= _input.LowerThreshold && cmyk.Y <= _input.LowerThreshold && cmyk.M <= _input.LowerThreshold && cmyk.K <= _input.LowerThreshold {
 
 				continue
 
@@ -87,7 +87,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 				counter = counter + 1
 
-				if cmyk.C > 0 {
+				if cmyk.C > _input.LowerThreshold {
 
 					cyanvol := wunit.NewVolume(((float64(cmyk.C) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -99,7 +99,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 					components = append(components, cyanSample)
 				}
 
-				if cmyk.Y > 0 {
+				if cmyk.Y > _input.LowerThreshold {
 					yellowvol := wunit.NewVolume(((float64(cmyk.Y) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul" {
@@ -110,7 +110,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 					components = append(components, yellowSample)
 				}
 
-				if cmyk.M > 0 {
+				if cmyk.M > _input.LowerThreshold {
 					magentavol := wunit.NewVolume(((float64(cmyk.M) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul" {
@@ -121,7 +121,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 					components = append(components, magentaSample)
 				}
 
-				if cmyk.K > 0 {
+				if cmyk.K > _input.LowerThreshold {
 
 					blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -237,6 +237,7 @@ type MakePalette_OneByOneInput struct {
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
 	Imagefilename       string
+	LowerThreshold      uint8
 	Magenta             *wtype.LHComponent
 	OutPlate            *wtype.LHPlate
 	PalettePlate        *wtype.LHPlate
@@ -279,6 +280,7 @@ func init() {
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
