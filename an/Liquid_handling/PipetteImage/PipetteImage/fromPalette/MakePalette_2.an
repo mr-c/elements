@@ -126,7 +126,7 @@ Steps {
 									
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
-						cyanSample.Type = wtype.LTPAINT
+						cyanSample.Type = wtype.LTMegaMix
 					}else{
 						cyanSample.Type = wtype.LTDISPENSEABOVE
 
@@ -150,7 +150,7 @@ Steps {
 					
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
-						yellowSample.Type = wtype.LTPAINT
+						yellowSample.Type = wtype.LTMegaMix
 					}else{
 						yellowSample.Type = wtype.LTDISPENSEABOVE
 
@@ -205,7 +205,7 @@ Steps {
 					
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
-						blackSample.Type = wtype.LTPAINT
+						blackSample.Type = wtype.LTMegaMix
 					}else{
 						blackSample.Type = wtype.LTDISPENSEABOVE
 
@@ -226,7 +226,7 @@ Steps {
 			whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentVols)
 			
 			// mix with white sample
-			White.Type = wtype.LTPAINT
+			White.Type = wtype.LTMegaMix
 			
 			whiteSample := mixer.Sample(White, whitevol)
 			
