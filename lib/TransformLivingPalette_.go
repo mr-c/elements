@@ -2,13 +2,13 @@
 package lib
 
 import (
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -24,6 +24,9 @@ import (
 /*AntibioticVolume Volume
 InducerVolume Volume
 RepressorVolume Volume*/
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 //IncTemp Temperature
 //IncTime Time
@@ -86,6 +89,14 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		chosencolourpalette = image.MakeSubPallette(_input.Palettename, _input.Subsetnames)
 	} else {
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
+	}
+
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
@@ -342,8 +353,10 @@ type TransformLivingPaletteInput struct {
 	Rotate         bool
 	Subset         bool
 	Subsetnames    []string
+	URL            string
 	UVimage        bool
 	UseLiquidClass string
+	UseURL         bool
 	VolumePerWell  wunit.Volume
 }
 
@@ -376,7 +389,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *wtype.LHComponent\nAntibiotic *wtype.LHComponent\n\tInducer *wtype.LHComponent\n\tRepressor *wtype.LHComponent\n", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -384,8 +397,10 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},

@@ -3,6 +3,8 @@ Parameters:
     DXORJMP: JMP
     Diluent: water
     Imagefilename: star.png
+    UseURL: true
+    URL: https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Gold_Star.svg/1000px-Gold_Star.svg.png
     LHPolicy: PostMix
     NumberofBlanks: 1
     NumberofReplicates: 5

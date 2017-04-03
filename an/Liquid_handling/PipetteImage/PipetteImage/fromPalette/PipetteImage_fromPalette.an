@@ -4,20 +4,23 @@ protocol PipetteImage_fromPalette
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"image/color"
 	"strconv"
-
-
+	"strings"
+	"fmt"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Palette color.Palette
-	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourIndextoComponentMap map[string]string
 	OnlythisColour string
 	NotthisColour string
 	Rotate bool
@@ -25,6 +28,7 @@ Parameters (
 	PosterizeImage bool
 	PosterizeLevels int
 	LiquidType string
+	LowerThreshold uint8
 )
 
 // Data which is returned from this protocol, and data types
@@ -56,8 +60,15 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+		
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
 	
-	var err error
 	
 	if PosterizeImage{
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
@@ -73,42 +84,90 @@ Steps {
 
 	counter := 0
 	
+	
 	for locationkey, colour := range positiontocolourmap {
 		
-		colourindex := strconv.Itoa(Palette.Index(colour))
 		
-		component, componentpresent := ColourIndextoComponentMap[colourindex]
-
-		if componentpresent {
+			if  col, found := image.Colourcomponentmap[colour]; found {
+				if col == NotthisColour {
+					Errorf("Not this component:", col)
+				}
+			}
 		
-		if LiquidType != ""{
-		component.Type, err = wtype.LiquidTypeFromString(LiquidType)
+		cmyk := image.ColourtoCMYK(colour)
+				
+		// temp skip of wells with x, e.g. x1,x2,x12
 		
-		if err != nil {
-			Errorf("for component",component.CName, err.Error())
-		}
-		}
-		if OnlythisColour !="" {
-	
-		if image.Colourcomponentmap[colour] == OnlythisColour{
-			counter = counter + 1
-
-		pixelSample := mixer.Sample(component, VolumePerWell)
-		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
-		solutions = append(solutions, solution)
+		if cmyk.C  <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
+			// skip pixel
+		}else if strings.Contains(locationkey,"x") || strings.Contains(locationkey,"X")  {
+			// skip pixel
+		}else {
+			// pipette this pixel
+			colourindex := strconv.Itoa(Palette.Index(colour))
+			
+			compName, componentpresent := ColourIndextoComponentMap[colourindex]
+			
+			component, err := findComponent(Colourcomponents, compName)
+			
+			if err != nil {
+				Errorf("Cannot find component: ", err.Error())
 			}
 			
-		}else{
-			if component.CName != NotthisColour{
-			counter = counter + 1
-		pixelSample := mixer.Sample(component, VolumePerWell)
-		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
-		solutions = append(solutions, solution)
-		}
-		}
+				if componentpresent && component.CName == NotthisColour {
+					Errorf("Not this component:", image.Colourcomponentmap[colour])
+				}
+			
+			/*	
+			if !componentpresent {
+				
+			
+			for key, _ := range ColourIndextoComponentMap {
+				foundthese = append(foundthese,key)
+			}
+			sort.Strings(foundthese)
+			Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
+			}
+			*/
 		
-	}
-	
+			if componentpresent {
+				
+					if LiquidType != ""{
+					component.Type, err = wtype.LiquidTypeFromString(LiquidType)
+					
+					if err != nil {
+						Errorf("for component",component.CName, err.Error())
+					}
+				}
+				if OnlythisColour !="" {
+			
+					if image.Colourcomponentmap[colour] == OnlythisColour{
+							counter = counter + 1
+			
+						pixelSample := mixer.Sample(component, VolumePerWell)
+						solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+						solutions = append(solutions, solution)
+						}
+					
+				}else{
+					
+					if NotthisColour == ""{
+						counter++
+						pixelSample := mixer.Sample(component, VolumePerWell)
+						solution := MixNamed(OutPlate.Type, locationkey, "Image", pixelSample)
+						solutions = append(solutions, solution)
+					}else if component.CName != NotthisColour && image.Colourcomponentmap[colour] != NotthisColour {
+						counter++
+						pixelSample := mixer.Sample(component, VolumePerWell)
+						solution := MixNamed(OutPlate.Type, locationkey, "Image", pixelSample)
+						solutions = append(solutions, solution)
+					}else{
+						Errorf("component: NotthisColourFound: ", component.CName)
+					}
+				}
+				
+			}	
+		}
 	}
 	Pixels = solutions
 	Numberofpixels = len(Pixels)
@@ -124,5 +183,16 @@ Analysis {
 // dipstick basis
 Validation {
 	
+}
+
+// Looks for a component matching on name only.
+// If more than one component present the first component will be returned with no error
+func findComponent(components []*wtype.LHComponent, componentName string)(component *wtype.LHComponent, err error){
+	for _,comp := range components {
+		if comp.CName == componentName {
+			return comp, nil
+		}
+	}
+	return component, fmt.Errorf("No component found with name %s in component list",componentName)
 }
 

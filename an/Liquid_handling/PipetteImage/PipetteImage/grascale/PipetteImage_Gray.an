@@ -5,16 +5,17 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"fmt"
-
 	)
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
@@ -66,6 +67,16 @@ Setup {
 // for every input
 Steps {
 	
+	
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
+	
 	var blackvol Volume
 	
 	var maxuint8 uint8 = 255	
@@ -101,10 +112,8 @@ Steps {
 
 	for locationkey, colour := range positiontocolourmap {
 		
-		//components := make([]*wtype.LHComponent, 0)
 
 		var solution *wtype.LHComponent
-		//var mixedsolution *wtype.LHComponent
 
 		gray := image.ColourtoGrayscale(colour)
 		
@@ -118,12 +127,10 @@ Steps {
 		
 		fullblackuint8 = uint8(MaxBlackPercentagethreshold * float64(maxuint8))
 		
-	//	fmt.Println("brand new minuint8 ",minuint8,"fullblackuint8 ", fullblackuint8)
 		
 		if gray.Y < minuint8 {
 			if SkipWhite {
 			skipped = skipped + 1
-	//	fmt.Println("skipping well:", skipped,locationkey)
 		}else{
 			whitevol := VolumeForFullcolour
 			Diluent.Type,_ = wtype.LiquidTypeFromString(NonMixingClass)
@@ -149,7 +156,6 @@ Steps {
 			
 			if gray.Y < fullblackuint8 /*&& gray.Y >= minuint8*/{
 			watervol := wunit.NewVolume((float64(maxuint8-gray.Y)/float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-//			fmt.Println("new well", locationkey, "water vol", watervol.ToString())
 			// force hv tip choice
 			if  OnlyHighVolumetips && watervol.RawValue() < 21	 && watervol.Unit().PrefixedSymbol() == "ul"{
 				watervol.SetValue(21)
@@ -160,15 +166,11 @@ Steps {
 		} 
 		if gray.Y >= fullblackuint8{
 			fullblack = fullblack + 1
-	//		fmt.Println("full colours:", fullblack)
 			blackvol = VolumeForFullcolour
 		}else {
 		blackvol = wunit.NewVolume((float64(gray.Y)/float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		}
-		
-	//	fmt.Println("new well", locationkey, "black vol", blackvol.ToString())
-		
-		//Black.Type = wtype.LiquidTypeFromString("NeedToMix")
+				
 		
 		if DontMix {
 		Black.Type = wtype.LTDISPENSEABOVE
@@ -178,15 +180,12 @@ Steps {
 			Black.Type,_ = wtype.LiquidTypeFromString(MixingLiquidClass)
 		}
 		
-		//fmt.Println("blackvol2",blackvol.ToString())
 		if OnlyHighVolumetips && blackvol.RawValue() < 21 && blackvol.Unit().PrefixedSymbol() == "ul"{
 				blackvol.SetValue(21)
 			}
 			
-			
-			
+						
 		blackSample := mixer.Sample(Black, blackvol)
-		//components = append(components, blackSample)
 		
 		if solution != nil {
 		solution = Mix(solution, blackSample)
@@ -201,7 +200,6 @@ Steps {
 	NumberofShadesofGrey = len(ShadesofGrey)
 	Pixels = solutions
 	Numberofpixels = len(Pixels)
-	fmt.Println("Pixels =",Numberofpixels)
 	Fullblack = fullblack
 	Skipped = skipped
 

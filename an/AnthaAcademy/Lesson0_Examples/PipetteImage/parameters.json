@@ -6,24 +6,26 @@
       "Cyan": "Cyan",
       "Imagefilename": "spaceinvader.png",
       "Magenta": "Magenta",
-      "OutPlate": "greiner384_riser",
+      "OutPlate": "pcrplate_skirted_riser20",
       "PalettePlate": "pcrplate_skirted_riser20",
-      "PosterizeImage": false,
+      "PosterizeImage": true,
       "PosterizeLevels": 2,
       "Rotate": false,
-      "VolumeForFullcolour": "75ul",
-      "Yellow": "Yellow_ink"
+      "VolumeForFullcolour": "50ul",
+      "Yellow": "Yellow_ink",
+      "White":"white"
     },
     "Pipette1": {
       "AutoRotate": true,
       "Imagefilename": "spaceinvader.png",
       "NotthisColour": "Black",
       "OnlythisColour": "",
-      "OutPlate": "greiner384_riser20",
+      "OutPlate": "Agarplateforpicking1536_riser20",
       "PosterizeImage": false,
       "PosterizeLevels": 2,
       "Rotate": false,
-      "VolumePerWell": "2ul"
+      "VolumePerWell": "1ul",
+      "LiquidType":"water"
     }
   },
   "config": {
@@ -32,14 +34,15 @@
     ],
     "DriverSpecificOutputPreferences": [
       "position_8",
-      "position_9",
-      "position_1"
+      "position_9"
+      
     ],
     "DriverSpecificTipPreferences": [
       "position_5",
       "position_6",
       "position_3",
-      "position_2"
+      "position_2",
+      "position_1"
     ],
     "DriverSpecificTipWastePreferences": [
       "position_7"
