@@ -104,7 +104,7 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4)) {
-						cyanSample.Type = wtype.LTPAINT
+						cyanSample.Type = wtype.LTMegaMix
 					} else {
 						cyanSample.Type = wtype.LTDISPENSEABOVE
 
@@ -128,7 +128,7 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4)) {
-						yellowSample.Type = wtype.LTPAINT
+						yellowSample.Type = wtype.LTMegaMix
 					} else {
 						yellowSample.Type = wtype.LTDISPENSEABOVE
 
@@ -183,7 +183,7 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
 					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4)) {
-						blackSample.Type = wtype.LTPAINT
+						blackSample.Type = wtype.LTMegaMix
 					} else {
 						blackSample.Type = wtype.LTDISPENSEABOVE
 
@@ -203,7 +203,7 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4), componentVols)
 
 				// mix with white sample
-				_input.White.Type = wtype.LTPAINT
+				_input.White.Type = wtype.LTMegaMix
 
 				whiteSample := mixer.Sample(_input.White, whitevol)
 
