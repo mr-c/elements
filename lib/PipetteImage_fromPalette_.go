@@ -3,6 +3,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -49,8 +50,6 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 		}
 	}
 
-	var err error
-
 	if _input.PosterizeImage {
 		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
 	}
@@ -65,12 +64,35 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 	for locationkey, colour := range positiontocolourmap {
 
-		// temp skip of wells with x, e.g. x1,x2,x12
-		if !strings.Contains(locationkey, "x") && !strings.Contains(locationkey, "X") {
+		if col, found := image.Colourcomponentmap[colour]; found {
+			if col == _input.NotthisColour {
+				execute.Errorf(_ctx, "Not this component:", col)
+			}
+		}
 
+		cmyk := image.ColourtoCMYK(colour)
+
+		// temp skip of wells with x, e.g. x1,x2,x12
+
+		if cmyk.C <= _input.LowerThreshold && cmyk.Y <= _input.LowerThreshold && cmyk.M <= _input.LowerThreshold && cmyk.K <= _input.LowerThreshold {
+			// skip pixel
+		} else if strings.Contains(locationkey, "x") || strings.Contains(locationkey, "X") {
+			// skip pixel
+		} else {
+			// pipette this pixel
 			colourindex := strconv.Itoa(_input.Palette.Index(colour))
 
-			component, componentpresent := _input.ColourIndextoComponentMap[colourindex]
+			compName, componentpresent := _input.ColourIndextoComponentMap[colourindex]
+
+			component, err := findComponent(_input.Colourcomponents, compName)
+
+			if err != nil {
+				execute.Errorf(_ctx, "Cannot find component: ", err.Error())
+			}
+
+			if componentpresent && component.CName == _input.NotthisColour {
+				execute.Errorf(_ctx, "Not this component:", image.Colourcomponentmap[colour])
+			}
 
 			/*
 				if !componentpresent {
@@ -104,11 +126,19 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 					}
 
 				} else {
-					if component.CName != _input.NotthisColour {
-						counter = counter + 1
+
+					if _input.NotthisColour == "" {
+						counter++
 						pixelSample := mixer.Sample(component, _input.VolumePerWell)
-						solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
+						solution := execute.MixNamed(_ctx, _input.OutPlate.Type, locationkey, "Image", pixelSample)
 						solutions = append(solutions, solution)
+					} else if component.CName != _input.NotthisColour && image.Colourcomponentmap[colour] != _input.NotthisColour {
+						counter++
+						pixelSample := mixer.Sample(component, _input.VolumePerWell)
+						solution := execute.MixNamed(_ctx, _input.OutPlate.Type, locationkey, "Image", pixelSample)
+						solutions = append(solutions, solution)
+					} else {
+						execute.Errorf(_ctx, "component: NotthisColourFound: ", component.CName)
 					}
 				}
 
@@ -130,6 +160,17 @@ func _PipetteImage_fromPaletteAnalysis(_ctx context.Context, _input *PipetteImag
 // dipstick basis
 func _PipetteImage_fromPaletteValidation(_ctx context.Context, _input *PipetteImage_fromPaletteInput, _output *PipetteImage_fromPaletteOutput) {
 
+}
+
+// Looks for a component matching on name only.
+// If more than one component present the first component will be returned with no error
+func findComponent(components []*wtype.LHComponent, componentName string) (component *wtype.LHComponent, err error) {
+	for _, comp := range components {
+		if comp.CName == componentName {
+			return comp, nil
+		}
+	}
+	return component, fmt.Errorf("No component found with name %s in component list", componentName)
 }
 func _PipetteImage_fromPaletteRun(_ctx context.Context, input *PipetteImage_fromPaletteInput) *PipetteImage_fromPaletteOutput {
 	output := &PipetteImage_fromPaletteOutput{}
@@ -181,10 +222,11 @@ type PipetteImage_fromPaletteElement struct {
 
 type PipetteImage_fromPaletteInput struct {
 	AutoRotate                bool
-	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourIndextoComponentMap map[string]string
 	Colourcomponents          []*wtype.LHComponent
 	Imagefilename             string
 	LiquidType                string
+	LowerThreshold            uint8
 	NotthisColour             string
 	OnlythisColour            string
 	OutPlate                  *wtype.LHPlate
@@ -223,6 +265,7 @@ func init() {
 				{Name: "Colourcomponents", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "LiquidType", Desc: "", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "NotthisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
