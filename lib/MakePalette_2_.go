@@ -3,6 +3,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
@@ -14,6 +15,7 @@ import (
 	"github.com/antha-lang/antha/inject"
 	"image/color"
 	"strconv"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -61,7 +63,19 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.OutPlate, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, img, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+
+	newFilename, err := splitFilename(_input.Imagefilename, "_plateformat")
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	_output.OutPutImage, err = image.Export(img, newFilename)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -232,7 +246,6 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 	_output.Palette = chosencolourpalette
 	_output.ColourtoComponentMap = colourtoComponentMap
 
-	var err error
 	_output.PaletteFile, err = export.JSON(_output.Palette, "Palette.json")
 
 	if err != nil {
@@ -251,6 +264,23 @@ func _MakePalette_2Analysis(_ctx context.Context, _input *MakePalette_2Input, _o
 // dipstick basis
 func _MakePalette_2Validation(_ctx context.Context, _input *MakePalette_2Input, _output *MakePalette_2Output) {
 
+}
+
+func splitFilename(filename, addition string) (newfilename string, err error) {
+	fields := strings.Split(filename, `.`)
+
+	if len(fields) <= 1 {
+		return filename + addition, fmt.Errorf("filename has no dot so added addition on to end")
+	} else if len(fields) == 2 {
+		// rename file
+		newfilename = fields[0] + addition + `.` + fields[1]
+	} else if len(fields) > 2 {
+		// rename file
+		firstPart := strings.Join(fields[0:len(fields)-2], `.`)
+
+		newfilename = firstPart + addition + `.` + fields[len(fields)-1]
+	}
+	return
 }
 func _MakePalette_2Run(_ctx context.Context, input *MakePalette_2Input) *MakePalette_2Output {
 	output := &MakePalette_2Output{}
@@ -324,6 +354,7 @@ type MakePalette_2Output struct {
 	Colours              []*wtype.LHComponent
 	ColourtoComponentMap map[string]string
 	Numberofcolours      int
+	OutPutImage          wtype.File
 	Palette              color.Palette
 	PaletteFile          wtype.File
 }
@@ -332,6 +363,7 @@ type MakePalette_2SOutput struct {
 	Data struct {
 		ColourtoComponentMap map[string]string
 		Numberofcolours      int
+		OutPutImage          wtype.File
 		Palette              color.Palette
 		PaletteFile          wtype.File
 	}
@@ -367,6 +399,7 @@ func init() {
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "map of colour name (as index) to component name\n", Kind: "Data"},
 				{Name: "Numberofcolours", Desc: "", Kind: "Data"},
+				{Name: "OutPutImage", Desc: "", Kind: "Data"},
 				{Name: "Palette", Desc: "Colournames []string\n", Kind: "Data"},
 				{Name: "PaletteFile", Desc: "", Kind: "Data"},
 			},
