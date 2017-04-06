@@ -1,0 +1,32 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "DNA_gel"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "DNAGel": "EGEL96_1",
+      "DNAGelRunVolume": "15ul",
+      "Ladder": "1kb DNA Ladder",
+      "LadderVolume": "10ul",
+      "LoadingDye": "blue",
+      "LoadingDyeInSample": false,
+      "LoadingDyeVolume": "1ul",
+      "MixPlate": "pcrplate_skirted_riser",
+      "MixingPolicy": "load",
+      "ProjectName": "Test",
+      "Reactions": [
+          "dna",
+          "dna",
+          "dna",
+          "dna"
+    ],
+      "Replicates": 1,
+      "Water": "water",
+      "WaterVol": "10ul",
+    }
+  },
+  "config": null
+}
