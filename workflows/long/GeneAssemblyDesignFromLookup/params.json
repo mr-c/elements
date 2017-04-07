@@ -8,7 +8,7 @@
         "U28422.1",
         "EF208560"
       ],
-      "RE": "SapI",
+      "RestrictionEnzymeName": "SapI",
       "SynthesisProvider": "GenScript",
       "Vector": "HQ398611.1"
     }

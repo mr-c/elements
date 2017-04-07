@@ -5,8 +5,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	//"github.com/antha-lang/antha/microArch/factory"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"image/color"
 	"strconv"
 	"fmt"
@@ -16,7 +15,9 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForeachColourPlasmid  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	PosterizeImage bool
 	PosterizeLevels int
 	Rotate bool
@@ -97,11 +98,14 @@ Steps {
 	bluename := Blue.CName
 	
 	fmt.Println(rbsstrengthdata)
-	//var chosencolourpalette color.Palette
 	
-	//chosencolourpalette := image.AvailablePalettes["Plan9"] 
-	
-	//positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate) 
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
 	
 	if PosterizeImage{
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
@@ -116,8 +120,6 @@ Steps {
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
-	
-	//fmt.Println("positions", positiontocolourmap)
 	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)

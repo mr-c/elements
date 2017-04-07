@@ -4,6 +4,7 @@ package lib
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
@@ -75,6 +76,11 @@ func _ParsePlateSteps(_ctx context.Context, _input *ParsePlateInput, _output *Pa
 			_output.ComponentMap[component.CName] = component
 
 		}
+	}
+	if len(_output.AllComponents) == 0 {
+		err = fmt.Errorf("No Components found when parsing plate" + _input.InputCSVfile.Name)
+		_output.Warnings = append(_output.Warnings, err.Error())
+		_output.Error = err
 	}
 	_output.AllComponents = components
 	_output.PlatewithComponents = inputplate
@@ -171,7 +177,7 @@ func init() {
 		Constructor: ParsePlateNew,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol for parsing the contents of a plate from a csv file\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/ParsePlate.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/ParsePlate/ParsePlate.an",
 			Params: []component.ParamDesc{
 				{Name: "InputCSVfile", Desc: "", Kind: "Parameters"},
 				{Name: "AllComponents", Desc: "Gel\n", Kind: "Outputs"},

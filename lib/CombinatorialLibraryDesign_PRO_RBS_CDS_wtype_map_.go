@@ -1,9 +1,6 @@
-// This protocol is intended to design assembly parts using a specified enzyme.
-// overhangs are added to complement the adjacent parts and leave no scar.
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
-// If assembly simulation fails after overhangs are added. In order to help the user
-// diagnose the reason, a report of the part overhangs
-// is returned to the user along with a list of cut sites in each part.
+// This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,
+// RBSs, CDSs and Terminators according to an assembly standard.
+// A list of sequencing primers to order will also be returned.
 package lib
 
 import (
@@ -16,14 +13,10 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-//"strconv"
-
 // Input parameters for this protocol (data)
 
-//Seqsinorder					map[string][]string // constructname to sequence combination
-
-//MoClo
-// of assembly standard
+// Custom
+// level of assembly standard options are: Level0, Level1
 
 // Physical Inputs to this protocol with types
 
@@ -32,6 +25,7 @@ import (
 // Data which is returned from this protocol, and data types
 
 // parts to order
+// parts + vector map ready for feeding into downstream AutoAssembly element
 
 // desired sequence to end up with after assembly
 
@@ -49,12 +43,14 @@ func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSetup(_ctx context.Context
 func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapInput, _output *CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapOutput) {
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	_output.Assemblies = make(map[string][]wtype.DNASequence)
 	_output.PassMap = make(map[string]bool)
 	_output.SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
 	_output.EndreportMap = make(map[string]string)
 	_output.PositionReportMap = make(map[string][]string)
 	_output.StatusMap = make(map[string]string)
 	_output.PrimerMap = make(map[string]oligos.Primer)
+	SequencingPrimers := make([][]wtype.DNASequence, 0)
 
 	var counter int = 1
 
@@ -79,6 +75,7 @@ func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSteps(_ctx context.Context
 						)
 						key = key                                                             //+ Vectors[j]
 						_output.PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+						_output.Assemblies[key] = assembly.Data.PartsAndVector                // parts + vector to be fed into assembly element
 						_output.PassMap[key] = assembly.Data.Simulationpass
 						_output.EndreportMap[key] = assembly.Data.Endreport
 						_output.PositionReportMap[key] = assembly.Data.PositionReport
@@ -87,18 +84,25 @@ func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSteps(_ctx context.Context
 
 						// for each vector we'll also design sequencing primers
 
-						primer := PrimerDesign_FWD_wtypeRunSteps(_ctx, &PrimerDesign_FWD_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
-							Maxtemp:                                  wunit.NewTemperature(60, "C"),
-							Mintemp:                                  wunit.NewTemperature(55, "C"),
-							Maxgc:                                    0.6,
-							Minlength:                                20,
-							Maxlength:                                25,
+						primer := PrimerDesign_ColonyPCR_wtypeRunSteps(_ctx, &PrimerDesign_ColonyPCR_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
+							Maxtemp:                                  wunit.NewTemperature(72, "C"),
+							Mintemp:                                  wunit.NewTemperature(50, "C"),
+							Maxgc:                                    0.7,
+							Minlength:                                12,
+							Maxlength:                                30,
 							Seqstoavoid:                              []string{},
-							PermittednucleotideOverlapBetweenPrimers: 10,                                     // number of nucleotides which primers can overlap by
-							RegionSequence:                           assembly.Data.PartsWithSitesRemoved[0], // first part
+							PermittednucleotideOverlapBetweenPrimers: 10,                   // number of nucleotides which primers can overlap by
+							RegionSequence:                           assembly.Data.Insert, // first part
 							FlankTargetSequence:                      true},
 						)
-						_output.PrimerMap[key] = primer.Data.FWDPrimer
+
+						// rename primers
+						primer.Data.FWDPrimer.Nm = primer.Data.FWDPrimer.Nm + _input.ProjectName + _input.Vectors[j].Nm + "_FWD"
+						primer.Data.REVPrimer.Nm = primer.Data.REVPrimer.Nm + _input.ProjectName + _input.Vectors[j].Nm + "_REV"
+
+						_output.PrimerMap[key+"_FWD"] = primer.Data.FWDPrimer
+						_output.PrimerMap[key+"_REV"] = primer.Data.REVPrimer
+						SequencingPrimers = append(SequencingPrimers, []wtype.DNASequence{primer.Data.FWDPrimer.DNASequence, primer.Data.REVPrimer.DNASequence})
 						counter++
 					}
 				}
@@ -179,6 +183,7 @@ type CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapInput struct {
 }
 
 type CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapOutput struct {
+	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
 	PartswithOverhangsMap map[string][]wtype.DNASequence
 	PassMap               map[string]bool
@@ -190,6 +195,7 @@ type CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapOutput struct {
 
 type CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSOutput struct {
 	Data struct {
+		Assemblies            map[string][]wtype.DNASequence
 		EndreportMap          map[string]string
 		PartswithOverhangsMap map[string][]wtype.DNASequence
 		PassMap               map[string]bool
@@ -206,19 +212,20 @@ func init() {
 	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_map",
 		Constructor: CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapNew,
 		Desc: component.ComponentDesc{
-			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
+			Desc: "This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,\nRBSs, CDSs and Terminators according to an assembly standard.\nA list of sequencing primers to order will also be returned.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialLibraryDesign4part_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "CDSs", Desc: "", Kind: "Parameters"},
 				{Name: "PROs", Desc: "", Kind: "Parameters"},
-				{Name: "ProjectName", Desc: "Seqsinorder\t\t\t\t\tmap[string][]string // constructname to sequence combination\n", Kind: "Parameters"},
+				{Name: "ProjectName", Desc: "", Kind: "Parameters"},
 				{Name: "RBSs", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
-				{Name: "Standard", Desc: "MoClo\n", Kind: "Parameters"},
-				{Name: "StandardLevel", Desc: "of assembly standard\n", Kind: "Parameters"},
+				{Name: "Standard", Desc: "Custom\n", Kind: "Parameters"},
+				{Name: "StandardLevel", Desc: "level of assembly standard options are: Level0, Level1\n", Kind: "Parameters"},
 				{Name: "TERs", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
+				{Name: "Assemblies", Desc: "parts + vector map ready for feeding into downstream AutoAssembly element\n", Kind: "Data"},
 				{Name: "EndreportMap", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangsMap", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PassMap", Desc: "", Kind: "Data"},

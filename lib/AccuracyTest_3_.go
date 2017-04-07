@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -17,6 +18,9 @@ import (
 )
 
 // Input parameters for this protocol (data)
+
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // optional parameter allowing pipetting to resume on partially filled plate
 
@@ -70,6 +74,15 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	// work out plate layout based on picture or just in order
 
 	if _input.Printasimage {
+
+		// if image is from url, download
+		if _input.UseURL {
+			err := download.File(_input.URL, _input.Imagefilename)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+		}
+
 		chosencolourpalette := image.AvailablePalettes()["Palette1"]
 		positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
 
@@ -387,8 +400,10 @@ type AccuracyTest_3Input struct {
 	TestSolVolumes                  []wunit.Volume
 	TestSols                        []*wtype.LHComponent
 	TotalVolume                     wunit.Volume
+	URL                             string
 	UseLHPolicyDoeforDiluent        bool
 	UseLiquidPolicyForTestSolutions bool
+	UseURL                          bool
 	WellsUsed                       int
 }
 
@@ -440,8 +455,10 @@ func init() {
 				{Name: "TestSolVolumes", Desc: "", Kind: "Parameters"},
 				{Name: "TestSols", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UseLHPolicyDoeforDiluent", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidPolicyForTestSolutions", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
 				{Name: "Blankwells", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},

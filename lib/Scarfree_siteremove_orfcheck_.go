@@ -27,8 +27,6 @@ import (
 	"strings"
 )
 
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
-
 // Input parameters for this protocol (data)
 
 // enter each as amino acid sequence
@@ -260,6 +258,13 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 		warnings = append(warnings, text.Print("Error", simerr.Error()))
 	}
 
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+
+		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+	}
+
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
 
 	if err != nil {
@@ -354,10 +359,7 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 			text.Print("Any Orfs to confirm missing from new DNA sequence:", _output.ORFmissing),
 			partstoorder,
 		)
-		// export data to file
-		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-		//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-		fmt.Println(_output.Status)
+
 	}
 
 	// export sequence to fasta
@@ -367,15 +369,20 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 }
@@ -452,11 +459,14 @@ type Scarfree_siteremove_orfcheckInput struct {
 }
 
 type Scarfree_siteremove_orfcheckOutput struct {
+	AssembledSequenceFile  wtype.File
 	Endreport              string
+	Insert                 wtype.DNASequence
 	NewDNASequence         wtype.DNASequence
 	ORFmissing             bool
 	ORIpresent             bool
 	OriginalParts          []wtype.DNASequence
+	PartsToOrder           wtype.File
 	PartsWithSitesRemoved  []wtype.DNASequence
 	PartswithOverhangs     []wtype.DNASequence
 	Plasmid                bool
@@ -469,11 +479,14 @@ type Scarfree_siteremove_orfcheckOutput struct {
 
 type Scarfree_siteremove_orfcheckSOutput struct {
 	Data struct {
+		AssembledSequenceFile  wtype.File
 		Endreport              string
+		Insert                 wtype.DNASequence
 		NewDNASequence         wtype.DNASequence
 		ORFmissing             bool
 		ORIpresent             bool
 		OriginalParts          []wtype.DNASequence
+		PartsToOrder           wtype.File
 		PartsWithSitesRemoved  []wtype.DNASequence
 		PartswithOverhangs     []wtype.DNASequence
 		Plasmid                bool
@@ -504,11 +517,14 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "Plasmid", Desc: "", Kind: "Data"},
