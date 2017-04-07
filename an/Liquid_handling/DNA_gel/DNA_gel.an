@@ -12,32 +12,32 @@ Parameters (
 	ProjectName string //optionally define name of experiment
 	LoadingDyeInSample bool //select true if DNA samples already contain Loading Dye
 	Replicates int //define number of technical replicates
-	WaterVol	Volume
-	LadderVolume Volume
-	LoadingDyeVolume Volume
-	DNAGelRunVolume Volume
+	WaterVol	Volume //specify volume of water to add to prime the E-Gel
+	LadderVolume Volume //specify the volume of DNA ladder to add
+	LoadingDyeVolume Volume //specify the volume of loading dye to add to each sample
+	DNAGelRunVolume Volume //specify the total running volume of the E-Gel in use
 	MixingPolicy string //default is Load policy but can be overriden by specifying here
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	Error error
+	Error error //error reporting
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
 	Reactions []*wtype.LHComponent // This is the input that comes as the output from an upstream element (AutoAssembly.an)
-  Water	*wtype.LHComponent
-	Ladder *wtype.LHComponent
-	LoadingDye *wtype.LHComponent//WaterSolution //Chemspiderlink // not correct link but similar desirable
-	DNAGel *wtype.LHPlate  // gel
+  Water	*wtype.LHComponent //water
+	Ladder *wtype.LHComponent //DNA ladder
+	LoadingDye *wtype.LHComponent //loading dye to mix with samples
+	DNAGel *wtype.LHPlate  // E-GEL type
 	MixPlate *wtype.LHPlate// plate to mix samples if required
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	LoadedSamples []*wtype.LHComponent//Gel
+	LoadedSamples []*wtype.LHComponent //samples outputted as an array which can be wired into downstream protocols
 
 )
 
@@ -71,6 +71,7 @@ Steps {
 	//get well positions of DNA Gel from plate library ensuring the list is by row rather than by column
 	var wells []string = DNAGel.AllWellPositions(wtype.BYROW)
 
+	//setup liquid handling component variables
 	var DNAGelloadmix *wtype.LHComponent
 	var loadedsample *wtype.LHComponent
 
@@ -86,8 +87,10 @@ Steps {
 	//assign water to specific liquid handling load type
 	Water.Type = wtype.LTloadwater
 
+		//calculate and loop through specified number of replicates
 		for j:=0;j< Replicates;j++{
 
+				//range through the reactions input array and perform specified actions
 				for i := range Reactions {
 
 						//sample water at specified water volume
@@ -99,11 +102,13 @@ Steps {
 						//get well coordinates from correct position
 						wellcoords := wtype.MakeWellCoordsA1(position)
 
+						//add ladder
+
 						//if it is the last column, add a ladder sample
 						fmt.Println(DNAGel.WlsX, wellcoords.X)
 						if wellcoords.X == DNAGel.WlsX -1 {
 
-
+							//attribute specified mixinpolicy to the DNA ladder
 							Ladder.Type, err = wtype.LiquidTypeFromString(MixingPolicy)
 							if err != nil {
 								Errorf("Error in specifying MixingPolicy %s for DNA Gel: %s", MixingPolicy, err.Error())
@@ -136,11 +141,13 @@ Steps {
 						// add loading dye if necessary
 							if !LoadingDyeInSample {
 
+								//attribute specified mixinpolicy to the LoadingDye
 									LoadingDye.Type, err = wtype.LiquidTypeFromString("NeedToMix")
 									if err != nil{
 											Errorf(err.Error())
 									}
 
+									//perform liquid handling for addiiton and mixing of the loading dye
 									DNAGelloadmixsolution := MixInto(
 																									MixPlate,
 																									"",
@@ -152,30 +159,29 @@ Steps {
 									DNAGelloadmix = sampletotest
 							}
 
-						// Ensure  sample will be dispensed appropriately:
-
-						// replacing following line with temporary hard code whilst developing protocol:
+							//attribute specified mixinpolicy to the samples
 						DNAGelloadmix.Type, err = wtype.LiquidTypeFromString(MixingPolicy)
 						if err != nil {
 							Errorf("Error in specifying MixingPolicy %s for DNA Gel: %s", MixingPolicy, err.Error())
 						}
 
-
+						//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
 						loadedsample = MixInto(
 																	DNAGel,
 																	position,
 																	waterSample,
 																	mixer.Sample(DNAGelloadmix, samplevolume),
 																	)
-
+						//add the loaded samples to the loadedsamples array
 						loadedsamples = append(loadedsamples,loadedsample)
 
+						//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
 						counter--
 
 				}
 
 }
-
+	//update output variable LoadedSamples with the output of the protocol
 	LoadedSamples = loadedsamples
 }
 
