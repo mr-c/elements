@@ -18,25 +18,30 @@ import (
 	"strconv"
 	"strings"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
-"path/filepath"
+	"path/filepath"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	Constructname 				string
-	Seqsinorder					[]wtype.DNASequence
-	AssemblyStandard			string //MoClo
-	Level						string // of assembly standard
-	Vector						wtype.DNASequence
-	PartMoClotypesinorder		[]string // labels e.g. pro = promoter
-	OtherEnzymeSitesToRemove	[]string
-	ORFstoConfirm				[]string // enter each as amino acid sequence
-	RemoveproblemRestrictionSites bool
-	OnlyRemovesitesinORFs		bool
-	EndsAlreadyadded 			bool
-	ExporttoFastaFile 			bool
-	BlastSeqswithNoName		bool
+	Constructname 					string
+	Seqsinorder						[]wtype.DNASequence
+	AssemblyStandard					string //MoClo
+	Level							string // of assembly standard
+	Vector							wtype.DNASequence
+	PartMoClotypesinorder			[]string // labels e.g. pro = promoter
+	OtherEnzymeSitesToRemove			[]string
+	ORFstoConfirm					[]string // enter each as amino acid sequence
+	RemoveproblemRestrictionSites 	bool
+	OnlyRemovesitesinORFs			bool
+	EndsAlreadyadded 				bool
+	ExporttoFastaFile 				bool
+	BlastSeqswithNoName				bool
+	
+	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3". 
+	// If left empty no adaptor sequence is added.
+	MakeLevel1Device 		string
+	ReverseLevel1Orientation bool 
 )
 
 // Physical Inputs to this protocol with types
@@ -55,7 +60,7 @@ Data (
 	Status string
 	Simulationpass bool
 	OriginalParts []wtype.DNASequence 
-	PartsWithSitesRemoved []wtype.DNASequence
+	PartsWithSitesRemoved []wtype.DNASequence // and level 1 ends added if MakeLevel1Device is selected
 	PartswithOverhangs []wtype.DNASequence // parts to order
 	PartsAndVector []wtype.DNASequence // parts to order + vector
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
@@ -189,6 +194,19 @@ Steps {
 	PartsWithSitesRemoved = partsinorder
 	// make vector into an antha type DNASequence
 	
+	
+	if MakeLevel1Device != ""{
+		PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(PartsWithSitesRemoved[0],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+		if err != nil {
+			Errorf(err.Error())
+		}
+	
+		PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1], err = enzymes.AddL1DAdaptor(PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+		if err != nil {
+			Errorf(err.Error())
+		}
+
+	}
 	//lookup restriction enzyme
 	restrictionenzyme, err := lookup.TypeIIsLookup(enz.Name)
 	if err != nil {

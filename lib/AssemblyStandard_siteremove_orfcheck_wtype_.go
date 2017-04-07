@@ -15,16 +15,15 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"strconv"
-	"strings"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -36,12 +35,17 @@ import (
 
 // enter each as amino acid sequence
 
+// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+// If Custom design the valid options currently supported are: "Device1","Device2", "Device3".
+// If left empty no adaptor sequence is added.
+
 // Physical Inputs to this protocol with types
 
 // Physical outputs from this protocol with types
 
 // Data which is returned from this protocol, and data types
 
+// and level 1 ends added if MakeLevel1Device is selected
 // parts to order
 // parts to order + vector
 // desired sequence to end up with after assembly
@@ -169,6 +173,18 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	_output.PartsWithSitesRemoved = partsinorder
 	// make vector into an antha type DNASequence
 
+	if _input.MakeLevel1Device != "" {
+		_output.PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(_output.PartsWithSitesRemoved[0], _input.AssemblyStandard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		_output.PartsWithSitesRemoved[len(_output.PartsWithSitesRemoved)-1], err = enzymes.AddL1DAdaptor(_output.PartsWithSitesRemoved[len(_output.PartsWithSitesRemoved)-1], _input.AssemblyStandard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+	}
 	//lookup restriction enzyme
 	restrictionenzyme, err := lookup.TypeIIsLookup(enz.Name)
 	if err != nil {
@@ -398,11 +414,13 @@ type AssemblyStandard_siteremove_orfcheck_wtypeInput struct {
 	EndsAlreadyadded              bool
 	ExporttoFastaFile             bool
 	Level                         string
+	MakeLevel1Device              string
 	ORFstoConfirm                 []string
 	OnlyRemovesitesinORFs         bool
 	OtherEnzymeSitesToRemove      []string
 	PartMoClotypesinorder         []string
 	RemoveproblemRestrictionSites bool
+	ReverseLevel1Orientation      bool
 	Seqsinorder                   []wtype.DNASequence
 	Vector                        wtype.DNASequence
 }
@@ -458,11 +476,13 @@ func init() {
 				{Name: "EndsAlreadyadded", Desc: "", Kind: "Parameters"},
 				{Name: "ExporttoFastaFile", Desc: "", Kind: "Parameters"},
 				{Name: "Level", Desc: "of assembly standard\n", Kind: "Parameters"},
+				{Name: "MakeLevel1Device", Desc: "Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly\nIf Custom design the valid options currently supported are: \"Device1\",\"Device2\", \"Device3\".\nIf left empty no adaptor sequence is added.\n", Kind: "Parameters"},
 				{Name: "ORFstoConfirm", Desc: "enter each as amino acid sequence\n", Kind: "Parameters"},
 				{Name: "OnlyRemovesitesinORFs", Desc: "", Kind: "Parameters"},
 				{Name: "OtherEnzymeSitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "PartMoClotypesinorder", Desc: "labels e.g. pro = promoter\n", Kind: "Parameters"},
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
+				{Name: "ReverseLevel1Orientation", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
@@ -473,7 +493,7 @@ func init() {
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
 				{Name: "PartsAndVector", Desc: "parts to order + vector\n", Kind: "Data"},
 				{Name: "PartsToOrderFile", Desc: "", Kind: "Data"},
-				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
+				{Name: "PartsWithSitesRemoved", Desc: "and level 1 ends added if MakeLevel1Device is selected\n", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PositionReport", Desc: "", Kind: "Data"},
 				{Name: "Simulationpass", Desc: "", Kind: "Data"},
