@@ -1,0 +1,50 @@
+// This element mixes component B onto component A
+protocol Mix
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Parameters to this protocol
+Parameters (
+
+)
+
+// Output data of this protocol
+Data (
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentA *wtype.LHComponent
+	ComponentB *wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponent *wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	MixedComponent = Mix(ComponentA, ComponentB)
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
