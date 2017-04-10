@@ -1,0 +1,64 @@
+// Protocol MixNtoN performs mixing for two rows of liquid components of equal length
+
+//This protocol takes in an array of components and mixes them
+protocol MixNtoN
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	VolumeA []wtype.Volume
+	VolumeB []wtype.Volume
+	OutPlate 	*wtype.LHPlate
+)
+
+// Output data of this protocol
+Data (
+	
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentA []*wtype.LHComponent
+	ComponentB []*wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponent []*wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	if len(ComponentA) == len(ComponentB){
+		for i := 0; i < len(ComponentA); i++{		
+			MixedComponent[i] = MixInto(OutPlate,"", 
+			mixer.Sample(ComponentA[i],VolumeA[i]),
+			mixer.Sample(ComponentB[i],VolumeB[i]))
+		}
+	}else{
+		Errorf("The number of components does not match!")
+	}	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
