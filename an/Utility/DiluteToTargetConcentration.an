@@ -1,0 +1,82 @@
+// Protocol DiluteToTargetConcentration uses the component stock concentration
+// and can dilute this component to a target concentration specified by the user.
+// For this the user needs to specify how much component should be used for the downstream process
+// and the target concentration of this component. For example if 100ng should be used for an assembly
+// protocol and 1ul is the volume that is added to that assembly
+// the ComponentTargetVol is 1ul and the ComponentTargetConc is 100 ng/ul
+protocol DiluteToTargetConcentration
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"	
+	"github.com/antha-lang/antha/antha/anthalib/wunit"	
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"fmt"
+ )
+
+// Parameters to this protocol
+Parameters (
+	ComponentTargetConc Concentration
+	ComponentStockConc Concentration
+	ComponentTargetVol Volume
+	ReactionNumber int	
+	OutPlate 	*wtype.LHPlate //define in bundle file
+	Diluent 	*wtype.LHComponent
+	Component 	*wtype.LHComponent
+)
+
+// Output data of this protocol
+Data ( 
+	Status string
+	Err error
+)
+
+// Physical inputs to this protocol
+Inputs (
+	OutPlate 	*wtype.LHPlate
+	Diluent 	*wtype.LHComponent
+	Component 	*wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	ComponentDilutedToTargetConcentration *wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+}
+
+
+Steps {
+	// Calculate Dilution	
+	totalVol := wunit.MultiplyVolume(ComponentTargetVol, float64(ReactionNumber+1))
+	ComponentVolume, err := wunit.VolumeForTargetConcentration(ComponentTargetConc, ComponentStockConc, totalVol)
+	// Check for problem such as ComponentStockConc < ComponentTargetConc) see wunit function VolumeForTargetConcentration
+	if err != nil{
+	Err = err
+	Errorf(err.Error())
+	}else{
+	DiluentVolume := wunit.SubtractVolumes(totalVol, []Volume{ComponentVolume})
+	// Dilute accordingly
+	ComponentDilutedToTargetConcentration = MixInto(OutPlate,"", 
+	mixer.Sample(Component,ComponentVolume),
+	mixer.Sample(Diluent,DiluentVolume))
+	
+// Outputmessage for user
+	Status = fmt.Sprintf("Your component stock concentration is %s and it was diluted to a concentration of %s. %s was used of your component and %s was used of your diluent. The reaction can now be done using  %s of your component", ComponentStockConc, ComponentTargetConc, ComponentVolume, DiluentVolume ,ComponentTargetVol)
+	}
+	} 
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
