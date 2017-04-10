@@ -1,20 +1,20 @@
 Parameters:
   DNAgelParams1:
-    DNAGel: EGEL96_1
-    DNAGelRunVolume: 15ul
-    Ladder: 1kb DNA Ladder
+    GelLoadingMixingPolicy: load
     LadderVolume: 10ul
-    LoadingDye: blue
     LoadingDyeInSample: false
-    LoadingDyeVolume: 1ul
-    MixPlate: pcrplate_skirted_riser
-    MixingPolicy: load
-    ProjectName: Test
+    LoadingDyeMixingPolicy: NeedToMix
+    LoadingDyeVolume: 5ul
+    OptimisePlateUsage: false
+    Replicates: 1
+    TotalVolumePerWell: 15ul
+    WaterVolume: 5ul
+    DNAGel: EGEL96_1
+    Ladder: 1kb DNA Ladder
+    LoadingDye: blue
+    MixPlate: greiner384_riser20
     Reactions:
     - dna
     - dna
     - dna
-    - dna
-    Replicates: 1
     Water: water
-    WaterVol: 10ul
