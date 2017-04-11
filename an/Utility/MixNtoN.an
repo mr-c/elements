@@ -6,13 +6,14 @@ protocol MixNtoN
 // Place golang packages to import here
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 )
 
 // Parameters to this protocol
 Parameters (
-	VolumeA []wtype.Volume
-	VolumeB []wtype.Volume
+	VolumeA []wunit.Volume
+	VolumeB []wunit.Volume
 	OutPlate 	*wtype.LHPlate
 )
 
