@@ -3,7 +3,9 @@
 // For this the user needs to specify how much component should be used for the downstream process
 // and the target concentration of this component. For example if 100ng should be used for an assembly
 // protocol and 1ul is the volume that is added to that assembly
-// the ComponentTargetVol is 1ul and the ComponentTargetConc is 100 ng/ul
+// the ComponentTargetVol is 1ul and the ComponentTargetConc is 100 ng/ul. 
+// If the volume required for the target volume is below the pipetting threshold an intermediate dilution step will take place.
+ 
 protocol DiluteToTargetConcentration
 
 // Place golang packages to import here
@@ -17,9 +19,8 @@ import (
 // Parameters to this protocol
 Parameters (
 	ComponentTargetConc Concentration
-	ComponentStockConc Concentration
+	OverrideComponentStockConc Concentration
 	ComponentTargetVol Volume
-	ReactionNumber int	
 	OutPlate 	*wtype.LHPlate //define in bundle file
 	Diluent 	*wtype.LHComponent
 	Component 	*wtype.LHComponent
@@ -36,6 +37,7 @@ Inputs (
 	OutPlate 	*wtype.LHPlate
 	Diluent 	*wtype.LHComponent
 	Component 	*wtype.LHComponent
+	
 )
 
 // Physical outputs to this protocol
@@ -49,22 +51,38 @@ Setup {
 
 
 Steps {
-	// Calculate Dilution	
-	totalVol := wunit.MultiplyVolume(ComponentTargetVol, float64(ReactionNumber+1))
-	ComponentVolume, err := wunit.VolumeForTargetConcentration(ComponentTargetConc, ComponentStockConc, totalVol)
+	// Calculate Dilution
+	var ComponentStockConc Concentration
+	if OverrideComponentStockConc != ""{
+		ComponentStockConc = OverrideComponentStockConc
+		Status = Status + fmt.Println("ComponentStockConc was overwritten with Concentration: %s", OverrideComponentStockConc)
+	}else{
+		if Component.HasConcentration() == false  && OverrideComponentStockConc == ""  {
+			Errorf("Component %s has no concentration and no Stock Concentration specified. Please specify the concentration in OverrideStockConcrentration", Component.CName)
+       	}else{
+		ComponentStockConc = Component.Concentration
+		}	
+		}
+	ComponentVolume, err := wunit.VolumeForTargetConcentration(ComponentTargetConc, ComponentStockConc, ComponentTargetVol)
 	// Check for problem such as ComponentStockConc < ComponentTargetConc) see wunit function VolumeForTargetConcentration
 	if err != nil{
 	Err = err
-	Errorf(err.Error())
+	Errorf("Error calculating volume for target concentration of component %s: %s", Component.CName, err.Error())
 	}else{
 	DiluentVolume := wunit.SubtractVolumes(totalVol, []Volume{ComponentVolume})
 	// Dilute accordingly
 	ComponentDilutedToTargetConcentration = MixInto(OutPlate,"", 
-	mixer.Sample(Component,ComponentVolume),
-	mixer.Sample(Diluent,DiluentVolume))
+	mixer.Sample(Diluent,DiluentVolume),
+	mixer.Sample(Component,ComponentVolume))
 	
 // Outputmessage for user
-	Status = fmt.Sprintf("Your component stock concentration is %s and it was diluted to a concentration of %s. %s was used of your component and %s was used of your diluent. The reaction can now be done using  %s of your component", ComponentStockConc, ComponentTargetConc, ComponentVolume, DiluentVolume ,ComponentTargetVol)
+	var errorMessage string
+	if err != nil {
+		errorMessage = err.Error()
+	}else{
+		errorMessage = none
+	}
+	Status = Status + fmt.Sprintf("Your component stock concentration is %s and it was diluted to a concentration of %s. %s was used of your component and %s was used of your diluent. The reaction can now be done using  %s of your component. Errors encountered: %s", ComponentStockConc, ComponentTargetConc, ComponentVolume, DiluentVolume ,ComponentTargetVol, errorMessage)
 	}
 	} 
 
