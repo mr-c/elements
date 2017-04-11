@@ -1,0 +1,121 @@
+// Protocol PlateOut dispenses a liquid input (i.e Transformed Cells) at a user-definable volume onto an output plate of the users choice.
+
+protocol PlateOutTest
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"fmt"
+)
+
+// Parameters to this protocol
+Parameters (
+	AgarPlateNumber int //specify the number of agar plates to begin counting from (Default = 1)
+	Dilution int //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
+	IncubationTemp wunit.Temperature //set Incubation temperature
+	IncubationTime wunit.Time //set Incubation time
+	NumberofReplicates int //specify number of technical replicates to plate out
+	PlateOutLiquidPolicy string //specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+	WellsAlreadyUsed int //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
+)
+
+// Output data of this protocol
+Data (
+	AgarPlatesUsed int //returns number of output AgarPlates used
+)
+
+// Physical inputs to this protocol
+Inputs (
+	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	Diluent *wtype.LHComponent //the liquid with which to dilute the transformed cells (Default = LB)
+	TransformedCells *wtype.LHComponent //the transformed cells (Default = neb5compcells).
+)
+
+// Physical outputs to this protocol
+Outputs (
+	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	TransformedPlate int //the number of plates used
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	//set platenumber variable (Default = 1) that will count up number of plates used
+	var platenumber int = AgarPlateNumber
+
+	//set counter variable to count up number of wells used, and set at the number of wells already used in the output agar plate (Default = 0)
+	var counter int = WellsAlreadyUsed
+
+	//set up error variable
+	var err error
+
+	//set up a slice to add the plate out reactions to
+	plateOutVolumes := make([]*wtype.LHComponent,0)
+
+	//attribute specified liquidpolicy to the plate out reaction (Default = plateout)
+	TransformedCells.Type, err = wtype.LiquidTypeFromString(PlateOutLiquidPolicy)
+
+	//get plate dimenson and well info for specified agarplate from plate library
+	var wellpositionarray []string = AgarPlate.AllWellPositions(wtype.BYCOLUMN)
+
+	if err != nil {
+		Errorf("Error in specifying Liquid Policy %s for Plate Out: %s", PlateOutLiquidPolicy, err.Error())
+	}
+
+	//create loop for processing through specified number of replicates
+	for j := 0; j < NumberofReplicates;j++{
+
+	//detect next well location accessing array slice using counter as pointer
+	nextwell := wellpositionarray[counter]
+
+
+	//check if dilution is required and calculate required dilution, performing mix comman dwith speicifed Diluent (Default = LB)
+	if Dilution > 1 {
+								dilutedSample := mixer.SampleForTotalVolume(Diluent, PlateOutVolume)
+								plateOutVolumes = append(plateOutVolumes,dilutedSample)
+								PlateOutVolume = wunit.NewVolume(PlateOutVolume.RawValue()/float64(Dilution),PlateOutVolume.Unit().PrefixedSymbol())
+									}
+
+	//aspirate transformed cells at speicfied volumes
+	plateOutSample := mixer.Sample(TransformedCells, PlateOutVolume)
+
+	//append transformed cell volumes to plate out volumes array
+	plateOutVolumes = append(plateOutVolumes,plateOutSample)
+
+	//perform mix actions with the plate out volume reactions from above into specified plate and location
+	platedCulture := MixNamed(AgarPlate.Type, nextwell, fmt.Sprint("TransformedPlate", platenumber), plateOutVolumes...)
+
+	//append plated out cultures to output array
+	PlatedCultures = append(PlatedCultures,platedCulture)
+
+	}
+
+	//increase counter for next iteration and add additonal plate if needed
+	if counter +1 == len(wellpositionarray) {
+	platenumber++
+	counter=0
+	}else{
+	counter++
+	}
+}
+
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

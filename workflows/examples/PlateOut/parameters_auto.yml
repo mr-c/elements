@@ -1,5 +1,5 @@
 Parameters:
-  PlateOutTest:
+  AutoPlateOut_Multi:
     AgarPlate: pcrplate_with_cooler
     AgarPlateNumber: 1
     Diluent: water
@@ -9,5 +9,9 @@ Parameters:
     NumberofReplicates: 1
     PlateOutLiquidPolicy: plateout
     PlateOutVolume: 100ul
-    TransformedCells: neb5compcells
+    TransformedCells:
+    - neb5compcells
+    - neb5compcells
+    - neb5compcells
+    - neb5compcells
     WellsAlreadyUsed: 0
