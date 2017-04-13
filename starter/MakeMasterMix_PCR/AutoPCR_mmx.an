@@ -20,9 +20,6 @@ Parameters (
 	// Volume of template in each reaction
 	DefaultTemplateVol Volume 
 	
-	// e.g. for  10X Q5 buffer this would be 10
-	DefaultBufferConcinX int 
-	
 	// Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 	DefaultPrimerVolume Volume 
 	

@@ -20,8 +20,6 @@ import (
 
 // Volume of template in each reaction
 
-// e.g. for  10X Q5 buffer this would be 10
-
 // Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
 
 // Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
@@ -233,7 +231,6 @@ type AutoPCR_mmx_multiElement struct {
 }
 
 type AutoPCR_mmx_multiInput struct {
-	DefaultBufferConcinX              int
 	DefaultMasterMixVolume            wunit.Volume
 	DefaultPolymerase                 *wtype.LHComponent
 	DefaultPolymeraseVolume           wunit.Volume
@@ -274,7 +271,6 @@ func init() {
 			Desc: "Perform multiple PCR reactions with common default parameters using a mastermix\n",
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/AutoPCR_mmx.an",
 			Params: []component.ParamDesc{
-				{Name: "DefaultBufferConcinX", Desc: "e.g. for  10X Q5 buffer this would be 10\n", Kind: "Parameters"},
 				{Name: "DefaultMasterMixVolume", Desc: "Volume of mastermix to add to the reaction.\n", Kind: "Parameters"},
 				{Name: "DefaultPolymerase", Desc: "Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.\nThis input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.\n", Kind: "Inputs"},
 				{Name: "DefaultPolymeraseVolume", Desc: "Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.\n", Kind: "Parameters"},
