@@ -1,0 +1,29 @@
+{
+  "config": null,
+  "parameters": {
+    "Process1": {
+      "SequenceFile": {
+        "host_file": {
+          "filename": "test2.fasta"
+        },
+        "name": "test2.fasta"
+      }
+    },
+    "Process2": {
+      "SequenceFile": {
+        "host_file": {
+          "filename": "test2.gb"
+        },
+        "name": "test2.gb"
+      }
+    }
+	},
+  "processes": {
+    "Process1": {
+      "component": "ImportDNASequence"
+    },
+    "Process2": {
+      "component": "ImportDNASequence" 
+    },
+  }
+}
