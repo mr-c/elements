@@ -11,7 +11,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	DNASeqfile   string
+	DNASeqfile   File
 	Plasmid 	bool
 	Maxtemp    Temperature 
 	Mintemp    Temperature 
@@ -51,7 +51,7 @@ Setup {
 Steps {
 	var plasmid wtype.DNASequence
 
-	plasmids, _ := parser.DNAFiletoDNASequence(DNASeqfile,Plasmid)
+	plasmids, _ := parser.DNAFileToDNASequence(DNASeqfile)
 	
 	if len(plasmids)>0 {
 	plasmid = plasmids[0]
@@ -60,6 +60,8 @@ Steps {
 		Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
 	}
 
+	plasmid.Plasmid = Plasmid
+	
 	allprimers := oligos.DesignFWDPRimerstoCoverFullSequence(plasmid, PrimereveryXnucleotides, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, Seqstoavoid,PermittednucleotideOverlapBetweenPrimers)
 
 	AllPrimers = allprimers

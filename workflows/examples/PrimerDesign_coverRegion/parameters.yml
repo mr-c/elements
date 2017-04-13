@@ -1,6 +1,9 @@
 Parameters:
   PrimerDesign_coverRegion:
-    DNASeqfile: pSEVA521.gb
+    DNASeqfile:
+      host_file:
+        filename: pSEVA521.gb
+      name: pSEVA521.gb
     Maxgc: 0.6
     Maxlength: 30
     Maxtemp: 65C
@@ -10,7 +13,7 @@ Parameters:
     PermittednucleotideOverlapBetweenPrimers: 10
     PrimereveryXnucleotides: 800
     RegionEnd: 3000
-    RegionName: tetracycline
+    RegionName: tetA
     RegionSequence: atgccggtactgccgggcctcttgcgggatatcgtccattccgacagcatcgccagtcactatggcgtgctgctagcgctatatgcgttgatgcaatttctatgcgcacccgttctcggagcactgtccgaccgctttggccgccgcccagtcctgctcgcttcgctacttggagccactatcgactacgcgatcatggcgaccacacccgtcctgtggattctctacgccggacgcatcgtggccggcatcaccggcgccacaggtgcggttgctggcgcctatatcgccgacatcaccgatggggaagatcgggctcgccacttcgggctcatgagcgcttgtttcggcgtgggtatggtggcaggccccgtggccgggggactgttgggcgccatctccctgcacgcaccattccttgcggcggcggtgctcaacggcctcaacctactactgggctgcttcctaatgcaggagtcgcataagggagagcgccgtccgatgcccttgagagccttcaacccagtcagctccttccggtgggcgcggggcatgaccattgtggccgcacttatgactgtcttctttatcatgcaactcgtaggacaggtgccggcagcgctctgggtcattttcggcgaggaccgctttcgctggagcgcgacgatgatcggcctgtcgcttgcggtattcggaatcttgcacgccctcgctcaagccttcgtcactggtcccgccaccaaacgtttcggcgagaagcaggccattatcgccggcatggcggccgacgcgctgggctacgtcttgctggcgttcgcgacgcgaggctggatggccttccccattatgattcttctcgcttccggcggcatcgggatgcccgcgttgcaggccatgctgtccaggcaggtagatgacgaccatcagggacagcttcaaggatcgctcgcggctcttaccagcctaacttcgatcactggaccgctgatcgtcacggcgatttatgccgcctcggcgagcacatggaacgggttggcatggattgtaggcgccgccctataccttgtctgcctccccgcgttgcgtcgcggtgcatggagccgggccacctcgacctga
     RegionStart: 1000
     Seqstoavoid:

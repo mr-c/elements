@@ -16,7 +16,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	DNASeqfile   string // genbank file (.gb)
+	DNASeqfile   File // genbank file (.gb)
 	Plasmid 	bool
 	
 	Maxtemp    Temperature 
@@ -60,7 +60,7 @@ Steps {
 		
 	var region wtype.DNASequence
 
-	fulldnaseqs, err := parser.DNAFiletoDNASequence(DNASeqfile, Plasmid)
+	fulldnaseqs, err := parser.DNAFileToDNASequence(DNASeqfile)
 	
 	if err != nil {
 		fmt.Println("ParseSeqFail")
@@ -77,6 +77,7 @@ Steps {
 	fmt.Println("3")
 	fmt.Println("fulldnaseqs[0]",fulldnaseqs[0])
 	fmt.Println("RegionSequence",RegionSequence)
+	fulldnaseqs[0].Plasmid = Plasmid
 	regionstart, regionend, err := oligos.FindPositioninSequence(fulldnaseqs[0], RegionSequence) 
 	fmt.Println("4")
 	if err != nil {
