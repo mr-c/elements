@@ -42,9 +42,23 @@ func _EntrezLookupSteps(_ctx context.Context, _input *EntrezLookupInput, _output
 
 	var output []byte
 
-	_output.Filenameused, output, _output.Err = entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType, _input.Filename)
+	output, err := entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType)
 
+	if err != nil {
+		_output.Err = err
+		execute.Errorf(_ctx, "error retrieving record %s: %s", _input.ID, err.Error())
+	}
 	_output.Output = string(output)
+
+	_output.OutputFile.Name = _input.Filename
+
+	err = _output.OutputFile.WriteAll(output)
+
+	if err != nil {
+		_output.Err = err
+		execute.Errorf(_ctx, "error writing record to file %s: %s", _input.ID, err.Error())
+	}
+
 }
 
 // Actions to perform after steps block to analyze data
@@ -112,16 +126,16 @@ type EntrezLookupInput struct {
 }
 
 type EntrezLookupOutput struct {
-	Err          error
-	Filenameused string
-	Output       string
+	Err        error
+	Output     string
+	OutputFile wtype.File
 }
 
 type EntrezLookupSOutput struct {
 	Data struct {
-		Err          error
-		Filenameused string
-		Output       string
+		Err        error
+		Output     string
+		OutputFile wtype.File
 	}
 	Outputs struct {
 	}
@@ -140,8 +154,8 @@ func init() {
 				{Name: "MaxReturns", Desc: "e.g. 1\n", Kind: "Parameters"},
 				{Name: "ReturnType", Desc: "e.g. \"gb\", \"fasta\"\n", Kind: "Parameters"},
 				{Name: "Err", Desc: "", Kind: "Data"},
-				{Name: "Filenameused", Desc: "", Kind: "Data"},
 				{Name: "Output", Desc: "", Kind: "Data"},
+				{Name: "OutputFile", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
