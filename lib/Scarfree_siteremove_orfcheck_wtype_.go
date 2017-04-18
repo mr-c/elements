@@ -49,6 +49,25 @@ func _Scarfree_siteremove_orfcheck_wtypeRequirements() {
 func _Scarfree_siteremove_orfcheck_wtypeSetup(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput) {
 }
 
+func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme) []string {
+	// check number of sites per part !
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			sites = append(sites, info[i].Numberofsites)
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			multiple = append(multiple, sitepositions)
+		}
+	}
+	return multiple
+}
+
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput, _output *Scarfree_siteremove_orfcheck_wtypeOutput) {
@@ -87,6 +106,34 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		}
 
 		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
+	}
+
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			if len(sitepositions) > 0 {
+				siteFound = true
+			}
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+
+		if !_input.RemoveproblemRestrictionSites {
+			execute.Errorf(_ctx, errormessage)
+		} else {
+			warnings = append(warnings, errormessage)
+		}
 	}
 
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
@@ -168,7 +215,6 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	}
 
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 
 	if _input.EndsAlreadyadded {
 		_output.PartswithOverhangs = partsinorder
@@ -187,8 +233,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	_output.Insert, err = assembly.Insert()
 
 	if err != nil {
-
-		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+		execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
 	}
 
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
