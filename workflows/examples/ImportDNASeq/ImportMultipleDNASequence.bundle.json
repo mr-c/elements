@@ -1,23 +1,23 @@
 {
+  "config": null,
+  "parameters": {
+    "Process1": {
+      "OverrideSequenceType": {
+        "test111": "Linear",
+        "test888": "Plasmid",
+        "test999": "SingleStranded"
+      },
+      "SequenceFile": {
+        "host_file": {
+          "filename": "test.fasta"
+        },
+        "name": "test.fasta"
+      }
+    }
+  },
   "processes": {
     "Process1": {
       "component": "ImportMultipleDNASequence"
-    },
-  },
-  "parameters": {
-    "Process1": {
-            "SequenceFile": {
-				"name":"test.fasta",
-		"host_file":{
-			"filename": "test.fasta"
-			}
-		},
-			"OverrideSequenceType": {
-				"test111": "Linear", 
-				"test888": "Plasmid", 
-				"test999": "SingleStranded",
-		},
-	},
-  },
-  "config": null
+    }
+  }
 }
