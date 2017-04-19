@@ -17,13 +17,13 @@
         "name": "test2.gb"
       }
     }
-	},
+  },
   "processes": {
     "Process1": {
       "component": "ImportDNASequence"
     },
     "Process2": {
-      "component": "ImportDNASequence" 
-    },
+      "component": "ImportDNASequence"
+    }
   }
 }
