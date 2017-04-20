@@ -42,13 +42,10 @@ func _SampleExercise5Steps(_ctx context.Context, _input *SampleExercise5Input, _
 	dilutedsample3 := make([]*wtype.LHComponent, 0)
 	dilutedsample4 := make([]*wtype.LHComponent, 0)
 
-	// SampleForTotalVolume will "top up" solution to the TotalVolume with Diluent.
-	// In this case it will still add diluent first but calculates the volume to add by substracting the volumes of subsequent components
-	diluentsample1 := mixer.SampleForTotalVolume(_input.Diluent, _input.TotalVolume) // i.e. if TotalVolume == 20ul and SolutionVolume == 2ul then 18ul of Diluent will be sampled here
+	diluentsample1 := mixer.SampleForTotalVolume(_input.Diluent, _input.TotalVolume)
 	dilutedsample1 = append(dilutedsample1, diluentsample1)
 	solutionsample1 := mixer.Sample(_input.Solution, _input.DilutionVolume)
 	dilutedsample1 = append(dilutedsample1, solutionsample1)
-	//dilutedsample1mix := MixTo(OutPlateType.Type,"",1,dilutedsample1...)
 	dilutedsample1mix := execute.Mix(_ctx, dilutedsample1...)
 	_output.DilutedSample1 = dilutedsample1mix
 
@@ -72,16 +69,6 @@ func _SampleExercise5Steps(_ctx context.Context, _input *SampleExercise5Input, _
 	dilutedsample4 = append(dilutedsample4, solutionsample4)
 	dilutedsample4mix := execute.Mix(_ctx, dilutedsample4...)
 	_output.DilutedSample4 = dilutedsample4mix
-
-	// The Sample functions will not generate liquid handling instructions on their own
-	// We need to tell Antha what to do with samples
-	// For this we need to use one of the Mix functions
-	// therefore finally we use Mix to combine samples into a new component
-
-	// Now we have an antha element which will generate liquid handling instructions
-	// let's see how to actually run the protocol
-	// open the terminal and
-	// work your way through the lessons there showing how to specify parameters and different types of workflow
 
 }
 
@@ -147,7 +134,6 @@ type SampleExercise5Element struct {
 type SampleExercise5Input struct {
 	Diluent        *wtype.LHComponent
 	DilutionVolume wunit.Volume
-	OutPlateType   *wtype.LHPlate
 	Solution       *wtype.LHComponent
 	TotalVolume    wunit.Volume
 }
@@ -175,11 +161,10 @@ func init() {
 		Constructor: SampleExercise5New,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol demonstrating the use of the SampleForTotalVolume function\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/JAJALesson2/SampleExercise5/SampleExercise5.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/SampleExercise5/SampleExercise5.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionVolume", Desc: "e.g. 2ul\n", Kind: "Parameters"},
-				{Name: "OutPlateType", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "e.g. 20ul\n", Kind: "Parameters"},
 				{Name: "DilutedSample1", Desc: "", Kind: "Outputs"},

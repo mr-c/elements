@@ -1,5 +1,5 @@
 // example protocol demonstrating the use of the SampleForTotalVolume function
-protocol SampleForTotalVolumeMIX
+protocol SampleForTotalVolumeJAJA
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -15,7 +15,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-DilutedSampleVol Volume
+
 )
 
 
@@ -27,7 +27,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	DilutedSample *wtype.LHComponent
+	DilutedSample []*wtype.LHComponent
 )
 
 Requirements {
@@ -43,7 +43,7 @@ Setup {
 // for every input
 Steps {
 
-	// make empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
+	// Make an empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
 	// See golangbook chapter 6 for more details on slices and arrays
 	allsamples := make([]*wtype.LHComponent,0)
 
@@ -54,22 +54,16 @@ Steps {
 	// append will add the diluent sample to the allsamples slice
 	allsamples = append(allsamples,diluentsample)
 
+	// Associate our SolutionVolume parameter to our Solution parameter and store the LHComponent information in our solutionsample variable
 	solutionsample := mixer.Sample(Solution,SolutionVolume)
 
+	// Add our solutionsample LHComponent information to our allsamples slice
 	allsamples = append(allsamples,solutionsample)
-	allsamplesmix := Mix(allsamples...)
-	// The Sample functions will not generate liquid handling instructions on their own
-	// We need to tell Antha what to do with samples
-	// For this we need to use one of the Mix functions
-	// therefore finally we use Mix to combine samples into a new component
-	DilutedSample = allsamplesmix
-	DilutedSampleVol = wunit.NewVolume(DilutedSample.Vol, "ul")
-	// Now we have an antha element which will generate liquid handling instructions
-	// let's see how to actually run the protocol
-	// open the terminal and
-	// work your way through the lessons there showing how to specify parameters and different types of workflow
 
-
+	// Remember the Sample functions will not generate liquid handling instructions on their own
+	// We would need to tell Antha what to do with samples
+	// For this we would need to use one of the Mix functions
+	DilutedSample = allsamples
 }
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results

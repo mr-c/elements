@@ -1,0 +1,66 @@
+{"Type":23}
+{"Type":15,"Head":0,"Pos":["position_2"],"Plt":["DF200 Tip Rack (PIPETMAX 8x200)_57f3dec-c31d-4d23-8c8d-0dea2ab6d9"],"Well":["H1"],"WVolume":[],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":17,"Head":0,"Pos":["position_2"],"Well":["H1"],"Channels":[],"TipType":["DF200 Tip Rack (PIPETMAX 8x200)_57f3dec-c31d-4d23-8c8d-0dea2ab6d9"],"HolderType":["DF200 Tip Rack (PIPETMAX 8x200)_57f3dec-c31d-4d23-8c8d-0dea2ab6d9"],"Multi":1,"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["A1"],"WVolume":["149.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C1"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C1"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["A1"],"WVolume":["99.000ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C2"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C2"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["A1"],"WVolume":["48.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C3"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["C3"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["B1"],"WVolume":["149.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B6"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B6"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["B1"],"WVolume":["99.000ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B7"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B7"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["B1"],"WVolume":["48.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B8"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B8"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["C1"],"WVolume":["149.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B9"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B9"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["C1"],"WVolume":["99.000ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B10"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B10"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["C1"],"WVolume":["48.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B11"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B11"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_4"],"Plt":["pcrplate_skirted_riser20"],"Well":["D1"],"WVolume":["149.500ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.25],"Platform":""}
+{"Type":11,"Head":0,"Volume":["50.000ul"],"Overstroke":false,"Multi":1,"Plt":["pcrplate_skirted_riser20"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B12"],"WVolume":["0.000 ul"],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[1.75],"Platform":""}
+{"Type":12,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_8"],"Plt":["pcrplate_skirted_riser40"],"Well":["B12"],"WVolume":["0.000 ul"],"Reference":[1],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":13,"Head":0,"Volume":["50.000ul"],"Multi":1,"Plt":["pcrplate_skirted_riser40"],"What":["water"],"LLF":[false],"Platform":""}
+{"Type":15,"Head":0,"Pos":["position_1"],"Plt":["gilsontipwaste"],"Well":["A1"],"WVolume":[],"Reference":[0],"OffsetX":[0],"OffsetY":[0],"OffsetZ":[0],"Platform":""}
+{"Type":18,"Head":0,"Channels":[],"TipType":["gilsontipwaste"],"HolderType":["gilsontipwaste"],"Multi":1,"Pos":["position_1"],"Well":["A1"],"Platform":""}
+{"Type":24}

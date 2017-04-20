@@ -35,7 +35,7 @@ func _SampleForTotalVolumeMIXSetup(_ctx context.Context, _input *SampleForTotalV
 // for every input
 func _SampleForTotalVolumeMIXSteps(_ctx context.Context, _input *SampleForTotalVolumeMIXInput, _output *SampleForTotalVolumeMIXOutput) {
 
-	// make empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
+	// Make an empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
 	// See golangbook chapter 6 for more details on slices and arrays
 	allsamples := make([]*wtype.LHComponent, 0)
 
@@ -46,21 +46,18 @@ func _SampleForTotalVolumeMIXSteps(_ctx context.Context, _input *SampleForTotalV
 	// append will add the diluent sample to the allsamples slice
 	allsamples = append(allsamples, diluentsample)
 
+	// Associate our SolutionVolume parameter to our Solution parameter and store the LHComponent information in our solutionsample variable
 	solutionsample := mixer.Sample(_input.Solution, _input.SolutionVolume)
 
+	// Add our solutionsample LHComponent information to our allsamples slice
 	allsamples = append(allsamples, solutionsample)
-	allsamplesmix := execute.Mix(_ctx, allsamples...)
+
 	// The Sample functions will not generate liquid handling instructions on their own
 	// We need to tell Antha what to do with samples
 	// For this we need to use one of the Mix functions
 	// therefore finally we use Mix to combine samples into a new component
+	allsamplesmix := execute.Mix(_ctx, allsamples...)
 	_output.DilutedSample = allsamplesmix
-	_output.DilutedSampleVol = wunit.NewVolume(_output.DilutedSample.Vol, "ul")
-	// Now we have an antha element which will generate liquid handling instructions
-	// let's see how to actually run the protocol
-	// open the terminal and
-	// work your way through the lessons there showing how to specify parameters and different types of workflow
-
 }
 
 // Run after controls and a steps block are completed to
@@ -130,13 +127,11 @@ type SampleForTotalVolumeMIXInput struct {
 }
 
 type SampleForTotalVolumeMIXOutput struct {
-	DilutedSample    *wtype.LHComponent
-	DilutedSampleVol wunit.Volume
+	DilutedSample *wtype.LHComponent
 }
 
 type SampleForTotalVolumeMIXSOutput struct {
 	Data struct {
-		DilutedSampleVol wunit.Volume
 	}
 	Outputs struct {
 		DilutedSample *wtype.LHComponent
@@ -148,14 +143,13 @@ func init() {
 		Constructor: SampleForTotalVolumeMIXNew,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol demonstrating the use of the SampleForTotalVolume function\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/JAJALesson2/2B_SampleForTotalVolumeMIX/B_SampleForTotalVolumeMIX.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/2B_SampleForTotalVolumeMIX/B_SampleForTotalVolumeMIX.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "SolutionVolume", Desc: "e.g. 2ul\n", Kind: "Parameters"},
 				{Name: "TotalVolume", Desc: "e.g. 20ul\n", Kind: "Parameters"},
 				{Name: "DilutedSample", Desc: "", Kind: "Outputs"},
-				{Name: "DilutedSampleVol", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

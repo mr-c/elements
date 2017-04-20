@@ -38,7 +38,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	// An output LHComponent variable is created called Sample
+	// An output LHComponent variable is created called SampleMix
 	SampleMix *wtype.LHComponent
 )
 

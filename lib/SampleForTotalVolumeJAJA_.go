@@ -35,7 +35,7 @@ func _SampleForTotalVolumeJAJASetup(_ctx context.Context, _input *SampleForTotal
 // for every input
 func _SampleForTotalVolumeJAJASteps(_ctx context.Context, _input *SampleForTotalVolumeJAJAInput, _output *SampleForTotalVolumeJAJAOutput) {
 
-	// make empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
+	// Make an empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
 	// See golangbook chapter 6 for more details on slices and arrays
 	allsamples := make([]*wtype.LHComponent, 0)
 
@@ -46,21 +46,16 @@ func _SampleForTotalVolumeJAJASteps(_ctx context.Context, _input *SampleForTotal
 	// append will add the diluent sample to the allsamples slice
 	allsamples = append(allsamples, diluentsample)
 
+	// Associate our SolutionVolume parameter to our Solution parameter and store the LHComponent information in our solutionsample variable
 	solutionsample := mixer.Sample(_input.Solution, _input.SolutionVolume)
 
+	// Add our solutionsample LHComponent information to our allsamples slice
 	allsamples = append(allsamples, solutionsample)
 
-	// The Sample functions will not generate liquid handling instructions on their own
-	// We need to tell Antha what to do with samples
-	// For this we need to use one of the Mix functions
-	// therefore finally we use Mix to combine samples into a new component
+	// Remember the Sample functions will not generate liquid handling instructions on their own
+	// We would need to tell Antha what to do with samples
+	// For this we would need to use one of the Mix functions
 	_output.DilutedSample = allsamples
-
-	// Now we have an antha element which will generate liquid handling instructions
-	// let's see how to actually run the protocol
-	// open the terminal and
-	// work your way through the lessons there showing how to specify parameters and different types of workflow
-
 }
 
 // Run after controls and a steps block are completed to
@@ -146,7 +141,7 @@ func init() {
 		Constructor: SampleForTotalVolumeJAJANew,
 		Desc: component.ComponentDesc{
 			Desc: "example protocol demonstrating the use of the SampleForTotalVolume function\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/JAJALesson2/2B_SampleForTotalVolume/B_SampleForTotalVolume.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/2B_SampleForTotalVolume/B_SampleForTotalVolume.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},

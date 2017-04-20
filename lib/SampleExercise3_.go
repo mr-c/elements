@@ -178,7 +178,7 @@ func init() {
 		Constructor: SampleExercise3New,
 		Desc: component.ComponentDesc{
 			Desc: "Example protocol demonstrating the use of the Sample function\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/JAJALesson2/SampleExercise3/SampleExercise3.an",
+			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/AnthaLangAcademy/Lesson2_Sample/SampleExercise3/SampleExercise3.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "FinalVolume", Desc: "antha, like golang is a strongly typed language in which the type of a variable must be declared.\nIn this case we're creating a variable called SampleVolume which is of type Volume;\nthe type system allows the antha compiler to catch many types of common errors before the programme is run\nthe antha type system extends this to biological types such as volumes here.\nfunctions require inputs of particular types to be adhered t\n", Kind: "Parameters"},

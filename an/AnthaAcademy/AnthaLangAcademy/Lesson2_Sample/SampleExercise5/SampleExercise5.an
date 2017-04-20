@@ -1,5 +1,5 @@
 // example protocol demonstrating the use of the SampleForTotalVolume function
-protocol SampleExercise5_2
+protocol SampleExercise5
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -23,7 +23,6 @@ Data (
 Inputs (
 	Solution *wtype.LHComponent
 	Diluent *wtype.LHComponent
-	OutPlateType *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
@@ -50,54 +49,39 @@ Steps {
 
 	// make empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
 	// See golangbook chapter 6 for more details on slices and arrays
-	//dilutedsample1 := make([]*wtype.LHComponent,0)
-	//dilutedsample2 := make([]*wtype.LHComponent,0)
-	//dilutedsample3 := make([]*wtype.LHComponent,0)
-	//dilutedsample4 := make([]*wtype.LHComponent,0)
+	dilutedsample1 := make([]*wtype.LHComponent,0)
+	dilutedsample2 := make([]*wtype.LHComponent,0)
+	dilutedsample3 := make([]*wtype.LHComponent,0)
+	dilutedsample4 := make([]*wtype.LHComponent,0)
 
-	// SampleForTotalVolume will "top up" solution to the TotalVolume with Diluent.
-	// In this case it will still add diluent first but calculates the volume to add by substracting the volumes of subsequent components
-	diluentsample1 := mixer.SampleForTotalVolume(Diluent,TotalVolume) // i.e. if TotalVolume == 20ul and SolutionVolume == 2ul then 18ul of Diluent will be sampled here
-	//dilutedsample1 = append(dilutedsample1,diluentsample1)
+	
+	diluentsample1 := mixer.SampleForTotalVolume(Diluent,TotalVolume)
+	dilutedsample1 = append(dilutedsample1,diluentsample1)
 	solutionsample1 := mixer.Sample(Solution,DilutionVolume)
-	//dilutedsample1 = append(dilutedsample1,solutionsample1)
-	dilutedsample1mix := MixTo(OutPlateType.Type,"",1, diluentsample1,solutionsample1)
+	dilutedsample1 = append(dilutedsample1,solutionsample1)
+	dilutedsample1mix := Mix(dilutedsample1...)
 	DilutedSample1 = dilutedsample1mix
 
 	diluentsample2 := mixer.SampleForTotalVolume(Diluent,TotalVolume)
-	//dilutedsample2 = append(dilutedsample2,diluentsample2)
+	dilutedsample2 = append(dilutedsample2,diluentsample2)
 	solutionsample2 := mixer.Sample(dilutedsample1mix,DilutionVolume)
-	//dilutedsample2 = append(dilutedsample2,solutionsample2)
-	dilutedsample2mix := Mix(diluentsample2,solutionsample2)
+	dilutedsample2 = append(dilutedsample2,solutionsample2)
+	dilutedsample2mix := Mix(dilutedsample2...)
 	DilutedSample2 = dilutedsample2mix
 
 	diluentsample3 := mixer.SampleForTotalVolume(Diluent,TotalVolume)
-	//dilutedsample3 = append(dilutedsample3,diluentsample3)
+	dilutedsample3 = append(dilutedsample3,diluentsample3)
 	solutionsample3 := mixer.Sample(dilutedsample2mix,DilutionVolume)
-	//dilutedsample3 = append(dilutedsample3,solutionsample3)
-	dilutedsample3mix := Mix(diluentsample3,solutionsample3)
+	dilutedsample3 = append(dilutedsample3,solutionsample3)
+	dilutedsample3mix := Mix(dilutedsample3...)
 	DilutedSample3 = dilutedsample3mix
 
 	diluentsample4 := mixer.SampleForTotalVolume(Diluent,TotalVolume)
-	//dilutedsample4 = append(dilutedsample4,diluentsample4)
+	dilutedsample4 = append(dilutedsample4,diluentsample4)
 	solutionsample4 := mixer.Sample(dilutedsample3mix,DilutionVolume)
-	//dilutedsample4 = append(dilutedsample4,solutionsample4)
-	dilutedsample4mix := Mix(diluentsample4,solutionsample4)
+	dilutedsample4 = append(dilutedsample4,solutionsample4)
+	dilutedsample4mix := Mix(dilutedsample4...)
 	DilutedSample4 = dilutedsample4mix
-
-
-	// The Sample functions will not generate liquid handling instructions on their own
-	// We need to tell Antha what to do with samples
-	// For this we need to use one of the Mix functions
-	// therefore finally we use Mix to combine samples into a new component
-
-
-
-	// Now we have an antha element which will generate liquid handling instructions
-	// let's see how to actually run the protocol
-	// open the terminal and
-	// work your way through the lessons there showing how to specify parameters and different types of workflow
-
 
 }
 // Run after controls and a steps block are completed to
