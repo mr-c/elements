@@ -1,6 +1,9 @@
 Parameters:
   PrimerDesign_coverfullseq:
-    DNASeqfile: pSEVA521.gb
+    DNASeqfile:
+      host_file:
+        filename: test.gb
+      name: test.gb
     Maxgc: 0.6
     Maxlength: 30
     Maxtemp: 65C

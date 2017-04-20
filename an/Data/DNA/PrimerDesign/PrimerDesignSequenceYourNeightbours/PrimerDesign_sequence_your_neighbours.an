@@ -5,11 +5,9 @@ protocol PrimerDesign_sequence_your_neighbours
 
 import (
 	"fmt"
-	//"math"
-	//"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"io/ioutil"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"path/filepath"
 	"os"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
@@ -102,7 +100,14 @@ Steps {
 
 	for _, file := range files {
 		file = filepath.Join(dirname,file)
-		sequence, _ := parser.GenbanktoAnnotatedSeq(file)
+		
+		data, err := ioutil.ReadFile(file)
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
 
 		primer1, primer2 := oligos.MakeOutwardFacingPrimers(sequence, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, allprimerstrings, PermittednucleotideOverlapBetweenPrimers)
 
@@ -196,7 +201,14 @@ var nonspecificbinding = make([]string, 0)
 
 for _, file := range files {
 		file = filepath.Join(dirname,file)
-		sequence, _ := parser.GenbanktoAnnotatedSeq(file)
+		
+		data, err := ioutil.ReadFile(file)
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
 
 	for _, primer := range AllPrimers {
 		
