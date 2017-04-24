@@ -1,0 +1,16 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "Mix_NxN"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentAs": ["water","tartrazine"],
+	 "ComponentBs": ["dna"],
+	"OutPlate": "greiner384"
+    }
+  },
+  "config": null
+}
