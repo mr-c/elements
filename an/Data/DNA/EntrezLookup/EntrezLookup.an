@@ -23,7 +23,7 @@ Parameters (
 Data (
 	Output string
 	Err error
-	Filenameused string
+	OutputFile File 
 )
 
 // Physical inputs to this protocol
@@ -49,9 +49,23 @@ Steps {
 	
 	var output []byte
 	
-	Filenameused, output, Err = entrez.RetrieveRecords(ID, Database,MaxReturns,ReturnType,Filename)
+	output, err := entrez.RetrieveRecords(ID, Database,MaxReturns,ReturnType)
 			
+	if err != nil {
+		Err = err
+		Errorf("error retrieving record %s: %s",ID,err.Error())
+	}
 	Output = string(output)
+	
+	OutputFile.Name = Filename
+	
+	err = OutputFile.WriteAll(output) 
+	
+	if err != nil {
+		Err = err
+		Errorf("error writing record to file %s: %s",ID,err.Error())
+	}
+	
 }
 
 
