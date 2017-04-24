@@ -18,7 +18,7 @@ import (
 // Input parameters for this protocol
 
 //Only supported file format: .fasta
-//Optional for the user to override specification of SequenceType. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. Alternatively a default value can be specified.
+//Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a "default" value can be specified which will apply to all sequences with no entry.
 //If true, sequence is searched for ORF's
 
 // Data which is returned from this protocol
@@ -51,7 +51,7 @@ func _ImportMultipleDNASequenceSteps(_ctx context.Context, _input *ImportMultipl
 	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
 
 	if err != nil {
-		execute.Errorf(_ctx, "The file %s could not be imported. Please check if file format supported or if file empty.", _input.SequenceFile.Name)
+		execute.Errorf(_ctx, "The file %s could not be imported. Error: %s ", _input.SequenceFile.Name, err.Error())
 	}
 
 	if err == nil {
@@ -203,7 +203,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Data/DNAImport/ImportMultipleDNASequence.an",
 			Params: []component.ParamDesc{
 				{Name: "CheckForORFs", Desc: "If true, sequence is searched for ORF's\n", Kind: "Parameters"},
-				{Name: "OverrideSequenceType", Desc: "Optional for the user to override specification of SequenceType. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. Alternatively a default value can be specified.\n", Kind: "Parameters"},
+				{Name: "OverrideSequenceType", Desc: "Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a \"default\" value can be specified which will apply to all sequences with no entry.\n", Kind: "Parameters"},
 				{Name: "SequenceFile", Desc: "Only supported file format: .fasta\n", Kind: "Parameters"},
 				{Name: "DNA", Desc: "Return DNA sequence as type wtype.DNASequence\n", Kind: "Data"},
 				{Name: "Status", Desc: "Status for user\n", Kind: "Data"},
