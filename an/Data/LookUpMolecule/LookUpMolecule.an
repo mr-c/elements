@@ -1,27 +1,31 @@
-// example of how to look up molecule properties from pubchem 
-protocol LookUpMolecule
+// Example of how to look up molecule properties from pubchem.
+// A map of molar concentrations required to make up 1 Mol/l of each compound is also returned.
+protocol LookUpMolecules
  
 import (
-	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
+	"fmt"
 )
 Parameters (
 	// Name of compound or array of multiple compounds
-	Compound string
 	Compoundlist []string
+	
+	// Set Concentrations for compounds or set default. If no concentration is set the molar concentration will be used
+	OverRideDefaultConcentration map[string]Concentration
 )
 Data (
-	
 	// molecule type is returned consisting of name, formula, molecular weight and chemical ID (CID)
-	Compoundprops pubchem.Molecule
-	List []pubchem.Molecule
+	CompoundProperties []pubchem.Molecule
 	
-	// or JSON structure if preferred
-	Jsonstring string
+	// Names of compounds
+	CompoundNames []string
 	
-	// status to be printed out in manual driver console
-	Status string
+	// A map of molar concentrations required to make up 1 Mol/l of each compound is returned.
+	// The compound name is used as the key. If any duplicate compound names are returned and errow will be generated.
+	MolarConcentrations map[string]Concentration
 	
+	// return any warnings if the default concentrations have been used for any molecule
+	Warnings []string
 )
 Inputs (
 )
@@ -32,36 +36,47 @@ Requirements {
 Setup {
 } 
 Steps {
-	var err error
 
-	// method of making molecule from name
-	Compoundprops, err = pubchem.MakeMolecule(Compound)
-        if err != nil {
-                panic(err)
-        }
 	
-	// or returning properties in JSON structure
-	Jsonstring, err = pubchem.Compoundproperties(Compound)
-        if err != nil {
-                panic(err)
-        }
-	
-	// method of making a list of compounds from names
-	List, err = pubchem.MakeMolecules(Compoundlist)
-        if err != nil {
-                panic(err)
-        }
-	
-	// Print out status 
-	Status = fmt.Sprintln("Returned data from", 
-	Compound, "=", 
-	Compoundprops.Moleculename, 
-	Compoundprops.MolecularWeight, 
-	Compoundprops.MolecularFormula, 
-	Compoundprops.CID,
-	"Data in JSON format =", Jsonstring,
-	"List=",List)
+
+	MolarConcentrations = make(map[string]wunit.Concentration)
+
+	for _, molecule := range Compoundlist {
+		// method of making molecule from name
+		moleculeProperties, err := pubchem.MakeMolecule(molecule)
+	       
+		if err != nil {
+	            Errorf(err.Error())
+	       }
+		
+		CompoundProperties = append(CompoundProperties,moleculeProperties)
+		CompoundNames = append(CompoundNames,moleculeProperties.Moleculename)
+		
+		// now set conc
+		var moleculeConc Concentration
+		var found bool
+		
+		// check if molecule conc is set in OverRideDefaultConcentration list
+		if moleculeConc, found = OverRideDefaultConcentration[molecule]; found{
+			Warnings = append(Warnings, fmt.Sprintf(`Override Concentration for molecule %s specified so using specified concentration %s instead of default`,molecule,moleculeConc.ToString()))
+		// else check if a default is specified
+		}else if moleculeConc, found = OverRideDefaultConcentration["default"]; found{
+			Warnings = append(Warnings, fmt.Sprintf(`No concentration for molecule %s specified but "default" was specified so using default %s`,molecule,moleculeConc.ToString()))
+		// else use 1 Mol/l conc as default
+		}else{
+			moleculeConc = wunit.NewConcentration(1,"M/l")
+			Warnings = append(Warnings, fmt.Sprintf("No concentration for molecule %s specified so using default Molar concentration %s",molecule,moleculeConc.ToString()))
+
+		}
+		
+		if _, found := MolarConcentrations[moleculeProperties.Moleculename];found{
+			Errorf("Duplicate compound found for %s", moleculeProperties.Moleculename)
+		}else{
+			MolarConcentrations[moleculeProperties.Moleculename]= moleculeProperties.GramPerL(moleculeConc)
+		}
 	}
+		
+}
 Analysis {
 	
 } 
