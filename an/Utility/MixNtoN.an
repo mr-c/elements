@@ -1,6 +1,6 @@
 // Protocol MixNtoN performs mixing for two rows of liquid components of equal length
 
-//This protocol takes in an array of components and mixes them
+//This protocol takes in two arrays of components (A and B) of equal length and samples volume I of VolumeA of component i of A and transfers to a new Outplate where volume i of Volume B of component i of B is sampled into.
 protocol MixNtoN
 
 // Place golang packages to import here
@@ -12,9 +12,8 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	VolumeA []wunit.Volume
-	VolumeB []wunit.Volume
-	OutPlate 	*wtype.LHPlate
+	VolumesA []wunit.Volume
+	VolumesB []wunit.Volume
 )
 
 // Output data of this protocol
@@ -24,13 +23,14 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	ComponentA []*wtype.LHComponent
-	ComponentB []*wtype.LHComponent
+	ComponentsA []*wtype.LHComponent
+	ComponentsB []*wtype.LHComponent
+	OutPlate 	*wtype.LHPlate
 )
 
 // Physical outputs to this protocol
 Outputs (
-	MixedComponent []*wtype.LHComponent
+	MixedComponents []*wtype.LHComponent
 )
 
 // Conditions to run on startup
@@ -40,14 +40,14 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	if len(ComponentA) == len(ComponentB){
-		for i := 0; i < len(ComponentA); i++{		
-			MixedComponent[i] = MixInto(OutPlate,"", 
-			mixer.Sample(ComponentA[i],VolumeA[i]),
-			mixer.Sample(ComponentB[i],VolumeB[i]))
+	if len(ComponentsA) == len(ComponentsB) && len(VolumesA) == len(VolumesB) && len(ComponentsA) == len(VolumesA){
+		for i := 0; i < len(ComponentsA); i++{		
+			MixedComponents[i] = MixInto(OutPlate,"", 
+			mixer.Sample(ComponentsA[i],VolumesA[i]),
+			mixer.Sample(ComponentsB[i],VolumesB[i]))
 		}
 	}else{
-		Errorf("The number of components does not match!")
+		Errorf("The number of components specified in the two lists do not match! You have %s Volumes and %s Components for A and %s Volumes and %s Components for B." ,len(VolumesA), len(ComponentsA),len(ComponentsB),len(VolumesB))
 	}	
 }
 
