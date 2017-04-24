@@ -16,7 +16,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	DNASeqfile   string // genbank file (.gb)
+	DNASeqfile   File // genbank file (.gb)
 	Plasmid 	bool
 	
 	Maxtemp    Temperature 
@@ -60,38 +60,32 @@ Steps {
 		
 	var region wtype.DNASequence
 
-	fulldnaseqs, err := parser.DNAFiletoDNASequence(DNASeqfile, Plasmid)
+	fulldnaseqs, err := parser.DNAFileToDNASequence(DNASeqfile)
 	
 	if err != nil {
 		fmt.Println("ParseSeqFail")
 		Warnings = err
 		Errorf(Warnings.Error())
 	}
-	fmt.Println("1")
 	if len(fulldnaseqs)!= 1 {
 		Warnings  = fmt.Errorf("more than one matching dna sequence found in target sequence")
 		Errorf(Warnings.Error())
 	}
-	fmt.Println("2")
 	RegionSequence := wtype.MakeLinearDNASequence("region",RegionSequenceString)
-	fmt.Println("3")
-	fmt.Println("fulldnaseqs[0]",fulldnaseqs[0])
-	fmt.Println("RegionSequence",RegionSequence)
+	fulldnaseqs[0].Plasmid = Plasmid
+
 	regionstart, regionend, err := oligos.FindPositioninSequence(fulldnaseqs[0], RegionSequence) 
-	fmt.Println("4")
 	if err != nil {
 		fmt.Println("FindPositioninoligoFail")
 		Warnings = err
 		Errorf(Warnings.Error())
 	}
-	fmt.Println("5")
 	// if true then the start oint ot design primers is moved back 150bp to ensure full region is covered
 	if FlankTargetSequence {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart-150, regionend)
 	}else {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend)
 	}
-	fmt.Println("6")
 	
 	FWDPrimer, Warnings = oligos.FWDOligoSeq(region, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, Seqstoavoid, PermittednucleotideOverlapBetweenPrimers) 
 	
@@ -100,14 +94,12 @@ Steps {
 		Errorf(Warnings.Error())
 	}
 	
-	fmt.Println(text.Print("FWDPrimer:",FWDPrimer))
 
 	if FlankTargetSequence {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend+150)
 	}else {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend)
 	}
-	fmt.Println("6")
 	
 	Seqstoavoid = append(Seqstoavoid,FWDPrimer.Seq)
 	

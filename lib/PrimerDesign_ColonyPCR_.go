@@ -49,38 +49,32 @@ func _PrimerDesign_ColonyPCRSteps(_ctx context.Context, _input *PrimerDesign_Col
 
 	var region wtype.DNASequence
 
-	fulldnaseqs, err := parser.DNAFiletoDNASequence(_input.DNASeqfile, _input.Plasmid)
+	fulldnaseqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if err != nil {
 		fmt.Println("ParseSeqFail")
 		_output.Warnings = err
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
-	fmt.Println("1")
 	if len(fulldnaseqs) != 1 {
 		_output.Warnings = fmt.Errorf("more than one matching dna sequence found in target sequence")
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
-	fmt.Println("2")
 	RegionSequence := wtype.MakeLinearDNASequence("region", _input.RegionSequenceString)
-	fmt.Println("3")
-	fmt.Println("fulldnaseqs[0]", fulldnaseqs[0])
-	fmt.Println("RegionSequence", RegionSequence)
+	fulldnaseqs[0].Plasmid = _input.Plasmid
+
 	regionstart, regionend, err := oligos.FindPositioninSequence(fulldnaseqs[0], RegionSequence)
-	fmt.Println("4")
 	if err != nil {
 		fmt.Println("FindPositioninoligoFail")
 		_output.Warnings = err
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
-	fmt.Println("5")
 	// if true then the start oint ot design primers is moved back 150bp to ensure full region is covered
 	if _input.FlankTargetSequence {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart-150, regionend)
 	} else {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend)
 	}
-	fmt.Println("6")
 
 	_output.FWDPrimer, _output.Warnings = oligos.FWDOligoSeq(region, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, _input.Seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
 
@@ -89,14 +83,11 @@ func _PrimerDesign_ColonyPCRSteps(_ctx context.Context, _input *PrimerDesign_Col
 		execute.Errorf(_ctx, _output.Warnings.Error())
 	}
 
-	fmt.Println(text.Print("FWDPrimer:", _output.FWDPrimer))
-
 	if _input.FlankTargetSequence {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend+150)
 	} else {
 		region = oligos.DNAregion(fulldnaseqs[0], regionstart, regionend)
 	}
-	fmt.Println("6")
 
 	_input.Seqstoavoid = append(_input.Seqstoavoid, _output.FWDPrimer.Seq)
 
@@ -168,7 +159,7 @@ type PrimerDesign_ColonyPCRElement struct {
 }
 
 type PrimerDesign_ColonyPCRInput struct {
-	DNASeqfile                               string
+	DNASeqfile                               wtype.File
 	FlankTargetSequence                      bool
 	Maxgc                                    float64
 	Maxlength                                int

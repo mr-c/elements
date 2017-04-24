@@ -12,7 +12,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"path/filepath"
 )
 
 // dna sequences as strings "ACTTGCGTC","GGTCCA"
@@ -37,8 +36,10 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	// Retrieve part seqs from entrez
 	for _, part := range _input.Parts {
 		//desiredfilename := filepath.Join(anthapath.Path(), part+".gb")
-		desiredfilename := filepath.Join(_input.ConstructName, part+".gb")
-		DNA, _, _ := entrez.RetrieveSequence(part, "nucleotide", desiredfilename)
+		DNA, err := entrez.RetrieveSequence(part, "nucleotide")
+		if err != nil {
+			execute.Errorf(_ctx, "Error getting sequence for part %s: %s", part, err.Error())
+		}
 		PartDNA = append(PartDNA, DNA)
 	}
 
@@ -51,10 +52,11 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 
 	// look up vector sequence
 
-	//desiredvectorfilename := filepath.Join(anthapath.Path(), Vector+".gb")
-	desiredvectorfilename := filepath.Join(_input.ConstructName, _input.Vector+".gb")
+	VectorSeq, err := entrez.RetrieveVector(_input.Vector)
 
-	VectorSeq, _, _ := entrez.RetrieveVector(_input.Vector, desiredvectorfilename)
+	if err != nil {
+		execute.Errorf(_ctx, "Errorf getting vector %s: %s", _input.Vector, err.Error())
+	}
 
 	// Add overhangs
 	if _input.EndsAlreadyAdded {
