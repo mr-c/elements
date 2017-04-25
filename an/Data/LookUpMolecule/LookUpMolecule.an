@@ -50,7 +50,7 @@ Steps {
 	       }
 		
 		CompoundProperties = append(CompoundProperties,moleculeProperties)
-		CompoundNames = append(CompoundNames,moleculeProperties.Moleculename)
+		CompoundNames = append(CompoundNames,moleculeProperties.Name)
 		
 		// now set conc
 		var moleculeConc Concentration
@@ -69,10 +69,10 @@ Steps {
 
 		}
 		
-		if _, found := MolarConcentrations[moleculeProperties.Moleculename];found{
-			Errorf("Duplicate compound found for %s", moleculeProperties.Moleculename)
+		if _, found := MolarConcentrations[moleculeProperties.Name];found{
+			Errorf("Duplicate compound found for %s", moleculeProperties.Name)
 		}else{
-			MolarConcentrations[moleculeProperties.Moleculename]= moleculeProperties.GramPerL(moleculeConc)
+			MolarConcentrations[moleculeProperties.Name]= moleculeProperties.GramPerL(moleculeConc)
 		}
 	}
 		
