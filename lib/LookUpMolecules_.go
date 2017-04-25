@@ -153,7 +153,7 @@ func init() {
 		Constructor: LookUpMoleculesNew,
 		Desc: component.ComponentDesc{
 			Desc: "Example of how to look up molecule properties from pubchem.\nA map of molar concentrations required to make up 1 Mol/l of each compound is also returned.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/LookUpMolecule/LookUpMolecule.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/LookUpMolecule/LookUpMolecules.an",
 			Params: []component.ParamDesc{
 				{Name: "Compoundlist", Desc: "Name of compound or array of multiple compounds\n", Kind: "Parameters"},
 				{Name: "OverRideDefaultConcentration", Desc: "Set Concentrations for compounds or set default. If no concentration is set the molar concentration will be used\n", Kind: "Parameters"},
