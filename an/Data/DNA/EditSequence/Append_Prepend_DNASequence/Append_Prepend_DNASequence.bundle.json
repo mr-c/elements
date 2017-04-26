@@ -1,0 +1,28 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "Append_Prepend_DNASequence"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "InputSequences":[
+        {
+          "jm": "DNA_seq_1",
+          "seq": "GCTCTTCACCTGTGGAGCTGTCGATGCATGATCAGCTAGCTG",
+          "plasmid": false
+      },
+      {
+          "jm": "DNA_seq_2",
+          "seq": "GCTCTTCAACCTCCCTATCAGTGATAGAGATTGACATCCCTATCAGTGATAGAGATACTGAGCACAAGCTTTTTTAATCTCATATATCAAATATAGGGTGGATCA",
+          "plasmid": false
+      }
+    ],
+      "AddPrefix": "AAAAAAAAAAA",
+      "AddSuffix": "TTTTTTTTTT",
+      "ProjectName": "Modified_DNA_Test"
+    }
+  },
+  "config": null
+}

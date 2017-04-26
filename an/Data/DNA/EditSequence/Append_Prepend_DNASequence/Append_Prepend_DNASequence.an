@@ -1,0 +1,111 @@
+// Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DAN sequences.
+// Modified Sequences are outputted in a Fasta file.
+protocol Append_Prepend_DNASequence
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"fmt"
+	"path/filepath"
+	"strings"
+)
+
+// Parameters to this protocol
+Parameters (
+	ProjectName string //project name should be inputted as the output FASTA file will be named as such
+	InputSequences	[]wtype.DNASequence //input DNA sequences
+	AddPrefix	string	//String of DNA, if empty nothing is added
+	AddSuffix	string	//String of DNA, if empty nothing is added
+)
+
+// Output data of this protocol
+Data (
+	OutputSequences	[]wtype.DNASequence //output modified DNA sequences
+	Warnings 	error //error messages reported back to the user
+	ModifiedSequenceFile File //Output Fasta file
+)
+
+// Physical inputs to this protocol
+Inputs (
+
+)
+
+// Physical outputs to this protocol
+Outputs (
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	//setup warnings slice to add errors reported to
+	warnings := make([]string, 0)
+
+	//range through the input DNA sequences
+ 	for _, editedSequence := range InputSequences {
+
+		//check if the input sequence is a plasmid, and return error message if so
+		if editedSequence.Plasmid {
+			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is a plasmid and should not be Appended/Prepended, please fix", editedSequence.Nm)
+			//warnings = append(warnings,strings.Join(plasmidError,""))
+			//Errorf(Warnings.Error())
+			fmt.Println(plasmidError)
+		}
+
+		//check input sequences for illegal (non-nucleotide) characters and return error message if so
+		passed, illegals, _ := sequences.Illegalnucleotides(editedSequence)
+
+		if !passed {
+			var newstatus = make([]string,0)
+			for _, illegal := range illegals {
+
+				newstatus =append(newstatus, "part: " + editedSequence.Nm +" "+ editedSequence.Seq + ": contains illegalnucleotides:"+ illegal.ToString())
+			}
+			warnings = append(warnings,strings.Join(newstatus,""))
+			fmt.Errorf(strings.Join(newstatus,""))
+		}
+
+
+		/* passed, illegals, _ := sequences.Illegalnucleotides(editedSequence)
+		if !passed {
+			Warning = fmt.Errorf("DNA output sequence contains illegal characters %+v", illegals)
+			Errorf(Warning.Error())
+			} */
+
+		//Append and Prepend the given additional bp to the input sequence
+		editedSequence.Append(AddSuffix)
+		editedSequence.Prepend(AddPrefix)
+
+		//append modified seuqences to the OutputSequences array
+		OutputSequences = append(OutputSequences, editedSequence)
+		}
+
+	//add the modified seuqences to a Fasta file in new folder with ProjectName
+	outputFile, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssemblyProduct"), OutputSequences)
+	if err != nil {
+			Errorf(err.Error())
+			}
+	ModifiedSequenceFile = outputFile
+
+	Warnings = fmt.Errorf(strings.Join(warnings, ";"))
+
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
