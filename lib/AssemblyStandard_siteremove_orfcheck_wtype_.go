@@ -279,7 +279,7 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	_output.Insert, err = assembly.Insert()
 
 	if err != nil {
-		warnings = append(warnings, fmt.Sprintf("Error calculating insert: %s ", err.Error()))
+		execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
 	}
 
 	// export parts + vector as one array
