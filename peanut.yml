@@ -7,6 +7,8 @@ build:
   volumes:
   - /certs
   commands:
+  - go get golang.org/x/net/context
+  - go get google.golang.org/grpc
   - make -C /go/src/github.com/antha-lang/elements check
 modules:
   golang:
