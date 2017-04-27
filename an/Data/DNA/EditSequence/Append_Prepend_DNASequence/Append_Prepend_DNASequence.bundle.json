@@ -24,7 +24,7 @@
           "plasmid": false
         }
       ],
-      "AddPrefix": "AAAAAAAAAA",
+      "AddPrefix": "",
       "AddSuffix": "TTTTTTTTTT",
       "ProjectName": "Add_Ends_To_RBS_Project"
     }

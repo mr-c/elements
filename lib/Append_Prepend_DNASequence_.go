@@ -1,5 +1,6 @@
-// Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DAN sequences.
-// Modified Sequences are outputted in a Fasta file.
+//Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DNA sequences.
+//If Append or Prepend is left blank, no extra base pairs will be added.
+//Modified Sequences are outputted in a FASTA file.
 package lib
 
 import
@@ -21,16 +22,16 @@ import
 
 // Parameters to this protocol
 
-//project name should be inputted as the output FASTA file will be named as such
+//this will be used to name the output FASTA file and folder
 //input DNA sequences
-//String of DNA, if empty nothing is added
-//String of DNA, if empty nothing is added
+//string of DNA, if empty nothing is added
+//string of DNA, if empty nothing is added
 
 // Output data of this protocol
 
 //output modified DNA sequences
 //error messages reported back to the user
-//Output Fasta file
+//output Fasta file
 
 // Physical inputs to this protocol
 
@@ -44,15 +45,15 @@ func _Append_Prepend_DNASequenceSetup(_ctx context.Context, _input *Append_Prepe
 // The core process for this protocol. These steps are executed for each input.
 func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepend_DNASequenceInput, _output *Append_Prepend_DNASequenceOutput) {
 
-	//setup warnings slice to add errors reported to
+	//setup warnings slice to append errors to
 	warnings := make([]string, 0)
 
-	//range through the input DNA sequences
+	//range through the InputSequences
 	for _, editedSequence := range _input.InputSequences {
 
-		//check if the input sequence is a plasmid, and return error message if so
+		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
-			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is a plasmid and should not be Appended/Prepended, please fix", editedSequence.Nm)
+			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is listed as a plasmid and should not be Appended/Prepended, please proceed with caution or fix", editedSequence.Nm)
 			fmt.Println(plasmidError)
 		}
 
@@ -73,17 +74,18 @@ func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepe
 		editedSequence.Append(_input.AddSuffix)
 		editedSequence.Prepend(_input.AddPrefix)
 
-		//append modified seuqences to the OutputSequences array
-		_output.OutputSequences = append(_output.OutputSequences, editedSequence)
+		//append modified sequences to the ModifiedSequences array
+		_output.ModifiedSequences = append(_output.ModifiedSequences, editedSequence)
 	}
 
-	//add the modified seuqences to a Fasta file in new folder with ProjectName
-	outputFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssemblyProduct"), _output.OutputSequences)
+	//add the ModifiedSequences to a FASTA file in new folder with ProjectName
+	outputFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssemblyProduct"), _output.ModifiedSequences)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
 	_output.ModifiedSequenceFile = outputFile
 
+	//add all warnings to the Warnings output and report to user
 	_output.Warnings = fmt.Errorf(strings.Join(warnings, ";"))
 
 }
@@ -157,14 +159,14 @@ type Append_Prepend_DNASequenceInput struct {
 
 type Append_Prepend_DNASequenceOutput struct {
 	ModifiedSequenceFile wtype.File
-	OutputSequences      []wtype.DNASequence
+	ModifiedSequences    []wtype.DNASequence
 	Warnings             error
 }
 
 type Append_Prepend_DNASequenceSOutput struct {
 	Data struct {
 		ModifiedSequenceFile wtype.File
-		OutputSequences      []wtype.DNASequence
+		ModifiedSequences    []wtype.DNASequence
 		Warnings             error
 	}
 	Outputs struct {
@@ -175,15 +177,15 @@ func init() {
 	if err := addComponent(component.Component{Name: "Append_Prepend_DNASequence",
 		Constructor: Append_Prepend_DNASequenceNew,
 		Desc: component.ComponentDesc{
-			Desc: "Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DAN sequences.\nModified Sequences are outputted in a Fasta file.\n",
+			Desc: "Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DNA sequences.\nIf Append or Prepend is left blank, no extra base pairs will be added.\nModified Sequences are outputted in a FASTA file.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/EditSequence/Append_Prepend_DNASequence/Append_Prepend_DNASequence.an",
 			Params: []component.ParamDesc{
-				{Name: "AddPrefix", Desc: "String of DNA, if empty nothing is added\n", Kind: "Parameters"},
-				{Name: "AddSuffix", Desc: "String of DNA, if empty nothing is added\n", Kind: "Parameters"},
+				{Name: "AddPrefix", Desc: "string of DNA, if empty nothing is added\n", Kind: "Parameters"},
+				{Name: "AddSuffix", Desc: "string of DNA, if empty nothing is added\n", Kind: "Parameters"},
 				{Name: "InputSequences", Desc: "input DNA sequences\n", Kind: "Parameters"},
-				{Name: "ProjectName", Desc: "project name should be inputted as the output FASTA file will be named as such\n", Kind: "Parameters"},
-				{Name: "ModifiedSequenceFile", Desc: "Output Fasta file\n", Kind: "Data"},
-				{Name: "OutputSequences", Desc: "output modified DNA sequences\n", Kind: "Data"},
+				{Name: "ProjectName", Desc: "this will be used to name the output FASTA file and folder\n", Kind: "Parameters"},
+				{Name: "ModifiedSequenceFile", Desc: "output Fasta file\n", Kind: "Data"},
+				{Name: "ModifiedSequences", Desc: "output modified DNA sequences\n", Kind: "Data"},
 				{Name: "Warnings", Desc: "error messages reported back to the user\n", Kind: "Data"},
 			},
 		},

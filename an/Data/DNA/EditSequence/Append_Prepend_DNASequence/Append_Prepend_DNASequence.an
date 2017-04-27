@@ -1,5 +1,6 @@
-// Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DAN sequences.
-// Modified Sequences are outputted in a Fasta file.
+//Append_Prepend_DNASequence will take in an array of DNA sequences and Append and/or Prepend extra base pairs to the DNA sequences.
+//If Append or Prepend is left blank, no extra base pairs will be added.
+//Modified Sequences are outputted in a FASTA file.
 protocol Append_Prepend_DNASequence
 
 // Place golang packages to import here
@@ -14,17 +15,17 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	ProjectName string //project name should be inputted as the output FASTA file will be named as such
+	ProjectName string //this will be used to name the output FASTA file and folder
 	InputSequences	[]wtype.DNASequence //input DNA sequences
-	AddPrefix	string	//String of DNA, if empty nothing is added
-	AddSuffix	string	//String of DNA, if empty nothing is added
+	AddPrefix	string	//string of DNA, if empty nothing is added
+	AddSuffix	string	//string of DNA, if empty nothing is added
 )
 
 // Output data of this protocol
 Data (
-	OutputSequences	[]wtype.DNASequence //output modified DNA sequences
+	ModifiedSequences	[]wtype.DNASequence //output modified DNA sequences
 	Warnings 	error //error messages reported back to the user
-	ModifiedSequenceFile File //Output Fasta file
+	ModifiedSequenceFile File //output Fasta file
 )
 
 // Physical inputs to this protocol
@@ -44,15 +45,15 @@ Setup {
 // The core process for this protocol. These steps are executed for each input.
 Steps {
 
-	//setup warnings slice to add errors reported to
+	//setup warnings slice to append errors to
 	warnings := make([]string, 0)
 
-	//range through the input DNA sequences
+	//range through the InputSequences
  	for _, editedSequence := range InputSequences {
 
-		//check if the input sequence is a plasmid, and return error message if so
+		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
-			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is a plasmid and should not be Appended/Prepended, please fix", editedSequence.Nm)
+			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is listed as a plasmid and should not be Appended/Prepended, please proceed with caution or fix", editedSequence.Nm)
 			fmt.Println(plasmidError)
 		}
 
@@ -68,22 +69,23 @@ Steps {
 			warnings = append(warnings,strings.Join(newstatus,""))
 			fmt.Errorf(strings.Join(newstatus,""))
 		}
-		
+
 		//Append and Prepend the given additional bp to the input sequence
 		editedSequence.Append(AddSuffix)
 		editedSequence.Prepend(AddPrefix)
 
-		//append modified seuqences to the OutputSequences array
-		OutputSequences = append(OutputSequences, editedSequence)
+		//append modified sequences to the ModifiedSequences array
+		ModifiedSequences = append(ModifiedSequences, editedSequence)
 		}
 
-	//add the modified seuqences to a Fasta file in new folder with ProjectName
-	outputFile, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssemblyProduct"), OutputSequences)
+	//add the ModifiedSequences to a FASTA file in new folder with ProjectName
+	outputFile, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssemblyProduct"), ModifiedSequences)
 	if err != nil {
 			Errorf(err.Error())
 			}
 	ModifiedSequenceFile = outputFile
 
+	//add all warnings to the Warnings output and report to user
 	Warnings = fmt.Errorf(strings.Join(warnings, ";"))
 
 }
