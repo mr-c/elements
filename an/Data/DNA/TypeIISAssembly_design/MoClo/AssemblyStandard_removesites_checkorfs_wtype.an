@@ -1,8 +1,8 @@
-// This protocol is intended to design assembly parts using a specified enzyme. 
-// overhangs are added to complement the adjacent parts and leave no scar. 
+// This protocol is intended to design assembly parts using a specified enzyme.
+// overhangs are added to complement the adjacent parts and leave no scar.
 // parts can be entered as genbank (.gb) files, sequences or biobrick IDs
 // If assembly simulation fails after overhangs are added. In order to help the user
-// diagnose the reason, a report of the part overhangs 
+// diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
 protocol AssemblyStandard_siteremove_orfcheck_wtype
 
@@ -36,12 +36,13 @@ Parameters (
 	EndsAlreadyadded 				bool
 	ExporttoFastaFile 				bool
 	BlastSeqswithNoName				bool
-	
+
 	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
-	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3". 
+	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3".
 	// If left empty no adaptor sequence is added.
 	MakeLevel1Device 		string
-	ReverseLevel1Orientation bool 
+	ReverseLevel1Orientation bool
+	SimulateAssemblies bool
 )
 
 // Physical Inputs to this protocol with types
@@ -51,7 +52,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	
+
 )
 
 // Data which is returned from this protocol, and data types
@@ -59,7 +60,7 @@ Data (
 	Warnings error
 	Status string
 	Simulationpass bool
-	OriginalParts []wtype.DNASequence 
+	OriginalParts []wtype.DNASequence
 	PartsWithSitesRemoved []wtype.DNASequence // and level 1 ends added if MakeLevel1Device is selected
 	PartswithOverhangs []wtype.DNASequence // parts to order
 	PartsAndVector []wtype.DNASequence // parts to order + vector
@@ -70,7 +71,7 @@ Data (
 	PositionReport []string
 	AssembledSequenceFile File
 	PartsToOrderFile File
-	
+
 )
 // Input Requirement specification
 Requirements {
@@ -83,25 +84,25 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	// set warnings reported back to user to none initially
 	warnings := make([]string, 0)
 
 	// declare some temporary variables to be used later
 	var warning string
 	var err error
-	
+
 	// get these directly from Parameters
 	var partsinorder = Seqsinorder
 	var vectordata  = Vector
 
 	Status = "all parts available"
-	
+
 	// export this as data output
 	OriginalParts = partsinorder
 	// check parts for restriction sites first and remove if the user has chosen to
 	enz, found := enzymes.Enzymelookup[AssemblyStandard][Level]
-	
+
 	if !found {
 		Errorf("AssemblyStandard ",AssemblyStandard," level ",Level, " not found")
 	}
@@ -109,18 +110,18 @@ Steps {
 	// get properties of other enzyme sites to remove
 	removetheseenzymes := make([]wtype.RestrictionEnzyme,0)
 	removetheseenzymes = append(removetheseenzymes,enz.RestrictionEnzyme)
-	
+
 	for _,enzyme := range OtherEnzymeSitesToRemove {
-		
+
 		enzyTypeII, err := lookup.EnzymeLookup(enzyme)
-		
+
 		if err!= nil {
 			Errorf(err.Error())
 		}
-		
+
 		removetheseenzymes = append(removetheseenzymes,enzyTypeII)
 	}
-	
+
 	// check number of sites per part and return if > 0!
 	var report []string
 	var siteFound bool
@@ -139,17 +140,17 @@ Steps {
 		}
 	}
 	if siteFound {
-		
+
 		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
-		
+
 		if !RemoveproblemRestrictionSites{
 			Errorf(errormessage)
 		}else{
 			warnings = append(warnings, errormessage)
 		}
-	}	
-	
-	
+	}
+
+
 	warning = text.Print("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if RemoveproblemRestrictionSites && !EndsAlreadyadded{
@@ -160,7 +161,7 @@ Steps {
 		for _, part := range partsinorder {
 			if part.Seq != ""{
 				info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
-	
+
 				for _, anysites := range info {
 					if anysites.Sitefound {
 						warning = "problem " + anysites.Enzyme.Name+" site found in " + part.Nm
@@ -199,70 +200,70 @@ Steps {
 						} else if !OnlyRemovesitesinORFs{
 							allsitestoavoid := make([]string, 0)
 							temppart, err := sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
-				
+
 							if err != nil {
 								warning := fmt.Sprintf("Faiure to automatically remove %s site at positions %+v in part %s: %s! improve algorithm  or remove manually until you do!: %s",anysites.Enzyme.Name,anysites.Positions("ALL"),part.Nm, part.Seq,err.Error())
 								warnings = append(warnings, warning)
 								Errorf(warning)
-	
+
 							}
 							warning = fmt.Sprintln("modified "+temppart.Nm+"new seq: ", temppart.Seq, "original seq: ",part.Seq)
 							warnings = append(warnings, warning)
 							part = temppart
-	
+
 						}
 					}
-					
-					
+
+
 				}
 				newparts = append(newparts, part)
 
 			}else{
 				newparts = append(newparts, part)
 				}
-			
+
 		}
 		partsinorder = newparts
 	}
 	// export the parts list with sites removed
 	PartsWithSitesRemoved = partsinorder
 	// make vector into an antha type DNASequence
-	
-	
+
+
 	if MakeLevel1Device != ""{
-		
+
 		standard, found := enzymes.EndlinksString[AssemblyStandard]
-		
+
 		if !found {
 			Errorf("No assembly standard %s found",AssemblyStandard)
 		}
-		
+
 		level1, found := standard["Level1"]
-		
+
 		if !found {
 			Errorf("No Level1 found for standard %s",AssemblyStandard)
 		}
-		
+
 		overhangs,found := level1[MakeLevel1Device]
-		
+
 		if !found {
 			Errorf("No overhangs found for %s in standard %s",MakeLevel1Device,AssemblyStandard)
 		}
-		
+
 		if len(overhangs)!= 2 {
 			Errorf("found %d overhangs for %s in standard %s, expecting %d",len(overhangs), MakeLevel1Device,AssemblyStandard, 2)
 
 		}
-		
+
 		if overhangs[0] == "" {
 			Errorf("blunt 5' overhang found for %s in standard %s, expecting %d", MakeLevel1Device,AssemblyStandard, 2)
 		}
-		
+
 		PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(PartsWithSitesRemoved[0],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
 		if err != nil {
 			Errorf(err.Error())
 		}
-	
+
 		PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1], err = enzymes.AddL1DAdaptor(PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
 		if err != nil {
 			Errorf(err.Error())
@@ -277,51 +278,59 @@ Steps {
 
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
 	fmt.Println("warnings:", warnings)
-	
+
 	if EndsAlreadyadded {
 		PartswithOverhangs = partsinorder
 	} else {
 	//  Add standard overhangs using chosen assembly standard
 	PartswithOverhangs, err = enzymes.MakeStandardTypeIIsassemblyParts(partsinorder, AssemblyStandard, Level, PartMoClotypesinorder)
-	
+
 	if err != nil{
 		warnings = append(warnings, text.Print("Error", err.Error()))
 		Errorf(err.Error())
 	}
-	
+
 	}
-	
-	// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
-	assembly := enzymes.Assemblyparameters{Constructname, restrictionenzyme.Name, vectordata, PartswithOverhangs}
-	status, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
-	
-	if err != nil {
-		Errorf("Error simulating assembly of %s: %s ",Constructname, err.Error())
+
+	var endreport string
+	var status string
+
+	if SimulateAssemblies {
+		// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
+		assembly := enzymes.Assemblyparameters{Constructname, restrictionenzyme.Name, vectordata, PartswithOverhangs}
+		assemblyStatus, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
+
+		if err != nil {
+			Errorf("Error simulating assembly of %s: %s ",Constructname, err.Error())
 	}
-	
+
+
 	Insert, err = assembly.Insert()
-	
+
 	if err != nil {
 		Errorf("Error calculating insert from assembly: %s. Sites at positions: %s ",err.Error(),siteReport(partsinorder,removetheseenzymes))
-	}	
-	
+	}
+
 	// export parts + vector as one array
 	for _, part := range PartswithOverhangs {
 		PartsAndVector = append(PartsAndVector,part)
 	}
-	
-	// now add vector 
+
+	// now add vector
 	PartsAndVector = append(PartsAndVector,vectordata)
 
-	endreport := "Endreport only run in the event of assembly simulation failure"
+	endreport = "Endreport only run in the event of assembly simulation failure"
 	//sites := "Restriction mapper only run in the event of assembly simulation failure"
 	newDNASequence.Nm = Constructname
 	NewDNASequence = newDNASequence
 	if err == nil && numberofassemblies == 1 {
 
 		Simulationpass = true
-	}// else {
-
+		status = assemblyStatus
+	}
+	} else {
+		status = "Simulation of assemblies set to false in parameters"
+	}
 		warnings = append(warnings, status)
 		// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
 		_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(vectordata, restrictionenzyme)
@@ -385,7 +394,7 @@ Steps {
 	}
 	partsummary = append(partsummary, text.Print("Vector:"+ vectordata.Nm, vectordata.Seq))
 	partstoorder := text.Print("PartswithOverhangs: ", partsummary)
-	
+
 
 	// Print status
 	if Status != "all parts available"{
@@ -406,7 +415,7 @@ Steps {
 	//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
 	fmt.Println(Status)
 	}
-	
+
 	// export sequence to fasta
 	if ExporttoFastaFile && Simulationpass{
 		exportedsequences := make([]wtype.DNASequence,0)
@@ -420,19 +429,19 @@ Steps {
 		if err != nil {
 			Errorf(err.Error())
 		}
-		// reset 
+		// reset
 		exportedsequences = make([]wtype.DNASequence,0)
-		// add all parts with overhangs 
+		// add all parts with overhangs
 		for _,part := range PartswithOverhangs{
-		exportedsequences = append(exportedsequences,part)	
+		exportedsequences = append(exportedsequences,part)
 		}
 		PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
 		if err != nil {
 			Errorf(err.Error())
 		}
 	}
-	
-	
+
+
 }
 
 // Run after controls and a steps block are completed to
