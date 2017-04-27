@@ -330,6 +330,7 @@ Steps {
 	}
 	} else {
 		status = "Simulation of assemblies set to false in parameters"
+		Simulationpass = true
 	}
 		warnings = append(warnings, status)
 		// perform mock digest to test fragement overhangs (fragments are hidden by using _, )

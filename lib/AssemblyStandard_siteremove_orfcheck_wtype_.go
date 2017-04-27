@@ -268,37 +268,45 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 
 	}
 
-	// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
-	assembly := enzymes.Assemblyparameters{_input.Constructname, restrictionenzyme.Name, vectordata, _output.PartswithOverhangs}
-	status, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
+	var endreport string
+	var status string
 
-	if err != nil {
-		execute.Errorf(_ctx, "Error simulating assembly of %s: %s ", _input.Constructname, err.Error())
-	}
+	if _input.SimulateAssemblies {
+		// Check that assembly is feasible with designed parts by simulating assembly of the sequences with the chosen enzyme
+		assembly := enzymes.Assemblyparameters{_input.Constructname, restrictionenzyme.Name, vectordata, _output.PartswithOverhangs}
+		assemblyStatus, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
 
-	_output.Insert, err = assembly.Insert()
+		if err != nil {
+			execute.Errorf(_ctx, "Error simulating assembly of %s: %s ", _input.Constructname, err.Error())
+		}
 
-	if err != nil {
-		warnings = append(warnings, fmt.Sprintf("Error calculating insert: %s ", err.Error()))
-	}
+		_output.Insert, err = assembly.Insert()
 
-	// export parts + vector as one array
-	for _, part := range _output.PartswithOverhangs {
-		_output.PartsAndVector = append(_output.PartsAndVector, part)
-	}
+		if err != nil {
+			execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
+		}
 
-	// now add vector
-	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
+		// export parts + vector as one array
+		for _, part := range _output.PartswithOverhangs {
+			_output.PartsAndVector = append(_output.PartsAndVector, part)
+		}
 
-	endreport := "Endreport only run in the event of assembly simulation failure"
-	//sites := "Restriction mapper only run in the event of assembly simulation failure"
-	newDNASequence.Nm = _input.Constructname
-	_output.NewDNASequence = newDNASequence
-	if err == nil && numberofassemblies == 1 {
+		// now add vector
+		_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
 
+		endreport = "Endreport only run in the event of assembly simulation failure"
+		//sites := "Restriction mapper only run in the event of assembly simulation failure"
+		newDNASequence.Nm = _input.Constructname
+		_output.NewDNASequence = newDNASequence
+		if err == nil && numberofassemblies == 1 {
+
+			_output.Simulationpass = true
+			status = assemblyStatus
+		}
+	} else {
+		status = "Simulation of assemblies set to false in parameters"
 		_output.Simulationpass = true
-	} // else {
-
+	}
 	warnings = append(warnings, status)
 	// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
 	_, stickyends5, stickyends3 := enzymes.TypeIIsdigest(vectordata, restrictionenzyme)
@@ -484,6 +492,7 @@ type AssemblyStandard_siteremove_orfcheck_wtypeInput struct {
 	RemoveproblemRestrictionSites bool
 	ReverseLevel1Orientation      bool
 	Seqsinorder                   []wtype.DNASequence
+	SimulateAssemblies            bool
 	Vector                        wtype.DNASequence
 }
 
@@ -546,6 +555,7 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "ReverseLevel1Orientation", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
+				{Name: "SimulateAssemblies", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
