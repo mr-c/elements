@@ -49,25 +49,6 @@ func _Scarfree_siteremove_orfcheck_wtypeRequirements() {
 func _Scarfree_siteremove_orfcheck_wtypeSetup(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput) {
 }
 
-func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme) []string {
-	// check number of sites per part !
-	sites := make([]int, 0)
-	multiple := make([]string, 0)
-	for _, part := range partsinorder {
-
-		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
-
-		for i := range info {
-			sitepositions := enzymes.SitepositionString(info[i])
-
-			sites = append(sites, info[i].Numberofsites)
-			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
-			multiple = append(multiple, sitepositions)
-		}
-	}
-	return multiple
-}
-
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput, _output *Scarfree_siteremove_orfcheck_wtypeOutput) {
@@ -367,6 +348,25 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		}
 	}
 
+}
+
+func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme) []string {
+	// check number of sites per part !
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			sites = append(sites, info[i].Numberofsites)
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			multiple = append(multiple, sitepositions)
+		}
+	}
+	return multiple
 }
 
 // Run after controls and a steps block are completed to

@@ -1,0 +1,79 @@
+{
+    "Processes": {
+        "AssemblyStandard_siteremove_orfcheck_wtype_241603": {
+            "component": "AssemblyStandard_siteremove_orfcheck_wtype"
+        }
+    },
+    "connections": [],
+    "Properties": {
+        "id": "---",
+        "name": "no name",
+        "description": "no description"
+    },
+    "Parameters": {
+        "AssemblyStandard_siteremove_orfcheck_wtype_241603": {
+            "BlastSeqswithNoName": false,
+            "EndsAlreadyadded": false,
+            "ExporttoFastaFile": true,
+            "AssemblyStandard": "MoClo",
+            "Level": "Level0",
+            "ORFstoConfirm": [],
+            "OnlyRemovesitesinORFs": false,
+            "OtherEnzymeSitesToRemove": [],
+            "PartMoClotypesinorder": [
+              "Pro + 5U",
+              "CDS1",
+              "3U + Ter"
+            ],
+            "RemoveproblemRestrictionSites": false,
+            "ReverseLevel1Orientation": false,
+            "Seqsinorder": [
+                {
+                    "jm": "T5PROMOTER_5U",
+                    "seq": "GCTCTTCAACCTGTGTCGCCCTTAATTGTGAGCGGATAACAATTACGAGCTTCATGCACAGTGAAATCATGAAAAATTTATTTGCTTTGTGAGCGGATAACAATTATAATATGTGGAATTGTGAGCGCTCACAATTCCACAACGGTTTCCCTCTAGAAATAATTTTGTTTAAC"
+                },
+                {
+                    "jm": "DASHER_REPORTER",
+                    "seq": "ACGGCATTGACGGAAGGTGCAAAACTGTTTGAGAAAGAGATCCCGTATATCACCGAACTGGAAGGCGACGTCGAAGGTATGAAATTTATCATTAAAGGCGAGGGTACCGGTGACGCGACCACGGGTACCATTAAAGCGAAATACATCTGCACTACGGGCGACCTGCCGGTCCCGTGGGCAACCCTGGTGAGCACCCTGAGCTACGGTGTTCAGTGTTTCGCCAAGTACCCGAGCCACATCAAGGATTTCTTTAAGAGCGCCATGCCGGAAGGTTATACCCAAGAGCGTACCATCAGCTTCGAAGGCGACGGCGTGTACAAGACGCGTGCTATGGTTACCTACGAACGCGGTTCTATCTACAATCGTGTCACGCTGACTGGTGAGAACTTTAAGAAAGACGGTCACATTCTGCGTAAGAACGTTGCATTCCAATGCCCGCCAAGCATTCTGTATATTCTGCCTGACACCGTTAACAATGGCATCCGCGTTGAGTTCAACCAGGCGTACGATATTGAAGGTGTGACCGAAAAACTGGTTACCAAATGCAGCCAAATGAATCGTCCGTTGGCGGGCTCCGCGGCAGTGCATATCCCGCGTTATCATCACATTACCTACCACACCAAACTGAGCAAAGACCGCGACGAGCGCCGTGATCACATGTGTCTGGTAGAGGTCGTGAAAGCGGTTGATCTGGACACGTATCAGTAATGAGAATTCTGTACACTCGAG"
+                },
+                {
+                    "jm": "3U_TERMINATOR",
+                    "seq": "CCAGGCATCAAATAAAACGAAAGGCTCAGTCGAAAGACTGGGCCTTTCGTTTTATCTGTTGTTTGTCGGTGAACGCTCTCTACTAGAGTCACACTGGCTCACCTTCGGGTGGGCCTTTCTGCGTTTATATGTAGAAGAGC"
+                }
+            ],
+            "Vector": {
+            },
+            "SimulateAssemblies": false
+        }
+    },
+    "Config": {
+        "DriverSpecificInputPreferences": [
+            "position_4",
+            "position_5",
+            "position_3"
+        ],
+        "DriverSpecificOutputPreferences": [
+            "position_9",
+            "position_6",
+            "position_8",
+            "position_5",
+            "position_3",
+            "position_1"
+        ],
+        "DriverSpecificTipPreferences": [
+            "position_2",
+            "position_3",
+            "position_6",
+            "position_9",
+            "position_8",
+            "position_5",
+            "position_7"
+        ],
+        "DriverSpecificTipWastePreferences": [
+            "position_1",
+            "position_7"
+        ],
+        "InputPlateType": [],
+        "OutputPlateType": []
+    }
+}
