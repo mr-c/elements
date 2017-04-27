@@ -1,0 +1,33 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "Append_Prepend_DNASequence"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "InputSequences":[
+        {
+          "jm": "RBS_1",
+          "seq": "AATCTCATATCTCAAATATAAGCCGGATCATATG",
+          "plasmid": false
+        },
+        {
+          "jm": "RBS_2",
+          "seq": "AATCTCATAGATCAAATATAAGGAGGATCATATG",
+          "plasmid": false
+        },
+        {
+          "jm": "RBS_3",
+          "seq": "AATCTCATATATCAAATATAGGGTGGATCATATG",
+          "plasmid": false
+        }
+      ],
+      "AddPrefix": "AAAAAAAAAA",
+      "AddSuffix": "TTTTTTTTTT",
+      "ProjectName": "Add_Ends_To_RBS_Project"
+    }
+  },
+  "config": null
+}
