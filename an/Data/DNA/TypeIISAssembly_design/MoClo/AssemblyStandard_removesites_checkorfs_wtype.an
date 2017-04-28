@@ -18,25 +18,30 @@ import (
 	"strconv"
 	"strings"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
-"path/filepath"
+	"path/filepath"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	Constructname 				string
-	Seqsinorder					[]wtype.DNASequence
-	AssemblyStandard			string //MoClo
-	Level						string // of assembly standard
-	Vector						wtype.DNASequence
-	PartMoClotypesinorder		[]string // labels e.g. pro = promoter
-	OtherEnzymeSitesToRemove	[]string
-	ORFstoConfirm				[]string // enter each as amino acid sequence
-	RemoveproblemRestrictionSites bool
-	OnlyRemovesitesinORFs		bool
-	EndsAlreadyadded 			bool
-	ExporttoFastaFile 			bool
-	BlastSeqswithNoName		bool
+	Constructname 					string
+	Seqsinorder						[]wtype.DNASequence
+	AssemblyStandard				string //MoClo
+	Level							string // of assembly standard
+	Vector							wtype.DNASequence
+	PartMoClotypesinorder			[]string // labels e.g. pro = promoter
+	OtherEnzymeSitesToRemove		[]string
+	ORFstoConfirm					[]string // enter each as amino acid sequence
+	RemoveproblemRestrictionSites 	bool
+	OnlyRemovesitesinORFs			bool
+	EndsAlreadyadded 				bool
+	ExporttoFastaFile 				bool
+	BlastSeqswithNoName				bool
+	
+	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3". 
+	// If left empty no adaptor sequence is added.
+	MakeLevel1Device 		string
+	ReverseLevel1Orientation bool 
 )
 
 // Physical Inputs to this protocol with types
@@ -55,7 +60,7 @@ Data (
 	Status string
 	Simulationpass bool
 	OriginalParts []wtype.DNASequence 
-	PartsWithSitesRemoved []wtype.DNASequence
+	PartsWithSitesRemoved []wtype.DNASequence // and level 1 ends added if MakeLevel1Device is selected
 	PartswithOverhangs []wtype.DNASequence // parts to order
 	PartsAndVector []wtype.DNASequence // parts to order + vector
 	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
@@ -115,80 +120,155 @@ Steps {
 		
 		removetheseenzymes = append(removetheseenzymes,enzyTypeII)
 	}
+	
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
 
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+		sitepositions := enzymes.SitepositionString(info[i])
+
+		if len(sitepositions)>0{
+			siteFound = true
+		}
+		sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+		report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+		
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+		
+		if !RemoveproblemRestrictionSites{
+			Errorf(errormessage)
+		}else{
+			warnings = append(warnings, errormessage)
+		}
+	}	
+	
+	
 	warning = text.Print("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
-	if RemoveproblemRestrictionSites {
+	if RemoveproblemRestrictionSites && !EndsAlreadyadded{
 		newparts := make([]wtype.DNASequence, 0)
 		warning = "Starting process or removing restrictionsite"
 		warnings = append(warnings, warning)
 
 		for _, part := range partsinorder {
-		
-			info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
-
-			for _, anysites := range info {
-				if anysites.Sitefound {
-					warning = "problem " + anysites.Enzyme.Name+" site found in " + part.Nm
-					warnings = append(warnings, warning)
-					orf, orftrue := sequences.FindBiggestORF(part.Seq)
-					warning = fmt.Sprintln(anysites.Enzyme.Name+" site found in orf ", part.Nm, " ", orftrue, " site positions ", anysites.Positions("ALL"), "orf between", orf.StartPosition, " and ", orf.EndPosition, /*orf.DNASeq[orf.StartPosition:orf.EndPosition]*/)
-					warnings = append(warnings, warning)
-					if orftrue /* && len(orf.ProtSeq) > 20 */ {
-						allsitestoavoid := make([]string, 0)
-						allsitestoavoid = append(allsitestoavoid, anysites.Recognitionsequence, sequences.RevComp(anysites.Recognitionsequence))
-						orfcoordinates := sequences.MakeStartendPair(orf.StartPosition, orf.EndPosition)
-						for _, position := range anysites.Positions("ALL") {
-							if orf.StartPosition < position && position < orf.EndPosition {
-								originalcodon := ""
-								codonoption := ""
-								part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(part, orfcoordinates, position, allsitestoavoid)
-								warning = fmt.Sprintln("sites to avoid: ", allsitestoavoid[0], allsitestoavoid[1])
-								warnings = append(warnings, warning)
-								warnings = append(warnings, "Paaaaerrttseq: "+part.Seq+"position: "+strconv.Itoa(position)+" original: "+originalcodon+" replacementcodon: "+codonoption)
-								if err != nil {
-									warning := text.Print("removal of "+anysites.Enzyme.Name+" site from orf "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
+			if part.Seq != ""{
+				info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+	
+				for _, anysites := range info {
+					if anysites.Sitefound {
+						warning = "problem " + anysites.Enzyme.Name+" site found in " + part.Nm
+						warnings = append(warnings, warning)
+						orf, orftrue := sequences.FindBiggestORF(part.Seq)
+						warning = fmt.Sprintln(anysites.Enzyme.Name+" site found in orf ", part.Nm, " ", orftrue, " site positions ", anysites.Positions("ALL"), "orf between", orf.StartPosition, " and ", orf.EndPosition, /*orf.DNASeq[orf.StartPosition:orf.EndPosition]*/)
+						warnings = append(warnings, warning)
+						if orftrue && len(orf.ProtSeq) > 20 {
+							allsitestoavoid := make([]string, 0)
+							allsitestoavoid = append(allsitestoavoid, anysites.Recognitionsequence, sequences.RevComp(anysites.Recognitionsequence))
+							orfcoordinates := sequences.MakeStartendPair(orf.StartPosition, orf.EndPosition)
+							for _, position := range anysites.Positions("ALL") {
+								if orf.StartPosition < position && position < orf.EndPosition {
+									originalcodon := ""
+									codonoption := ""
+									originalPart := part.Dup()
+									part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(originalPart, orfcoordinates, position, allsitestoavoid)
+									warning = fmt.Sprintln("sites to avoid: ", allsitestoavoid[0], allsitestoavoid[1])
 									warnings = append(warnings, warning)
-								}
-							} else if !OnlyRemovesitesinORFs{
-								allsitestoavoid := make([]string, 0)
-								part, err = sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
-								if err != nil {
-
-									warning = text.Print(anysites.Enzyme.Name+" position found to be outside of orf: "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
-									warnings = append(warnings, warning)
+									warnings = append(warnings, "For Part Sequence: "+originalPart.Seq+" position: "+strconv.Itoa(position)+" original codon to replace: "+originalcodon+" replaced with replacementcodon: "+codonoption)
+									if err != nil {
+										warning := fmt.Sprint("removal of "+anysites.Enzyme.Name+" site from orf "+orf.DNASeq, "in part "+part.Nm + " failed! improve your algorithm! "+err.Error())
+										warnings = append(warnings, warning)
+										Errorf(warning)
+									}
+								} else if !OnlyRemovesitesinORFs{
+									allsitestoavoid := make([]string, 0)
+									part, err = sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
+									if err != nil {
+										warning = text.Print("Failed to remove "+ anysites.Enzyme.Name+" site from position "+strconv.Itoa(position)+". Position found to be outside of orf: "+orf.DNASeq, ". Error: "+err.Error())
+										warnings = append(warnings, warning)
+										Errorf(warning)
+									}
 								}
 							}
-						}
-					} else if !OnlyRemovesitesinORFs{
-						allsitestoavoid := make([]string, 0)
-						temppart, err := sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
-				//		fmt.Println("part= ", part)
-				//		fmt.Println("temppart= ", temppart)
-						if err != nil {
-							warning := text.Print("removal of site failed! improve your algorithm!", err.Error())
+						} else if !OnlyRemovesitesinORFs{
+							allsitestoavoid := make([]string, 0)
+							temppart, err := sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
+				
+							if err != nil {
+								warning := fmt.Sprintf("Faiure to automatically remove %s site at positions %+v in part %s: %s! improve algorithm  or remove manually until you do!: %s",anysites.Enzyme.Name,anysites.Positions("ALL"),part.Nm, part.Seq,err.Error())
+								warnings = append(warnings, warning)
+								Errorf(warning)
+	
+							}
+							warning = fmt.Sprintln("modified "+temppart.Nm+"new seq: ", temppart.Seq, "original seq: ",part.Seq)
 							warnings = append(warnings, warning)
-
+							part = temppart
+	
 						}
-						warning = fmt.Sprintln("modified "+temppart.Nm+"new seq: ", temppart.Seq, "original seq: ",part.Seq)
-						warnings = append(warnings, warning)
-						part = temppart
-
-						//	}
 					}
+					
+					
 				}
-				
-				
-			}
-			newparts = append(newparts, part)
+				newparts = append(newparts, part)
 
-				partsinorder = newparts
+			}else{
+				newparts = append(newparts, part)
+				}
+			
 		}
+		partsinorder = newparts
 	}
 	// export the parts list with sites removed
 	PartsWithSitesRemoved = partsinorder
 	// make vector into an antha type DNASequence
 	
+	
+	if MakeLevel1Device != ""{
+		
+		standard, found := enzymes.EndlinksString[AssemblyStandard]
+		
+		if !found {
+			Errorf("No assembly standard %s found",AssemblyStandard)
+		}
+		
+		level1, found := standard["Level1"]
+		
+		if !found {
+			Errorf("No Level1 found for standard %s",AssemblyStandard)
+		}
+		
+		overhangs,found := level1[MakeLevel1Device]
+		
+		if !found {
+			Errorf("No overhangs found for %s in standard %s",MakeLevel1Device,AssemblyStandard)
+		}
+		
+		if len(overhangs)!= 2 {
+			Errorf("found %d overhangs for %s in standard %s, expecting %d",len(overhangs), MakeLevel1Device,AssemblyStandard, 2)
+
+		}
+		
+		if overhangs[0] == "" {
+			Errorf("blunt 5' overhang found for %s in standard %s, expecting %d", MakeLevel1Device,AssemblyStandard, 2)
+		}
+		
+		PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(PartsWithSitesRemoved[0],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+		if err != nil {
+			Errorf(err.Error())
+		}
+	
+		PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1], err = enzymes.AddL1DAdaptor(PartsWithSitesRemoved[len(PartsWithSitesRemoved)-1],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+		if err != nil {
+			Errorf(err.Error())
+		}
+
+	}
 	//lookup restriction enzyme
 	restrictionenzyme, err := lookup.TypeIIsLookup(enz.Name)
 	if err != nil {
@@ -216,14 +296,13 @@ Steps {
 	status, numberofassemblies, _, newDNASequence, err := enzymes.Assemblysimulator(assembly)
 	
 	if err != nil {
-		Errorf(err.Error())
+		Errorf("Error simulating assembly of %s: %s ",Constructname, err.Error())
 	}
 	
 	Insert, err = assembly.Insert()
 	
 	if err != nil {
-		
-		Errorf("Error calculating insert: %s ",err.Error())
+		Errorf("Error calculating insert from assembly: %s. Sites at positions: %s ",err.Error(),siteReport(partsinorder,removetheseenzymes))
 	}	
 	
 	// export parts + vector as one array
@@ -333,7 +412,9 @@ Steps {
 		exportedsequences := make([]wtype.DNASequence,0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences,NewDNASequence)
-		
+		if len(exportedsequences)==0{
+			Errorf("No Sequences!")
+		}
 		// export to file
 		AssembledSequenceFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
 		if err != nil {

@@ -89,6 +89,34 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			if len(sitepositions) > 0 {
+				siteFound = true
+			}
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+
+		if !_input.RemoveproblemRestrictionSites {
+			execute.Errorf(_ctx, errormessage)
+		} else {
+			warnings = append(warnings, errormessage)
+		}
+	}
+
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if _input.RemoveproblemRestrictionSites {
@@ -115,21 +143,23 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 							if orf.StartPosition < position && position < orf.EndPosition {
 								originalcodon := ""
 								codonoption := ""
-								part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(part, orfcoordinates, position, allsitestoavoid)
+								originalPart := part.Dup()
+								part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(originalPart, orfcoordinates, position, allsitestoavoid)
 								warning = fmt.Sprintln("sites to avoid: ", allsitestoavoid[0], allsitestoavoid[1])
 								warnings = append(warnings, warning)
-								warnings = append(warnings, "Paaaaerrttseq: "+part.Seq+"position: "+strconv.Itoa(position)+" original: "+originalcodon+" replacementcodon: "+codonoption)
+								warnings = append(warnings, "Part Seq: "+originalPart.Seq+"position: "+strconv.Itoa(position)+" original: "+originalcodon+" replacementcodon: "+codonoption)
 								if err != nil {
 									warning := fmt.Sprint("removal of "+anysites.Enzyme.Name+" site from orf "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
 									warnings = append(warnings, warning)
+									execute.Errorf(_ctx, warning)
 								}
 							} else {
 								allsitestoavoid := make([]string, 0)
 								part, err = sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
 								if err != nil {
-
 									warning = fmt.Sprint(anysites.Enzyme.Name+" position found to be outside of orf: "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
 									warnings = append(warnings, warning)
+									execute.Errorf(_ctx, warning)
 								}
 							}
 						}
@@ -141,7 +171,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 						if err != nil {
 							warning := fmt.Sprint("removal of site failed! improve your algorithm!", err.Error())
 							warnings = append(warnings, warning)
-
+							execute.Errorf(_ctx, warning)
 						}
 						warning = fmt.Sprintln("modified "+temppart.Nm+"new seq: ", temppart.Seq, "original seq: ", part.Seq)
 						warnings = append(warnings, warning)
@@ -154,8 +184,9 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 			}
 			newparts = append(newparts, part)
 
-			partsinorder = newparts
 		}
+		partsinorder = newparts
+
 	}
 
 	// export the parts list with sites removed
@@ -168,7 +199,6 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	}
 
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 
 	if _input.EndsAlreadyadded {
 		_output.PartswithOverhangs = partsinorder
@@ -187,8 +217,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	_output.Insert, err = assembly.Insert()
 
 	if err != nil {
-
-		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+		execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
 	}
 
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
@@ -319,6 +348,25 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		}
 	}
 
+}
+
+func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme) []string {
+	// check number of sites per part !
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			sites = append(sites, info[i].Numberofsites)
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			multiple = append(multiple, sitepositions)
+		}
+	}
+	return multiple
 }
 
 // Run after controls and a steps block are completed to

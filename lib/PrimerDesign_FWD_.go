@@ -44,7 +44,7 @@ func _PrimerDesign_FWDSteps(_ctx context.Context, _input *PrimerDesign_FWDInput,
 
 	var region wtype.DNASequence
 
-	fulldnaseqs, err := parser.DNAFiletoDNASequence(_input.DNASeqfile, _input.Plasmid)
+	fulldnaseqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if err != nil {
 		fmt.Println("ParseSeqFail")
@@ -61,6 +61,7 @@ func _PrimerDesign_FWDSteps(_ctx context.Context, _input *PrimerDesign_FWDInput,
 	fmt.Println("3")
 	fmt.Println("fulldnaseqs[0]", fulldnaseqs[0])
 	fmt.Println("RegionSequence", RegionSequence)
+	fulldnaseqs[0].Plasmid = _input.Plasmid
 	regionstart, regionend, err := oligos.FindPositioninSequence(fulldnaseqs[0], RegionSequence)
 	fmt.Println("4")
 	if err != nil {
@@ -144,7 +145,7 @@ type PrimerDesign_FWDElement struct {
 }
 
 type PrimerDesign_FWDInput struct {
-	DNASeqfile                               string
+	DNASeqfile                               wtype.File
 	FlankTargetSequence                      bool
 	Maxgc                                    float64
 	Maxlength                                int

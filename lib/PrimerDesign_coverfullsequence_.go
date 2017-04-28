@@ -39,7 +39,7 @@ func _PrimerDesign_coverfullsequenceSetup(_ctx context.Context, _input *PrimerDe
 func _PrimerDesign_coverfullsequenceSteps(_ctx context.Context, _input *PrimerDesign_coverfullsequenceInput, _output *PrimerDesign_coverfullsequenceOutput) {
 	var plasmid wtype.DNASequence
 
-	plasmids, _ := parser.DNAFiletoDNASequence(_input.DNASeqfile, _input.Plasmid)
+	plasmids, _ := parser.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if len(plasmids) > 0 {
 		plasmid = plasmids[0]
@@ -47,6 +47,8 @@ func _PrimerDesign_coverfullsequenceSteps(_ctx context.Context, _input *PrimerDe
 	if len(plasmids) > 1 {
 		_output.Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
 	}
+
+	plasmid.Plasmid = _input.Plasmid
 
 	allprimers := oligos.DesignFWDPRimerstoCoverFullSequence(plasmid, _input.PrimereveryXnucleotides, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, _input.Seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
 
@@ -110,7 +112,7 @@ type PrimerDesign_coverfullsequenceElement struct {
 }
 
 type PrimerDesign_coverfullsequenceInput struct {
-	DNASeqfile                               string
+	DNASeqfile                               wtype.File
 	Maxgc                                    float64
 	Maxlength                                int
 	Maxtemp                                  wunit.Temperature
