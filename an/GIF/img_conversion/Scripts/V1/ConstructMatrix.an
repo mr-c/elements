@@ -1,0 +1,57 @@
+//Takes an image and returns a matrix of RGBA pixels
+protocol ConstructMatrix
+
+import (
+	//"image"
+	//"os"
+	//"log"
+	"fmt"
+	//"strings"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+)
+
+
+type LivingPixel struct {
+	CDS1	string
+	CDS2	string
+}
+
+// Parameters to this protocol
+Parameters (
+	FramePath1 string
+	FramePath2 string
+)
+
+// Output data of this protocol
+Data (
+	LivingPixel1 LivingPixel
+)
+
+// The core process for this protocol.
+Steps {
+	//initializing images. A *goimage.NRGBA object is returned
+	F1 := image.MakeGoimageNRGBA(FramePath1)
+	F2 := image.MakeGoimageNRGBA(FramePath2)
+
+	LivingPixel1 = LivingPixel{CDS1: "ATGTC", CDS2: "ATGTC"}
+
+	fmt.Println(F1)
+	fmt.Println(F2)
+	fmt.Println(LivingPixel1)
+}
+
+
+//unused
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+}
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+}
+// Conditions to run on startup
+Setup {
+}

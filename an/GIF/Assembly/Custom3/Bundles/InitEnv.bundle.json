@@ -1,0 +1,14 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "InitEnv"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Lib" : "custom"
+    }
+  },
+  "config": null
+}

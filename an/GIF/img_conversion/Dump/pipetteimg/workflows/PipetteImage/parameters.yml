@@ -1,0 +1,24 @@
+Parameters:
+  PipetteImage:
+    AutoRotate: false
+    CheckResizeAlgorithms: true
+    Imagefilename: apple.jpg
+    Notthiscolour: white
+    OnlythisColour: ""
+    OutPlate: greiner384_riser
+    Palettename: Palette1
+    Rotate: false
+    Subset: false
+    Subsetnames:
+    - black
+    - white
+    - purple
+    - blue
+    - green
+    - yellow
+    - orange
+    - red
+    - pink
+    UVimage: false
+    UseLiquidClass: water
+    VolumePerWell: 50ul

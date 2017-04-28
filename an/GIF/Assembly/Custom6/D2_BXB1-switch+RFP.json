@@ -1,0 +1,120 @@
+{
+    "Processes": {
+        "AssemblyStandard_siteremove_orfcheck_wtype_348710": {
+            "component": "AssemblyStandard_siteremove_orfcheck_wtype",
+            "Metadata": {
+                "x": 567,
+                "y": 108,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 105,
+                "y": 149
+            }
+        },
+        "NewDNASequence_fromfile_688829": {
+            "component": "NewDNASequence_fromfile",
+            "Metadata": {
+                "x": 214,
+                "y": 306,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 106,
+                "y": 154
+            }
+        }
+    },
+    "connections": [
+        {
+            "src": {
+                "process": "NewDNASequence_fromfile_688829",
+                "port": "DNA"
+            },
+            "tgt": {
+                "process": "AssemblyStandard_siteremove_orfcheck_wtype_348710",
+                "port": "Vector"
+            }
+        }
+    ],
+    "Properties": {
+        "id": "---",
+        "name": "no name",
+        "description": "no description"
+    },
+    "Parameters": {
+        "AssemblyStandard_siteremove_orfcheck_wtype_348710": {
+            "AssemblyStandard": "Custom",
+            "BlastSeqswithNoName": false,
+            "Constructname": "D2_BXB1attB+p7+Rudolph",
+            "EndsAlreadyadded": false,
+            "ExporttoFastaFile": true,
+            "Level": "Level0",
+            "ORFstoConfirm": [
+ 
+            ],
+            "OnlyRemovesitesinORFs": false,
+            "OtherEnzymeSitesToRemove": [],
+            "PartMoClotypesinorder": [
+                "L1Uadaptor + Pro + 5U + NT1",
+                "CDS1 + 3U",
+                "Ter + L1Dadaptor"
+            ],
+            "RemoveproblemRestrictionSites": false,
+             "Seqsinorder": 
+                [
+                    {
+                        "jm": "Device2_sapI_BXB1attBflankedP7+RBS-sap1",
+                        "seq": "GCTCTTCAACCTCGTGGTTTGTCTGGTCAACCACCGCGGACTCAGTGGTGTACGGTACAAACCCAAAAAATTTATTTGCTTtcgcatctttttgtaccTATAATGTGTGGAGCCCGGATGATCCTGACGACGGAGTCCGCCGTCGTCGACAAGCCGGCCGA",
+                        "plasmid": false
+                    },
+                    {
+                        "jm": "D2_CDS_RudolphRFP-3U",
+                        "seq": "atgtccctgtcgaaacaagtactgccacacgatgttaagatgcgctatcatatggatggctgcgttaatggtcattctttcaccattgagggtgaaggtgcaggcaaaccgtatgagggcaagaagatcttggaactgcgcgtgacgaaaggtggcccgctgccttttgcgttcgatatcctgagcagcgtttttacctacggtaaccgttgtttttgcgagtatccagaggacatgccggactactttaaacagagcctgccggaaggtcattcttgggaacgcaccctgatgtttgaggatggcggttgtggtacggcgagcgcgcacatttccctggacaagaactgcttcgtgcacaagagcaccttccacggcgtcaatttcccggcaaacggtccggtcatgcaaaagaaagctatgaactgggagccgagcagcgaactgattacggcgtgcgacggtatcctgaaaggcgatgtgaccatgtttctgttgctggaaggtggccaccgtcttaaatgtcagttcaccaccagctacaaagcccacaaggcagttaagatgccgccgaatcacattatcgaacacgtgcttgttaaaaaagaggttgccgacggctttcagatccaagagcatgcggtcgcaaagcacttcaccgtcgacgttaaagaaacgtaatgagaattctgtacactcgag",
+                        "plasmid": false
+                    },
+                    {
+                        "jm": "D2_Ter_DNA20Ter-sapI",
+                        "seq": "ccaggcatcaaataaaacgaaaggctcagtcgaaagactgggcctttcgttttatctgttgtttgtcggtgaacgctctctactagagtcacactggctcaccttcgggtgggcctttctgcgtttataTGTAGAAGAGC",
+                        "plasmid": false
+                    }
+                ]
+        },
+        "NewDNASequence_fromfile_688829": {
+            "Filename": "STAR-018a-001.gb",
+            "Gene_name": "",
+            "Linear": false,
+            "Plasmid": true,
+            "SingleStranded": false
+        }
+       
+    },
+    "Config": {
+        "DriverSpecificInputPreferences": [
+            "position_4",
+            "position_5",
+            "position_3"
+        ],
+        "DriverSpecificOutputPreferences": [
+            "position_9",
+            "position_6",
+            "position_8",
+            "position_5",
+            "position_3",
+            "position_1"
+        ],
+        "DriverSpecificTipPreferences": [
+            "position_2",
+            "position_3",
+            "position_6",
+            "position_9",
+            "position_8",
+            "position_5",
+            "position_7"
+        ],
+        "DriverSpecificTipWastePreferences": [
+            "position_1",
+            "position_7"
+        ]
+    }
+}

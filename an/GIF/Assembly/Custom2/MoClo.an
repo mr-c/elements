@@ -1,0 +1,83 @@
+// Protocol MoClo performs something.
+//
+// All of this text should be used to describe what this protocol does.  It
+// should begin with a one sentence summary begining with "Protocol X...". If
+// neccessary, a empty line with a detailed description can follow (like this
+// description does).
+//
+// Spend some time thinking of a good protocol name as this is the name by
+// which this protocol will be referred. It should convey the purpose and scope
+// of the protocol to an outsider and should suggest an obvious
+// parameterization. 
+//
+// Protocol names are also case-sensitive, so try to use a consistent casing
+// scheme.
+//
+// Examples of bad names:
+//   - MyProtocol
+//   - GeneAssembly
+//   - WildCAPSsmallANDLARGE
+//
+// Better names:
+//   - Aliquot
+//   - TypeIIsConstructAssembly
+protocol MoClo_main
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	A float64
+	B float64
+	Option bool
+	String string
+	StringArray []string
+	VolumeA wunit.Volume
+	VolumeB wunit.Volume
+)
+
+// Output data of this protocol
+Data (
+	Sum float64
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentA *wtype.LHComponent
+	ComponentB *wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponent *wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	Sum = A + B
+	sampleA := mixer.Sample(ComponentA, VolumeA)
+	sampleB := mixer.Sample(ComponentB, VolumeB)
+	MixedComponent = Mix(sampleA, sampleB)
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

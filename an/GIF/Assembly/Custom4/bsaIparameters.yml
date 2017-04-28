@@ -1,0 +1,40 @@
+Parameters:
+  5part:
+    AssemblyStandard: Custom
+    Constructname: bsaItest
+    Level: Level0
+    PartMoClotypesinorder:
+    - L1Uadaptor + Pro
+    - 5U + NT1
+    - CDS1
+    - 3U + Ter
+    Partsinorder:
+    - BBa_I14018
+    - Rbs
+    - BBa_E0020
+    - Term
+    Vector: pAGM1311_M
+  4part:
+    AssemblyStandard: Custom
+    Constructname: bsaItest
+    Level: Level0
+    PartMoClotypesinorder:
+    - L1Uadaptor + Pro
+    - 5U + NT1
+    - CDS1 + CT + 3U + Ter + L1Dadaptor
+    Partsinorder:
+    - BBa_I14018
+    - Rbs
+    - BBa_E0020
+    Vector: pAGM1311_M
+3part:
+    AssemblyStandard: Custom
+    Constructname: bsaItest
+    Level: Level0
+    PartMoClotypesinorder:
+    - L1Uadaptor + Pro + 5U + NT1
+    - CDS1 + CT + 3U + Ter + L1Dadaptor
+    Partsinorder:
+    - BBa_I14018
+    - BBa_E0020
+    Vector: pAGM1311_M

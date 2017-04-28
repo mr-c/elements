@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "L0_init": {
+      "component" : "L0_init"
+    }
+  }
+}

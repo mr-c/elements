@@ -1,0 +1,24 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "PalletteFromImgs"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "VolumeForeachColourPlasmid" : "2.1ul",
+      "FramePath1" : "/home/cachemoi/gocode/src/github.com/antha-lang/elements/an/GIF/DataGIF/img/F2.jpg",
+	  "PosterizeImage" : true,
+	  "PosterizeLevels" : 3,
+	  "Rotate" : false,
+	  "AutoRotate" : false,
+      "Red" : "water",
+	  "Green" : "water",
+	  "Blue" : "water",
+	  "PlateWithMasterMix" : "pcrplate_skirted_riser",
+	  "PalettePlate" : "pcrplate_skirted_riser"
+    }
+  },
+  "config": null
+}

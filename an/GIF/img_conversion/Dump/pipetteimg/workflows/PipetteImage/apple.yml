@@ -1,0 +1,22 @@
+Parameters:
+  PipetteImage:
+    AvailableColours:
+    - red
+    - white
+    - blue
+    - green
+    - yellow
+    - black
+    Colourcomponents:
+    - red
+    - white
+    - blue
+    - green
+    - yellow
+    - black
+    Imagefilename: apple.jpg
+    NotthisColour: white
+    OnlythisColour: ""
+    Outplate: nunc1536_riser
+    Palettename: Palette1
+    VolumePerWell: 10ul

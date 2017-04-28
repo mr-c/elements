@@ -1,0 +1,46 @@
+// Protocol InitPartsFromFile
+//
+// This is to read a file with a specific formatted header to store the information in a Part object
+// The header format is:
+// level_partClass_ID_position
+// e.g : >L0_P_P7_0
+// position 0 means unassigned. positions get assigned when we make the constructs, depending on the construct type selected
+
+protocol InitVectorFromFile
+
+// Parameters to this protocol
+Parameters (
+	FilePath	string
+	level		int
+)
+
+// Output data of this protocol
+Data (
+    Vector		[]Part
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	//run steps
+	dat, _ := OpenFile(FilePath)
+	Vector = ExtractParts(dat)
+
+}
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

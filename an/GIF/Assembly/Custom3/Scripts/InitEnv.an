@@ -1,0 +1,225 @@
+// Protocol MoClo
+//
+// All of this text should be used to describe what this protocol does.  It
+// should begin with a one sentence summary begining with "Protocol X...". If
+// neccessary, a empty line with a detailed description can follow (like this
+// description does).
+protocol InitEnv
+
+// Place golang packages to import here
+import (
+	"fmt"
+	"regexp"
+	"strings"
+	"strconv"
+	"strings"
+	"os"
+	"log"
+	"io/ioutil"
+)
+
+//global types for the package
+
+type Part struct{
+	ID		string
+	level	int
+	class	string		//L0 : P/RBS/CDS/T/SW L1: TU
+	seq		string
+	position int		//0=undetermined position
+}
+
+type Vector struct{
+	ID 		string
+	seq		string
+}
+
+type RestrictionSite struct{
+	ID		string
+	class	string
+	seq		[]string
+}
+
+//#global functions for the package
+
+//input functions
+
+func OpenFile(path string)(string, error) {
+
+	//reads a file and returns it as a string (all in memory)
+
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	datBytes, err := ioutil.ReadAll(file)
+	dat := string(datBytes)
+
+	return dat, err
+}
+
+//#string manipulation functions
+
+func ReverseDNA(seq string)(string){
+
+	//reverses any string. Runes are used because they allow for UTF-8 characters.
+
+	runes := []rune(seq)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
+}
+
+//Selection functions
+func ExtractParts (dat string)([]Part) {
+
+	//extracts all the parts from a string which comes from a fasta loaded in memory. It puts them in Part objects.
+	// The objects are then put in a slice
+
+	var parts []Part
+
+	headersRegex:= regexp.MustCompile("(?m)^>(.*?)\n")
+	seqRegex := regexp.MustCompile("(?mi)\n([atcg]*?)$")
+
+
+	headers := headersRegex.FindAllString(string(dat),-1)
+	seqs := seqRegex.FindAllString(string(dat),-1)
+
+	for i := range headers {
+		splitHeader := strings.Split(headers[i], "_")
+
+		level, _ := strconv.Atoi(string([]rune(splitHeader[0])[1])) // grab the second character and change to int. UTF-8 encoded strings only
+		class := strings.ToUpper(splitHeader[1])
+		ID := splitHeader[2]
+		position, _ := strconv.Atoi(splitHeader[3]) // grab the  and change to int. UTF-8 encoded strings only
+
+		seq := strings.ToUpper(seqs[i])
+
+		part := Part{ID,level,class,seq,position}
+
+		parts = append(parts, part)
+	}
+
+	return parts
+}
+
+func SelectPartsFromLevel (parts []Part, level int) []Part {
+
+	//will return all the parts in the slice which belong to a certain level
+
+	var selectedParts []Part
+
+	for i := range parts {
+		if parts[i].level == level {
+			selectedParts = append(selectedParts, parts[i])
+		}
+	}
+
+	return selectedParts
+}
+
+func SelectPartsFromClass (parts []Part, class string) []Part {
+
+	//will return all the parts in the slice which belong to a certain class
+
+	var selectedParts []Part
+
+	for i := range parts {
+		if parts[i].class == class {
+			selectedParts = append(selectedParts, parts[i])
+		}
+	}
+
+	return selectedParts
+
+}
+
+//global data for the package.
+
+//restriction cloning overhangs. level[int]->position[string]->[]hangs
+var overhangLib = map[int]map[string][]string{
+			0 : map[string][]string{
+				"L1Uadaptor":                  		[]string{"GTCG", "GGAG"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro":            		[]string{"GTCG", "TTTT"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro + 5U":       		[]string{"GTCG", "CCAT"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro + 5U + NT1": 		[]string{"GTCG", "TATG"}, // adaptor to add SapI sites to clone into level 1 vector
+				"Pro":                               	[]string{"GGAG", "TTTT"},
+				"5U":                                	[]string{"TTTT", "CCAT"}, // 5' untranslated, e.g. rbs // changed from MoClo TACT to TTTT to conform with Protein Paintbox??
+				"5U(f)":                             	[]string{"TTTT", "CCAT"},
+				"Pro + 5U(f)":                       	[]string{"GGAG", "CCAT"},
+				"Pro + 5U":                          	[]string{"GGAG", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"NT1":                               	[]string{"CCAT", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1":                          	[]string{"TTTT", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1 + CDS1":                   	[]string{"TTTT", "GCTT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1 + CDS1 + 3U":              	[]string{"TTTT", "CCCC"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1":                              	[]string{"TATG", "GCTT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 + 3U":                         	[]string{"TATG", "CCCC"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 ns":                           	[]string{"TATG", "TTCG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 + CT + 3U + Ter + L1Dadaptor": 	[]string{"TATG", "TAAT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"NT2":                        		[]string{"TATG", "AGGT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"SP":                         		[]string{"TATG", "AGGT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS2 ns":                    		[]string{"AGGT", "TTCG"},
+				"CDS2":                       		[]string{"AGGT", "GCTT"},
+				"CT":                         		[]string{"TTCG", "GCTT"},
+				"3U":                         		[]string{"GCTT", "CCCC"}, // should we cahnge this from GGTA to CCCC to conform with Protein Paintbox??
+				"Ter":                        		[]string{"CCCC", "CGCT"},
+				"3U + Ter":                   		[]string{"GCTT", "CGCT"},
+				"3U + Ter + L1Dadaptor":      		[]string{"GCTT", "TAAT"},
+				"CT + 3U + Ter + L1Dadaptor": 		[]string{"TTCG", "TAAT"},
+				"L1Dadaptor":                 		[]string{"CGCT", "TAAT"},
+				"Ter + L1Dadaptor":           		[]string{"CCCC", "TAAT"},
+			},
+			1: map[string][]string{
+				"Device1": []string{"GAA", "ACC"},
+				"Device2": []string{"ACC", "CTG"},
+				"Device3": []string{"CTG", "GGT"},
+			},
+}
+
+//map of the adapters. level[int]->device/postion[int]->[]hangs
+var adaptersLib = map[int]map[int][]string{
+	0 : map[int][]string{
+		1: []string{"GCTCTTCAGGT", "TTCAGAAGAGC"},
+		2: []string{"GCTCTTCAACC", "TGTAGAAGAGC"},
+		3: []string{"GCTCTTCAACC", "ACAAGAAGAGC"},
+	},
+}
+
+//map of the vectors. level[int]->seq string
+var vectorsLib map[int]string
+
+// Parameters to this protocol
+Parameters (
+    Lib     string
+)
+
+// Output data of this protocol
+Data (
+
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	fmt.Printf("Lib %s", Lib)
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

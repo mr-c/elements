@@ -1,0 +1,14 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "AssemblyRethink"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "FilePathDNA" : "/home/cachemoi/gocode/src/github.com/antha-lang/elements/an/GIF/DataGIF/DNA/DNA_L0_assemblyRethink.fasta"
+    }
+  },
+  "config": null
+}

@@ -1,0 +1,52 @@
+// Protocol InitPartsFromParam
+//
+// This is to initialize the parts slice from input parameters. It expects a slice of part.
+// part type propreties are:
+//
+// 	ID		string
+//	level	int
+//	class	string		//L0 : P/RBS/CDS/T/SW L1: TU
+//	seq		string
+//	position int		//0=undetermined position
+
+protocol InitPartsFromParam
+
+// Parameters to this protocol
+Parameters (
+	Parts	[]Part
+)
+
+// Output data of this protocol
+Data (
+    L0PartsA_Out    []Part
+    L1PartsA_Out    []Part
+    L2PartsA_Out    []Part
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	L0PartsA_Out = SelectPartsFromLevel(Parts, 0)
+	L1PartsA_Out = SelectPartsFromLevel(Parts, 1)
+    L2PartsA_Out = SelectPartsFromLevel(Parts, 2)
+
+
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

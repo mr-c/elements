@@ -1,0 +1,88 @@
+//Takes an image and returns a matrix of RGBA pixels
+protocol ImgsToRGBAMatrix
+
+import (
+	"image"
+	"os"
+	"log"
+	//"fmt"
+	//"strings"
+)
+
+
+type Pixel struct {
+    R int
+    G int
+    B int
+    A int
+}
+
+//function to extract RGBA values from pixels
+func rgbaToPixel (r uint32, g uint32, b uint32, a uint32) Pixel {
+	return Pixel{int(r / 257), int(g / 257), int(b / 257), int(a / 257)}
+}
+
+//function to read an image and convert it to pixel matrix
+func frameToPixelMatrix(path string) [][]Pixel {
+	//initialising the image reader
+
+	reader, err := os.Open(path)
+	if err != nil {
+	    log.Fatal(err)
+	}
+	defer reader.Close()
+
+	//decoding the image
+	img, _, err := image.Decode(reader)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//get image size
+	bounds := img.Bounds()
+	width, height := bounds.Max.X, bounds.Max.Y
+
+	//turning it into a matrix of pixel objects
+	var pixels [][]Pixel
+	for y := 0; y < height; y++ {
+
+		var row []Pixel
+		for x := 0; x < width; x++ {
+			row = append(row, rgbaToPixel(img.At(x, y).RGBA()))
+		}
+		pixels = append(pixels, row)
+	}
+
+	return pixels
+}
+
+// Parameters to this protocol
+Parameters (
+	FramePath1 string
+	FramePath2 string
+)
+
+// Output data of this protocol
+Data (
+	Frame1Pixels [][]Pixel
+	Frame2Pixels [][]Pixel
+)
+
+// The core process for this protocol.
+Steps {
+	Frame1Pixels = frameToPixelMatrix(FramePath1)
+	Frame2Pixels = frameToPixelMatrix(FramePath2)
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+}
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+}
+// Conditions to run on startup
+Setup {
+}

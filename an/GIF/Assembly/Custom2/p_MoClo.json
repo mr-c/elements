@@ -1,0 +1,8 @@
+{
+  "Parameters": {
+    "L0_init" : {
+      "DNA": "ATCG",
+      "PartType" :"P"
+    }
+  }
+}

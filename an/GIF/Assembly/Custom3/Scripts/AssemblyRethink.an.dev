@@ -1,0 +1,437 @@
+// Protocol MoClo
+//
+// All of this text should be used to describe what this protocol does.  It
+// should begin with a one sentence summary begining with "Protocol X...". If
+// neccessary, a empty line with a detailed description can follow (like this
+// description does).
+protocol AssemblyRethink
+
+// Place golang packages to import here
+import (
+	//"github.com/antha-lang/antha/antha/anthalib/wtype"
+	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
+	"fmt"
+	"regexp"
+	"os"
+	"log"
+	"io/ioutil"
+	"strings"
+	"strconv"
+	"bytes"
+)
+
+//types
+
+type Part struct{
+	ID		string
+	level	int
+	class	string		//L0 : P/RBS/CDS/T/SW L1: TU
+	seq		string
+	position int		//0=undetermined position
+}
+
+type Vector struct{
+	ID 		string
+	seq		string
+}
+
+type RestrictionSite struct{
+	ID		string
+	class	string
+	seq		[]string
+}
+
+//maps
+
+//map of the adapters. level[int]->device/postion[int]->[]hangs
+var adaptersLib = map[int]map[int][]string{
+	0 : map[int][]string{
+		1: []string{"GCTCTTCAGGT", "TTCAGAAGAGC"},
+		2: []string{"GCTCTTCAACC", "TGTAGAAGAGC"},
+		3: []string{"GCTCTTCAACC", "ACAAGAAGAGC"},
+	},
+}
+
+//restriction cloning overhangs. level[int]->position[string]->[]hangs
+var restrictionCloningLib = map[int]map[string][]string{
+			0 : map[string][]string{
+				"L1Uadaptor":                  		[]string{"GTCG", "GGAG"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro":            		[]string{"GTCG", "TTTT"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro + 5U":       		[]string{"GTCG", "CCAT"}, // adaptor to add SapI sites to clone into level 1 vector
+				"L1Uadaptor + Pro + 5U + NT1": 		[]string{"GTCG", "TATG"}, // adaptor to add SapI sites to clone into level 1 vector
+				"Pro":                               	[]string{"GGAG", "TTTT"},
+				"5U":                                	[]string{"TTTT", "CCAT"}, // 5' untranslated, e.g. rbs // changed from MoClo TACT to TTTT to conform with Protein Paintbox??
+				"5U(f)":                             	[]string{"TTTT", "CCAT"},
+				"Pro + 5U(f)":                       	[]string{"GGAG", "CCAT"},
+				"Pro + 5U":                          	[]string{"GGAG", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"NT1":                               	[]string{"CCAT", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1":                          	[]string{"TTTT", "TATG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1 + CDS1":                   	[]string{"TTTT", "GCTT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"5U + NT1 + CDS1 + 3U":              	[]string{"TTTT", "CCCC"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1":                              	[]string{"TATG", "GCTT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 + 3U":                         	[]string{"TATG", "CCCC"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 ns":                           	[]string{"TATG", "TTCG"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS1 + CT + 3U + Ter + L1Dadaptor": 	[]string{"TATG", "TAAT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"NT2":                        		[]string{"TATG", "AGGT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"SP":                         		[]string{"TATG", "AGGT"}, //changed AATG to TATG to work with Kosuri paper RBSs
+				"CDS2 ns":                    		[]string{"AGGT", "TTCG"},
+				"CDS2":                       		[]string{"AGGT", "GCTT"},
+				"CT":                         		[]string{"TTCG", "GCTT"},
+				"3U":                         		[]string{"GCTT", "CCCC"}, // should we cahnge this from GGTA to CCCC to conform with Protein Paintbox??
+				"Ter":                        		[]string{"CCCC", "CGCT"},
+				"3U + Ter":                   		[]string{"GCTT", "CGCT"},
+				"3U + Ter + L1Dadaptor":      		[]string{"GCTT", "TAAT"},
+				"CT + 3U + Ter + L1Dadaptor": 		[]string{"TTCG", "TAAT"},
+				"L1Dadaptor":                 		[]string{"CGCT", "TAAT"},
+				"Ter + L1Dadaptor":           		[]string{"CCCC", "TAAT"},
+			},
+			1: map[string][]string{
+				"Device1": []string{"GAA", "ACC"},
+				"Device2": []string{"ACC", "CTG"},
+				"Device3": []string{"CTG", "GGT"},
+			},
+}
+
+
+//tasks broken up into functions
+func OpenFile(path string)(string, error) {
+
+	//reads a file and returns it as a string (all in memory)
+
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	datBytes, err := ioutil.ReadAll(file)
+	dat := string(datBytes)
+
+	return dat, err
+}
+
+func ExtractParts (dat string)([]Part) {
+
+	//extracts all the parts from a string, and puts them in Part objects. The objects are then put in a slice
+
+	var parts []Part
+
+	headersRegex:= regexp.MustCompile("(?m)^>(.*?)\n")
+	seqRegex := regexp.MustCompile("(?mi)\n([atcg]*?)$")
+
+
+	headers := headersRegex.FindAllString(string(dat),-1)
+	seqs := seqRegex.FindAllString(string(dat),-1)
+
+	for i := range headers {
+		splitHeader := strings.Split(headers[i], "_")
+
+		level, _ := strconv.Atoi(string([]rune(splitHeader[0])[1])) // grab the second character and change to int. UTF-8 encoded strings only
+		class := strings.ToUpper(splitHeader[1])
+		ID := splitHeader[2]
+		position, _ := strconv.Atoi(splitHeader[3]) // grab the  and change to int. UTF-8 encoded strings only
+
+		seq := strings.ToUpper(seqs[i])
+
+		part := Part{ID,level,class,seq,position}
+
+		parts = append(parts, part)
+	}
+
+	return parts
+}
+
+func SelectPartsFromLevel (parts []Part, level int) []Part {
+
+	//will return all the parts in the slice which belong to a certain level
+
+	var selectedParts []Part
+
+	for i := range parts {
+		if parts[i].level == 0 {
+			selectedParts = append(selectedParts, parts[i])
+		}
+	}
+
+	return selectedParts
+}
+
+func FormL1TU(ID string, L0Parts []Part)(Part) {
+
+	// Forms a L1 Transcription unit (TU), with classical Promoter, RBS, CDS, T order
+
+	//placeholder for the TU
+	_L1PartSeq := make([]string, 4)
+
+	//assigning the positions to L0Parts
+
+	for u := range L0Parts {
+		switch L0Parts[u].class{
+			case "P":
+				L0Parts[u].position = 1
+				_L1PartSeq[0] = L0Parts[u].seq
+			case "RBS":
+				L0Parts[u].position = 2
+				_L1PartSeq[1] = L0Parts[u].seq
+			case "CDS":
+				L0Parts[u].position = 3
+				_L1PartSeq[2] = L0Parts[u].seq
+			case "T":
+				L0Parts[u].position = 4
+				_L1PartSeq[3] = L0Parts[u].seq
+		}
+	}
+
+	//concatenate seq
+	var buffer bytes.Buffer
+	buffer.WriteString(_L1PartSeq[0])
+	buffer.WriteString(_L1PartSeq[1])
+	buffer.WriteString(_L1PartSeq[2])
+	buffer.WriteString(_L1PartSeq[3])
+
+	L1PartSeq := buffer.String()
+
+	L1Part := Part{ID: ID, level: 1, class: "TU", seq: L1PartSeq, position: 0}
+
+	return L1Part
+}
+
+
+
+func ReverseDNA(seq string)(string){
+
+	//reverses any string. Runes are used because they allow for UTF-8 characters.
+
+	runes := []rune(seq)
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+	return string(runes)
+}
+
+func MakeIntegraseSwitch(ID string, L0Parts []Part)(Part){
+
+	att := RestrictionSite{ID : "tp901", class: "ATT", seq : []string{"ATGCCAACACAATTAACATCTCAATCAAGGTAAATGCTTTTTGCTTTTTTTGC","AAAGGAGTTTTTTAGTTACCTTAATTGAAATAAACGAAATAAAAACTCGC"}} //attb,attp
+
+	// Forms an Integrase switch unit for restriction
+	// this needs to be a separate element with more options
+
+	//placeholder for the switch
+	_L1PartSeq := make([]string, 4)
+
+	//forming the sequence array
+
+	for u := range L0Parts {
+		switch {
+			case L0Parts[u].class == "RBS":
+				_L1PartSeq[0] = ReverseDNA(L0Parts[u].seq)
+				L0Parts[u].position = 1
+				//reversing the RBS sequence for the 5' 3'
+				_L1PartSeq[2] = L0Parts[u].seq
+
+			case L0Parts[u].class == "P":
+				L0Parts[u].position = 2
+				_L1PartSeq[1] = L0Parts[u].seq
+
+			case L0Parts[u].class =="CDS":
+				L0Parts[u].position = 4
+				_L1PartSeq[3] = L0Parts[u].seq
+		}
+	}
+
+	//concatenate seq
+	var buffer bytes.Buffer
+	buffer.WriteString(_L1PartSeq[0])
+	buffer.WriteString(att.seq[0])
+	buffer.WriteString(_L1PartSeq[1])
+	buffer.WriteString(att.seq[1])
+	buffer.WriteString(_L1PartSeq[2])
+	buffer.WriteString(_L1PartSeq[3])
+
+	L1PartSeq := buffer.String()
+
+	L1PartA := Part{ID: ID, level: 1, class: "SW", seq: L1PartSeq , position: 0}
+
+	return L1PartA
+}
+
+func AddL0Adaptor (L0PartsA []Part, L1Position int) []Part {
+
+	//use L1 position (device) to add adapter to the L0 Parts of that device
+
+	//we do not return L0PartsB here because it is still considered partsA (no restriction overhangs)
+
+	//3' and 5' ends position variables placeholders to hold the overhangs
+
+	var threePrimePosition int
+	var fivePrimePosition int
+
+	//finding the 3' and 5' end of the part
+	for x := range L0PartsA{
+		switch {
+			case L0PartsA[x].position < threePrimePosition :
+				threePrimePosition = L0PartsA[x].position
+			case L0PartsA[x].position > fivePrimePosition :
+				L0PartsA[x].position = fivePrimePosition
+		}
+	}
+
+	//adding the overhangs to the sequence
+	for p := range L0PartsA{
+		switch {
+			case L0PartsA[p].position == threePrimePosition :
+
+				var buffer bytes.Buffer
+				buffer.WriteString(adaptersLib[0][L1Position][0])
+				buffer.WriteString(L0PartsA[p].seq)
+
+				L0PartsA[p].seq = buffer.String()
+
+			case L0PartsA[p].position == fivePrimePosition :
+
+				var buffer bytes.Buffer
+				buffer.WriteString(L0PartsA[p].seq)
+				buffer.WriteString(adaptersLib[0][L1Position][1])
+
+				L0PartsA[p].seq = buffer.String()
+		}
+	}
+	return L0PartsA
+}
+
+
+func AddOverhangs(partsA []Part)([]Part) {
+
+	//select which overhang library to use//only one for now
+
+	//only 3parts for now
+
+	//Parts with overhang added slice.
+	//A = base DNA
+	//B = Overhangs added
+	//C = Vectors added (transform ready)
+	var partsB []Part
+
+	//3' and 5' ends variables to hold the overhangs
+	var threePrime string
+	var fivePrime string
+	//placeholder for the partB object to append to the returned slice
+	var _partB Part
+	//placeholder for the new sequence
+	var _newSeq string
+
+	//function to append given string to seq
+	appendOverhangs := func (threePrime string, fivePrime string, seq string) string {
+
+		var buffer bytes.Buffer
+		buffer.WriteString(threePrime)
+		buffer.WriteString(seq)
+		buffer.WriteString(fivePrime)
+
+		return buffer.String()
+	}
+
+	//adding the correct overhangs
+
+	for y := range partsA{
+		switch partsA[y].position{
+			case 1:
+
+				threePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][0]
+				fivePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][1]
+
+				_newSeq = appendOverhangs(threePrime, fivePrime, partsA[y].seq)
+				_partB = Part{partsA[y].ID, partsA[y].level, partsA[y].class, _newSeq, 0}
+
+				partsB = append(partsB, _partB)
+
+				continue
+			case 2:
+				threePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][0]
+				fivePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][1]
+
+				partsB[y].seq = appendOverhangs(threePrime, fivePrime, partsA[y].seq)
+				_newSeq = appendOverhangs(threePrime, fivePrime, partsA[y].seq)
+
+				_partB = Part{partsA[y].ID, partsA[y].level, partsA[y].class, _newSeq, 0}
+
+				partsB = append(partsB, _partB)
+
+				continue
+			case 3:
+				threePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][0]
+				fivePrime = restrictionCloningLib[partsA[y].level]["L1Uadaptor + Pro"][1]
+
+				partsB[y].seq = appendOverhangs(threePrime, fivePrime, partsA[y].seq)
+				_newSeq = appendOverhangs(threePrime, fivePrime, partsA[y].seq)
+
+				_partB = Part{partsA[y].ID, partsA[y].level, partsA[y].class, _newSeq, 0}
+
+				partsB = append(partsB, _partB)
+
+				continue
+		}
+		fmt.Println(partsB[0].ID)
+	}
+
+	return partsB
+}
+
+func AddVector(partsB []Part) []Part{
+
+	//add vector to the part
+
+	//Parts with overhang added slice.
+	//A = base DNA
+	//B = Overhangs added
+	//C = Vectors added (transform ready)
+	var partsC []Part
+
+	return partsC
+}
+
+// Parameters to this protocol
+Parameters (
+	FilePathDNA	string
+
+)
+
+// Output data of this protocol
+Data (
+
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	// init globals
+
+	//run steps
+	dat, _ := OpenFile(FilePathDNA)
+	parts := ExtractParts(dat)
+
+	AddOverhangs(parts)
+
+	//printing outputs
+	fmt.Println(parts[0].seq)
+
+
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

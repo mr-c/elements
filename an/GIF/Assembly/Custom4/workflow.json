@@ -1,0 +1,14 @@
+{
+  "connections": [],
+  "processes": {
+    "5part": {
+      "component": "MoClo_design"
+    },
+     "4part": {
+      "component": "MoClo_design"
+    },
+     "3part": {
+      "component": "MoClo_design"
+    }
+  }
+}
