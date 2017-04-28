@@ -1,23 +1,23 @@
 // Protocol PlateOut dispenses a liquid input (i.e Transformed Cells) at a user-definable volume onto an output plate of the users choice.
-
 protocol PlateOutTest
 
 // Place golang packages to import here
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/microArch/factory"
 	"fmt"
 )
 
 // Parameters to this protocol
 Parameters (
-	AgarPlateNumber int //specify the number of agar plates to begin counting from (Default = 1)
+	AgarPlateNumber int //optionally specify the number of agar plates to begin counting from (Default = 1)
 	Dilution int //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy string //specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+	PlateOutLiquidPolicy string //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutVolume Volume //optionally specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
 
@@ -50,6 +50,10 @@ Steps {
 	//set platenumber variable (Default = 1) that will count up number of plates used
 	var platenumber int = AgarPlateNumber
 
+	if AgarPlateNumber == 0 {
+			AgarPlateNumber = 1
+			}
+
 	//set counter variable to count up number of wells used, and set at the number of wells already used in the output agar plate (Default = 0)
 	var counter int = WellsAlreadyUsed
 
@@ -57,10 +61,14 @@ Steps {
 	var err error
 
 	//set up a slice to add the plate out reactions to
-	plateOutVolumes := make([]*wtype.LHComponent,0)
+	var plateOutVolumes []*wtype.LHComponent
 
 	//attribute specified liquidpolicy to the plate out reaction (Default = plateout)
 	TransformedCells.Type, err = wtype.LiquidTypeFromString(PlateOutLiquidPolicy)
+
+	if PlateOutLiquidPolicy == "" {
+			PlateOutLiquidPolicy = "plateout"
+			}
 
 	//get plate dimenson and well info for specified agarplate from plate library
 	var wellpositionarray []string = AgarPlate.AllWellPositions(wtype.BYCOLUMN)
@@ -76,14 +84,20 @@ Steps {
 	nextwell := wellpositionarray[counter]
 
 
-	//check if dilution is required and calculate required dilution, performing mix comman dwith speicifed Diluent (Default = LB)
+	//check if dilution is required and calculate required dilution, performing mix command with speicifed Diluent (Default = LB)
+	var nilComponent *wtype.LHComponent
+
+	if Diluent == nilComponent {
+			Diluent = factory.GetComponentByType("LB")
+			}
+
 	if Dilution > 1 {
 								dilutedSample := mixer.SampleForTotalVolume(Diluent, PlateOutVolume)
 								plateOutVolumes = append(plateOutVolumes,dilutedSample)
-								PlateOutVolume = wunit.NewVolume(PlateOutVolume.RawValue()/float64(Dilution),PlateOutVolume.Unit().PrefixedSymbol())
+								PlateOutVolume = wunit.DivideVolume(PlateOutVolume,float64(Dilution))
 									}
 
-	//aspirate transformed cells at speicfied volumes
+	//aspirate transformed cells at specified volumes
 	plateOutSample := mixer.Sample(TransformedCells, PlateOutVolume)
 
 	//append transformed cell volumes to plate out volumes array

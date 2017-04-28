@@ -1,6 +1,4 @@
-// Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs
-// a plate out reaction onto plates of the users choice
-
+// Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice
 protocol AutoPlateOut_Multi
 
 // Place golang packages to import here
@@ -11,14 +9,14 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	AgarPlateNumber int //specify the number of agar plates to begin counting from (Default = 1)
+	AgarPlateNumber int //optionally specify the number of agar plates to begin counting from (Default = 1)
 	Dilution int //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy string //specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutLiquidPolicy string //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-	WellsAlreadyUsed int //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
+	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
 
 // Output data of this protocol
