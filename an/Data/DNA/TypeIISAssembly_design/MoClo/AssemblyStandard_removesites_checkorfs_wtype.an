@@ -330,7 +330,7 @@ Steps {
 	}
 	} else {
 		status = "Simulation of assemblies set to false in parameters"
-		Simulationpass = true
+		Simulationpass = false
 	}
 		warnings = append(warnings, status)
 		// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
@@ -418,7 +418,7 @@ Steps {
 	}
 
 	// export sequence to fasta
-	if ExporttoFastaFile && Simulationpass{
+	if ExporttoFastaFile && Simulationpass || ExporttoFastaFile && ! SimulateAssemblies{
 		exportedsequences := make([]wtype.DNASequence,0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences,NewDNASequence)

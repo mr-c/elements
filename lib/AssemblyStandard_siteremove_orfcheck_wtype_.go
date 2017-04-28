@@ -305,7 +305,7 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 		}
 	} else {
 		status = "Simulation of assemblies set to false in parameters"
-		_output.Simulationpass = true
+		_output.Simulationpass = false
 	}
 	warnings = append(warnings, status)
 	// perform mock digest to test fragement overhangs (fragments are hidden by using _, )
@@ -393,7 +393,7 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	}
 
 	// export sequence to fasta
-	if _input.ExporttoFastaFile && _output.Simulationpass {
+	if _input.ExporttoFastaFile && _output.Simulationpass || _input.ExporttoFastaFile && !_input.SimulateAssemblies {
 		exportedsequences := make([]wtype.DNASequence, 0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
