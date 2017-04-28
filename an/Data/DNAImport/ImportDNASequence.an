@@ -1,0 +1,114 @@
+// Protocol for creating a DNASequence from a sequence file format. // Supported formats: .gdx .fasta .gb
+protocol ImportDNASequence
+
+import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+)
+// Input parameters for this protocol
+Parameters (
+	SequenceFile wtype.File //Supported file formats formats: .gdx .fasta .gb
+	RenameSequence string // optional parameter to rename the dna sequence. If left empty the name specified in the file is used
+	OverrideSequenceType string //Optional specification if DNA is of type "Plasmid, Linear or SingleStranded". If left empty the SequenceType is assigned from the file.
+	CheckForORFs bool //If true, sequence is searched for ORF's
+)
+
+// Data which is returned from this protocol
+Data (
+	DNA wtype.DNASequence //Return DNA sequence as type wtype.DNASequence
+	Status string //Status for user
+	Warnings error //Warnings for user
+)
+
+// Physical inputs to this protocol
+Inputs (
+
+)
+
+// Physical outputs from this protocol
+Outputs (
+)
+
+Requirements {
+
+}
+
+// Actions to perform before protocol itself
+Setup {
+}
+
+// Core process of the protocol: steps to be performed for each input
+Steps {
+	//Use function DNAFileToDNASequence to read in file. The function determines 
+	//which file type was given as input and returns the DNA sequence as type wtype.DNAsequence
+	seqs, err := parser.DNAFileToDNASequence(SequenceFile) 
+	if err != nil {
+		Errorf("The file could not be imported. Please check if file format supported or if file empty")
+		}	
+	if len(seqs) == 1 && err == nil {	
+	DNA = seqs[0]
+	
+	if RenameSequence != ""{
+	DNA.Nm = RenameSequence
+	}
+	
+	//Check if input "Plasmid, Linear, SingleStranded" matches reader file format. Outputs error to user.
+	if OverrideSequenceType == ""{
+			return
+	}else if OverrideSequenceType != "" {
+		if OverrideSequenceType == "Plasmid"{
+			if DNA.Plasmid == false{
+				fmt.Println("Warning: Sequence not specified as 'Plasmid' in file")
+				DNA.Plasmid = true
+				DNA.Singlestranded = false
+				}
+		}else if OverrideSequenceType == "SingleStranded"{
+			if DNA.Singlestranded == false{
+				fmt.Println("Warning: Sequence not specified as 'SingleStranded' in file")
+				DNA.Plasmid = false
+				DNA.Singlestranded = true
+				}
+		}else if OverrideSequenceType == "Linear"{	
+		if DNA.Singlestranded == true || DNA.Plasmid == true{
+			fmt.Println("Warning: Sequence not specified as 'Linear' in file")
+			DNA.Plasmid = false
+			DNA.Singlestranded = false
+			}
+		}else{
+			Errorf("Unknown DNA type specification. Please use Plasmid, SingleStranded or Linear as SequenceType")
+		}
+		}
+	
+	}else{
+		Errorf("Multiple Sequences are not supported. Please check format.")
+	} 
+			
+	//Finds all ORFs in imported DNA sequence								
+	if CheckForORFs {
+	orfs := sequences.FindallORFs(DNA.Seq)
+	
+	if len(DNA.Features) == 0 {
+	features := sequences.ORFs2Features(orfs)
+	
+	DNA = wtype.Annotate(DNA,features)
+	Status = fmt.Sprintln(text.Print("ORFs: ", orfs))
+	
+	}
+	}
+	Status = fmt.Sprintln(text.Print("DNA_Seq: ",DNA),) + Status
+	Warnings = err
+	
+	} 
+
+
+// Actions to perform after steps block to analyze data
+Analysis {
+
+}
+
+Validation {
+
+}

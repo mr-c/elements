@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	testTimeout = 5 * time.Second
+	testTimeout = 30 * time.Second
 )
 
 func makeContext() (context.Context, error) {

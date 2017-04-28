@@ -113,7 +113,12 @@ Steps {
 	// or Look up parts from registry according to properties (this will take a couple of minutes the first time)
 	exacttypeonly := true
 	
-	subparts,_ := igem.FilterRegistry("REPORTER",[]string{"Fluorescent", "A "},exacttypeonly)
+	subparts,_, err := igem.FilterRegistry("REPORTER",[]string{"Fluorescent", "A "},exacttypeonly)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
 	partdetails := igem.LookUp(subparts)
 	//fmt.Println(partdetails)
 	
