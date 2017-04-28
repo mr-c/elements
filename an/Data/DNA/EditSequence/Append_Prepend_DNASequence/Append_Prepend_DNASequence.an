@@ -9,7 +9,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"fmt"
-	"path/filepath"
 	"strings"
 )
 
@@ -46,7 +45,7 @@ Setup {
 Steps {
 
 	//setup warnings slice to append errors to
-	warnings := make([]string, 0)
+	var warnings []string
 
 	//range through the InputSequences
  	for _, editedSequence := range InputSequences {
@@ -54,7 +53,7 @@ Steps {
 		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
 			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is listed as a plasmid and should not be Appended/Prepended, please proceed with caution or fix", editedSequence.Nm)
-			fmt.Println(plasmidError)
+			warnings = append(warnings, plasmidError)
 		}
 
 		//check input sequences for illegal (non-nucleotide) characters and return error message if so
@@ -67,7 +66,6 @@ Steps {
 				newstatus =append(newstatus, "part: " + editedSequence.Nm +" "+ editedSequence.Seq + ": contains illegalnucleotides:"+ illegal.ToString())
 			}
 			warnings = append(warnings,strings.Join(newstatus,""))
-			fmt.Errorf(strings.Join(newstatus,""))
 		}
 
 		//Append and Prepend the given additional bp to the input sequence
@@ -78,8 +76,12 @@ Steps {
 		ModifiedSequences = append(ModifiedSequences, editedSequence)
 		}
 
-	//add the ModifiedSequences to a FASTA file in new folder with ProjectName
-	outputFile, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssemblyProduct"), ModifiedSequences)
+	//add the ModifiedSequences to a FASTA file in new folder with ProjectName (Default: Edited_Seqeunces)
+	if ProjectName == "" {
+		ProjectName = "Edited_Seqeunces"
+	}
+
+	outputFile, _, err := export.FastaSerial(export.LOCAL,ProjectName, ModifiedSequences)
 	if err != nil {
 			Errorf(err.Error())
 			}
