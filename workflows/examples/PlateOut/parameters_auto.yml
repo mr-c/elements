@@ -1,6 +1,6 @@
 Parameters:
   AutoPlateOut_Multi:
-    AgarPlate: pcrplate_with_cooler
+    AgarPlate: falcon6wellAgar
     AgarPlateNumber: 1
     Diluent: water
     Dilution: 1
