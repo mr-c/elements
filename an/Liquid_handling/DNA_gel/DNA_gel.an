@@ -16,6 +16,7 @@ Parameters (
 	LoadingDyeVolume Volume //specify the volume of loading dye to add to each sample
 	OptimisePlateUsage bool //If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)
 	Replicates int //define number of technical replicates
+	SampleVolume Volume //specify the volume of the DNA sample
 	TotalVolumePerWell Volume //specify the total running volume of the E-Gel in use
 	WaterVolume	Volume //specify volume of water to add to prime the E-Gel
 )
@@ -60,7 +61,7 @@ Setup {
 Steps {
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
-	var loadedsamples []*wtype.LHComponent
+	var loadedSamples []*wtype.LHComponent
 
 	//setup variable for error reporting
 	var err error
@@ -79,7 +80,7 @@ Steps {
 
 	//setup liquid handling component variables
 	var DNAGelloadmix *wtype.LHComponent
-	var loadedsample *wtype.LHComponent
+	var loadedSample *wtype.LHComponent
 
 	//begin counter at first well position as E-GEL must be run upside down
 	var counter int = len(wells)-1
@@ -99,9 +100,6 @@ Steps {
 				//range through the reactions input array and perform specified actions
 				for i := range Reactions {
 
-						//sample water at specified water volume
-						waterSample := mixer.Sample(Water,WaterVolume)
-
 						//update position to correspond to counter
 						position := wells[counter]
 
@@ -120,15 +118,11 @@ Steps {
 							}
 
 							//perform liquid handling for addiiton of ladder sample
-							laddersample := MixInto(
-																		DNAGel,
-																		position,
-																		mixer.SampleForTotalVolume(Water,TotalVolumePerWell),
-																		mixer.Sample(Ladder, LadderVolume),
-																	)
+							water := MixInto(DNAGel,position,mixer.Sample(Water,WaterVolume))
+							ladderSample := Mix(water,mixer.Sample(Ladder,LadderVolume))
 
 							//add ladder to array of loaded samples
-							loadedsamples = append(loadedsamples,laddersample)
+							loadedSamples = append(loadedSamples,ladderSample)
 
 							//decrease counter by 1, as pipetting Gel backwards
 							counter--
@@ -179,15 +173,18 @@ Steps {
 							Errorf("Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", GelLoadingMixingPolicy, err.Error())
 						}
 
+						//work out how much water to add
+						waterVolume := wunit.SubtractVolumes(TotalVolumePerWell,[]wunit.Volume{SampleVolume})
+
+						//sample water at specified water volume
+						waterSample := mixer.Sample(Water,waterVolume)
+
 						//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
-						loadedsample = MixInto(
-																	DNAGel,
-																	position,
-																	waterSample,
-																	mixer.Sample(DNAGelloadmix, samplevolume),
-																	)
-						//add the loaded samples to the loadedsamples array
-						loadedsamples = append(loadedsamples,loadedsample)
+						waterSample = MixInto(DNAGel,position,waterSample)
+						loadedSample = Mix(waterSample,mixer.Sample(DNAGelloadmix,samplevolume))
+
+						//add the loaded samples to the loadedSamples array
+						loadedSamples = append(loadedSamples,loadedSample)
 
 						//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
 						counter--
@@ -196,7 +193,7 @@ Steps {
 
 }
 	//update output variable LoadedSamples with the output of the protocol
-	LoadedSamples = loadedsamples
+	LoadedSamples = loadedSamples
 }
 
 // Run after controls and a steps block are completed to

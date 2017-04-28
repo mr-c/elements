@@ -19,6 +19,7 @@
         "dna"
       ],
       "Replicates": 1,
+      "SampleVolume": "5ul",
       "TotalVolumePerWell": "15ul",
       "Water": "water",
       "WaterVolume": "5ul"
