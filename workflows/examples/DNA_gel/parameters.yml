@@ -15,6 +15,5 @@ Parameters:
     - dna
     - dna
     Replicates: 1
-    TotalVolumePerWell: 15ul
+    SampleVolume: 5ul
     Water: water
-    WaterVolume: 5ul
