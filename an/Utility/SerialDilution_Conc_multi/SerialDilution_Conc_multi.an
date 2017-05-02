@@ -90,13 +90,11 @@ Steps {
 			Errorf("No target concentrations specified for %s and no default specified",solution.CName)
 		}
 		
-		var defaultConc = wunit.NewConcentration(100,"g/L")
 		var solConc Concentration
 		if solution.HasConcentration(){
 			solConc = solution.Concentration()
 		}else{
-			solConc = defaultConc
-			//Errorf("no concentration found for %s, please set this. ",solution.CName)
+			Errorf("no concentration found for %s, please set this. ",solution.CName)
 		}
 		
 		// run SerialDilution_ForConcentration element
