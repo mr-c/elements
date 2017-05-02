@@ -20,7 +20,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	
+	WellsUsedPostRun		int
 )
 
 
@@ -88,7 +88,10 @@ Steps {
 	dilutions = append(dilutions,aliquot)
 	
 	// loop through NumberOfDilutions until all serial dilutions are made
-	for k := WellsAlreadyUsed+1; k < len(TargetConcentrations); k++ {
+	
+	var k int
+	
+	for k = WellsAlreadyUsed+1; k < len(TargetConcentrations); k++ {
 		
 			// calculate new solution volume
 		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[k],TargetConcentrations[k-1],StartVolumeperDilution)
@@ -128,6 +131,8 @@ Steps {
 		
 // export as Output
 Dilutions = dilutions 
+
+WellsUsedPostRun = k
 
 }
 // Run after controls and a steps block are completed to
