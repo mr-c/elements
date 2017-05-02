@@ -1,0 +1,25 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "SerialDilution_Conc_multi"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ByRow": false,
+      "Diluent": "water",
+      "OutPlate": "DSW96_riser",
+      "SolutionsWithConcentrations": ["100g/L Glucose"],
+      "StartVolumeperDilution": {"100g/L Glucose": "100ul"},
+      "TargetConcentrations": {"100g/L Glucose":[
+        "10g/L",
+        "1g/L",
+        "0.1g/L",
+        "0.01g/L"
+      ]},
+      "WellsAlreadyUsed":0
+    }
+  },
+  "config": null
+}
