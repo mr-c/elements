@@ -9,7 +9,6 @@ package lib
 import (
 	"fmt"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
@@ -75,22 +74,7 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 	_output.Status = "all parts available"
 	for i, part := range _input.Seqsinorder {
 		// check if genbank feature
-		if strings.Contains(part, ".gb") && strings.Contains(part, "Feature:") {
-
-			split := strings.SplitAfter(part, ".gb")
-			file := split[0]
-
-			split2 := strings.Split(split[1], ":")
-			feature := split2[1]
-
-			partDNA, _ = parser.GenbankFeaturetoDNASequence(file, feature)
-
-			// check if genbank file
-		} else if strings.Contains(part, ".gb") {
-
-			partDNA, _ = parser.GenbanktoAnnotatedSeq(part)
-			//check if biobrick
-		} else if strings.Contains(part, "BBa_") {
+		if strings.Contains(part, "BBa_") {
 			nm := "Part " + strconv.Itoa(i) + "_" + part
 			part = igem.GetSequence(part)
 
@@ -218,10 +202,6 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 	// make vector into an antha type DNASequence
 	if inventorydata, found := inventory.Partslist()[_input.Vector]; found {
 		vectordata = inventorydata
-	} else if strings.Contains(_input.Vector, ".gb") {
-
-		vectordata, _ = parser.GenbanktoFeaturelessDNASequence(_input.Vector)
-		vectordata.Plasmid = true
 	} else {
 		vectornm := "Vector"
 		if strings.Contains(_input.Vector, "BBa_") || strings.Contains(_input.Vector, "pSB") {
@@ -346,10 +326,6 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 			text.Print("Any Orfs to confirm missing from new DNA sequence:", _output.ORFmissing),
 			partstoorder,
 		)
-		// export data to file
-		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-		//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-		fmt.Println(_output.Status)
 	}
 
 	// export sequence to fasta
@@ -359,15 +335,20 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "AssemblyProduct"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		_output.PartsToOrderFile, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.Constructname, "Parts"), exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 }
@@ -422,6 +403,7 @@ func AssemblyStandard_siteremove_orfcheckNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -445,10 +427,12 @@ type AssemblyStandard_siteremove_orfcheckInput struct {
 }
 
 type AssemblyStandard_siteremove_orfcheckOutput struct {
+	AssembledSequenceFile wtype.File
 	Endreport             string
 	NewDNASequence        wtype.DNASequence
 	ORFmissing            bool
 	OriginalParts         []wtype.DNASequence
+	PartsToOrderFile      wtype.File
 	PartsWithSitesRemoved []wtype.DNASequence
 	PartswithOverhangs    []wtype.DNASequence
 	PositionReport        []string
@@ -459,10 +443,12 @@ type AssemblyStandard_siteremove_orfcheckOutput struct {
 
 type AssemblyStandard_siteremove_orfcheckSOutput struct {
 	Data struct {
+		AssembledSequenceFile wtype.File
 		Endreport             string
 		NewDNASequence        wtype.DNASequence
 		ORFmissing            bool
 		OriginalParts         []wtype.DNASequence
+		PartsToOrderFile      wtype.File
 		PartsWithSitesRemoved []wtype.DNASequence
 		PartswithOverhangs    []wtype.DNASequence
 		PositionReport        []string
@@ -493,10 +479,12 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsToOrderFile", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "PositionReport", Desc: "", Kind: "Data"},

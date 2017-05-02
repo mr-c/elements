@@ -195,6 +195,7 @@ func AutoPCR_multiNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -245,7 +246,7 @@ func init() {
 		Constructor: AutoPCR_multiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform multiple PCR reactions with common default parameters\n",
-			Path: "src/github.com/antha-lang/elements/starter/AutoPCR/AutoPCR.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/AutoPCR/AutoPCR.an",
 			Params: []component.ParamDesc{
 				{Name: "AdditiveToAdditiveVolume", Desc: "look up table of additives to volumes of each additive; e.g. [\"DMSO\"]:\"3ul\"\n", Kind: "Parameters"},
 				{Name: "DefaultBuffer", Desc: "", Kind: "Inputs"},

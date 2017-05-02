@@ -2,6 +2,7 @@ package lib
 
 import (
 	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -11,6 +12,10 @@ import (
 )
 
 // Input parameters for this protocol (data)
+
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
@@ -30,6 +35,14 @@ func _PreProcessImageSetup(_ctx context.Context, _input *PreProcessImageInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _output *PreProcessImageOutput) {
+
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
 
 	chosencolourpalette := image.AvailablePalettes()[_input.Palette]
 
@@ -100,6 +113,7 @@ func PreProcessImageNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -117,6 +131,8 @@ type PreProcessImageInput struct {
 	PosterizeImage           bool
 	PosterizeLevels          int
 	Rotate                   bool
+	URL                      string
+	UseURL                   bool
 }
 
 type PreProcessImageOutput struct {
@@ -140,13 +156,15 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckAllResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Negative", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Palette", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "ProcessedImageFilename", Desc: "", Kind: "Data"},
 			},
 		},

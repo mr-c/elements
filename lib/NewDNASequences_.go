@@ -1,7 +1,6 @@
 // Demo protocol of how to create an array of dna types from parsing user inputs of various types
 // scenarios handled:
 // Biobrick IDS
-// genbank files
 // raw sequence
 // inventory lookup
 package lib
@@ -9,7 +8,6 @@ package lib
 import (
 	"context"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -48,31 +46,11 @@ func _NewDNASequencesSteps(_ctx context.Context, _input *NewDNASequencesInput, _
 	partsinorder := make([]wtype.DNASequence, 0)
 
 	var partDNA wtype.DNASequence
-	var err error
 
 	_output.Status = "all parts available"
 	for i, part := range _input.Seqsinorder {
-		// check if genbank feature
-		if strings.Contains(part, ".gb") && strings.Contains(part, "Feature:") {
-
-			split := strings.SplitAfter(part, ".gb")
-			file := split[0]
-
-			split2 := strings.Split(split[1], "Feature:")
-			feature := split2[1]
-
-			partDNA, err = parser.GenbankFeaturetoDNASequence(file, feature)
-
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-
-			// check if genbank file
-		} else if strings.Contains(part, ".gb") {
-
-			partDNA, _ = parser.GenbanktoAnnotatedSeq(part)
-			//check if biobrick
-		} else if strings.Contains(part, "BBa_") {
+		// check if biobrick part
+		if strings.Contains(part, "BBa_") {
 			nm := _input.PartPrefix + "_" + "Part " + strconv.Itoa(i) + "_" + part
 			part = igem.GetSequence(part)
 
@@ -170,6 +148,7 @@ func NewDNASequencesNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -204,7 +183,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "NewDNASequences",
 		Constructor: NewDNASequencesNew,
 		Desc: component.ComponentDesc{
-			Desc: "Demo protocol of how to create an array of dna types from parsing user inputs of various types\nscenarios handled:\nBiobrick IDS\ngenbank files\nraw sequence\ninventory lookup\n",
+			Desc: "Demo protocol of how to create an array of dna types from parsing user inputs of various types\nscenarios handled:\nBiobrick IDS\nraw sequence\ninventory lookup\n",
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson6_DNA/D_NewDNASequences.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},

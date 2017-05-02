@@ -233,6 +233,7 @@ func PCR_SetVolumesNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -294,7 +295,7 @@ func init() {
 		Constructor: PCR_SetVolumesNew,
 		Desc: component.ComponentDesc{
 			Desc: "Setup a single PCR reaction based on using volumes as setpoints rather than concentrations\n",
-			Path: "src/github.com/antha-lang/elements/starter/AutoPCR/PCR.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PCR/AutoPCR/PCR.an",
 			Params: []component.ParamDesc{
 				{Name: "AddPrimerstoMasterMix", Desc: "", Kind: "Parameters"},
 				{Name: "AdditiveVols", Desc: "", Kind: "Parameters"},

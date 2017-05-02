@@ -34,13 +34,16 @@ func _NewDNASequence_fromfileSetup(_ctx context.Context, _input *NewDNASequence_
 // Core process of the protocol: steps to be performed for each input
 func _NewDNASequence_fromfileSteps(_ctx context.Context, _input *NewDNASequence_fromfileInput, _output *NewDNASequence_fromfileOutput) {
 
-	seqs, err := parser.DNAFiletoDNASequence(_input.Filename, _input.Plasmid)
-
+	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 	if len(seqs) == 1 && err == nil {
 
 		_output.DNA = seqs[0]
 
 		_output.DNA.Nm = _input.Gene_name
+		_output.DNA.Plasmid = _input.Plasmid
 
 	}
 
@@ -109,6 +112,7 @@ func NewDNASequence_fromfileNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -117,10 +121,10 @@ type NewDNASequence_fromfileElement struct {
 }
 
 type NewDNASequence_fromfileInput struct {
-	Filename       string
 	Gene_name      string
 	Linear         bool
 	Plasmid        bool
+	SequenceFile   wtype.File
 	SingleStranded bool
 }
 
@@ -147,10 +151,10 @@ func init() {
 			Desc: "Protocol for creating a DNASequence from a sequence file format. // Supported formats: .gdx .fasta .gb\n",
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson6_DNA/B_NewDNASequence_fromfile.an",
 			Params: []component.ParamDesc{
-				{Name: "Filename", Desc: "", Kind: "Parameters"},
 				{Name: "Gene_name", Desc: "", Kind: "Parameters"},
 				{Name: "Linear", Desc: "", Kind: "Parameters"},
 				{Name: "Plasmid", Desc: "", Kind: "Parameters"},
+				{Name: "SequenceFile", Desc: "", Kind: "Parameters"},
 				{Name: "SingleStranded", Desc: "", Kind: "Parameters"},
 				{Name: "DNA", Desc: "", Kind: "Data"},
 				{Name: "Status", Desc: "", Kind: "Data"},

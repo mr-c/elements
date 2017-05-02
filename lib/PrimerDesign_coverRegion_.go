@@ -3,7 +3,6 @@
 package lib
 
 import (
-	//"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
@@ -47,14 +46,11 @@ func _PrimerDesign_coverRegionSteps(_ctx context.Context, _input *PrimerDesign_c
 	var plasmid wtype.DNASequence
 	var allprimers []oligos.Primer
 
-	plasmid, _ = parser.GenbanktoAnnotatedSeq(_input.DNASeqfile)
+	plasmid, err := parser.GenbankToAnnotatedSeq(_input.DNASeqfile)
 
-	/*if len(plasmids)>0 {
-	plasmid = plasmids[0]
+	if err != nil {
+		execute.Errorf(_ctx, "antha ninja: %s", err.Error())
 	}
-	if len(plasmids)>1{
-		Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
-	}*/
 
 	if strings.Contains(strings.ToUpper(_input.Method), "POSITIONS") {
 		allprimers = oligos.DesignFWDPRimerstoCoverRegion(plasmid, _input.RegionStart, _input.RegionEnd, _input.PrimereveryXnucleotides, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, _input.Seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
@@ -117,6 +113,7 @@ func PrimerDesign_coverRegionNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -125,7 +122,7 @@ type PrimerDesign_coverRegionElement struct {
 }
 
 type PrimerDesign_coverRegionInput struct {
-	DNASeqfile                               string
+	DNASeqfile                               wtype.File
 	Maxgc                                    float64
 	Maxlength                                int
 	Maxtemp                                  wunit.Temperature
@@ -160,7 +157,7 @@ func init() {
 		Constructor: PrimerDesign_coverRegionNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will design primers to cover a specified region of a sequence at the interval specified by the user (e.g. every 800 bp).\nDesign criteria such as maximum gc content, acceptable ranges of melting temperatures and primer length may be specified by the user.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesign_coverRegion.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesignCoverRegion/PrimerDesign_coverRegion.an",
 			Params: []component.ParamDesc{
 				{Name: "DNASeqfile", Desc: "genbank file (.gb)\n", Kind: "Parameters"},
 				{Name: "Maxgc", Desc: "as a proportion of 1, i.e. 1 == 100%\n", Kind: "Parameters"},

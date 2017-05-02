@@ -74,6 +74,7 @@ func Synthesis_validationNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -108,7 +109,7 @@ func init() {
 		Constructor: Synthesis_validationNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/GeneDesign/SynthesisValidation.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/GeneDesign/SynthesisValidation/SynthesisValidation.an",
 			Params: []component.ParamDesc{
 				{Name: "PartsWithOverhangs", Desc: "", Kind: "Parameters"},
 				{Name: "SynthesisProvider", Desc: "", Kind: "Parameters"},

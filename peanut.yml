@@ -3,13 +3,12 @@ kind: package
 name: github.com/antha-lang/elements
 version: 0.0.2
 build:
-  baseimage: docker.synthace.com/synthace/golang:1.7-wheezy
-  morelines:
-  - RUN apt-get update && apt-get install -y libglpk-dev libsqlite3-dev libopencv-dev
+  baseimage: docker.synthace.com/synthace/antha:1.7-build
   volumes:
   - /certs
   commands:
-  - tar -C /etc/ssl/certs --dereference --hard-dereference -cz -f - . | tar -C /certs -xz -f -
+  - go get golang.org/x/net/context
+  - go get google.golang.org/grpc
   - make -C /go/src/github.com/antha-lang/elements check
 modules:
   golang:
@@ -22,5 +21,3 @@ modules:
       copyhostpaths:
       - github.com/antha-lang/elements:workflows:/root/workflows
       - github.com/antha-lang/elements:defaults:/root/defaults
-      copyvolumes:
-      - github.com/antha-lang/elements:/certs:/etc/ssl/certs

@@ -61,10 +61,10 @@ func parseConcentration(componentname string) (containsconc bool, conc wunit.Con
 
 // Input parameters for this protocol (data)
 
+// specify a starting concentration
 // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution
-
-//StartRow				int
-//StartColumn				int
+// optionally choose whether to aliqout the serial dilutions by row instead of the default by column
+// optionally start after a specified well position if wells are allready used in the plate
 
 // Data which is returned from this protocol, and data types
 
@@ -115,7 +115,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
 	// mix both samples to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[0], "DilutionPlate", diluentSample, solutionSample)
+	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[_input.WellsAlreadyUsed], "DilutionPlate", diluentSample, solutionSample)
 
 	var solutionname string
 
@@ -132,7 +132,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	dilutions = append(dilutions, aliquot)
 
 	// loop through NumberOfDilutions until all serial dilutions are made
-	for k := 1; k < len(_input.TargetConcentrations); k++ {
+	for k := _input.WellsAlreadyUsed + 1; k < len(_input.TargetConcentrations); k++ {
 
 		// calculate new solution volume
 		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[k], _input.TargetConcentrations[k-1], _input.StartVolumeperDilution)
@@ -246,6 +246,7 @@ func SerialDilution_forConcentrationNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -261,6 +262,7 @@ type SerialDilution_forConcentrationInput struct {
 	StartVolumeperDilution wunit.Volume
 	StockConcentration     wunit.Concentration
 	TargetConcentrations   []wunit.Concentration
+	WellsAlreadyUsed       int
 }
 
 type SerialDilution_forConcentrationOutput struct {
@@ -288,13 +290,14 @@ func init() {
 			Desc: "Protocol to make a serial dilution series targeting a series of specified concentrations from a solution of known Stock concentration and a diluent.\nThe next dilution in the series will always be made from the previous dilution and not from the original stock solution.\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution_forConcentration.an",
 			Params: []component.ParamDesc{
-				{Name: "ByRow", Desc: "", Kind: "Parameters"},
+				{Name: "ByRow", Desc: "optionally choose whether to aliqout the serial dilutions by row instead of the default by column\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "StartVolumeperDilution", Desc: "", Kind: "Parameters"},
-				{Name: "StockConcentration", Desc: "", Kind: "Parameters"},
+				{Name: "StockConcentration", Desc: "specify a starting concentration\n", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "optionally start after a specified well position if wells are allready used in the plate\n", Kind: "Parameters"},
 				{Name: "AllConcentrations", Desc: "", Kind: "Data"},
 				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
 				{Name: "ComponentNames", Desc: "", Kind: "Data"},

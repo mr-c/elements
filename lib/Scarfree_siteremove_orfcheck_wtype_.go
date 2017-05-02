@@ -7,24 +7,21 @@
 package lib
 
 import (
+	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"strconv"
-	"strings"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"context"
 	features "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/features"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"strconv"
+	"strings"
 )
-
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 
 // Input parameters for this protocol (data)
 
@@ -38,7 +35,10 @@ import (
 
 // parts to order
 
+// parts + vector
+
 // desired sequence to end up with after assembly
+// sequence of the assembled insert. Useful for sequencing validation and Primer design
 
 // Input Requirement specification
 func _Scarfree_siteremove_orfcheck_wtypeRequirements() {
@@ -89,6 +89,34 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			if len(sitepositions) > 0 {
+				siteFound = true
+			}
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+
+		if !_input.RemoveproblemRestrictionSites {
+			execute.Errorf(_ctx, errormessage)
+		} else {
+			warnings = append(warnings, errormessage)
+		}
+	}
+
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if _input.RemoveproblemRestrictionSites {
@@ -115,21 +143,23 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 							if orf.StartPosition < position && position < orf.EndPosition {
 								originalcodon := ""
 								codonoption := ""
-								part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(part, orfcoordinates, position, allsitestoavoid)
+								originalPart := part.Dup()
+								part, originalcodon, codonoption, err = sequences.ReplaceCodoninORF(originalPart, orfcoordinates, position, allsitestoavoid)
 								warning = fmt.Sprintln("sites to avoid: ", allsitestoavoid[0], allsitestoavoid[1])
 								warnings = append(warnings, warning)
-								warnings = append(warnings, "Paaaaerrttseq: "+part.Seq+"position: "+strconv.Itoa(position)+" original: "+originalcodon+" replacementcodon: "+codonoption)
+								warnings = append(warnings, "Part Seq: "+originalPart.Seq+"position: "+strconv.Itoa(position)+" original: "+originalcodon+" replacementcodon: "+codonoption)
 								if err != nil {
 									warning := fmt.Sprint("removal of "+anysites.Enzyme.Name+" site from orf "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
 									warnings = append(warnings, warning)
+									execute.Errorf(_ctx, warning)
 								}
 							} else {
 								allsitestoavoid := make([]string, 0)
 								part, err = sequences.RemoveSite(part, anysites.Enzyme, allsitestoavoid)
 								if err != nil {
-
 									warning = fmt.Sprint(anysites.Enzyme.Name+" position found to be outside of orf: "+orf.DNASeq, " failed! improve your algorithm! "+err.Error())
 									warnings = append(warnings, warning)
+									execute.Errorf(_ctx, warning)
 								}
 							}
 						}
@@ -141,7 +171,7 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 						if err != nil {
 							warning := fmt.Sprint("removal of site failed! improve your algorithm!", err.Error())
 							warnings = append(warnings, warning)
-
+							execute.Errorf(_ctx, warning)
 						}
 						warning = fmt.Sprintln("modified "+temppart.Nm+"new seq: ", temppart.Seq, "original seq: ", part.Seq)
 						warnings = append(warnings, warning)
@@ -154,8 +184,9 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 			}
 			newparts = append(newparts, part)
 
-			partsinorder = newparts
 		}
+		partsinorder = newparts
+
 	}
 
 	// export the parts list with sites removed
@@ -168,7 +199,6 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	}
 
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 
 	if _input.EndsAlreadyadded {
 		_output.PartswithOverhangs = partsinorder
@@ -182,6 +212,12 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 
 	if simerr != nil {
 		warnings = append(warnings, fmt.Sprint("Error", simerr.Error()))
+	}
+
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+		execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
 	}
 
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
@@ -263,10 +299,16 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 	partsummary = append(partsummary, fmt.Sprint("Vector:"+vectordata.Nm, vectordata.Seq))
 	partstoorder := fmt.Sprint("PartswithOverhangs: ", partsummary)
 
+	// export parts + vector as one array
+	for _, part := range _output.PartswithOverhangs {
+		_output.PartsAndVector = append(_output.PartsAndVector, part)
+	}
+
+	// now add vector
+	_output.PartsAndVector = append(_output.PartsAndVector, vectordata)
+
 	// Print status
-	/*if Status != "all parts available"{
-		Status = fmt.Sprintln(status)
-	} else {*/_output.Status = fmt.Sprintln(
+	_output.Status = fmt.Sprintln(
 		fmt.Sprint("simulator status: ", status),
 		fmt.Sprint("Endreport after digestion: ", endreport),
 		fmt.Sprint("Sites per part for "+_input.Enzymename, sites),
@@ -290,17 +332,41 @@ func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scar
 		exportedsequences = append(exportedsequences, _output.NewDNASequence)
 
 		// export to file
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
-
+		_output.AssembledSequenceFile, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_AssemblyProduct", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 		// reset
 		exportedsequences = make([]wtype.DNASequence, 0)
 		// add all parts with overhangs
 		for _, part := range _output.PartswithOverhangs {
 			exportedsequences = append(exportedsequences, part)
 		}
-		export.Makefastaserial2(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.Constructname+"_Parts", exportedsequences)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
+}
+
+func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme) []string {
+	// check number of sites per part !
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			sites = append(sites, info[i].Numberofsites)
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			multiple = append(multiple, sitepositions)
+		}
+	}
+	return multiple
 }
 
 // Run after controls and a steps block are completed to
@@ -353,6 +419,7 @@ func Scarfree_siteremove_orfcheck_wtypeNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -374,11 +441,15 @@ type Scarfree_siteremove_orfcheck_wtypeInput struct {
 }
 
 type Scarfree_siteremove_orfcheck_wtypeOutput struct {
+	AssembledSequenceFile  wtype.File
 	Endreport              string
+	Insert                 wtype.DNASequence
 	NewDNASequence         wtype.DNASequence
 	ORFmissing             bool
 	ORIpresent             bool
 	OriginalParts          []wtype.DNASequence
+	PartsAndVector         []wtype.DNASequence
+	PartsToOrder           wtype.File
 	PartsWithSitesRemoved  []wtype.DNASequence
 	PartswithOverhangs     []wtype.DNASequence
 	Plasmid                bool
@@ -391,11 +462,15 @@ type Scarfree_siteremove_orfcheck_wtypeOutput struct {
 
 type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
 	Data struct {
+		AssembledSequenceFile  wtype.File
 		Endreport              string
+		Insert                 wtype.DNASequence
 		NewDNASequence         wtype.DNASequence
 		ORFmissing             bool
 		ORIpresent             bool
 		OriginalParts          []wtype.DNASequence
+		PartsAndVector         []wtype.DNASequence
+		PartsToOrder           wtype.File
 		PartsWithSitesRemoved  []wtype.DNASequence
 		PartswithOverhangs     []wtype.DNASequence
 		Plasmid                bool
@@ -414,7 +489,7 @@ func init() {
 		Constructor: Scarfree_siteremove_orfcheck_wtypeNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree_removesites_checkorfs_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree/Scarfree_removesites_checkorfs_wtype.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},
@@ -426,11 +501,15 @@ func init() {
 				{Name: "RemoveproblemRestrictionSites", Desc: "", Kind: "Parameters"},
 				{Name: "Seqsinorder", Desc: "", Kind: "Parameters"},
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
+				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "sequence of the assembled insert. Useful for sequencing validation and Primer design\n", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},
 				{Name: "OriginalParts", Desc: "", Kind: "Data"},
+				{Name: "PartsAndVector", Desc: "parts + vector\n", Kind: "Data"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartsWithSitesRemoved", Desc: "", Kind: "Data"},
 				{Name: "PartswithOverhangs", Desc: "parts to order\n", Kind: "Data"},
 				{Name: "Plasmid", Desc: "", Kind: "Data"},

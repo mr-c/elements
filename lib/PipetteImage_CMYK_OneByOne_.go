@@ -3,7 +3,7 @@ package lib
 
 import (
 	"context"
-	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -13,9 +13,11 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-//"image/color"
-
 // Input parameters for this protocol (data)
+
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
@@ -38,15 +40,20 @@ func _PipetteImage_CMYK_OneByOneSetup(_ctx context.Context, _input *PipetteImage
 // for every input
 func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage_CMYK_OneByOneInput, _output *PipetteImage_CMYK_OneByOneOutput) {
 
-	//var chosencolourpalette color.Palette
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
 	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
 	counter := 0
-
-	//solutions := image.PipetteImagebyBlending(OutPlate, positiontocolourmap,Cyan, Magenta, Yellow,Black, VolumeForFullcolour)
 
 	for locationkey, colour := range positiontocolourmap {
 
@@ -97,7 +104,6 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 
 	_output.Pixels = solutions
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 
 }
 
@@ -152,6 +158,7 @@ func PipetteImage_CMYK_OneByOneNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -167,6 +174,8 @@ type PipetteImage_CMYK_OneByOneInput struct {
 	Magenta             *wtype.LHComponent
 	OutPlate            *wtype.LHPlate
 	Rotate              bool
+	URL                 string
+	UseURL              bool
 	VolumeForFullcolour wunit.Volume
 	Yellow              *wtype.LHComponent
 }
@@ -195,10 +204,12 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},

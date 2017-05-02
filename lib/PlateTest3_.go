@@ -6,22 +6,18 @@
 package lib
 
 import (
+	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/cmd/antharun/cmd"
-	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
-	"github.com/antha-lang/antha/microArch/factory"
-
-	"encoding/csv"
-	"os"
-	//"path/filepath"
-	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
+	"github.com/antha-lang/antha/microArch/factory"
 	"time"
 )
 
@@ -64,23 +60,17 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 	}
 	outputfilename := _input.TestName + ".csv"
 
-	csvfile, err := os.Create(outputfilename)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
-
-	defer csvfile.Close()
-
 	records := make([][]string, 0)
 
 	title := []string{"Plate Height Test:", _input.TestName}
 	time := []string{"Time:", fmt.Sprint(time.Now())}
 
 	// find git commit id
-	anthacommit, err := cmd.GitCommit()
+	// func gitCommit declared in platetest.an
+	anthacommit, err := gitCommit("github.com/antha-lang/antha")
 
 	if err != nil {
-		execute.Errorf(_ctx, err.Error())
+		anthacommit = err.Error()
 	}
 
 	gitcommit := []string{"antha-lang/antha commitID:", anthacommit}
@@ -171,14 +161,7 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 
 				plateheight := lhplate.Height
 				zstart := lhplate.WellZStart
-				/*
-					Height float64
-					WellXOffset float64            // distance (mm) between well centres in X direction
-					WellYOffset float64            // distance (mm) between well centres in Y direction
-					WellXStart  float64            // offset (mm) to first well in X direction
-					WellYStart  float64            // offset (mm) to first well in Y direction
-					WellZStart  float64            // offset (mm) to bottom of well in Z direction
-				*/
+
 				// get lhpolicyinfo
 
 				// print out LHPolicy info
@@ -218,17 +201,11 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 		}
 	}
 
-	csvwriter := csv.NewWriter(csvfile)
+	_output.Report, err = export.CSV(records, outputfilename)
 
-	for _, record := range records {
-
-		err = csvwriter.Write(record)
-
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	if err != nil {
+		execute.Errorf(_ctx, "Error writing csv to file: %s", err.Error())
 	}
-	csvwriter.Flush()
 
 }
 
@@ -283,6 +260,7 @@ func PlateTest3New() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -303,6 +281,7 @@ type PlateTest3Input struct {
 type PlateTest3Output struct {
 	FinalSolutions                []*wtype.LHComponent
 	PlatesUsedPostRunPerPlateType []int
+	Report                        wtype.File
 	Status                        string
 	WellsUsedPostRunPerPlate      []int
 }
@@ -310,6 +289,7 @@ type PlateTest3Output struct {
 type PlateTest3SOutput struct {
 	Data struct {
 		PlatesUsedPostRunPerPlateType []int
+		Report                        wtype.File
 		Status                        string
 		WellsUsedPostRunPerPlate      []int
 	}
@@ -323,7 +303,7 @@ func init() {
 		Constructor: PlateTest3New,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to allow for rapid combinatorial testing of plate, liquid class combinations.\nAllows testing of effect of liquid handling changes such as offsets and liquid class changes\nIntended to be run prior to any liquid handling change before accepting pull requests.\nThe element creates an output csv file which can be filled in by the user to log observed offsets\nfor each condition\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/PlateHeightTest3.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/PlateHeightTest/PlateHeightTest3.an",
 			Params: []component.ParamDesc{
 				{Name: "LiquidTypes", Desc: "corresponding to valid antha liquid types\n", Kind: "Parameters"},
 				{Name: "LiquidVolumes", Desc: "List of volumes to test\n", Kind: "Parameters"},
@@ -334,6 +314,7 @@ func init() {
 				{Name: "WellsUsedperOutPlateInorder", Desc: "optional slice of ints which should match the length and order of the OutPlates slice\n", Kind: "Parameters"},
 				{Name: "FinalSolutions", Desc: "", Kind: "Outputs"},
 				{Name: "PlatesUsedPostRunPerPlateType", Desc: "", Kind: "Data"},
+				{Name: "Report", Desc: "", Kind: "Data"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 				{Name: "WellsUsedPostRunPerPlate", Desc: "", Kind: "Data"},
 			},

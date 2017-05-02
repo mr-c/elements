@@ -3,7 +3,7 @@ package lib
 
 import (
 	"context"
-	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -13,9 +13,11 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-//"image/color"
-
 // Input parameters for this protocol (data)
+
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
@@ -38,7 +40,14 @@ func _PipetteImage_CMYKSetup(_ctx context.Context, _input *PipetteImage_CMYKInpu
 // for every input
 func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInput, _output *PipetteImage_CMYKOutput) {
 
-	//var chosencolourpalette color.Palette
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
 	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
@@ -46,11 +55,8 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 
 	counter := 0
 
-	//solutions := image.PipetteImagebyBlending(OutPlate, positiontocolourmap,Cyan, Magenta, Yellow,Black, VolumeForFullcolour)
-
 	for locationkey, colour := range positiontocolourmap {
 
-		//components := make([]*wtype.LHComponent, 0)
 		var solution *wtype.LHComponent
 
 		cmyk := image.ColourtoCMYK(colour)
@@ -100,7 +106,6 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 				if solution != nil {
 					solution = execute.Mix(_ctx, solution, yellowSample)
 				} else {
-					//solution = MixInto(PalettePlate, "", yellowSample)
 					solution = execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, yellowSample)
 				}
 			}
@@ -122,7 +127,6 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 				if solution != nil {
 					solution = execute.Mix(_ctx, solution, magentaSample)
 				} else {
-					//solution = MixInto(PalettePlate, "", magentaSample)
 					solution = execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, magentaSample)
 				}
 			}
@@ -140,14 +144,10 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 				if solution != nil {
 					solution = execute.Mix(_ctx, solution, blackSample)
 				} else {
-					//solution = MixInto(PalettePlate, "", blackSample)
 					solution = execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, blackSample)
 				}
 
-				//components = append(components, blackSample)
 			}
-
-			//solution := MixTo(OutPlate.Type, locationkey,1, components...)
 			solutions = append(solutions, solution)
 
 		}
@@ -155,7 +155,6 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 
 	_output.Pixels = solutions
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 
 }
 
@@ -210,6 +209,7 @@ func PipetteImage_CMYKNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -225,6 +225,8 @@ type PipetteImage_CMYKInput struct {
 	Magenta             *wtype.LHComponent
 	OutPlate            *wtype.LHPlate
 	Rotate              bool
+	URL                 string
+	UseURL              bool
 	VolumeForFullcolour wunit.Volume
 	Yellow              *wtype.LHComponent
 }
@@ -253,10 +255,12 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},

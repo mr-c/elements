@@ -1,0 +1,83 @@
+// Protocol SplitSample performs something.
+//
+// All of this text should be used to describe what this protocol does.  It
+// should begin with a one sentence summary begining with "Protocol X...". If
+// neccessary, a empty line with a detailed description can follow (like this
+// description does).
+//
+// Spend some time thinking of a good protocol name as this is the name by
+// which this protocol will be referred. It should convey the purpose and scope
+// of the protocol to an outsider and should suggest an obvious
+// parameterization. 
+//
+// Protocol names are also case-sensitive, so try to use a consistent casing
+// scheme.
+//
+// Examples of bad names:
+//   - MyProtocol
+//   - GeneAssembly
+//   - WildCAPSsmallANDLARGE
+//
+// Better names:
+//   - Aliquot
+//   - TypeIIsConstructAssembly
+protocol SplitSample
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	VolumeA wunit.Volume
+	VolumeB wunit.Volume
+	Platetype string
+	WellA string
+	WellB string
+	PlateNameA string
+	PlateNameB string
+)
+
+// Output data of this protocol
+Data (
+
+)
+
+// Physical inputs to this protocol
+Inputs (
+	InputSolution *wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	ComponentA *wtype.LHComponent
+	ComponentB *wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	sampleA := mixer.Sample(InputSolution, VolumeA)
+	sampleB := mixer.Sample(InputSolution, VolumeB)
+	ComponentA = MixNamed(Platetype,WellA,PlateNameA,sampleA)
+	ComponentB =  MixNamed(Platetype,WellB,PlateNameB,sampleB)
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

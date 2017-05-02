@@ -12,7 +12,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"path/filepath"
 )
 
 // dna sequences as strings "ACTTGCGTC","GGTCCA"
@@ -37,20 +36,27 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	// Retrieve part seqs from entrez
 	for _, part := range _input.Parts {
 		//desiredfilename := filepath.Join(anthapath.Path(), part+".gb")
-		desiredfilename := filepath.Join(_input.ConstructName, part+".gb")
-		DNA, _, _ := entrez.RetrieveSequence(part, "nucleotide", desiredfilename)
+		DNA, err := entrez.RetrieveSequence(part, "nucleotide")
+		if err != nil {
+			execute.Errorf(_ctx, "Error getting sequence for part %s: %s", part, err.Error())
+		}
 		PartDNA = append(PartDNA, DNA)
 	}
 
 	// Look up the restriction enzyme
-	EnzymeInf, _ := lookup.TypeIIsLookup(_input.RE)
+	EnzymeInf, err := lookup.TypeIIsLookup(_input.RestrictionEnzymeName)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// look up vector sequence
 
-	//desiredvectorfilename := filepath.Join(anthapath.Path(), Vector+".gb")
-	desiredvectorfilename := filepath.Join(_input.ConstructName, _input.Vector+".gb")
+	VectorSeq, err := entrez.RetrieveVector(_input.Vector)
 
-	VectorSeq, _, _ := entrez.RetrieveVector(_input.Vector, desiredvectorfilename)
+	if err != nil {
+		execute.Errorf(_ctx, "Errorf getting vector %s: %s", _input.Vector, err.Error())
+	}
 
 	// Add overhangs
 	if _input.EndsAlreadyAdded {
@@ -61,7 +67,7 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 	}
 
 	// validation
-	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RE, VectorSeq, _output.PartsWithOverhangs}
+	assembly := enzymes.Assemblyparameters{_input.ConstructName, _input.RestrictionEnzymeName, VectorSeq, _output.PartsWithOverhangs}
 	_output.SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
 
 	// check if sequence meets requirements for synthesis
@@ -69,10 +75,12 @@ func _GeneDesignSteps(_ctx context.Context, _input *GeneDesignInput, _output *Ge
 
 	// export sequence to fasta
 	if _input.ExporttoFastaFile {
-		export.Makefastaserial2(export.LOCAL, _input.ConstructName, _output.PartsWithOverhangs)
-	}
+		_output.PartsToOrder, _, err = export.FastaSerial(export.LOCAL, _input.ConstructName, _output.PartsWithOverhangs)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 
-	//fmt.Println("Parts Source: ",PartsWithOverhangs)
+	}
 }
 
 func _GeneDesignAnalysis(_ctx context.Context, _input *GeneDesignInput, _output *GeneDesignOutput) {
@@ -122,6 +130,7 @@ func GeneDesignNew() interface{} {
 
 var (
 	_ = execute.MixInto
+	_ = wtype.FALSE
 	_ = wunit.Make_units
 )
 
@@ -130,16 +139,17 @@ type GeneDesignElement struct {
 }
 
 type GeneDesignInput struct {
-	ConstructName     string
-	EndsAlreadyAdded  bool
-	ExporttoFastaFile bool
-	Parts             []string
-	RE                string
-	SynthesisProvider string
-	Vector            string
+	ConstructName         string
+	EndsAlreadyAdded      bool
+	ExporttoFastaFile     bool
+	Parts                 []string
+	RestrictionEnzymeName string
+	SynthesisProvider     string
+	Vector                string
 }
 
 type GeneDesignOutput struct {
+	PartsToOrder       wtype.File
 	PartsWithOverhangs []wtype.DNASequence
 	SimulationStatus   string
 	Validated          bool
@@ -148,6 +158,7 @@ type GeneDesignOutput struct {
 
 type GeneDesignSOutput struct {
 	Data struct {
+		PartsToOrder       wtype.File
 		PartsWithOverhangs []wtype.DNASequence
 		SimulationStatus   string
 		Validated          bool
@@ -168,9 +179,10 @@ func init() {
 				{Name: "EndsAlreadyAdded", Desc: "have the typeIIs assembly ends been added already? true/false\n", Kind: "Parameters"},
 				{Name: "ExporttoFastaFile", Desc: "Whether or not you want to export the sequences generated to a fasta file\n", Kind: "Parameters"},
 				{Name: "Parts", Desc: "dna sequences as strings \"ACTTGCGTC\",\"GGTCCA\"\n", Kind: "Parameters"},
-				{Name: "RE", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
+				{Name: "RestrictionEnzymeName", Desc: "typeIIs restriction enzyme name\n", Kind: "Parameters"},
 				{Name: "SynthesisProvider", Desc: "name of synthesis provider e.g. GenScript\n", Kind: "Parameters"},
 				{Name: "Vector", Desc: "dna sequence as string\n", Kind: "Parameters"},
+				{Name: "PartsToOrder", Desc: "", Kind: "Data"},
 				{Name: "PartsWithOverhangs", Desc: "output parts with correct overhangs\n", Kind: "Data"},
 				{Name: "SimulationStatus", Desc: "", Kind: "Data"},
 				{Name: "Validated", Desc: "", Kind: "Data"},
