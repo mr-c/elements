@@ -3,7 +3,7 @@
   "connections": null,
   "parameters": {
     "Process1": {
-      "DNAGel": "EGEL96_1",
+      "DNAGel": "EPAGE48",
       "GelLoadingMixingPolicy": "load",
       "Ladder": "1kb DNA Ladder",
       "LadderVolume": "10ul",
@@ -20,9 +20,7 @@
       ],
       "Replicates": 1,
       "SampleVolume": "5ul",
-      "TotalVolumePerWell": "15ul",
-      "Water": "water",
-      "WaterVolume": "5ul"
+      "Water": "water"
     }
   },
   "processes": {

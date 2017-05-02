@@ -21,8 +21,7 @@ import (
 //specify the volume of loading dye to add to each sample
 //If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)
 //define number of technical replicates
-//specify the total running volume of the E-Gel in use
-//specify volume of water to add to prime the E-Gel
+//specify the volume of the DNA sample
 
 // Data which is returned from this protocol, and data types
 
@@ -58,7 +57,7 @@ func _DNA_gelSetup(_ctx context.Context, _input *DNA_gelInput) {
 func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelOutput) {
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
-	var loadedsamples []*wtype.LHComponent
+	var loadedSamples []*wtype.LHComponent
 
 	//setup variable for error reporting
 	var err error
@@ -76,29 +75,23 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 	var wells []string = _input.DNAGel.AllWellPositions(wtype.BYROW)
 
 	//setup liquid handling component variables
-	var DNAGelloadmix *wtype.LHComponent
-	var loadedsample *wtype.LHComponent
+	var loadingMix *wtype.LHComponent
+	var loadedSample *wtype.LHComponent
 
 	//begin counter at first well position as E-GEL must be run upside down
 	var counter int = len(wells) - 1
 
-	//work out and copy sample volume
-	samplevolume := (wunit.CopyVolume(_input.TotalVolumePerWell))
-
-	//work out volume of water required
-	samplevolume.Subtract(_input.WaterVolume)
-
 	//assign water to specific liquid handling load type
 	_input.Water.Type = wtype.LTloadwater
+
+	//get info for total volume of well
+	totalWellVolume := wunit.CopyVolume(wunit.NewVolume(_input.DNAGel.Welltype.MaxVol, "ul"))
 
 	//calculate and loop through specified number of replicates
 	for j := 0; j < _input.Replicates; j++ {
 
 		//range through the reactions input array and perform specified actions
 		for i := range _input.Reactions {
-
-			//sample water at specified water volume
-			waterSample := mixer.Sample(_input.Water, _input.WaterVolume)
 
 			//update position to correspond to counter
 			position := wells[counter]
@@ -117,15 +110,15 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 					execute.Errorf(_ctx, "Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", _input.GelLoadingMixingPolicy, err.Error())
 				}
 
+				//work out how much water to add to ladded
+				correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{_input.LadderVolume})
+
 				//perform liquid handling for addiiton of ladder sample
-				laddersample := execute.MixInto(_ctx, _input.DNAGel,
-					position,
-					mixer.SampleForTotalVolume(_input.Water, _input.TotalVolumePerWell),
-					mixer.Sample(_input.Ladder, _input.LadderVolume),
-				)
+				water := execute.MixInto(_ctx, _input.DNAGel, position, mixer.Sample(_input.Water, correctedWaterVolume))
+				ladderSample := execute.Mix(_ctx, water, mixer.Sample(_input.Ladder, _input.LadderVolume))
 
 				//add ladder to array of loaded samples
-				loadedsamples = append(loadedsamples, laddersample)
+				loadedSamples = append(loadedSamples, ladderSample)
 
 				//decrease counter by 1, as pipetting Gel backwards
 				counter--
@@ -149,40 +142,49 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 				}
 
 				//perform liquid handling for addiiton and mixing of the loading dye
-				var DNAGelloadmixsolution *wtype.LHComponent
+				var loadingMixSolution *wtype.LHComponent
 
 				// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
 				if _input.OptimisePlateUsage == true {
-					sample := execute.Mix(_ctx, mixer.Sample(sampletotest, samplevolume))
-					DNAGelloadmixsolution = execute.Mix(_ctx, sample,
-						mixer.Sample(_input.LoadingDye,
-							_input.LoadingDyeVolume))
+					loadingMixSolution = execute.Mix(_ctx, mixer.Sample(sampletotest, _input.SampleVolume))
+					loadingMixSolution = execute.Mix(_ctx, loadingMixSolution, mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
 				} else {
-					DNAGelloadmixsolution = execute.MixInto(_ctx, _input.MixPlate,
-						"",
-						mixer.Sample(sampletotest, samplevolume),
-						mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
+					loadingMixSolution = execute.MixInto(_ctx, _input.MixPlate, "", mixer.Sample(sampletotest, _input.SampleVolume), mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
 				}
 
-				DNAGelloadmix = DNAGelloadmixsolution
+				loadingMix = loadingMixSolution
 			} else {
-				DNAGelloadmix = sampletotest
+				loadingMix = sampletotest
 			}
 
 			//attribute specified mixinpolicy to the samples
-			DNAGelloadmix.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
+			loadingMix.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
 			if err != nil {
 				execute.Errorf(_ctx, "Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", _input.GelLoadingMixingPolicy, err.Error())
 			}
 
+			//get total volume per well including sample and loadingdye
+			sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{_input.SampleVolume, _input.LoadingDyeVolume})
+
+			//work out how much water to add
+			waterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{sampleAndLoadingDyeVolume})
+
+			//detect if the volumes are correct, if not then reprt
+			if waterVolume.LessThan(wunit.NewVolume(0.0, "ul")) {
+				execute.Errorf(_ctx, "The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
+			}
+
+			//sample water at specified water volume
+			waterSample := mixer.Sample(_input.Water, waterVolume)
+
 			//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
-			loadedsample = execute.MixInto(_ctx, _input.DNAGel,
-				position,
-				waterSample,
-				mixer.Sample(DNAGelloadmix, samplevolume),
-			)
-			//add the loaded samples to the loadedsamples array
-			loadedsamples = append(loadedsamples, loadedsample)
+			waterSample = execute.MixInto(_ctx, _input.DNAGel, position, waterSample)
+
+			//transfer sample plus laoding dye to Gel
+			loadedSample = execute.Mix(_ctx, waterSample, mixer.Sample(loadingMix, sampleAndLoadingDyeVolume))
+
+			//add the loaded samples to the loadedSamples array
+			loadedSamples = append(loadedSamples, loadedSample)
 
 			//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
 			counter--
@@ -191,7 +193,7 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 
 	}
 	//update output variable LoadedSamples with the output of the protocol
-	_output.LoadedSamples = loadedsamples
+	_output.LoadedSamples = loadedSamples
 }
 
 // Run after controls and a steps block are completed to
@@ -267,19 +269,18 @@ type DNA_gelInput struct {
 	OptimisePlateUsage     bool
 	Reactions              []*wtype.LHComponent
 	Replicates             int
-	TotalVolumePerWell     wunit.Volume
+	SampleVolume           wunit.Volume
 	Water                  *wtype.LHComponent
-	WaterVolume            wunit.Volume
 }
 
 type DNA_gelOutput struct {
-	Error         error
+	Errors        error
 	LoadedSamples []*wtype.LHComponent
 }
 
 type DNA_gelSOutput struct {
 	Data struct {
-		Error error
+		Errors error
 	}
 	Outputs struct {
 		LoadedSamples []*wtype.LHComponent
@@ -305,10 +306,9 @@ func init() {
 				{Name: "OptimisePlateUsage", Desc: "If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)\n", Kind: "Parameters"},
 				{Name: "Reactions", Desc: "Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.\n", Kind: "Inputs"},
 				{Name: "Replicates", Desc: "define number of technical replicates\n", Kind: "Parameters"},
-				{Name: "TotalVolumePerWell", Desc: "specify the total running volume of the E-Gel in use\n", Kind: "Parameters"},
+				{Name: "SampleVolume", Desc: "specify the volume of the DNA sample\n", Kind: "Parameters"},
 				{Name: "Water", Desc: "water\n", Kind: "Inputs"},
-				{Name: "WaterVolume", Desc: "specify volume of water to add to prime the E-Gel\n", Kind: "Parameters"},
-				{Name: "Error", Desc: "error reporting\n", Kind: "Data"},
+				{Name: "Errors", Desc: "error reporting\n", Kind: "Data"},
 				{Name: "LoadedSamples", Desc: "samples outputted as an array which can be wired into downstream protocols\n", Kind: "Outputs"},
 			},
 		},
