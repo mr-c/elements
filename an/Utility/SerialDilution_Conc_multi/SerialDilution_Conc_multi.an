@@ -1,5 +1,5 @@
-// Protocol to make a series of serial dilution sets targeting a series of specified concentrations. 
-// A series of input solutions are specified which must have the starting concentration specified, e.g. by NewLHComponents.
+// Protocol to make a series of serial dilution sets. Each set targeting a series of specified setpoint concentrations. 
+// A series of input solutions are specified which must have the stock concentration specified, e.g. by NewLHComponents.
 // A common diluent will be used for all.
 protocol SerialDilution_Conc_multi
 
