@@ -10,16 +10,27 @@ import (
 	"github.com/antha-lang/antha/inject"
 )
 
-//"github.com/antha-lang/antha/antha/anthalib/thermocycle"
-
 // Input parameters for this protocol (data)
 
-// PCRprep parameters
+// map of which reaction uses which template e.g. ["left homology arm"]:"templatename".
+// A "default" may also be specified which will be used for any reaction which has no entry specified.
 
-// map of which reaction uses which template e.g. ["left homology arm"]:"templatename"
-// map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer"
+// map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer".
+// A "default" may also be specified which will be used for any reaction which has no entry specified.
+
 // Volume of template in each reaction
-// e.g. for  10X Q5 buffer this would be 10
+
+// Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+
+// Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
+
+// Volume of mastermix to add to the reaction.
+
+// Select this if the primers have already been added to the mastermix.
+// If this is selected no primers will be added to any reactions.
+// Should only be used if all reactions share the same primers.
+
+// Select this if the polymerase has already been added to the mastermix.
 
 // Data which is returned from this protocol, and data types
 
@@ -27,7 +38,26 @@ import (
 
 // Physical Inputs to this protocol with types
 
+// Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+
+// Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+
+// Actual Template type to use. e.g. dna_part, culture
+
+// Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.
+// This input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
+
+// Use the MasterMixMaker element to make the mastermix and wire it in here.
+
+// Type of plate to use for the reaction.
+// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
+// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
+
 // Physical outputs from this protocol with types
+
+// The PCR reaction products as a slice.
+
+// The PCR reaction products in the form of a map of components.
 
 func _AutoPCR_mmx_multiRequirements() {
 }
@@ -50,7 +80,44 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 	// initialise map
 	_output.ReactionMap = make(map[string]*wtype.LHComponent)
 
-	for reactionname, templatename := range _input.Reactiontotemplate {
+	// To allow the use of specifying defaults in either the template map or the primer map,
+	// we first evaluate which map has more entries and make a slice of reactions to iterate through based on that.
+	var reactions []string
+
+	if len(_input.Reactiontotemplate) >= len(_input.Reactiontoprimerpair) {
+		for reactionname := range _input.Reactiontotemplate {
+			reactions = append(reactions, reactionname)
+		}
+	} else {
+		for reactionname := range _input.Reactiontoprimerpair {
+			reactions = append(reactions, reactionname)
+		}
+	}
+
+	for _, reactionname := range reactions {
+
+		// look up template from map
+		var template string
+
+		if templateName, found := _input.Reactiontotemplate[reactionname]; found {
+			template = templateName
+		} else if templateName, found := _input.Reactiontotemplate["default"]; found {
+			template = templateName
+		} else {
+			execute.Errorf(_ctx, `No template set for %s and no "default" primers set`, reactionname)
+		}
+
+		// look up primers from map
+		var fwdPrimer string
+		var revPrimer string
+
+		if primers, found := _input.Reactiontoprimerpair[reactionname]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else if primers, found := _input.Reactiontoprimerpair["default"]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else {
+			execute.Errorf(_ctx, `No primers set for %s and no "default" primers set`, reactionname)
+		}
 
 		// use counter to find next available well position in plate
 
@@ -60,16 +127,13 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 
 		wellposition := allwellpositionsforplate[counter]
 
-		// handle to set up thermocycler
-		//MasterMix = Handle(thermocycle.SetUp(MasterMix))
-
 		// Run PCR_vol element
 		result := PCR_vol_mmxRunSteps(_ctx, &PCR_vol_mmxInput{MasterMixVolume: _input.DefaultMasterMixVolume,
 			PrimersalreadyAddedtoMasterMix:    _input.PrimersalreadyAddedtoMasterMix,
 			PolymeraseAlreadyaddedtoMastermix: _input.PolymeraseAlreadyaddedtoMastermix,
-			FwdPrimerName:                     _input.Reactiontoprimerpair[reactionname][0],
-			RevPrimerName:                     _input.Reactiontoprimerpair[reactionname][1],
-			TemplateName:                      templatename,
+			FwdPrimerName:                     fwdPrimer,
+			RevPrimerName:                     revPrimer,
+			TemplateName:                      template,
 			ReactionName:                      reactionname,
 			FwdPrimerVol:                      _input.DefaultPrimerVolume,
 			RevPrimerVol:                      _input.DefaultPrimerVolume,
@@ -84,15 +148,12 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 			Finalextensiontime:                wunit.NewTime(180, "s"),
 			WellPosition:                      wellposition,
 
-			FwdPrimer: _input.FwdPrimertype,
-			RevPrimer: _input.RevPrimertype,
-
+			FwdPrimer:     _input.FwdPrimertype,
+			RevPrimer:     _input.RevPrimertype,
 			PCRPolymerase: _input.DefaultPolymerase,
 			MasterMix:     _input.MasterMix,
-
-			Template: _input.Templatetype,
-
-			OutPlate: _input.Plate},
+			Template:      _input.Templatetype,
+			OutPlate:      _input.Plate},
 		)
 
 		// add result to reactions slice
@@ -170,7 +231,6 @@ type AutoPCR_mmx_multiElement struct {
 }
 
 type AutoPCR_mmx_multiInput struct {
-	DefaultBufferConcinX              int
 	DefaultMasterMixVolume            wunit.Volume
 	DefaultPolymerase                 *wtype.LHComponent
 	DefaultPolymeraseVolume           wunit.Volume
@@ -211,25 +271,24 @@ func init() {
 			Desc: "Perform multiple PCR reactions with common default parameters using a mastermix\n",
 			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/AutoPCR_mmx.an",
 			Params: []component.ParamDesc{
-				{Name: "DefaultBufferConcinX", Desc: "e.g. for  10X Q5 buffer this would be 10\n", Kind: "Parameters"},
-				{Name: "DefaultMasterMixVolume", Desc: "", Kind: "Parameters"},
-				{Name: "DefaultPolymerase", Desc: "", Kind: "Inputs"},
-				{Name: "DefaultPolymeraseVolume", Desc: "", Kind: "Parameters"},
-				{Name: "DefaultPrimerVolume", Desc: "", Kind: "Parameters"},
+				{Name: "DefaultMasterMixVolume", Desc: "Volume of mastermix to add to the reaction.\n", Kind: "Parameters"},
+				{Name: "DefaultPolymerase", Desc: "Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.\nThis input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.\n", Kind: "Inputs"},
+				{Name: "DefaultPolymeraseVolume", Desc: "Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.\n", Kind: "Parameters"},
+				{Name: "DefaultPrimerVolume", Desc: "Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.\n", Kind: "Parameters"},
 				{Name: "DefaultTemplateVol", Desc: "Volume of template in each reaction\n", Kind: "Parameters"},
-				{Name: "FwdPrimertype", Desc: "", Kind: "Inputs"},
-				{Name: "MasterMix", Desc: "", Kind: "Inputs"},
-				{Name: "Plate", Desc: "", Kind: "Inputs"},
-				{Name: "PolymeraseAlreadyaddedtoMastermix", Desc: "", Kind: "Parameters"},
-				{Name: "PrimersalreadyAddedtoMasterMix", Desc: "", Kind: "Parameters"},
-				{Name: "Projectname", Desc: "PCRprep parameters\n", Kind: "Parameters"},
-				{Name: "Reactiontoprimerpair", Desc: "map of which reaction uses which primer pair e.g. [\"left homology arm\"]:\"fwdprimer\",\"revprimer\"\n", Kind: "Parameters"},
-				{Name: "Reactiontotemplate", Desc: "map of which reaction uses which template e.g. [\"left homology arm\"]:\"templatename\"\n", Kind: "Parameters"},
-				{Name: "RevPrimertype", Desc: "", Kind: "Inputs"},
-				{Name: "Templatetype", Desc: "", Kind: "Inputs"},
+				{Name: "FwdPrimertype", Desc: "Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.\n", Kind: "Inputs"},
+				{Name: "MasterMix", Desc: "Use the MasterMixMaker element to make the mastermix and wire it in here.\n", Kind: "Inputs"},
+				{Name: "Plate", Desc: "Type of plate to use for the reaction.\nRecommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)\n96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)\n", Kind: "Inputs"},
+				{Name: "PolymeraseAlreadyaddedtoMastermix", Desc: "Select this if the polymerase has already been added to the mastermix.\n", Kind: "Parameters"},
+				{Name: "PrimersalreadyAddedtoMasterMix", Desc: "Select this if the primers have already been added to the mastermix.\nIf this is selected no primers will be added to any reactions.\nShould only be used if all reactions share the same primers.\n", Kind: "Parameters"},
+				{Name: "Projectname", Desc: "", Kind: "Parameters"},
+				{Name: "Reactiontoprimerpair", Desc: "map of which reaction uses which primer pair e.g. [\"left homology arm\"]:\"fwdprimer\",\"revprimer\".\nA \"default\" may also be specified which will be used for any reaction which has no entry specified.\n", Kind: "Parameters"},
+				{Name: "Reactiontotemplate", Desc: "map of which reaction uses which template e.g. [\"left homology arm\"]:\"templatename\".\nA \"default\" may also be specified which will be used for any reaction which has no entry specified.\n", Kind: "Parameters"},
+				{Name: "RevPrimertype", Desc: "Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.\n", Kind: "Inputs"},
+				{Name: "Templatetype", Desc: "Actual Template type to use. e.g. dna_part, culture\n", Kind: "Inputs"},
 				{Name: "Errors", Desc: "return an error message if an error is encountered\n", Kind: "Data"},
-				{Name: "ReactionMap", Desc: "", Kind: "Outputs"},
-				{Name: "Reactions", Desc: "", Kind: "Outputs"},
+				{Name: "ReactionMap", Desc: "The PCR reaction products in the form of a map of components.\n", Kind: "Outputs"},
+				{Name: "Reactions", Desc: "The PCR reaction products as a slice.\n", Kind: "Outputs"},
 			},
 		},
 	}); err != nil {

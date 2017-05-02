@@ -2,9 +2,6 @@ protocol NewDNASequence_fromLookup
 
 import (
 	"fmt"
-	//"math"
-	"path/filepath"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
@@ -56,10 +53,12 @@ Steps {
 		if EntrezID  {
 		
 			if DNAID {
+						
+			DNA, err = entrez.RetrieveSequence(ID, "nucleotide")
 			
-			filename := filepath.Join(anthapath.Path(), ID+".gb")
-			
-			DNA,_, err = entrez.RetrieveSequence(ID, "nucleotide",filename)
+			if err != nil {
+				Errorf(err.Error())
+			}
 			
 				if err != nil {
 					Errorf("Error retrieving sequence %s from entrez nucleotide database: %s", ID,err.Error())
@@ -78,9 +77,9 @@ Steps {
 									
 	
 	if AddORFS {
-	orfs := sequences.FindallORFs(DNA.Seq)
-	features := sequences.ORFs2Features(orfs)
-	DNA = wtype.Annotate(DNA,features)
+		orfs := sequences.FindallORFs(DNA.Seq)
+		features := sequences.ORFs2Features(orfs)
+		DNA = wtype.Annotate(DNA,features)
 	}
 	
 	if BiobrickID {

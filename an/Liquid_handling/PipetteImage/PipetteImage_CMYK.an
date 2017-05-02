@@ -4,16 +4,17 @@ protocol PipetteImage_CMYK
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"fmt"
-	//"image/color"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	Rotate bool
 	AutoRotate bool
 )
@@ -52,7 +53,16 @@ Setup {
 // for every input
 Steps {
 	
-	//var chosencolourpalette color.Palette
+	
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
+	
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
 	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
 	
@@ -60,11 +70,8 @@ Steps {
 
 	counter := 0
 
-	//solutions := image.PipetteImagebyBlending(OutPlate, positiontocolourmap,Cyan, Magenta, Yellow,Black, VolumeForFullcolour) 
-
 	for locationkey, colour := range positiontocolourmap {
 		
-		//components := make([]*wtype.LHComponent, 0)
 		var solution *wtype.LHComponent
 
 		cmyk := image.ColourtoCMYK(colour)
@@ -115,7 +122,6 @@ Steps {
 		if solution != nil {
 		solution = Mix(solution, yellowSample)
 		}else {
-			//solution = MixInto(PalettePlate, "", yellowSample)
 			solution = MixTo(OutPlate.Type, locationkey,1,yellowSample)
 		}
 		}
@@ -137,7 +143,6 @@ Steps {
 		if solution != nil {
 		solution = Mix(solution, magentaSample)
 		}else {
-			//solution = MixInto(PalettePlate, "", magentaSample)
 			solution = MixTo(OutPlate.Type, locationkey,1,magentaSample)
 		}
 		}
@@ -155,22 +160,17 @@ Steps {
 		if solution != nil {
 		solution = Mix(solution, blackSample)
 		}else {
-			//solution = MixInto(PalettePlate, "", blackSample)
 			solution = MixTo(OutPlate.Type, locationkey,1,blackSample)
 		}
 		
-		//components = append(components, blackSample)
 		}
-		
-		//solution := MixTo(OutPlate.Type, locationkey,1, components...)
-		solutions = append(solutions, solution)
+				solutions = append(solutions, solution)
 		
 		}
 	}
 
 	Pixels = solutions
 	Numberofpixels = len(Pixels)
-	fmt.Println("Pixels =",Numberofpixels)
 
 }
 // Run after controls and a steps block are completed to

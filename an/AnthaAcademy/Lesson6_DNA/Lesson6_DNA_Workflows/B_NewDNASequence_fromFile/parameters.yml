@@ -1,0 +1,34 @@
+{
+    "Parameters": {
+        "genbank": {
+            "SequenceFile": {
+			"host_file": {
+				"filename": "test.gb"
+			},
+			"name": "test.gb"
+		},
+            "Gene_name": "TheUnkownSequence",
+            "Plasmid": false
+        },
+        "fasta": {
+            "SequenceFile": {
+			"host_file": {
+				"filename": "test.fasta"
+			},
+			"name": "test.fasta"
+		},
+            "Gene_name": "TheUnkownSequence",
+            "Plasmid": false
+        },
+        "gdx": {
+            "SequenceFile": {
+			"host_file": {
+				"filename": "test.gdx"
+			},
+			"name": "test.gdx"
+		},
+            "Gene_name": "TheUnkownSequence",
+            "Plasmid": false
+        }
+    }
+}

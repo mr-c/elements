@@ -497,7 +497,7 @@ func init() {
 		Constructor: AccuracyTest_ConcentrationNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform accuracy test protocol using a series of concentrations as set points\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest_Conc.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AccuracyTest_Conc.an",
 			Params: []component.ParamDesc{
 				{Name: "DXORJMP", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},

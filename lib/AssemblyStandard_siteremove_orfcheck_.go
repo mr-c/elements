@@ -9,7 +9,6 @@ package lib
 import (
 	"fmt"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
@@ -75,22 +74,7 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 	_output.Status = "all parts available"
 	for i, part := range _input.Seqsinorder {
 		// check if genbank feature
-		if strings.Contains(part, ".gb") && strings.Contains(part, "Feature:") {
-
-			split := strings.SplitAfter(part, ".gb")
-			file := split[0]
-
-			split2 := strings.Split(split[1], ":")
-			feature := split2[1]
-
-			partDNA, _ = parser.GenbankFeaturetoDNASequence(file, feature)
-
-			// check if genbank file
-		} else if strings.Contains(part, ".gb") {
-
-			partDNA, _ = parser.GenbanktoAnnotatedSeq(part)
-			//check if biobrick
-		} else if strings.Contains(part, "BBa_") {
+		if strings.Contains(part, "BBa_") {
 			nm := "Part " + strconv.Itoa(i) + "_" + part
 			part = igem.GetSequence(part)
 
@@ -218,10 +202,6 @@ func _AssemblyStandard_siteremove_orfcheckSteps(_ctx context.Context, _input *As
 	// make vector into an antha type DNASequence
 	if inventorydata, found := inventory.Partslist()[_input.Vector]; found {
 		vectordata = inventorydata
-	} else if strings.Contains(_input.Vector, ".gb") {
-
-		vectordata, _ = parser.GenbanktoFeaturelessDNASequence(_input.Vector)
-		vectordata.Plasmid = true
 	} else {
 		vectornm := "Vector"
 		if strings.Contains(_input.Vector, "BBa_") || strings.Contains(_input.Vector, "pSB") {

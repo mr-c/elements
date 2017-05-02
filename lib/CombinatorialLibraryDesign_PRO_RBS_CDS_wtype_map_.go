@@ -50,6 +50,7 @@ func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSteps(_ctx context.Context
 	_output.PositionReportMap = make(map[string][]string)
 	_output.StatusMap = make(map[string]string)
 	_output.PrimerMap = make(map[string]oligos.Primer)
+	SequencingPrimers := make([][]wtype.DNASequence, 0)
 
 	var counter int = 1
 
@@ -83,18 +84,25 @@ func _CombinatorialLibraryDesign_PRO_RBS_CDS_wtype_mapSteps(_ctx context.Context
 
 						// for each vector we'll also design sequencing primers
 
-						primer := PrimerDesign_FWD_wtypeRunSteps(_ctx, &PrimerDesign_FWD_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
-							Maxtemp:                                  wunit.NewTemperature(60, "C"),
-							Mintemp:                                  wunit.NewTemperature(55, "C"),
-							Maxgc:                                    0.6,
-							Minlength:                                20,
-							Maxlength:                                25,
+						primer := PrimerDesign_ColonyPCR_wtypeRunSteps(_ctx, &PrimerDesign_ColonyPCR_wtypeInput{FullDNASeq: assembly.Data.NewDNASequence,
+							Maxtemp:                                  wunit.NewTemperature(72, "C"),
+							Mintemp:                                  wunit.NewTemperature(50, "C"),
+							Maxgc:                                    0.7,
+							Minlength:                                12,
+							Maxlength:                                30,
 							Seqstoavoid:                              []string{},
-							PermittednucleotideOverlapBetweenPrimers: 10,                                     // number of nucleotides which primers can overlap by
-							RegionSequence:                           assembly.Data.PartsWithSitesRemoved[0], // first part
+							PermittednucleotideOverlapBetweenPrimers: 10,                   // number of nucleotides which primers can overlap by
+							RegionSequence:                           assembly.Data.Insert, // first part
 							FlankTargetSequence:                      true},
 						)
-						_output.PrimerMap[key] = primer.Data.FWDPrimer
+
+						// rename primers
+						primer.Data.FWDPrimer.Nm = primer.Data.FWDPrimer.Nm + _input.ProjectName + _input.Vectors[j].Nm + "_FWD"
+						primer.Data.REVPrimer.Nm = primer.Data.REVPrimer.Nm + _input.ProjectName + _input.Vectors[j].Nm + "_REV"
+
+						_output.PrimerMap[key+"_FWD"] = primer.Data.FWDPrimer
+						_output.PrimerMap[key+"_REV"] = primer.Data.REVPrimer
+						SequencingPrimers = append(SequencingPrimers, []wtype.DNASequence{primer.Data.FWDPrimer.DNASequence, primer.Data.REVPrimer.DNASequence})
 						counter++
 					}
 				}

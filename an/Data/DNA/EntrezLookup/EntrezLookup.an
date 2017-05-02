@@ -1,9 +1,7 @@
 protocol EntrezLookup
 
 import (
-
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
-	"fmt"
 )
 
 
@@ -30,8 +28,8 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	OutPutFile wtype.File
 	Err error
+	OutputFile File 
 )
 
 // Physical inputs to this protocol
@@ -55,24 +53,22 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 	
-	
-	if Filename == ""{
-		Filename = ID + "." + ReturnType 
+	output, err := entrez.RetrieveRecords(ID, Database,MaxReturns,ReturnType)
+			
+	if err != nil {
+		Err = err
+		Errorf("error retrieving record %s in entrez database %s: %s",ID,Database, err.Error())
 	}
 	
-	fmt.Println("Filename in .an file: ", Filename)
-	filenameused, output, err := entrez.RetrieveRecords(ID, Database,MaxReturns,ReturnType,Filename)
-		
-		if err != nil {
-			Errorf("Error looking up record %s in entrez database %s: %s",ID,Database, err.Error())
-		}
-		
-		
-	OutPutFile.WriteAll(output) 
+	OutputFile.Name = Filename
 	
-	OutPutFile.Name = filenameused
+	err = OutputFile.WriteAll(output) 
 	
-	Err = err
+	if err != nil {
+		Err = err
+		Errorf("error writing record to file %s: %s",ID,err.Error())
+	}
+	
 }
 
 

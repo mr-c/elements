@@ -2,7 +2,6 @@ package lib
 
 import (
 	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -43,22 +42,22 @@ func _EntrezLookupSetup(_ctx context.Context, _input *EntrezLookupInput) {
 // Core process of the protocol: steps to be performed for each input
 func _EntrezLookupSteps(_ctx context.Context, _input *EntrezLookupInput, _output *EntrezLookupOutput) {
 
-	if _input.Filename == "" {
-		_input.Filename = _input.ID + "." + _input.ReturnType
-	}
-
-	fmt.Println("Filename in .an file: ", _input.Filename)
-	filenameused, output, err := entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType, _input.Filename)
+	output, err := entrez.RetrieveRecords(_input.ID, _input.Database, _input.MaxReturns, _input.ReturnType)
 
 	if err != nil {
-		execute.Errorf(_ctx, "Error looking up record %s in entrez database %s: %s", _input.ID, _input.Database, err.Error())
+		_output.Err = err
+		execute.Errorf(_ctx, "error retrieving record %s in entrez database %s: %s", _input.ID, _input.Database, err.Error())
 	}
 
-	_output.OutPutFile.WriteAll(output)
+	_output.OutputFile.Name = _input.Filename
 
-	_output.OutPutFile.Name = filenameused
+	err = _output.OutputFile.WriteAll(output)
 
-	_output.Err = err
+	if err != nil {
+		_output.Err = err
+		execute.Errorf(_ctx, "error writing record to file %s: %s", _input.ID, err.Error())
+	}
+
 }
 
 // Actions to perform after steps block to analyze data
@@ -127,13 +126,13 @@ type EntrezLookupInput struct {
 
 type EntrezLookupOutput struct {
 	Err        error
-	OutPutFile wtype.File
+	OutputFile wtype.File
 }
 
 type EntrezLookupSOutput struct {
 	Data struct {
 		Err        error
-		OutPutFile wtype.File
+		OutputFile wtype.File
 	}
 	Outputs struct {
 	}
@@ -152,7 +151,7 @@ func init() {
 				{Name: "MaxReturns", Desc: "e.g. 1\n", Kind: "Parameters"},
 				{Name: "ReturnType", Desc: "e.g. \"gb\", \"fasta\".\nValid ReturnType List: http://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/?report=objectonly\n", Kind: "Parameters"},
 				{Name: "Err", Desc: "", Kind: "Data"},
-				{Name: "OutPutFile", Desc: "", Kind: "Data"},
+				{Name: "OutputFile", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

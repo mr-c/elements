@@ -7,6 +7,7 @@ package lib
 
 import (
 	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
@@ -21,6 +22,10 @@ import (
 // Input parameters for this protocol (data)
 
 // Custom design, may support MoClo, EcoFlex and GoldenBraid.
+
+// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+// If Custom design the valid options currently supported are: "Device1","Device2", "Device3".
+// If left empty no adaptor sequence is added.
 
 // Physical Inputs to this protocol with types
 
@@ -63,6 +68,52 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 
 	var StandardLevel string = "Level0"
 
+	// Add adaptors for Level1 step
+	if _input.MakeLevel1Device != "" {
+
+		standard, found := enzymes.EndlinksString[_input.Standard]
+
+		if !found {
+			execute.Errorf(_ctx, "No assembly standard %s found", _input.Standard)
+		}
+
+		level1, found := standard["Level1"]
+
+		if !found {
+			execute.Errorf(_ctx, "No Level1 found for standard %s", _input.Standard)
+		}
+
+		overhangs, found := level1[_input.MakeLevel1Device]
+
+		if !found {
+			execute.Errorf(_ctx, "No overhangs found for %s in standard %s", _input.MakeLevel1Device, _input.Standard)
+		}
+
+		if len(overhangs) != 2 {
+			execute.Errorf(_ctx, "found %d overhangs for %s in standard %s, expecting %d", len(overhangs), _input.MakeLevel1Device, _input.Standard, 2)
+
+		}
+
+		if overhangs[0] == "" {
+			execute.Errorf(_ctx, "blunt 5' overhang found for %s in standard %s, expecting %d", _input.MakeLevel1Device, _input.Standard, 2)
+		}
+
+		for a := range _input.PROs {
+			var err error
+			_input.PROs[a], err = enzymes.AddL1UAdaptor(_input.PROs[a], _input.Standard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+		}
+		for b := range _input.TERs {
+			var err error
+			_input.TERs[b], err = enzymes.AddL1DAdaptor(_input.TERs[b], _input.Standard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+		}
+	}
+
 	for j := range _input.Vectors {
 		for k := range _input.PROs {
 			for l := range _input.RBSs {
@@ -103,8 +154,8 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 							Minlength:                                12,
 							Maxlength:                                30,
 							Seqstoavoid:                              []string{},
-							PermittednucleotideOverlapBetweenPrimers: 10,                                     // number of nucleotides which primers can overlap by
-							RegionSequence:                           assembly.Data.PartsWithSitesRemoved[0], // first part
+							PermittednucleotideOverlapBetweenPrimers: 10,                   // number of nucleotides which primers can overlap by
+							RegionSequence:                           assembly.Data.Insert, // first part
 							FlankTargetSequence:                      true},
 						)
 
@@ -252,17 +303,19 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapElement struct {
 }
 
 type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput struct {
-	BlastSearchSeqs    bool
-	CDSs               []wtype.DNASequence
-	FolderPerConstruct bool
-	FolderPerProject   bool
-	PROs               []wtype.DNASequence
-	ProjectName        string
-	RBSs               []wtype.DNASequence
-	SitesToRemove      []string
-	Standard           string
-	TERs               []wtype.DNASequence
-	Vectors            []wtype.DNASequence
+	BlastSearchSeqs          bool
+	CDSs                     []wtype.DNASequence
+	FolderPerConstruct       bool
+	FolderPerProject         bool
+	MakeLevel1Device         string
+	PROs                     []wtype.DNASequence
+	ProjectName              string
+	RBSs                     []wtype.DNASequence
+	ReverseLevel1Orientation bool
+	SitesToRemove            []string
+	Standard                 string
+	TERs                     []wtype.DNASequence
+	Vectors                  []wtype.DNASequence
 }
 
 type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
@@ -308,15 +361,17 @@ func init() {
 		Constructor: CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,\nRBSs, CDSs and Terminators according to an assembly standard ensuring compatibility with level 1 design.\nLevel 1 adaptor sites (containing the correct restriction site are expected to be included in the promoter and terminator parts.\nThese level 1 sites can be designed such that a series of level 1 parts may be joined together in a second assembly reaction.\nA list of sequencing primers to order will also be returned.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialLibraryDesign4part_Hierarchical.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/MoClo/Hierarchical/CombinatorialLibraryDesign4part_Hierarchical.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "CDSs", Desc: "", Kind: "Parameters"},
 				{Name: "FolderPerConstruct", Desc: "", Kind: "Parameters"},
 				{Name: "FolderPerProject", Desc: "", Kind: "Parameters"},
+				{Name: "MakeLevel1Device", Desc: "Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly\nIf Custom design the valid options currently supported are: \"Device1\",\"Device2\", \"Device3\".\nIf left empty no adaptor sequence is added.\n", Kind: "Parameters"},
 				{Name: "PROs", Desc: "", Kind: "Parameters"},
 				{Name: "ProjectName", Desc: "", Kind: "Parameters"},
 				{Name: "RBSs", Desc: "", Kind: "Parameters"},
+				{Name: "ReverseLevel1Orientation", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "Standard", Desc: "Custom design, may support MoClo, EcoFlex and GoldenBraid.\n", Kind: "Parameters"},
 				{Name: "TERs", Desc: "", Kind: "Parameters"},

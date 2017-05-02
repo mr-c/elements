@@ -5,7 +5,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"image/color"
 	"strconv"
 )
@@ -14,11 +14,14 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	PosterizeImage bool
 	PosterizeLevels int
 	Rotate bool
 	AutoRotate bool
+	LowerThreshold uint8
 )
 
 // Data which is returned from this protocol, and data types
@@ -36,7 +39,7 @@ Inputs (
 	Yellow *wtype.LHComponent
 	Magenta *wtype.LHComponent
 	Black *wtype.LHComponent
-	//InPlate *wtype.LHPlate
+	White *wtype.LHComponent
 	OutPlate *wtype.LHPlate
 	PalettePlate *wtype.LHPlate
 )
@@ -60,6 +63,14 @@ Setup {
 Steps {
 	
 	
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
 	if PosterizeImage{
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
 	}
@@ -76,6 +87,7 @@ Steps {
 	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	
 
 	counter := 0
 
@@ -91,7 +103,7 @@ Steps {
 		
 		var maxuint8 uint8 = 255		
 		
-		if cmyk.C ==0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+		if cmyk.C <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
 		
 		continue
 			
@@ -99,7 +111,7 @@ Steps {
 			
 		counter = counter + 1
 		
-		if cmyk.C > 0{
+		if cmyk.C > LowerThreshold{
 			
 		cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
@@ -107,61 +119,71 @@ Steps {
 		if cyanvol.RawValue() < 0.5 && cyanvol.Unit().PrefixedSymbol() == "ul"{
 				cyanvol.SetValue(0.5)
 			}
-	
-		Cyan.Type  =	wtype.LTDISPENSEABOVE
 			
 		cyanSample := mixer.Sample(Cyan, cyanvol)
 		components = append(components, cyanSample)
 		}
 		
-		if cmyk.Y > 0{
+		if cmyk.Y > LowerThreshold{
 		yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul"{
 				yellowvol.SetValue(0.5)
 			}
 		
-		if cmyk.K == 0 && cmyk.M == 0{
-		Yellow.Type  =	wtype.LTPostMix
-		}else {
-		Yellow.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		yellowSample := mixer.Sample(Yellow, yellowvol)
 		components = append(components, yellowSample)
 		}
 		
-		if cmyk.M > 0{
+		if cmyk.M > LowerThreshold{
 		magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul"{
 				magentavol.SetValue(0.5)
 			}
 		
-		if cmyk.K == 0 {
-		Magenta.Type  =	wtype.LTPostMix
-		}else {
-		Magenta.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		magentaSample := mixer.Sample(Magenta, magentavol)
 		components = append(components, magentaSample)
 		}
 		
-		if cmyk.K > 0{
+		if cmyk.K > LowerThreshold{
+				
 		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul"{
 				blackvol.SetValue(0.5)
 			}
 		
-		Black.Type = wtype.LTPostMix
-		
 		blackSample := mixer.Sample(Black, blackvol)
 		components = append(components, blackSample)
 		}
 		
+		// top up colour to 4 x volumeforfullcolour with white to make the correct shade
+		
+	  	// get all component volumes 
+		// and change liquid types
+		var componentvols []Volume
+		for _, component := range components {
+			componentvols = append(componentvols,component.Volume())
+			component.Type = wtype.LTDoNotMix
+		}	
+		// calculate volume of white to add
+		whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentvols)
+		
+		// mix with white sample
+		White.Type = wtype.LTPostMix
+		
+		whiteSample := mixer.Sample(White, whitevol)
+		components = append(components, whiteSample)
+		
+
 		solution := MixInto(PalettePlate, "", components...)
+		
+		// change name of component
+		originalname := solution.CName
+		solution.CName = originalname + "_colour_"+strconv.Itoa(colourindex)
+		
+		// add solution to be exported later
 		solutions = append(solutions, solution)
 		colourtoComponentMap[strconv.Itoa(colourindex)] = solution
 		

@@ -6,6 +6,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"fmt"
 	"strconv"
@@ -20,6 +21,8 @@ Parameters (
 	NumberofReplicates int
 	Printasimage bool
 	Imagefilename string
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
 	LHPolicy string
@@ -97,6 +100,15 @@ Steps {
 	// work out plate layout based on picture or just in order
 	
 	if Printasimage {
+		
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
 	chosencolourpalette := image.AvailablePalettes()["Palette1"]
 	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, rotate,autorotate) 
 	

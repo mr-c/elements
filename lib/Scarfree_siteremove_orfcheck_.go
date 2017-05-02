@@ -1,6 +1,6 @@
 // This protocol is intended to design assembly parts using a specified enzyme.
 // overhangs are added to complement the adjacent parts and leave no scar.
-// parts can be entered as genbank (.gb) files, sequences or biobrick IDs
+// parts can be entered as sequences or biobrick IDs
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs
 // is returned to the user along with a list of cut sites in each part.
@@ -10,7 +10,6 @@ import (
 	"context"
 	"fmt"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
@@ -70,22 +69,8 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 	_output.Status = "all parts available"
 	for i, part := range _input.Seqsinorder {
 		// check if genbank feature
-		if strings.Contains(part, ".gb") && strings.Contains(part, "Feature:") {
-
-			split := strings.SplitAfter(part, ".gb")
-			file := split[0]
-
-			split2 := strings.Split(split[1], ":")
-			feature := split2[1]
-
-			partDNA, _ = parser.GenbankFeaturetoDNASequence(file, feature)
-
-			// check if genbank file
-		} else if strings.Contains(part, ".gb") {
-
-			partDNA, _ = parser.GenbanktoAnnotatedSeq(part)
-			//check if biobrick
-		} else if strings.Contains(part, "BBa_") {
+		//check if biobrick
+		if strings.Contains(part, "BBa_") {
 			nm := "Part " + strconv.Itoa(i) + "_" + part
 			part = igem.GetSequence(part)
 
@@ -221,11 +206,7 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 	// make vector into an antha type DNASequence
 	if inventorydata, found := inventory.Partslist()[_input.Vector]; found {
 		vectordata = inventorydata
-	} else if strings.Contains(_input.Vector, ".gb") {
 
-		vectordata, _ = parser.GenbanktoAnnotatedSeq(_input.Vector)
-		vectordata.Plasmid = true
-	} else {
 		vectornm := "Vector"
 		if strings.Contains(_input.Vector, "BBa_") || strings.Contains(_input.Vector, "pSB") {
 			vectornm = _input.Vector
@@ -256,6 +237,13 @@ func _Scarfree_siteremove_orfcheckSteps(_ctx context.Context, _input *Scarfree_s
 
 	if simerr != nil {
 		warnings = append(warnings, text.Print("Error", simerr.Error()))
+	}
+
+	_output.Insert, err = assembly.Insert()
+
+	if err != nil {
+
+		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
 	}
 
 	_output.Plasmid, _output.ORIpresent, _output.SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
@@ -454,6 +442,7 @@ type Scarfree_siteremove_orfcheckInput struct {
 type Scarfree_siteremove_orfcheckOutput struct {
 	AssembledSequenceFile  wtype.File
 	Endreport              string
+	Insert                 wtype.DNASequence
 	NewDNASequence         wtype.DNASequence
 	ORFmissing             bool
 	ORIpresent             bool
@@ -473,6 +462,7 @@ type Scarfree_siteremove_orfcheckSOutput struct {
 	Data struct {
 		AssembledSequenceFile  wtype.File
 		Endreport              string
+		Insert                 wtype.DNASequence
 		NewDNASequence         wtype.DNASequence
 		ORFmissing             bool
 		ORIpresent             bool
@@ -495,8 +485,8 @@ func init() {
 	if err := addComponent(component.Component{Name: "Scarfree_siteremove_orfcheck",
 		Constructor: Scarfree_siteremove_orfcheckNew,
 		Desc: component.ComponentDesc{
-			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/starter/Scarfree_removesites_checkorfs.an",
+			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree_removesites_checkorfs.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},
@@ -510,6 +500,7 @@ func init() {
 				{Name: "Vector", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequenceFile", Desc: "", Kind: "Data"},
 				{Name: "Endreport", Desc: "", Kind: "Data"},
+				{Name: "Insert", Desc: "", Kind: "Data"},
 				{Name: "NewDNASequence", Desc: "desired sequence to end up with after assembly\n", Kind: "Data"},
 				{Name: "ORFmissing", Desc: "", Kind: "Data"},
 				{Name: "ORIpresent", Desc: "", Kind: "Data"},

@@ -1,0 +1,279 @@
+// Generates instructions to make a pallette of all colours in an image
+protocol MakePalette_2
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"image/color"
+	"strconv"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	VolumeForFullcolour  Volume
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
+	PosterizeImage bool
+	PosterizeLevels int
+	Rotate bool
+	AutoRotate bool
+	LowerThreshold uint8
+	NotThisColour string
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	Numberofcolours int
+	//Colournames []string
+	Palette color.Palette
+	ColourtoComponentMap map[string]string // map of colour name (as index) to component name
+	PaletteFile wtype.File
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Cyan *wtype.LHComponent
+	Yellow *wtype.LHComponent
+	Magenta *wtype.LHComponent
+	Black *wtype.LHComponent
+	White *wtype.LHComponent
+	OutPlate *wtype.LHPlate
+	PalettePlate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Colours[]*wtype.LHComponent
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	
+	// if image is from url, download
+	if UseURL {
+		err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	if PosterizeImage{
+		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
+	}
+	
+	
+	// make palette of colours from image
+	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
+	
+	// make a map of colour to well coordinates
+	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	
+	// remove duplicates
+	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
+	
+	solutions := make([]*wtype.LHComponent, 0)
+	colourtoComponentMap := make(map[string]string)
+	
+	counter := 0
+
+	for _, colour := range positiontocolourmap {
+		
+		colourindex := chosencolourpalette.Index(colour)
+		
+		if colour != nil {
+
+		cmyk := image.ColourtoCMYK(colour)
+		
+		var maxuint8 uint8 = 255		
+		
+		if cmyk.C <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
+		
+		continue
+			
+				}else{
+				
+			var solution *wtype.LHComponent
+			var componentVols []Volume
+	
+			counter = counter + 1
+			
+			if cmyk.C > LowerThreshold{
+				
+				cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				
+				if cyanvol.RawValue() < 0.5 && cyanvol.Unit().PrefixedSymbol() == "ul"{
+						cyanvol.SetValue(0.5)
+					}
+					
+				cyanSample := mixer.Sample(Cyan, cyanvol)
+									
+					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
+					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
+						cyanSample.Type = wtype.LTMegaMix
+					}else{
+						cyanSample.Type = wtype.LTDISPENSEABOVE
+
+					}
+				
+				solution = MixNamed(PalettePlate.Type, "","Palette", cyanSample)
+	
+			}
+			
+			if cmyk.Y > LowerThreshold{
+				
+				yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+			
+				if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul"{
+						yellowvol.SetValue(0.5)
+					}
+			
+					yellowSample := mixer.Sample(Yellow, yellowvol)
+					
+					componentVols = append(componentVols,yellowvol)
+					
+					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
+					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
+						yellowSample.Type = wtype.LTMegaMix
+					}else{
+						yellowSample.Type = wtype.LTDISPENSEABOVE
+
+					}
+				
+					if solution != nil {
+						solution = Mix(solution,yellowSample)
+					}else{
+						solution = MixNamed(PalettePlate.Type, "","Palette", yellowSample)
+					}
+					
+			}
+			
+			if cmyk.M > LowerThreshold{
+				magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				
+				if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul"{
+						magentavol.SetValue(0.5)
+					}
+				
+				magentaSample := mixer.Sample(Magenta, magentavol)
+				
+				componentVols = append(componentVols,magentavol)
+					
+					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
+					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
+						magentaSample.Type = wtype.LTMegaMix
+					}else{
+						magentaSample.Type = wtype.LTDISPENSEABOVE
+
+					}
+				
+					if solution != nil {
+							solution = Mix(solution,magentaSample)
+					}else{
+							solution = MixNamed(PalettePlate.Type, "","Palette", magentaSample)
+					}	
+					
+			}
+			
+			if cmyk.K > LowerThreshold{
+					
+				blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				
+				if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul"{
+						blackvol.SetValue(0.5)
+					}
+				
+				blackSample := mixer.Sample(Black, blackvol)
+				
+				componentVols = append(componentVols,blackvol)
+					
+					// if no other components are going to be added after change the liquidtype to Mix else change to pipette above
+					if wunit.AddVolumes(componentVols).EqualTo(wunit.MultiplyVolume(VolumeForFullcolour,4)){
+						blackSample.Type = wtype.LTMegaMix
+					}else{
+						blackSample.Type = wtype.LTDISPENSEABOVE
+
+					}
+				
+					if solution != nil {
+							solution = Mix(solution,blackSample)
+					}else{
+							solution = MixNamed(PalettePlate.Type, "","Palette", blackSample)
+					}
+					
+				
+			}
+			
+			// top up colour to 4 x volumeforfullcolour with white to make the correct shade
+			
+			// calculate volume of white to add
+			whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentVols)
+			
+			// mix with white sample
+			White.Type = wtype.LTMegaMix
+			
+			whiteSample := mixer.Sample(White, whitevol)
+			
+					if solution != nil {
+							solution = Mix(solution,whiteSample)
+					}else if NotThisColour == "white"{
+							// skip
+					}else {
+							solution = MixNamed(PalettePlate.Type, "","Palette", whiteSample)
+					}
+			// change name of component
+			originalname := solution.CName
+			solution.CName = originalname + "_colour_"+strconv.Itoa(colourindex)
+			
+			// add solution to be exported later
+			solutions = append(solutions, solution)
+			colourtoComponentMap[strconv.Itoa(colourindex)] = solution.CName
+			
+			
+			
+			}
+		
+		}
+	}
+	
+	
+	Colours = solutions
+	Numberofcolours = len(chosencolourpalette)
+	Palette = chosencolourpalette
+	ColourtoComponentMap = colourtoComponentMap
+
+	var err error 
+	PaletteFile, err = export.JSON(Palette, "Palette.json")
+	
+	if err != nil {
+		Errorf("Error exporting palette to json")
+	}
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}

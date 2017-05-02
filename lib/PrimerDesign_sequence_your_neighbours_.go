@@ -3,19 +3,17 @@
 package lib
 
 import (
+	"context"
 	"fmt"
-	//"math"
-	//"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,7 +90,14 @@ func _PrimerDesign_sequence_your_neighboursSteps(_ctx context.Context, _input *P
 
 	for _, file := range files {
 		file = filepath.Join(dirname, file)
-		sequence, _ := parser.GenbanktoAnnotatedSeq(file)
+
+		data, err := ioutil.ReadFile(file)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
 
 		primer1, primer2 := oligos.MakeOutwardFacingPrimers(sequence, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, allprimerstrings, _input.PermittednucleotideOverlapBetweenPrimers)
 
@@ -180,7 +185,14 @@ func _PrimerDesign_sequence_your_neighboursValidation(_ctx context.Context, _inp
 
 	for _, file := range files {
 		file = filepath.Join(dirname, file)
-		sequence, _ := parser.GenbanktoAnnotatedSeq(file)
+
+		data, err := ioutil.ReadFile(file)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
 
 		for _, primer := range _output.AllPrimers {
 
@@ -301,7 +313,7 @@ func init() {
 		Constructor: PrimerDesign_sequence_your_neighboursNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will design outward facing primers for all .gb file sequences in a specified folder.\nDesign criteria such as maximum gc content, acceptable ranges of melting temperatures and primer length may be specified by the user.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesign_sequence_your_neighbours.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/PrimerDesign/PrimerDesignSequenceYourNeightbours/PrimerDesign_sequence_your_neighbours.an",
 			Params: []component.ParamDesc{
 				{Name: "Dirname", Desc: "files     []string = []string{\"STAR_0023_VECTOR_BBSI.gb\", \"STAR_0023_VECTOR_BBSI+Grp7+Grp14+Grp3.gb\"}\n\n= \"current\" // this will check for all .gb files in the folder you select here\n", Kind: "Parameters"},
 				{Name: "ExportToFile", Desc: "", Kind: "Parameters"},

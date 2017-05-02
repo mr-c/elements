@@ -2,11 +2,11 @@ Parameters:
   PipetteImage:
     AutoRotate: false
     CheckResizeAlgorithms: true
-    Imagefilename: apple.jpg
+    Imagefilename: bird.jpg
     Notthiscolour: white
     OnlythisColour: ""
-    OutPlate: greiner384_riser
-    Palettename: Palette1
+    OutPlate: nunc1536_riser20
+    Palettename: Neon
     Rotate: false
     Subset: false
     Subsetnames:
@@ -19,6 +19,8 @@ Parameters:
     - orange
     - red
     - pink
+    URL: https://www.petfinder.com/wp-content/uploads/2012/11/bird-average-bird-lifespans-thinkstock-155253666-632x457.jpg
     UVimage: false
     UseLiquidClass: water
+    UseURL: true
     VolumePerWell: 50ul
