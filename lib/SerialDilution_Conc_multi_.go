@@ -1,5 +1,6 @@
-// Protocol to make a serial dilution series targeting a series of specified concentrations from a solution of known Stock concentration and a diluent.
-// The next dilution in the series will always be made from the previous dilution and not from the original stock solution.
+// Protocol to make a series of serial dilution sets targeting a series of specified concentrations.
+// A series of input solutions are specified which must have the starting concentration specified, e.g. by NewLHComponents.
+// A common diluent will be used for all.
 package lib
 
 import (
@@ -74,11 +75,13 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 			execute.Errorf(_ctx, "No target concentrations specified for %s and no default specified", solution.CName)
 		}
 
+		var defaultConc = wunit.NewConcentration(100, "g/L")
 		var solConc wunit.Concentration
 		if solution.HasConcentration() {
 			solConc = solution.Concentration()
 		} else {
-			execute.Errorf(_ctx, "no concentration found for %s, please set this. ", solution.CName)
+			solConc = defaultConc
+			//Errorf("no concentration found for %s, please set this. ",solution.CName)
 		}
 
 		// run SerialDilution_ForConcentration element
@@ -196,7 +199,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "SerialDilution_Conc_multi",
 		Constructor: SerialDilution_Conc_multiNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol to make a serial dilution series targeting a series of specified concentrations from a solution of known Stock concentration and a diluent.\nThe next dilution in the series will always be made from the previous dilution and not from the original stock solution.\n",
+			Desc: "Protocol to make a series of serial dilution sets targeting a series of specified concentrations.\nA series of input solutions are specified which must have the starting concentration specified, e.g. by NewLHComponents.\nA common diluent will be used for all.\n",
 			Path: "src/github.com/antha-lang/elements/an/Utility/SerialDilution_Conc_multi/SerialDilution_Conc_multi.an",
 			Params: []component.ParamDesc{
 				{Name: "ByRow", Desc: "optionally choose whether to aliqout the serial dilutions by row instead of the default by column\n", Kind: "Parameters"},

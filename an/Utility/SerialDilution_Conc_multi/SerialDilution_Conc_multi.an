@@ -1,5 +1,6 @@
-// Protocol to make a serial dilution series targeting a series of specified concentrations from a solution of known Stock concentration and a diluent.
-// The next dilution in the series will always be made from the previous dilution and not from the original stock solution.
+// Protocol to make a series of serial dilution sets targeting a series of specified concentrations. 
+// A series of input solutions are specified which must have the starting concentration specified, e.g. by NewLHComponents.
+// A common diluent will be used for all.
 protocol SerialDilution_Conc_multi
 
 
@@ -88,12 +89,14 @@ Steps {
 		}else{
 			Errorf("No target concentrations specified for %s and no default specified",solution.CName)
 		}
-			
+		
+		var defaultConc = wunit.NewConcentration(100,"g/L")
 		var solConc Concentration
 		if solution.HasConcentration(){
 			solConc = solution.Concentration()
 		}else{
-			Errorf("no concentration found for %s, please set this. ",solution.CName)
+			solConc = defaultConc
+			//Errorf("no concentration found for %s, please set this. ",solution.CName)
 		}
 		
 		// run SerialDilution_ForConcentration element
