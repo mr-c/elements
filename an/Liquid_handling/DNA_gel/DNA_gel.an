@@ -5,6 +5,7 @@ protocol DNA_gel
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"fmt"
 
 )
 // Input parameters for this protocol (data)
@@ -85,12 +86,6 @@ Steps {
 	//begin counter at first well position as E-GEL must be run upside down
 	var counter int = len(wells)-1
 
-	//work out and copy sample volume
-	samplevolume := (wunit.CopyVolume(TotalVolumePerWell))
-
-	//work out volume of water required
-	samplevolume.Subtract(WaterVolume)
-
 	//assign water to specific liquid handling load type
 	Water.Type = wtype.LTloadwater
 
@@ -151,14 +146,14 @@ Steps {
 
 									// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
 									if OptimisePlateUsage ==true {
-												sample := Mix(mixer.Sample(sampletotest, samplevolume))
+												sample := Mix(mixer.Sample(sampletotest, SampleVolume))
 												DNAGelloadmixsolution = Mix(sample,
 																										mixer.Sample(LoadingDye,
 																										LoadingDyeVolume))
 									} else {
 												DNAGelloadmixsolution = MixInto(MixPlate,
 																												"",
-																												mixer.Sample(sampletotest,samplevolume),
+																												mixer.Sample(sampletotest,SampleVolume),
 																												mixer.Sample(LoadingDye,LoadingDyeVolume))
 																												}
 
@@ -173,15 +168,25 @@ Steps {
 							Errorf("Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", GelLoadingMixingPolicy, err.Error())
 						}
 
+						//get total volume per well including sample and loadingdye
+						sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{SampleVolume, LoadingDyeVolume})
+						fmt.Println(sampleAndLoadingDyeVolume)
+
 						//work out how much water to add
-						waterVolume := wunit.SubtractVolumes(TotalVolumePerWell,[]wunit.Volume{SampleVolume})
+						waterVolume := wunit.SubtractVolumes(TotalVolumePerWell,[]wunit.Volume{sampleAndLoadingDyeVolume})
+
+						if waterVolume.LessThan(wunit.NewVolume(0.0,"ul"))  {
+							Errorf("SampleVolume and LoadingDye total volume %s exceeds maximum capacity of the current output plate, pleas rectify", sampleAndLoadingDyeVolume)
+						}
 
 						//sample water at specified water volume
 						waterSample := mixer.Sample(Water,waterVolume)
 
 						//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
 						waterSample = MixInto(DNAGel,position,waterSample)
-						loadedSample = Mix(waterSample,mixer.Sample(DNAGelloadmix,samplevolume))
+
+						//transfer sample plus laoding dye to Gel
+						loadedSample = Mix(waterSample,mixer.Sample(DNAGelloadmix,sampleAndLoadingDyeVolume))
 
 						//add the loaded samples to the loadedSamples array
 						loadedSamples = append(loadedSamples,loadedSample)
