@@ -132,7 +132,10 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	dilutions = append(dilutions, aliquot)
 
 	// loop through NumberOfDilutions until all serial dilutions are made
-	for k := _input.WellsAlreadyUsed + 1; k < len(_input.TargetConcentrations); k++ {
+
+	var k int
+
+	for k = _input.WellsAlreadyUsed + 1; k < len(_input.TargetConcentrations); k++ {
 
 		// calculate new solution volume
 		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[k], _input.TargetConcentrations[k-1], _input.StartVolumeperDilution)
@@ -192,6 +195,8 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		_output.AllConcentrations = append(_output.AllConcentrations, _input.TargetConcentrations[i])
 
 	}
+
+	_output.WellsUsedPostRun = k
 
 }
 
@@ -270,12 +275,14 @@ type SerialDilution_forConcentrationOutput struct {
 	AllDilutions      []*wtype.LHComponent
 	ComponentNames    []string
 	Dilutions         []*wtype.LHComponent
+	WellsUsedPostRun  int
 }
 
 type SerialDilution_forConcentrationSOutput struct {
 	Data struct {
 		AllConcentrations []wunit.Concentration
 		ComponentNames    []string
+		WellsUsedPostRun  int
 	}
 	Outputs struct {
 		AllDilutions []*wtype.LHComponent
@@ -302,6 +309,7 @@ func init() {
 				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
 				{Name: "ComponentNames", Desc: "", Kind: "Data"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "WellsUsedPostRun", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
