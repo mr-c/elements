@@ -2,7 +2,6 @@
 // for parts with specified functions or a specified status (e.g. A = available or "Works", or results != none)
 // see the igem package ("github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem")
 // and igem website for more details about how to make the most of this http://parts.igem.org/Registry_API
-
 package lib
 
 import (
@@ -22,16 +21,34 @@ import (
 
 // Input parameters for this protocol (data)
 
-// e.g. rbs, reporter
+//    IGem Part Name classifications. Valid options are :
+//    "GENERIC":          "BBa_B"	Generic basic parts such as Terminators, DNA, and Ribosome Binding Site
+//    "PROTEINCODING":    "BBa_C"	Protein coding parts
+//    "REPORTER":         "BBa_E"	Reporter parts
+//    "SIGNALLING":       "BBa_F"	Signalling parts
+//    "PRIMER":           "BBa_G"	Primer parts
+//    "IAPPROJECT":       "BBa_I"	IAP 2003, 2004 project parts
+//    "IGEMPROJECT":      "BBa_J"	iGEM project parts
+//    "TAG":              "BBa_M"	Tag parts
+//    "PROTEINGENERATOR": "BBa_P"	Protein Generator parts
+//    "INVERTER":         "BBa_Q"	Inverter parts
+//    "REGULATORY":       "BBa_R"	Regulatory parts
+//    "INTERMEDIATE":     "BBa_S"	Intermediate parts
+//    "CELLSTRAIN":       "BBa_V"	Cell strain parts
+
 // e.g. strong, arsenic, fluorescent, alkane, logic gate
+
+// This should be set to true
+
+// only return parts marked as available in registry
+
+// only return parts marked as working in registry
 
 // Physical Inputs to this protocol with types
 
 // Physical outputs from this protocol with types
 
 // Data which is returned from this protocol, and data types
-
-//FulllistBackupParts []string
 
 // i.e. map[description]list of parts matching description
 // i.e. map[biobrickID]description
@@ -50,19 +67,16 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 
 	Parttypes := []string{_input.Parttype}
 
-	BackupParts := make([]string, 0)
-	_output.Partslist = make([]string, 0)
-	WorkingBackupParts := make([]string, 0)
+	var BackupParts []string
+	var WorkingBackupParts []string
 
 	// initialise some variables for use later
-	parts := make([][]string, 0)
+	var parts [][]string
 	OriginalPartMap := make(map[string][]string)
 	_output.PartMap = make(map[string][]string)
-	parttypemap := make(map[string]string)
 	_output.BiobrickDescriptions = make(map[string]string)
-	subparts := make([]string, 0)
 	var highestrating int
-
+	var parttypemap map[string]string
 	partstatus := ""
 
 	if _input.OnlyreturnAvailableParts {
@@ -72,7 +86,15 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 	// first we'll parse the igem registry based on the short description contained in the fasta header for each part sequence
 	for _, parttype := range Parttypes {
 
-		subparts, parttypemap = igem.FilterRegistry(parttype, []string{partstatus}, _input.ExactTypeOnly)
+		var subparts []string
+		var err error
+
+		subparts, parttypemap, err = igem.FilterRegistry(parttype, []string{partstatus}, _input.ExactTypeOnly)
+
+		if err != nil {
+			execute.Errorf(_ctx, "Error filtering igem registry: %s", err.Error())
+		}
+
 		parts = append(parts, subparts)
 		OriginalPartMap[parttype+"_"+partstatus] = subparts
 		_output.PartMap[parttype+"_"+partstatus] = subparts
@@ -94,8 +116,8 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 
 			for _, subpart := range subparts {
 
-				// check if key words are in description and that status == "WORKS if only working parts are desired
-				if _input.MatchAllDescriptions == false && strings.Contains(strings.ToUpper(partdetails.Description(subpart)), strings.ToUpper(_input.Partdescriptions[i])) &&
+				// check if key words are in description and that status == "WORKS" if only working parts are desired
+				if !_input.MatchAllDescriptions && strings.Contains(strings.ToUpper(partdetails.Description(subpart)), strings.ToUpper(_input.Partdescriptions[i])) &&
 					strings.Contains(strings.ToUpper(partdetails.Results(subpart)), strings.ToUpper(othercriteria)) {
 
 					if !search.InSlice(subpart, BackupParts) {
@@ -130,7 +152,7 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 						highestrating = rating
 					}
 				}
-				if _input.MatchAllDescriptions == false && strings.Contains(strings.ToUpper(partdetails.Description(subpart)), strings.ToUpper(_input.Partdescriptions[i])) &&
+				if !_input.MatchAllDescriptions && strings.Contains(strings.ToUpper(partdetails.Description(subpart)), strings.ToUpper(_input.Partdescriptions[i])) &&
 					strings.Contains(partdetails.Results(subpart), "WORKS") {
 					if !search.InSlice(subpart, WorkingBackupParts) {
 						WorkingBackupParts = append(WorkingBackupParts, subpart)
@@ -151,7 +173,7 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 					_output.PartMap[desc+"_"+partdesc] = BackupParts
 					_output.PartMap[desc+"_"+partdesc+"+WORKS"] = WorkingBackupParts
 
-				} else if _input.MatchAllDescriptions == false {
+				} else if !_input.MatchAllDescriptions {
 
 					_output.PartMap[desc+"_"+_input.Partdescriptions[i]] = BackupParts
 					_output.PartMap[desc+"_"+_input.Partdescriptions[i]+"+WORKS"] = WorkingBackupParts
@@ -170,7 +192,7 @@ func _FindIGemPartsThatSteps(_ctx context.Context, _input *FindIGemPartsThatInpu
 			BackupParts = make([]string, 0)
 			WorkingBackupParts = make([]string, 0)
 
-			i = i + 1
+			//i = i + 1
 			if _input.MatchAllDescriptions {
 				// don't need to loop through each description if we're matching all
 				continue
@@ -291,21 +313,21 @@ func init() {
 	if err := addComponent(component.Component{Name: "FindIGemPartsThat",
 		Constructor: FindIGemPartsThatNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "example protocol which allows a primitive method for searching the igem registry\nfor parts with specified functions or a specified status (e.g. A = available or \"Works\", or results != none)\nsee the igem package (\"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem\")\nand igem website for more details about how to make the most of this http://parts.igem.org/Registry_API\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/FindIGemPartsThat/FindIGemPartsThat.an",
 			Params: []component.ParamDesc{
-				{Name: "ExactTypeOnly", Desc: "", Kind: "Parameters"},
+				{Name: "ExactTypeOnly", Desc: "This should be set to true\n", Kind: "Parameters"},
 				{Name: "MatchAllDescriptions", Desc: "", Kind: "Parameters"},
-				{Name: "OnlyreturnAvailableParts", Desc: "", Kind: "Parameters"},
-				{Name: "OnlyreturnWorkingparts", Desc: "", Kind: "Parameters"},
+				{Name: "OnlyreturnAvailableParts", Desc: "only return parts marked as available in registry\n", Kind: "Parameters"},
+				{Name: "OnlyreturnWorkingparts", Desc: "only return parts marked as working in registry\n", Kind: "Parameters"},
 				{Name: "Partdescriptions", Desc: "e.g. strong, arsenic, fluorescent, alkane, logic gate\n", Kind: "Parameters"},
-				{Name: "Parttype", Desc: "e.g. rbs, reporter\n", Kind: "Parameters"},
+				{Name: "Parttype", Desc: "   IGem Part Name classifications. Valid options are :\n   \"GENERIC\":          \"BBa_B\"\tGeneric basic parts such as Terminators, DNA, and Ribosome Binding Site\n   \"PROTEINCODING\":    \"BBa_C\"\tProtein coding parts\n   \"REPORTER\":         \"BBa_E\"\tReporter parts\n   \"SIGNALLING\":       \"BBa_F\"\tSignalling parts\n   \"PRIMER\":           \"BBa_G\"\tPrimer parts\n   \"IAPPROJECT\":       \"BBa_I\"\tIAP 2003, 2004 project parts\n   \"IGEMPROJECT\":      \"BBa_J\"\tiGEM project parts\n   \"TAG\":              \"BBa_M\"\tTag parts\n   \"PROTEINGENERATOR\": \"BBa_P\"\tProtein Generator parts\n   \"INVERTER\":         \"BBa_Q\"\tInverter parts\n   \"REGULATORY\":       \"BBa_R\"\tRegulatory parts\n   \"INTERMEDIATE\":     \"BBa_S\"\tIntermediate parts\n   \"CELLSTRAIN\":       \"BBa_V\"\tCell strain parts\n", Kind: "Parameters"},
 				{Name: "BiobrickDescriptions", Desc: "i.e. map[biobrickID]description\n", Kind: "Data"},
 				{Name: "HighestRatedMatch", Desc: "", Kind: "Data"},
 				{Name: "HighestRatedMatchDNASequence", Desc: "", Kind: "Data"},
 				{Name: "HighestRatedMatchScore", Desc: "", Kind: "Data"},
 				{Name: "PartMap", Desc: "i.e. map[description]list of parts matching description\n", Kind: "Data"},
-				{Name: "Partslist", Desc: "FulllistBackupParts []string\n", Kind: "Data"},
+				{Name: "Partslist", Desc: "", Kind: "Data"},
 				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},

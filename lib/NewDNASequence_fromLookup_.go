@@ -1,10 +1,8 @@
 package lib
 
 import (
-	"fmt"
-	//"math"
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
@@ -14,7 +12,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"path/filepath"
 )
 
 // Input parameters for this protocol
@@ -44,9 +41,15 @@ func _NewDNASequence_fromLookupSteps(_ctx context.Context, _input *NewDNASequenc
 
 		if _input.DNAID {
 
-			filename := filepath.Join(anthapath.Path(), _input.ID+".gb")
+			_output.DNA, err = entrez.RetrieveSequence(_input.ID, "nucleotide")
 
-			_output.DNA, _, err = entrez.RetrieveSequence(_input.ID, "nucleotide", filename)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+
+			if err != nil {
+				execute.Errorf(_ctx, "Error retrieving sequence %s from entrez nucleotide database: %s", _input.ID, err.Error())
+			}
 
 		}
 	} else if _input.BiobrickID {

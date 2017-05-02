@@ -1,0 +1,15 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "Mix"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentA": "water",
+      "ComponentB": "dna"
+    }
+  },
+  "config": null
+}

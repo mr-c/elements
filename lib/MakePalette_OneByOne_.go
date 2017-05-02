@@ -2,11 +2,11 @@
 package lib
 
 import (
+	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -17,13 +17,15 @@ import (
 
 // Input parameters for this protocol (data)
 
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
+
 // Data which is returned from this protocol, and data types
 
 //Colournames []string
 
 // Physical Inputs to this protocol with types
-
-//InPlate *wtype.LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -39,6 +41,14 @@ func _MakePalette_OneByOneSetup(_ctx context.Context, _input *MakePalette_OneByO
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByOneInput, _output *MakePalette_OneByOneOutput) {
+
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
 
 	if _input.PosterizeImage {
 		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
@@ -69,7 +79,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 			var maxuint8 uint8 = 255
 
-			if cmyk.C == 0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+			if cmyk.C <= _input.LowerThreshold && cmyk.Y <= _input.LowerThreshold && cmyk.M <= _input.LowerThreshold && cmyk.K <= _input.LowerThreshold {
 
 				continue
 
@@ -77,7 +87,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 				counter = counter + 1
 
-				if cmyk.C > 0 {
+				if cmyk.C > _input.LowerThreshold {
 
 					cyanvol := wunit.NewVolume(((float64(cmyk.C) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -85,60 +95,69 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 						cyanvol.SetValue(0.5)
 					}
 
-					_input.Cyan.Type = wtype.LTDISPENSEABOVE
-
 					cyanSample := mixer.Sample(_input.Cyan, cyanvol)
 					components = append(components, cyanSample)
 				}
 
-				if cmyk.Y > 0 {
+				if cmyk.Y > _input.LowerThreshold {
 					yellowvol := wunit.NewVolume(((float64(cmyk.Y) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul" {
 						yellowvol.SetValue(0.5)
 					}
 
-					if cmyk.K == 0 && cmyk.M == 0 {
-						_input.Yellow.Type = wtype.LTPostMix
-					} else {
-						_input.Yellow.Type = wtype.LTDISPENSEABOVE
-					}
-
 					yellowSample := mixer.Sample(_input.Yellow, yellowvol)
 					components = append(components, yellowSample)
 				}
 
-				if cmyk.M > 0 {
+				if cmyk.M > _input.LowerThreshold {
 					magentavol := wunit.NewVolume(((float64(cmyk.M) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul" {
 						magentavol.SetValue(0.5)
 					}
 
-					if cmyk.K == 0 {
-						_input.Magenta.Type = wtype.LTPostMix
-					} else {
-						_input.Magenta.Type = wtype.LTDISPENSEABOVE
-					}
-
 					magentaSample := mixer.Sample(_input.Magenta, magentavol)
 					components = append(components, magentaSample)
 				}
 
-				if cmyk.K > 0 {
+				if cmyk.K > _input.LowerThreshold {
+
 					blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul" {
 						blackvol.SetValue(0.5)
 					}
 
-					_input.Black.Type = wtype.LTPostMix
-
 					blackSample := mixer.Sample(_input.Black, blackvol)
 					components = append(components, blackSample)
 				}
 
+				// top up colour to 4 x volumeforfullcolour with white to make the correct shade
+
+				// get all component volumes
+				// and change liquid types
+				var componentvols []wunit.Volume
+				for _, component := range components {
+					componentvols = append(componentvols, component.Volume())
+					component.Type = wtype.LTDoNotMix
+				}
+				// calculate volume of white to add
+				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4), componentvols)
+
+				// mix with white sample
+				_input.White.Type = wtype.LTPostMix
+
+				whiteSample := mixer.Sample(_input.White, whitevol)
+				components = append(components, whiteSample)
+
 				solution := execute.MixInto(_ctx, _input.PalettePlate, "", components...)
+
+				// change name of component
+				originalname := solution.CName
+				solution.CName = originalname + "_colour_" + strconv.Itoa(colourindex)
+
+				// add solution to be exported later
 				solutions = append(solutions, solution)
 				colourtoComponentMap[strconv.Itoa(colourindex)] = solution
 
@@ -218,13 +237,17 @@ type MakePalette_OneByOneInput struct {
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
 	Imagefilename       string
+	LowerThreshold      uint8
 	Magenta             *wtype.LHComponent
 	OutPlate            *wtype.LHPlate
 	PalettePlate        *wtype.LHPlate
 	PosterizeImage      bool
 	PosterizeLevels     int
 	Rotate              bool
+	URL                 string
+	UseURL              bool
 	VolumeForFullcolour wunit.Volume
+	White               *wtype.LHComponent
 	Yellow              *wtype.LHComponent
 }
 
@@ -256,14 +279,18 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
-				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
+				{Name: "White", Desc: "", Kind: "Inputs"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},

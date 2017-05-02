@@ -7,16 +7,35 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
+	"github.com/antha-lang/antha/antha/anthalib/wutil"
+	
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
+	
+	// This specifies the multiplier of each of the Volumes for each component to add
+	// e.g. if "glucose" vol is "1ul" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix
 	Reactionspermastermix int
+	
+	// Specify volumes per component in same order of components.
+ 	// The actual volume added will be multiplied by the number of Reactionspermastermix
 	ComponentVolumesperReaction []Volume
+	
+	// List of names of components to be added
+	// These will be used to look up components by name in the factory. 
+	// If not found in the factory, new components will be created using dna_mix as a template
+ 	// If empty, the the ComponentIn will be returned as an output
 	Components []string
+	
+	// If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.
 	CheckPartsInInventory bool
-)
+	
+	// If set to true the mix will be prepared on the next available position on the input plate
+	// Otherwise the mastermix will be added to OutPlate
+	OptimisePlateUsage bool
+	)
 
 // Data which is returned from this protocol, and data types
 Data (
@@ -26,7 +45,7 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-
+	// if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.
 	OutPlate *wtype.LHPlate
 )
 
@@ -47,6 +66,23 @@ Setup {
 // for every input
 Steps {
 	
+	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * 1.2
+	
+	roundedReactions, err := wutil.RoundDown(extraReactions)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
+	roundedUpReactions := roundedReactions + 1
+	
+	if roundedUpReactions <= Reactionspermastermix  {
+		Reactionspermastermix = Reactionspermastermix + 1
+	}else {
+		Reactionspermastermix = roundedUpReactions
+	}
+	
 	
 	var mastermix *wtype.LHComponent
 	
@@ -64,7 +100,9 @@ Steps {
 				lhComponents = append(lhComponents,factory.GetComponentByType(component))
 			}else {
 				// if component not in factory use dna as default component type
-				defaultcomponent := factory.GetComponentByType("dna")
+				defaultcomponent := factory.GetComponentByType("dna_part")
+				defaultcomponent.Type = wtype.LTDNAMIX
+
 				defaultcomponent.CName = component
 				lhComponents = append(lhComponents,defaultcomponent)
 			}
@@ -80,7 +118,7 @@ Steps {
 		lhComponents[0] = Handle(setup.PlatePrep(lhComponents[0]))
 
 		// a setup step
-    	lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
+    		lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
 		}
 		
 		// now make mastermix
@@ -89,6 +127,7 @@ Steps {
 		
 		
 		for k, component := range lhComponents { 	
+			
 			if k == len(lhComponents)-1{
 				component.Type = wtype.LTPostMix 
 			}
@@ -102,7 +141,11 @@ Steps {
 		
 		
 		}
-	mastermix = MixInto(OutPlate, "",  eachmastermix...)
+	if OptimisePlateUsage {
+		mastermix = Mix(eachmastermix...)
+	}else {
+		mastermix = MixInto(OutPlate, "",  eachmastermix...)
+	}
 	
 	Mastermix = mastermix
 	PlateWithMastermix = OutPlate

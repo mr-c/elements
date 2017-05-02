@@ -2,13 +2,12 @@
 package lib
 
 import (
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"context"
-	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -19,23 +18,13 @@ import (
 
 // Input parameters for this protocol (data)
 
-//InoculationVolume Volume
-/*AntibioticVolume Volume
-InducerVolume Volume
-RepressorVolume Volume*/
-
-//IncTemp Temperature
-//IncTime Time
+// name of image file or if using URL use this field to set the desired filename
+// select this if getting the image from a URL
+// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
-
-//InPlate *wtype.LHPlate
-//Media *wtype.LHComponent
-/*Antibiotic *wtype.LHComponent
-Inducer *wtype.LHComponent
-Repressor *wtype.LHComponent*/
 
 // Physical outputs from this protocol with types
 
@@ -51,6 +40,14 @@ func _PipetteImage_livingSetup(_ctx context.Context, _input *PipetteImage_living
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_livingInput, _output *PipetteImage_livingOutput) {
+
+	// if image is from url, download
+	if _input.UseURL {
+		err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
 
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
@@ -105,7 +102,6 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 		componentmap[componentname] = componenttopick
 
 	}
-	//	fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -115,18 +111,14 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
 
-		//components := make([]*wtype.LHComponent, 0)
-
 		component := componentmap[colourtostringmap[colour]]
 
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type, err = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
-
-		//	fmt.Println(image.Colourcomponentmap[colour])
 
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if _input.OnlythisColour != "" {
@@ -136,17 +128,8 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
 				counter = counter + 1
-				//		fmt.Println("wells",OnlythisColour, counter)
-				//mediaSample := mixer.SampleForTotalVolume(Media, VolumePerWell)
-				//components = append(components,mediaSample)
-				/*antibioticSample := mixer.Sample(Antibiotic, AntibioticVolume)
-				components = append(components,antibioticSample)
-				repressorSample := mixer.Sample(Repressor, RepressorVolume)
-				components = append(components,repressorSample)
-				inducerSample := mixer.Sample(Inducer, InducerVolume)
-				components = append(components,inducerSample)*/
+
 				pixelSample := mixer.Sample(component, _input.VolumePerWell)
-				//components = append(components,pixelSample)
 				solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
 
 				solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
@@ -158,24 +141,15 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
 				counter = counter + 1
-				//		fmt.Println("wells not ",Notthiscolour,counter)
-				//mediaSample := mixer.SampleForTotalVolume(Media, VolumePerWell)
-				//components = append(components,mediaSample)
-				/*antibioticSample := mixer.Sample(Antibiotic, AntibioticVolume)
-				components = append(components,antibioticSample)
-				repressorSample := mixer.Sample(Repressor, RepressorVolume)
-				components = append(components,repressorSample)
-				inducerSample := mixer.Sample(Inducer, InducerVolume)
-				components = append(components,inducerSample)*/
 
-				component.Type, err = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
+				component.Type, err = wtype.LiquidTypeFromString(_input.UseLiquidClass)
 
 				if err != nil {
 					panic(err.Error())
 				}
 
 				pixelSample := mixer.Sample(component, _input.VolumePerWell)
-				//components = append(components,pixelSample)
+
 				solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
 
 				solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
@@ -184,12 +158,10 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 	}
 
 	_output.UniqueComponents = search.RemoveDuplicates(_output.UniqueComponents)
-	fmt.Println("Unique Components:", _output.UniqueComponents)
-	fmt.Println("number of unique components", len(_output.UniqueComponents))
+
 	_output.Pixels = solutions
 
 	_output.Numberofpixels = len(_output.Pixels)
-	fmt.Println("Pixels =", _output.Numberofpixels)
 
 }
 
@@ -263,8 +235,10 @@ type PipetteImage_livingInput struct {
 	Rotate         bool
 	Subset         bool
 	Subsetnames    []string
+	URL            string
 	UVimage        bool
 	UseLiquidClass string
+	UseURL         bool
 	VolumePerWell  wunit.Volume
 }
 
@@ -292,8 +266,8 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteLivingimage.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *wtype.LHComponent\nAntibiotic *wtype.LHComponent\n\tInducer *wtype.LHComponent\n\tRepressor *wtype.LHComponent\n", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n", Kind: "Parameters"},
+				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -301,8 +275,10 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},

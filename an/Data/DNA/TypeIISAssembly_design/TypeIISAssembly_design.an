@@ -46,6 +46,8 @@ Data (
 	NewDNASequence wtype.DNASequence
 	Sitesfound []enzymes.Restrictionsites
 	BackupParts []string
+	PartsToOrder File
+	IndividualPartFiles []File
 )
 // Input Requirement specification
 Requirements {
@@ -111,7 +113,12 @@ Steps {
 	// or Look up parts from registry according to properties (this will take a couple of minutes the first time)
 	exacttypeonly := true
 	
-	subparts,_ := igem.FilterRegistry("REPORTER",[]string{"Fluorescent", "A "},exacttypeonly)
+	subparts,_, err := igem.FilterRegistry("REPORTER",[]string{"Fluorescent", "A "},exacttypeonly)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+	
 	partdetails := igem.LookUp(subparts)
 	//fmt.Println(partdetails)
 	
@@ -190,15 +197,21 @@ Steps {
 	
 	// Export sequences to order into a fasta file
 	
-	partswithOverhangs := make([]*wtype.DNASequence,0)
+	partswithOverhangs := make([]wtype.DNASequence,0)
 	for _, part := range PartswithOverhangs{
-		export.ExportFasta(Constructname,&part)
-		partswithOverhangs=append(partswithOverhangs,&part)
+		partFile,_, err := export.Fasta(Constructname,&part)
+		if err != nil{
+			Errorf(err.Error())
+		}
+		IndividualPartFiles = append(IndividualPartFiles, partFile)
+		partswithOverhangs=append(partswithOverhangs,part)
 		
 		
 	}
-	export.Makefastaserial(Constructname,partswithOverhangs)
-	
+	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,Constructname,partswithOverhangs)
+	if err != nil {
+		Errorf(err.Error())
+	}
 	//partstoorder := ansi.Color(fmt.Sprintln("PartswithOverhangs", PartswithOverhangs),"red")
 	partstoorder := fmt.Sprintln("PartswithOverhangs", PartswithOverhangs)
 	

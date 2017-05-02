@@ -10,7 +10,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	Filename string
+	SequenceFile File
 	Gene_name string
 	Plasmid bool
 	Linear bool
@@ -48,13 +48,16 @@ Steps {
 	
 	
 	
-	seqs, err := parser.DNAFiletoDNASequence(Filename, Plasmid) 
-	
+	seqs, err := parser.DNAFileToDNASequence(SequenceFile) 
+	if err != nil {
+		Errorf(err.Error())
+	}
 	if len(seqs) == 1 && err == nil {
 		
 	DNA = seqs[0]
 	
 	DNA.Nm = Gene_name
+	DNA.Plasmid = Plasmid
 	
 	} 
 			

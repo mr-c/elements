@@ -13,6 +13,7 @@
 package lib
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
@@ -37,9 +38,10 @@ import (
 
 // Input parameters for this protocol (data)
 
-// plate reader results file, currently only mars files are valid
+// input file containing the Plate reader results exported from Mars
+// Design file for the executed experiment containing the corresponding plate and well locations
+
 // i.e. the sheet position in the plate reader results excel file; starting from 0
-// i.e. the design file of the original liquid handling
 // current supported formats are "JMP" and "DX"
 // set the desired name for the output file, if this is blank it will append the design file name with _output
 
@@ -84,7 +86,7 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 	if _input.OutputFilename == "" {
 
-		_, filename := filepath.Split(_input.DesignFile)
+		_, filename := filepath.Split(_input.DesignFile.Name)
 
 		_input.OutputFilename = strings.Split(filename, ".")[0] + "_output" + fmt.Sprint(time.Now().Format("20060102150405")) + ".xlsx"
 	}
@@ -99,10 +101,15 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 	Molecularweight := molecule.MolecularWeight
 
-	var marsdata parser.MarsData
+	data, err := _input.MarsResultsFileXLSX.ReadAll()
 
-	marsdata, err = parser.ParseMarsXLSXOutput(_input.MarsResultsFileXLSX, _input.Sheet)
 	if err != nil {
+		execute.Errorf(_ctx, "Error reading Mars file %s", err.Error())
+	}
+
+	marsdata, err := parser.ParseMarsXLSXBinary(data, _input.SheetNumber)
+	if err != nil {
+		_output.Errors = append(_output.Errors, err.Error())
 		execute.Errorf(_ctx, err.Error())
 	}
 
@@ -121,18 +128,23 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 		}
 	}
 
+	designFileData, err := _input.DesignFile.ReadAll()
+
+	if err != nil {
+		execute.Errorf(_ctx, "Error reading Design file %s", err.Error())
+	}
+
 	if _input.DesignFiletype == "DX" {
-		runs, err = doe.RunsFromDXDesign(_input.DesignFile, intfactors)
+		runs, err = doe.RunsFromDXDesignContents(designFileData, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	} else if _input.DesignFiletype == "JMP" {
-		runs, err = doe.RunsFromJMPDesign(_input.DesignFile, []int{}, []int{}, intfactors)
+		runs, err = doe.RunsFromJMPDesignContents(designFileData, []int{}, []int{}, intfactors)
 		if err != nil {
 			panic(err)
 		}
 	}
-
 	_output.BlankValues = make([]float64, 0)
 
 	for i := range _input.Blanks {
@@ -296,10 +308,6 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 		correctnessFactorValues = append(correctnessFactorValues, correctnessfactor)
 
-		//xvalues = append(xvalues, expectedconc.SIValue())
-		//yvalues = append(yvalues, actualconc.SIValue())
-		//actualconcreplicates = append(actualconcreplicates, actualconc.SIValue())
-
 		// add comparison to manually pipetted wells
 		if _, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
 			manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
@@ -320,41 +328,22 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 		}
 
-		// process replicates into mean and cv
-		//mean := stats.Mean(actualconcreplicates)
-		//stdev := stats.StdDevS(actualconcreplicates)
-
-		//cv := stdev / mean
-
-		//run = doe.AddNewResponseFieldandValue(run, response+"_Average_ActualConc", mean)
-		//run = doe.AddNewResponseFieldandValue(run, response+"_CV_ActualConc", cv)
-
-		// average of correctness factor values
-		//meanCF := stats.Mean(correctnessFactorValues)
-		//run = doe.AddNewResponseFieldandValue(run, response+"_Average_CorrectnessFactor", meanCF)
-
-		/*	if ManualComparison {
-
-			meanManCF := stats.Mean(manualCorrectnessFactorValues)
-			run = doe.AddNewResponseFieldandValue(run, response+"_Average_ManualCorrectnessFactor", meanManCF)
-			}
-		*/
-
 		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-
-		//rsquared := plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
-		//run.AddResponseValue("R2", rsquared)
-
-		//xygraph := plot.Plot(xvalues, [][]float64{yvalues})
-		//filenameandextension := strings.Split(OutputFilename, ".")
-		//plot.Export(xygraph, filenameandextension[0]+".png")
 
 		runswithresponses = append(runswithresponses, run)
 	}
 
-	doe.XLSXFileFromRuns(runswithresponses, _input.OutputFilename, _input.DesignFiletype)
+	xlsxfile := doe.XLSXFileFromRuns(runswithresponses, _input.OutputFilename, _input.DesignFiletype)
 
 	_output.Runs = runswithresponses
+
+	var buffer bytes.Buffer
+
+	xlsxfile.Write(&buffer)
+
+	_output.OutPutDesignFile.Name = _input.OutputFilename
+
+	_output.OutPutDesignFile.WriteAll(buffer.Bytes())
 
 }
 
@@ -424,10 +413,16 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 
 	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
 
-	xygraph.Title.Text = "Expected vs Measured Concentration"
+	xygraph.Title.Text = _input.Molecule.CName + ": Expected vs Measured Concentration"
 
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
-	plot.Export(xygraph, "10cm", "10cm", filenameandextension[0]+"_plot"+".png")
+
+	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "20cm", "20cm", filenameandextension[0]+"_plot"+".png")
+
+	if err != nil {
+		_output.Errors = append(_output.Errors, err.Error())
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// reset
 	xvalues = make([]float64, 0)
@@ -484,7 +479,17 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 		_output.Errors = append(_output.Errors, err.Error())
 	}
 
-	plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_correctnessfactor"+".png")
+	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+
+	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Target Concentration"
+
+	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm", "20cm", filenameandextension[0]+"_correctnessfactor"+".png")
+
+	if err != nil {
+		_output.Errors = append(_output.Errors, err.Error())
+		execute.Errorf(_ctx, err.Error())
+
+	}
 
 	// reset
 	xvalues = make([]float64, 0)
@@ -775,8 +780,6 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 
 	}
 
-	fmt.Println("VOlumetoCorrectnessmap", _output.VolumeToCorrectnessFactor)
-
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
@@ -861,20 +864,20 @@ type AddPlateReaderresults_2Element struct {
 type AddPlateReaderresults_2Input struct {
 	Blanks                     []string
 	CVthreshold                float64
-	DesignFile                 string
+	DesignFile                 wtype.File
 	DesignFiletype             string
 	Diluent                    *wtype.LHComponent
 	Extinctioncoefficient      float64
 	FindOptWavelength          bool
 	ManualComparison           bool
-	MarsResultsFileXLSX        string
+	MarsResultsFileXLSX        wtype.File
 	Molecule                   *wtype.LHComponent
 	OutputFilename             string
 	PlateType                  *wtype.LHPlate
 	R2threshold                float64
 	ReadingTypeinMarsFile      string
 	Responsecolumntofill       string
-	Sheet                      int
+	SheetNumber                int
 	StockEqualsTotalVolPerWell bool
 	StockconcinMperL           wunit.Concentration
 	Stockvol                   wunit.Volume
@@ -884,12 +887,15 @@ type AddPlateReaderresults_2Input struct {
 }
 
 type AddPlateReaderresults_2Output struct {
+	ActualVsExpectedPlot      wtype.File
 	BlankValues               []float64
 	CV                        float64
 	CVpass                    bool
+	CorrectnessFactorPlot     wtype.File
 	Errors                    []string
 	Formula                   string
 	MeasuredOptimalWavelength int
+	OutPutDesignFile          wtype.File
 	R2                        float64
 	R2Pass                    bool
 	R2_CorrectnessFactor      float64
@@ -902,12 +908,15 @@ type AddPlateReaderresults_2Output struct {
 
 type AddPlateReaderresults_2SOutput struct {
 	Data struct {
+		ActualVsExpectedPlot      wtype.File
 		BlankValues               []float64
 		CV                        float64
 		CVpass                    bool
+		CorrectnessFactorPlot     wtype.File
 		Errors                    []string
 		Formula                   string
 		MeasuredOptimalWavelength int
+		OutPutDesignFile          wtype.File
 		R2                        float64
 		R2Pass                    bool
 		R2_CorrectnessFactor      float64
@@ -926,36 +935,39 @@ func init() {
 		Constructor: AddPlateReaderresults_2New,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to parse plate reader results and match up with a plate set up by the accuracy test.\nSome processing is carried out to:\nA: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)\nB: Plot volume by correctness factor (Actual conc / Expected conc)\nC: Plot Actual conc vs correctness factor\nD: Plot run order vs correctness factor\nE: Calculate R2\nF: Calculate Coefficent of variance for each pipetting volume\nG: Validate results against success thresholds for R2 and %CV\nAdditional optional features will return\n(1) the wavelength with optimal signal to noise for an aborbance spectrum\n(2) Comparision with manual pipetting steps\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AddPlateReaderResults_2.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults_2.an",
 			Params: []component.ParamDesc{
 				{Name: "Blanks", Desc: "/ wells of the blank sample locations on the plate\n", Kind: "Parameters"},
 				{Name: "CVthreshold", Desc: "set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
-				{Name: "DesignFile", Desc: "i.e. the design file of the original liquid handling\n", Kind: "Parameters"},
+				{Name: "DesignFile", Desc: "Design file for the executed experiment containing the corresponding plate and well locations\n", Kind: "Parameters"},
 				{Name: "DesignFiletype", Desc: "current supported formats are \"JMP\" and \"DX\"\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Extinctioncoefficient", Desc: "extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm\n", Kind: "Parameters"},
 				{Name: "FindOptWavelength", Desc: "whether the scan should be used to return the wavelength with maximum signal to noise found\n", Kind: "Parameters"},
 				{Name: "ManualComparison", Desc: " Option to compare to manual pipetting\n", Kind: "Parameters"},
-				{Name: "MarsResultsFileXLSX", Desc: "plate reader results file, currently only mars files are valid\n", Kind: "Parameters"},
+				{Name: "MarsResultsFileXLSX", Desc: "input file containing the Plate reader results exported from Mars\n", Kind: "Parameters"},
 				{Name: "Molecule", Desc: "", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
 				{Name: "R2threshold", Desc: "validation requirements\n\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},
 				{Name: "Responsecolumntofill", Desc: "name your response\n", Kind: "Parameters"},
-				{Name: "Sheet", Desc: "i.e. the sheet position in the plate reader results excel file; starting from 0\n", Kind: "Parameters"},
+				{Name: "SheetNumber", Desc: "i.e. the sheet position in the plate reader results excel file; starting from 0\n", Kind: "Parameters"},
 				{Name: "StockEqualsTotalVolPerWell", Desc: "if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to\n", Kind: "Parameters"},
 				{Name: "StockconcinMperL", Desc: "= 0.0002878191305957933\n", Kind: "Parameters"},
 				{Name: "Stockvol", Desc: "volume of diluent per well\n", Kind: "Parameters"},
 				{Name: "VolumeToManualwells", Desc: "if comparing to manual pipetting set the wells to use for each concentration here\n", Kind: "Parameters"},
 				{Name: "Wavelength", Desc: " Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest\n", Kind: "Parameters"},
 				{Name: "WellForScanAnalysis", Desc: "well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false\n", Kind: "Parameters"},
+				{Name: "ActualVsExpectedPlot", Desc: "", Kind: "Data"},
 				{Name: "BlankValues", Desc: "", Kind: "Data"},
 				{Name: "CV", Desc: "", Kind: "Data"},
 				{Name: "CVpass", Desc: "", Kind: "Data"},
+				{Name: "CorrectnessFactorPlot", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "Formula", Desc: "", Kind: "Data"},
 				{Name: "MeasuredOptimalWavelength", Desc: "", Kind: "Data"},
+				{Name: "OutPutDesignFile", Desc: "", Kind: "Data"},
 				{Name: "R2", Desc: "", Kind: "Data"},
 				{Name: "R2Pass", Desc: "", Kind: "Data"},
 				{Name: "R2_CorrectnessFactor", Desc: "", Kind: "Data"},

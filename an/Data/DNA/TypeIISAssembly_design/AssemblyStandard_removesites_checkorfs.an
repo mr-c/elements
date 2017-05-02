@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
@@ -61,7 +60,8 @@ Data (
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
-	
+	AssembledSequenceFile File
+	PartsToOrderFile File
 )
 // Input Requirement specification
 Requirements {
@@ -91,22 +91,7 @@ Steps {
 	Status = "all parts available"
 	for i, part := range Seqsinorder {
 		// check if genbank feature
-		if strings.Contains(part, ".gb") && strings.Contains(part, "Feature:") {
-
-			split := strings.SplitAfter(part, ".gb")
-			file := split[0]
-
-			split2 := strings.Split(split[1], ":")
-			feature := split2[1]
-
-			partDNA, _ = parser.GenbankFeaturetoDNASequence(file, feature)
-			
-			// check if genbank file
-		} else if strings.Contains(part, ".gb") {
-
-			partDNA, _ = parser.GenbanktoAnnotatedSeq(part)
-			//check if biobrick
-		} else if strings.Contains(part, "BBa_") {
+		if strings.Contains(part, "BBa_") {
 				nm := "Part "+strconv.Itoa(i)+"_"+part
 				part = igem.GetSequence(part)
 			
@@ -241,10 +226,6 @@ Steps {
 	// make vector into an antha type DNASequence
 	if inventorydata, found := inventory.Partslist()[Vector]; found{
 		vectordata = inventorydata
-		}else if strings.Contains(Vector, ".gb") {
-	
-			vectordata, _ = parser.GenbanktoFeaturelessDNASequence(Vector)
-			vectordata.Plasmid = true
 		}else {
 		vectornm := "Vector"
 		if strings.Contains(Vector, "BBa_")||strings.Contains(Vector, "pSB") {
@@ -369,10 +350,6 @@ Steps {
 		text.Print("Any Orfs to confirm missing from new DNA sequence:", ORFmissing),
 		partstoorder,
 		)
-		// export data to file
-		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-	//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-	fmt.Println(Status)
 	}
 	
 	// export sequence to fasta
@@ -382,15 +359,20 @@ Steps {
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
 		// export to file
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
-		
+		AssembledSequenceFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"AssemblyProduct"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 		// reset 
 		exportedsequences = make([]wtype.DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
 		}
-		export.Makefastaserial2(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		PartsToOrderFile,_, err = export.FastaSerial(export.LOCAL,filepath.Join(Constructname,"Parts"), exportedsequences)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
 	
 	

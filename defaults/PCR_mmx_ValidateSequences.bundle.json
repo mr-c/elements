@@ -1,0 +1,51 @@
+{
+  "Parameters": {
+    "PCR": {
+      "AnnealingTempOffset": "3C",
+      "AnnealingTime": "10s",
+      "DenaturationTime": "5s",
+      "FinalExtensionTime": "600s",
+      "FwdPrimer": "PrimerFw",
+      "FwdPrimerSeq": {
+        "jm": "fwdprimer1",
+        "seq": "TACGGAGATGGGATGAGATCACTTATACT"
+      },
+      "FwdPrimerVol": "1ul",
+      "InitDenaturationTime": "30s",
+      "MasterMix": "dna_part",
+      "MasterMixVolume": "10ul",
+      "NumberOfCycles": 1,
+      "OptionalWellPosition": "",
+      "OutPlate": "pcrplate_skirted_riser20",
+      "PCRPolymerase": "Q5Polymerase",
+      "PolymeraseAlreadyaddedtoMastermix": false,
+      "PolymeraseVolume": "1ul",
+      "PrimersalreadyAddedtoMasterMix": false,
+      "ReactionName": "GFP amplification",
+      "RevPrimer": "PrimerRev",
+      "RevPrimerSeq": {
+        "jm": "revprimer1",
+        "seq": "AGTCCGCGTGTGTCCGTCGACGTACAA"
+      },
+      "RevPrimerVol": "1ul",
+      "Template": "dna_part",
+      "TemplateSequence": {
+        "jm": "template",
+        "seq": "GCTCTTCATAGTATGGGGAAAACCTTTTAACTCCATGATAGGGGCATTACGGAGATGGGATGAGATCACTTATACTCGTGTAATAGTAAGTTCCCGCAGTCCCTCTAACTCACAGCGGTTGTACGTCGACGGACACACGCGGACTGAAGAGC"
+      },
+      "Templatevolume": "2ul"
+    }
+  },
+  "connections": [],
+  "processes": {
+    "PCR": {
+      "component": "PCR_mmx_ValidateSequences"
+    }
+  },
+  "tags": [
+    "starter",
+    "dna",
+    "pcr",
+    "molecular biology"
+  ]
+}
