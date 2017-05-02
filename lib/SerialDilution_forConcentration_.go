@@ -10,54 +10,8 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"strconv"
 	"strings"
 )
-
-func parseConcentration(componentname string) (containsconc bool, conc wunit.Concentration, componentNameOnly string) {
-
-	approvedunits := wunit.UnitMap["Concentration"]
-
-	fields := strings.Fields(componentname)
-	var unitmatchlength int
-	var longestmatchedunit string
-	var valueandunit string
-
-	for key := range approvedunits {
-		for _, field := range fields {
-			if strings.Contains(field, key) {
-				if len(key) > unitmatchlength {
-					longestmatchedunit = key
-					unitmatchlength = len(key)
-					valueandunit = field
-				}
-			}
-		}
-	}
-
-	for _, field := range fields {
-		if len(fields) == 2 && field != longestmatchedunit {
-			componentNameOnly = field
-		}
-	}
-
-	// if no match, return original component name
-	if unitmatchlength == 0 {
-		return false, conc, componentname
-	}
-
-	concfields := strings.Split(valueandunit, longestmatchedunit)
-
-	value, err := strconv.ParseFloat(concfields[0], 64)
-	if err != nil {
-		panic(err.Error())
-		return false, conc, componentNameOnly
-	}
-
-	conc = wunit.NewConcentration(value, longestmatchedunit)
-	containsconc = true
-	return containsconc, conc, componentNameOnly
-}
 
 // Input parameters for this protocol (data)
 
@@ -120,7 +74,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	var solutionname string
 
 	// rename sample to include concentration
-	containsconc, _, componentNameOnly := parseConcentration(_input.Solution.CName)
+	containsconc, _, componentNameOnly := wunit.ParseConcentration(_input.Solution.CName)
 
 	if containsconc {
 		solutionname = componentNameOnly
@@ -166,7 +120,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 		// rename sample to include concentration
 		// rename sample to include concentration
-		containsconc, _, componentNameOnly := parseConcentration(_input.Solution.CName)
+		containsconc, _, componentNameOnly := wunit.ParseConcentration(_input.Solution.CName)
 
 		if containsconc {
 			solutionname = componentNameOnly
