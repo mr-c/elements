@@ -26,6 +26,9 @@ import (
 
 // Physical outputs from this protocol with types
 
+// dilutions only
+// original solution + dilutions
+
 func _SerialDilution_forConcentrationRequirements() {
 
 }
@@ -40,6 +43,8 @@ func _SerialDilution_forConcentrationSetup(_ctx context.Context, _input *SerialD
 func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialDilution_forConcentrationInput, _output *SerialDilution_forConcentrationOutput) {
 
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
+
+	var counter int = _input.WellsAlreadyUsed
 
 	dilutions := make([]*wtype.LHComponent, 0)
 
@@ -69,7 +74,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
 	// mix both samples to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[_input.WellsAlreadyUsed], "DilutionPlate", diluentSample, solutionSample)
+	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
 
 	var solutionname string
 
@@ -87,12 +92,12 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	// loop through NumberOfDilutions until all serial dilutions are made
 
-	var k int
+	counter++
 
-	for k = _input.WellsAlreadyUsed + 1; k < len(_input.TargetConcentrations); k++ {
+	for counter < len(_input.TargetConcentrations) {
 
 		// calculate new solution volume
-		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[k], _input.TargetConcentrations[k-1], _input.StartVolumeperDilution)
+		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[counter], _input.TargetConcentrations[counter-1], _input.StartVolumeperDilution)
 
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -107,7 +112,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		// take next sample of diluent
 		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 
-		nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[k], "DilutionPlate", nextdiluentSample)
+		nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
 
 		// Ensure liquid type set to Pre and Post Mix
 		aliquot.Type = wtype.LTNeedToMix
@@ -125,12 +130,14 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		if containsconc {
 			solutionname = componentNameOnly
 		}
-		nextaliquot.CName = strings.Replace(_input.TargetConcentrations[k].ToString(), " ", "", -1) + " " + solutionname
-		nextaliquot.SetConcentration(_input.TargetConcentrations[k])
+		nextaliquot.CName = strings.Replace(_input.TargetConcentrations[counter].ToString(), " ", "", -1) + " " + solutionname
+		nextaliquot.SetConcentration(_input.TargetConcentrations[counter])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+
+		counter++
 	}
 
 	// export as Output
@@ -150,7 +157,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	}
 
-	_output.WellsUsedPostRun = k
+	_output.WellsUsedPostRun = counter
 
 }
 
@@ -260,9 +267,9 @@ func init() {
 				{Name: "TargetConcentrations", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "optionally start after a specified well position if wells are allready used in the plate\n", Kind: "Parameters"},
 				{Name: "AllConcentrations", Desc: "", Kind: "Data"},
-				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
+				{Name: "AllDilutions", Desc: "original solution + dilutions\n", Kind: "Outputs"},
 				{Name: "ComponentNames", Desc: "", Kind: "Data"},
-				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "Dilutions", Desc: "dilutions only\n", Kind: "Outputs"},
 				{Name: "WellsUsedPostRun", Desc: "", Kind: "Data"},
 			},
 		},

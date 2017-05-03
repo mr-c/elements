@@ -35,8 +35,8 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Dilutions []*wtype.LHComponent
-	AllDilutions []*wtype.LHComponent
+	Dilutions []*wtype.LHComponent // dilutions only
+	AllDilutions []*wtype.LHComponent // original solution + dilutions
 )
 
 Requirements {
@@ -53,6 +53,8 @@ Setup {
 Steps {
 	
 	allwellpositions := OutPlate.AllWellPositions(ByRow)
+	
+	var counter int = WellsAlreadyUsed
 	
 	dilutions := make([]*wtype.LHComponent,0)
 
@@ -82,7 +84,7 @@ Steps {
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
 	// mix both samples to OutPlate
-	aliquot = MixNamed(OutPlate.Type,allwellpositions[WellsAlreadyUsed], "DilutionPlate",diluentSample, solutionSample)
+	aliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",diluentSample, solutionSample)
 
 	var solutionname string
 	
@@ -100,12 +102,12 @@ Steps {
 	
 	// loop through NumberOfDilutions until all serial dilutions are made
 	
-	var k int
+	counter++
 	
-	for k = WellsAlreadyUsed+1; k < len(TargetConcentrations); k++ {
+	for counter < len(TargetConcentrations) {
 		
 			// calculate new solution volume
-		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[k],TargetConcentrations[k-1],StartVolumeperDilution)
+		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[counter],TargetConcentrations[counter-1],StartVolumeperDilution)
 		
 			if err != nil{
 				Errorf(err.Error())
@@ -120,7 +122,7 @@ Steps {
 		// take next sample of diluent
 		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
 		
-		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[k], "DilutionPlate",nextdiluentSample)
+		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",nextdiluentSample)
 		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
@@ -138,12 +140,14 @@ Steps {
 		if containsconc{
 			solutionname = componentNameOnly
 		}
-		nextaliquot.CName = strings.Replace(TargetConcentrations[k].ToString()," ","",-1) + " " +solutionname
-		nextaliquot.SetConcentration(TargetConcentrations[k])
+		nextaliquot.CName = strings.Replace(TargetConcentrations[counter].ToString()," ","",-1) + " " +solutionname
+		nextaliquot.SetConcentration(TargetConcentrations[counter])
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+		
+		counter++ 
 	}
 		
 // export as Output
@@ -166,7 +170,7 @@ for i, dilution := range Dilutions {
 
 
 
-WellsUsedPostRun = k
+WellsUsedPostRun = counter
 
 }
 // Run after controls and a steps block are completed to
