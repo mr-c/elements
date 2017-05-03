@@ -19,7 +19,7 @@ import (
 // Parameters to this protocol
 Parameters (
 	ComponentTargetConc Concentration
-	OverrideComponentStockConc Concentration
+	OverrideComponentStockConc Concentration //if empty the concentration of the Component will be used, if a value is specified here and the component already contains a concentration, the concentration will be overridden and the Status and Err will be updated with a warning
 	ComponentTargetVol Volume
 	OutPlate 	*wtype.LHPlate //define in bundle file
 	Diluent 	*wtype.LHComponent
