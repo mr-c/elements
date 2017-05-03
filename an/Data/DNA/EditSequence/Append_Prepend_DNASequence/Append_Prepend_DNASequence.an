@@ -53,7 +53,7 @@ Steps {
 		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
 			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is listed as a plasmid and should not be Appended/Prepended, please proceed with caution or fix", editedSequence.Nm)
-			warnings = append(warnings, plasmidError)
+			warnings = append(warnings, plasmidError.Error())
 		}
 
 		//check input sequences for illegal (non-nucleotide) characters and return error message if so

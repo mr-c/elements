@@ -16,7 +16,6 @@ import
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"path/filepath"
 	"strings"
 )
 
@@ -46,7 +45,7 @@ func _Append_Prepend_DNASequenceSetup(_ctx context.Context, _input *Append_Prepe
 func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepend_DNASequenceInput, _output *Append_Prepend_DNASequenceOutput) {
 
 	//setup warnings slice to append errors to
-	warnings := make([]string, 0)
+	var warnings []string
 
 	//range through the InputSequences
 	for _, editedSequence := range _input.InputSequences {
@@ -54,7 +53,7 @@ func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepe
 		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
 			plasmidError := fmt.Errorf("Warning: The input DNA sequence %s is listed as a plasmid and should not be Appended/Prepended, please proceed with caution or fix", editedSequence.Nm)
-			fmt.Println(plasmidError)
+			warnings = append(warnings, plasmidError.Error())
 		}
 
 		//check input sequences for illegal (non-nucleotide) characters and return error message if so
@@ -67,7 +66,6 @@ func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepe
 				newstatus = append(newstatus, "part: "+editedSequence.Nm+" "+editedSequence.Seq+": contains illegalnucleotides:"+illegal.ToString())
 			}
 			warnings = append(warnings, strings.Join(newstatus, ""))
-			fmt.Errorf(strings.Join(newstatus, ""))
 		}
 
 		//Append and Prepend the given additional bp to the input sequence
@@ -78,8 +76,12 @@ func _Append_Prepend_DNASequenceSteps(_ctx context.Context, _input *Append_Prepe
 		_output.ModifiedSequences = append(_output.ModifiedSequences, editedSequence)
 	}
 
-	//add the ModifiedSequences to a FASTA file in new folder with ProjectName
-	outputFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssemblyProduct"), _output.ModifiedSequences)
+	//add the ModifiedSequences to a FASTA file in new folder with ProjectName (Default: Edited_Seqeunces)
+	if _input.ProjectName == "" {
+		_input.ProjectName = "Edited_Seqeunces"
+	}
+
+	outputFile, _, err := export.FastaSerial(export.LOCAL, _input.ProjectName, _output.ModifiedSequences)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
