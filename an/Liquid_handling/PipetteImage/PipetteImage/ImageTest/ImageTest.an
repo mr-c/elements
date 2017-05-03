@@ -1,0 +1,92 @@
+// Protocol ImageTest performs something.
+protocol ImageTest
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Parameters to this protocol
+Parameters (
+	VolumePerWell Volume
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
+	Palettename string
+	OnlythisColour string
+	Notthiscolour string
+	UVimage bool
+	Rotate bool
+	AutoRotate bool
+	Subset bool
+	UseLiquidClass string
+	Subsetnames []string
+	CheckResizeAlgorithms bool
+	
+	// Expected outputs
+	ExpectedNumberOfPixels int
+)
+
+// Output data of this protocol
+Data (
+
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentType *wtype.LHComponent
+	OutPlate *wtype.LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	
+	// run SerialDilution_ForConcentration element
+	result := RunSteps(PipetteImage,Parameters{
+			VolumePerWell: VolumePerWell,
+			Imagefilename: Imagefilename, // name of image file or if using URL use this field to set the desired filename
+			UseURL:  UseURL, // select this if getting the image from a URL
+			URL: URL,  // enter URL link to the image file here if applicable
+			Palettename: Palettename, 
+			OnlythisColour:  OnlythisColour,
+			Notthiscolour:Notthiscolour,
+			UVimage: UVimage,
+			Rotate: Rotate, 
+			AutoRotate: AutoRotate,
+			Subset: Subset, 
+			UseLiquidClass: UseLiquidClass,
+			Subsetnames: Subsetnames,
+			CheckResizeAlgorithms: CheckResizeAlgorithms,
+		},Inputs{
+			ComponentType: ComponentType,
+			OutPlate: OutPlate,
+		})
+		
+	if result.Data.Numberofpixels != ExpectedNumberOfPixels{
+		Errorf("Pipette Image test Fail for image %s: Expected pixels %d: got %d", Imagefilename,ExpectedNumberOfPixels,result.Data.Numberofpixels)
+	}
+	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
