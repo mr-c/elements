@@ -1,5 +1,5 @@
 Parameters:
-  PlateOut:
+  AutoPlateOut:
     AgarPlate: falcon6wellAgar
     AgarPlateNumber: 1
     Diluent: LB
@@ -9,5 +9,8 @@ Parameters:
     NumberofReplicates: 2
     PlateOutLiquidPolicy: plateout
     PlateOutVolume: 100ul
-    TransformedCells: neb5compcells
+    TransformedCells:
+    - neb5compcells
+    - neb5compcells
+    - neb5compcells
     WellsAlreadyUsed: 0

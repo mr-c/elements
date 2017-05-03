@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "AutoPlateOut": {
+      "component": "AutoPlateOut_Multi"
+    }
+  }
+}
