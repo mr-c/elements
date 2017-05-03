@@ -5,9 +5,9 @@
     "Process1": {
       "DNAGel": "EPAGE48",
       "GelLoadingMixingPolicy": "load",
-      "Ladder": "1kb DNA Ladder",
+      "Ladder": "DNA_ladder",
       "LadderVolume": "10ul",
-      "LoadingDye": "blue",
+      "LoadingDye": "LoadingDye",
       "LoadingDyeInSample": false,
       "LoadingDyeMixingPolicy": "NeedToMix",
       "LoadingDyeVolume": "5ul",
