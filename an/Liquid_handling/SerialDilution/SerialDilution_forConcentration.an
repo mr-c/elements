@@ -95,8 +95,10 @@ Steps {
 		solutionname = componentNameOnly
 	}
 	
-	aliquot.CName = strings.Replace(TargetConcentrations[0].ToString()," ","",-1) + " " +solutionname
+	aliquot.CName = TargetConcentrations[0].ToString() + " " +solutionname
+	aliquot.CName = normalise(aliquot.CName)
 	aliquot.SetConcentration(TargetConcentrations[0])
+		
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	

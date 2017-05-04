@@ -85,8 +85,10 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		solutionname = componentNameOnly
 	}
 
-	aliquot.CName = strings.Replace(_input.TargetConcentrations[0].ToString(), " ", "", -1) + " " + solutionname
+	aliquot.CName = _input.TargetConcentrations[0].ToString() + " " + solutionname
+	aliquot.CName = normalise(aliquot.CName)
 	aliquot.SetConcentration(_input.TargetConcentrations[0])
+
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
 
