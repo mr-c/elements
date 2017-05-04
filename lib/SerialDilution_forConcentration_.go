@@ -128,12 +128,6 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		nextaliquot := execute.Mix(_ctx, nextdiluentSample, nextSample)
 
 		// rename sample to include concentration
-		// rename sample to include concentration
-		containsconc, _, componentNameOnly := wunit.ParseConcentration(_input.Solution.CName)
-
-		if containsconc {
-			solutionname = componentNameOnly
-		}
 		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 
 		nextaliquot.CName = normalise(nextaliquot.CName)
@@ -155,7 +149,8 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	_output.AllDilutions = append(_output.AllDilutions, _input.Solution)
 	_output.AllConcentrations = append(_output.AllConcentrations, _input.StockConcentration)
 
-	_input.Solution.CName = strings.Replace(_input.StockConcentration.ToString(), " ", "", -1) + " " + solutionname
+	_input.Solution.CName = _input.StockConcentration.ToString() + " " + solutionname
+	_input.Solution.CName = normalise(_input.Solution.CName)
 	_output.ComponentNames = append(_output.ComponentNames, _input.Solution.CName)
 	for i, dilution := range _output.Dilutions {
 
@@ -172,6 +167,11 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 // if the component name contains a concentration the concentration name will be normalised
 // e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
 func normalise(name string) (normalised string) {
+
+	if strings.Contains(name, wtype.MIXDELIMITER) {
+		return name
+	}
+
 	containsConc, conc, nameonly := wunit.ParseConcentration(name)
 
 	if containsConc {

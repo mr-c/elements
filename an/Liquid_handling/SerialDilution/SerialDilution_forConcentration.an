@@ -138,12 +138,6 @@ Steps {
 		nextaliquot := Mix(nextdiluentSample,nextSample)
 		
 		// rename sample to include concentration
-		// rename sample to include concentration
-		containsconc, _, componentNameOnly := wunit.ParseConcentration(Solution.CName)
-		
-		if containsconc{
-			solutionname = componentNameOnly
-		}
 		nextaliquot.CName = TargetConcentrations[dilutionPosition].ToString()+" " +solutionname
 		
 		nextaliquot.CName = normalise(nextaliquot.CName)
@@ -166,7 +160,8 @@ Dilutions = dilutions
 AllDilutions = append(AllDilutions,Solution)
 AllConcentrations = append(AllConcentrations, StockConcentration)
 
-Solution.CName = strings.Replace(StockConcentration.ToString()," ","",-1) + " " +solutionname
+Solution.CName = StockConcentration.ToString()+ " " +solutionname
+Solution.CName = normalise(Solution.CName)
 ComponentNames = append(ComponentNames, Solution.CName)
 for i, dilution := range Dilutions {
 	
@@ -185,6 +180,11 @@ WellsUsedPostRun = counter
 // if the component name contains a concentration the concentration name will be normalised
 // e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
 func normalise(name string)(normalised string){
+	
+	if strings.Contains(name, wtype.MIXDELIMITER){
+		return name
+	}
+	
 	containsConc, conc, nameonly := wunit.ParseConcentration(name)
 	
 	if containsConc {
