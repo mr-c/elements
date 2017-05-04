@@ -69,7 +69,6 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
-	// check if the enzyme is specified and if not mix the
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
@@ -84,6 +83,8 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	if containsconc {
 		solutionname = componentNameOnly
+	} else {
+		solutionname = _input.Solution.CName
 	}
 
 	aliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname

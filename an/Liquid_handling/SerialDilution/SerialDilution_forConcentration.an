@@ -79,7 +79,6 @@ Steps {
 		
 	// Ensure liquid type set to Pre and Post Mix 
 	Solution.Type = wtype.LTNeedToMix
-	// check if the enzyme is specified and if not mix the 
 		
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
@@ -94,6 +93,8 @@ Steps {
 	
 	if containsconc{
 		solutionname = componentNameOnly
+	}else{
+		solutionname = Solution.CName
 	}
 	
 	aliquot.CName = TargetConcentrations[dilutionPosition].ToString() + " " +solutionname
