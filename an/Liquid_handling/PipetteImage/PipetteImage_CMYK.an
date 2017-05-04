@@ -64,7 +64,7 @@ Steps {
 	
 	
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	solutions := make([]*wtype.LHComponent, 0)
 

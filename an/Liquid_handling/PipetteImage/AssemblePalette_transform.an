@@ -104,7 +104,7 @@ Steps {
 	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate) 
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
