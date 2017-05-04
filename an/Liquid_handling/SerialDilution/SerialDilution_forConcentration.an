@@ -55,13 +55,14 @@ Steps {
 	allwellpositions := OutPlate.AllWellPositions(ByRow)
 	
 	var counter int = WellsAlreadyUsed
+	var dilutionPosition int = 0
 	
 	dilutions := make([]*wtype.LHComponent,0)
 
 	var aliquot *wtype.LHComponent
 	
 	// calculate solution volume
-	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[0],StockConcentration,StartVolumeperDilution)
+	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],StockConcentration,StartVolumeperDilution)
 	
 		if err != nil{
 			Errorf(err.Error())
@@ -95,9 +96,9 @@ Steps {
 		solutionname = componentNameOnly
 	}
 	
-	aliquot.CName = TargetConcentrations[0].ToString() + " " +solutionname
+	aliquot.CName = TargetConcentrations[dilutionPosition].ToString() + " " +solutionname
 	aliquot.CName = normalise(aliquot.CName)
-	aliquot.SetConcentration(TargetConcentrations[0])
+	aliquot.SetConcentration(TargetConcentrations[dilutionPosition])
 		
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
@@ -105,11 +106,12 @@ Steps {
 	// loop through NumberOfDilutions until all serial dilutions are made
 	
 	counter++
+	dilutionPosition++
 	
-	for counter < len(TargetConcentrations) {
+	for dilutionPosition  < len(TargetConcentrations) {
 		
 			// calculate new solution volume
-		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[counter],TargetConcentrations[counter-1],StartVolumeperDilution)
+		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],TargetConcentrations[dilutionPosition-1],StartVolumeperDilution)
 		
 			if err != nil{
 				Errorf(err.Error())
@@ -142,17 +144,18 @@ Steps {
 		if containsconc{
 			solutionname = componentNameOnly
 		}
-		nextaliquot.CName = TargetConcentrations[counter].ToString()+" " +solutionname
+		nextaliquot.CName = TargetConcentrations[dilutionPosition].ToString()+" " +solutionname
 		
 		nextaliquot.CName = normalise(nextaliquot.CName)
 		
-		nextaliquot.SetConcentration(TargetConcentrations[counter])
+		nextaliquot.SetConcentration(TargetConcentrations[dilutionPosition])
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
 		
 		counter++ 
+		dilutionPosition++
 	}
 		
 // export as Output

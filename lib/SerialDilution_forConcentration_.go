@@ -45,13 +45,14 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
 
 	var counter int = _input.WellsAlreadyUsed
+	var dilutionPosition int = 0
 
 	dilutions := make([]*wtype.LHComponent, 0)
 
 	var aliquot *wtype.LHComponent
 
 	// calculate solution volume
-	solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[0], _input.StockConcentration, _input.StartVolumeperDilution)
+	solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[dilutionPosition], _input.StockConcentration, _input.StartVolumeperDilution)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
@@ -85,9 +86,9 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		solutionname = componentNameOnly
 	}
 
-	aliquot.CName = _input.TargetConcentrations[0].ToString() + " " + solutionname
+	aliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 	aliquot.CName = normalise(aliquot.CName)
-	aliquot.SetConcentration(_input.TargetConcentrations[0])
+	aliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
@@ -95,11 +96,12 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// loop through NumberOfDilutions until all serial dilutions are made
 
 	counter++
+	dilutionPosition++
 
-	for counter < len(_input.TargetConcentrations) {
+	for dilutionPosition < len(_input.TargetConcentrations) {
 
 		// calculate new solution volume
-		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[counter], _input.TargetConcentrations[counter-1], _input.StartVolumeperDilution)
+		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[dilutionPosition], _input.TargetConcentrations[dilutionPosition-1], _input.StartVolumeperDilution)
 
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -132,17 +134,18 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		if containsconc {
 			solutionname = componentNameOnly
 		}
-		nextaliquot.CName = _input.TargetConcentrations[counter].ToString() + " " + solutionname
+		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 
 		nextaliquot.CName = normalise(nextaliquot.CName)
 
-		nextaliquot.SetConcentration(_input.TargetConcentrations[counter])
+		nextaliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
 
 		counter++
+		dilutionPosition++
 	}
 
 	// export as Output
