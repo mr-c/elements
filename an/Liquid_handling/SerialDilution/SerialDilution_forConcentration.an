@@ -6,8 +6,8 @@ protocol SerialDilution_forConcentration
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"	
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"strings"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
@@ -20,6 +20,8 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
+	AllConcentrations []Concentration
+	ComponentNames []string
 	WellsUsedPostRun		int
 )
 
@@ -33,7 +35,8 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Dilutions []*wtype.LHComponent
+	Dilutions []*wtype.LHComponent // dilutions only
+	AllDilutions []*wtype.LHComponent // original solution + dilutions
 )
 
 Requirements {
@@ -51,12 +54,15 @@ Steps {
 	
 	allwellpositions := OutPlate.AllWellPositions(ByRow)
 	
+	var counter int = WellsAlreadyUsed
+	var dilutionPosition int = 0
+	
 	dilutions := make([]*wtype.LHComponent,0)
 
 	var aliquot *wtype.LHComponent
 	
 	// calculate solution volume
-	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[0],StockConcentration,StartVolumeperDilution)
+	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],StockConcentration,StartVolumeperDilution)
 	
 		if err != nil{
 			Errorf(err.Error())
@@ -73,28 +79,40 @@ Steps {
 		
 	// Ensure liquid type set to Pre and Post Mix 
 	Solution.Type = wtype.LTNeedToMix
-	// check if the enzyme is specified and if not mix the 
 		
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
 	// mix both samples to OutPlate
-	aliquot = MixNamed(OutPlate.Type,allwellpositions[WellsAlreadyUsed], "DilutionPlate",diluentSample, solutionSample)
+	aliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",diluentSample, solutionSample)
 
+	var solutionname string
+	
 	// rename sample to include concentration
-	aliquot.CName = TargetConcentrations[0].ToString() + Solution.CName
-
+	containsconc, _, componentNameOnly := wunit.ParseConcentration(Solution.CName)
+	
+	if containsconc{
+		solutionname = componentNameOnly
+	}else{
+		solutionname = Solution.CName
+	}
+	
+	aliquot.CName = TargetConcentrations[dilutionPosition].ToString() + " " +solutionname
+	aliquot.CName = normalise(aliquot.CName)
+	aliquot.SetConcentration(TargetConcentrations[dilutionPosition])
+		
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	
 	// loop through NumberOfDilutions until all serial dilutions are made
 	
-	var k int
+	counter++
+	dilutionPosition++
 	
-	for k = WellsAlreadyUsed+1; k < len(TargetConcentrations); k++ {
+	for dilutionPosition  < len(TargetConcentrations) {
 		
 			// calculate new solution volume
-		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[k],TargetConcentrations[k-1],StartVolumeperDilution)
+		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],TargetConcentrations[dilutionPosition-1],StartVolumeperDilution)
 		
 			if err != nil{
 				Errorf(err.Error())
@@ -109,7 +127,7 @@ Steps {
 		// take next sample of diluent
 		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
 		
-		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[k], "DilutionPlate",nextdiluentSample)
+		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",nextdiluentSample)
 		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
@@ -121,20 +139,62 @@ Steps {
 		nextaliquot := Mix(nextdiluentSample,nextSample)
 		
 		// rename sample to include concentration
-		nextaliquot.CName = TargetConcentrations[k].ToString() + Solution.CName
+		nextaliquot.CName = TargetConcentrations[dilutionPosition].ToString()+" " +solutionname
 		
+		nextaliquot.CName = normalise(nextaliquot.CName)
+		
+		nextaliquot.SetConcentration(TargetConcentrations[dilutionPosition])
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+		
+		counter++ 
+		dilutionPosition++
 	}
 		
 // export as Output
-Dilutions = dilutions 
+Dilutions = dilutions
 
-WellsUsedPostRun = k
+
+// export all concentrations used as export
+AllDilutions = append(AllDilutions,Solution)
+AllConcentrations = append(AllConcentrations, StockConcentration)
+
+Solution.CName = StockConcentration.ToString()+ " " +solutionname
+Solution.CName = normalise(Solution.CName)
+ComponentNames = append(ComponentNames, Solution.CName)
+for i, dilution := range Dilutions {
+	
+	AllDilutions = append(AllDilutions,dilution)
+	ComponentNames = append(ComponentNames, dilution.CName)
+	AllConcentrations = append(AllConcentrations, TargetConcentrations[i])
+	
+} 
+
+
+
+WellsUsedPostRun = counter
 
 }
+
+// if the component name contains a concentration the concentration name will be normalised
+// e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
+func normalise(name string)(normalised string){
+	
+	if strings.Contains(name, wtype.MIXDELIMITER){
+		return name
+	}
+	
+	containsConc, conc, nameonly := wunit.ParseConcentration(name)
+	
+	if containsConc {
+		return conc.ToString() + " " + nameonly
+	}else {	
+		return nameonly
+	}
+}
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
