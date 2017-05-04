@@ -114,10 +114,10 @@ Steps {
 		wellsused = result.Data.WellsUsedPostRun
 	
 		// add all dilutions to output
-		for _, dilution := range result.Outputs.Dilutions{
+		for _, dilution := range result.Outputs.AllDilutions{
 			AllDilutions = append(AllDilutions,dilution)
 		}
-		DilutionsByComponent[solution.CName] = result.Outputs.Dilutions
+		DilutionsByComponent[solution.CName] = result.Outputs.AllDilutions
 	}
 	
 	WellsUsedPostRun = wellsused

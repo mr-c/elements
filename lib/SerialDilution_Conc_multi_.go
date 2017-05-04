@@ -98,10 +98,10 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 		wellsused = result.Data.WellsUsedPostRun
 
 		// add all dilutions to output
-		for _, dilution := range result.Outputs.Dilutions {
+		for _, dilution := range result.Outputs.AllDilutions {
 			_output.AllDilutions = append(_output.AllDilutions, dilution)
 		}
-		_output.DilutionsByComponent[solution.CName] = result.Outputs.Dilutions
+		_output.DilutionsByComponent[solution.CName] = result.Outputs.AllDilutions
 	}
 
 	_output.WellsUsedPostRun = wellsused
