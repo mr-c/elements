@@ -130,7 +130,10 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		if containsconc {
 			solutionname = componentNameOnly
 		}
-		nextaliquot.CName = strings.Replace(_input.TargetConcentrations[counter].ToString(), " ", "", -1) + " " + solutionname
+		nextaliquot.CName = _input.TargetConcentrations[counter].ToString() + " " + solutionname
+
+		nextaliquot.CName = normalise(nextaliquot.CName)
+
 		nextaliquot.SetConcentration(_input.TargetConcentrations[counter])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
@@ -159,6 +162,18 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	_output.WellsUsedPostRun = counter
 
+}
+
+// if the component name contains a concentration the concentration name will be normalised
+// e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
+func normalise(name string) (normalised string) {
+	containsConc, conc, nameonly := wunit.ParseConcentration(name)
+
+	if containsConc {
+		return conc.ToString() + " " + nameonly
+	} else {
+		return nameonly
+	}
 }
 
 // Run after controls and a steps block are completed to
