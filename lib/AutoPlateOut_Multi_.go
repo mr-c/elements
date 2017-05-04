@@ -1,6 +1,4 @@
-// Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs
-// a plate out reaction onto plates of the users choice
-
+// Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice
 package lib
 
 import
@@ -8,6 +6,7 @@ import
 // Place golang packages to import here
 (
 	"context"
+
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
@@ -17,14 +16,14 @@ import
 
 // Parameters to this protocol
 
-//specify the number of agar plates to begin counting from (Default = 1)
+//optionally specify the number of agar plates to begin counting from (Default = 1)
 //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 //set Incubation temperature
 //set Incubation time
 //specify number of technical replicates to plate out
-//specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+//optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-//specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
+//optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 
 // Output data of this protocol
 
@@ -160,20 +159,20 @@ func init() {
 	if err := addComponent(component.Component{Name: "AutoPlateOut_Multi",
 		Constructor: AutoPlateOut_MultiNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/AutoPlateOut_Multi.an",
 			Params: []component.ParamDesc{
 				{Name: "AgarPlate", Desc: "the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\n", Kind: "Inputs"},
-				{Name: "AgarPlateNumber", Desc: "specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
+				{Name: "AgarPlateNumber", Desc: "optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "the liquid with which to dilute the transformed cells (Default = LB)\n", Kind: "Inputs"},
 				{Name: "Dilution", Desc: "specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)\n", Kind: "Parameters"},
 				{Name: "IncubationTemp", Desc: "set Incubation temperature\n", Kind: "Parameters"},
 				{Name: "IncubationTime", Desc: "set Incubation time\n", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "specify number of technical replicates to plate out\n", Kind: "Parameters"},
-				{Name: "PlateOutLiquidPolicy", Desc: "specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
+				{Name: "PlateOutLiquidPolicy", Desc: "optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
 				{Name: "PlateOutVolume", Desc: "specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent\n", Kind: "Parameters"},
 				{Name: "TransformedCells", Desc: "the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)\n", Kind: "Inputs"},
-				{Name: "WellsAlreadyUsed", Desc: "specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)\n", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)\n", Kind: "Parameters"},
 				{Name: "PlatedCultures", Desc: "the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow\n", Kind: "Outputs"},
 			},
 		},

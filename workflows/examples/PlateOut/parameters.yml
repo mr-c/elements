@@ -1,12 +1,12 @@
 Parameters:
-  PlateOutTest:
-    AgarPlate: pcrplate_with_cooler
+  PlateOut:
+    AgarPlate: falcon6wellAgar
     AgarPlateNumber: 1
-    Diluent: water
+    Diluent: LB
     Dilution: 1
-    IncubationTemp: 25C
+    IncubationTemp: 37C
     IncubationTime: 57600s
-    NumberofReplicates: 1
+    NumberofReplicates: 2
     PlateOutLiquidPolicy: plateout
     PlateOutVolume: 100ul
     TransformedCells: neb5compcells

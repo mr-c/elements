@@ -1,5 +1,4 @@
 // Protocol PlateOut dispenses a liquid input (i.e Transformed Cells) at a user-definable volume onto an output plate of the users choice.
-
 package lib
 
 import
@@ -8,23 +7,25 @@ import
 (
 	"context"
 	"fmt"
+
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
 
-//specify the number of agar plates to begin counting from (Default = 1)
+//optionally specify the number of agar plates to begin counting from (Default = 1)
 //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 //set Incubation temperature
 //set Incubation time
 //specify number of technical replicates to plate out
-//specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-//specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+//optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+//optionally specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 
 // Output data of this protocol
@@ -53,6 +54,10 @@ func _PlateOutTestSteps(_ctx context.Context, _input *PlateOutTestInput, _output
 	//set platenumber variable (Default = 1) that will count up number of plates used
 	var platenumber int = _input.AgarPlateNumber
 
+	if _input.AgarPlateNumber == 0 {
+		_input.AgarPlateNumber = 1
+	}
+
 	//set counter variable to count up number of wells used, and set at the number of wells already used in the output agar plate (Default = 0)
 	var counter int = _input.WellsAlreadyUsed
 
@@ -60,10 +65,14 @@ func _PlateOutTestSteps(_ctx context.Context, _input *PlateOutTestInput, _output
 	var err error
 
 	//set up a slice to add the plate out reactions to
-	plateOutVolumes := make([]*wtype.LHComponent, 0)
+	var plateOutVolumes []*wtype.LHComponent
 
 	//attribute specified liquidpolicy to the plate out reaction (Default = plateout)
 	_input.TransformedCells.Type, err = wtype.LiquidTypeFromString(_input.PlateOutLiquidPolicy)
+
+	if _input.PlateOutLiquidPolicy == "" {
+		_input.PlateOutLiquidPolicy = "plateout"
+	}
 
 	//get plate dimenson and well info for specified agarplate from plate library
 	var wellpositionarray []string = _input.AgarPlate.AllWellPositions(wtype.BYCOLUMN)
@@ -78,14 +87,20 @@ func _PlateOutTestSteps(_ctx context.Context, _input *PlateOutTestInput, _output
 		//detect next well location accessing array slice using counter as pointer
 		nextwell := wellpositionarray[counter]
 
-		//check if dilution is required and calculate required dilution, performing mix comman dwith speicifed Diluent (Default = LB)
+		//check if dilution is required and calculate required dilution, performing mix command with speicifed Diluent (Default = LB)
+		var nilComponent *wtype.LHComponent
+
+		if _input.Diluent == nilComponent {
+			_input.Diluent = factory.GetComponentByType("LB")
+		}
+
 		if _input.Dilution > 1 {
 			dilutedSample := mixer.SampleForTotalVolume(_input.Diluent, _input.PlateOutVolume)
 			plateOutVolumes = append(plateOutVolumes, dilutedSample)
-			_input.PlateOutVolume = wunit.NewVolume(_input.PlateOutVolume.RawValue()/float64(_input.Dilution), _input.PlateOutVolume.Unit().PrefixedSymbol())
+			_input.PlateOutVolume = wunit.DivideVolume(_input.PlateOutVolume, float64(_input.Dilution))
 		}
 
-		//aspirate transformed cells at speicfied volumes
+		//aspirate transformed cells at specified volumes
 		plateOutSample := mixer.Sample(_input.TransformedCells, _input.PlateOutVolume)
 
 		//append transformed cell volumes to plate out volumes array
@@ -202,18 +217,18 @@ func init() {
 	if err := addComponent(component.Component{Name: "PlateOutTest",
 		Constructor: PlateOutTestNew,
 		Desc: component.ComponentDesc{
-			Desc: "",
+			Desc: "Protocol PlateOut dispenses a liquid input (i.e Transformed Cells) at a user-definable volume onto an output plate of the users choice.\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/PlateOut.an",
 			Params: []component.ParamDesc{
 				{Name: "AgarPlate", Desc: "the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\n", Kind: "Inputs"},
-				{Name: "AgarPlateNumber", Desc: "specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
+				{Name: "AgarPlateNumber", Desc: "optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "the liquid with which to dilute the transformed cells (Default = LB)\n", Kind: "Inputs"},
 				{Name: "Dilution", Desc: "specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)\n", Kind: "Parameters"},
 				{Name: "IncubationTemp", Desc: "set Incubation temperature\n", Kind: "Parameters"},
 				{Name: "IncubationTime", Desc: "set Incubation time\n", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "specify number of technical replicates to plate out\n", Kind: "Parameters"},
-				{Name: "PlateOutLiquidPolicy", Desc: "specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
-				{Name: "PlateOutVolume", Desc: "specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent\n", Kind: "Parameters"},
+				{Name: "PlateOutLiquidPolicy", Desc: "optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
+				{Name: "PlateOutVolume", Desc: "optionally specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent\n", Kind: "Parameters"},
 				{Name: "TransformedCells", Desc: "the transformed cells (Default = neb5compcells).\n", Kind: "Inputs"},
 				{Name: "WellsAlreadyUsed", Desc: "specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)\n", Kind: "Parameters"},
 				{Name: "AgarPlatesUsed", Desc: "returns number of output AgarPlates used\n", Kind: "Data"},
