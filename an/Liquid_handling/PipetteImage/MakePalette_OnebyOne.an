@@ -65,7 +65,7 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		_,err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -80,7 +80,7 @@ Steps {
 	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

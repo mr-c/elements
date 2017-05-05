@@ -81,7 +81,7 @@ Steps {
 	
 	// Resize image to fit microplate, one pixel per well. Produce map to correspond the colour required for each well position. 
 	// The nearest matching colour from the colourpalette made above will be used.
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicate colours so each is only made once
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

@@ -64,16 +64,14 @@ Steps {
 	if CheckAllResizeAlgorithms {
 			image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
 	}
-	_, _, newimagename := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate) 
+	_, plateImg , _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
 	
 	// if posterize rerun 
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(newimagename, PosterizeLevels)
+		_, posterizedImg = image.Posterize(img, PosterizeLevels)
 		
-		_, _, newimagename = image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+		_, plateImg, _ = image.ImagetoPlatelayout(posterizedImg, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
 	}
-	
-	ProcessedImageFilename = newimagename
 	
 
 }

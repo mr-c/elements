@@ -74,7 +74,7 @@ Steps {
 		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
 	}
 	
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate)
 	
 	// use position to colour map to make a colour to []well positions map
 	colourtoWellLocationMap := make(map[string][]string)
