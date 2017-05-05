@@ -85,7 +85,7 @@ func (rbscollection collection) Max()(rbs RBSdata) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	var rbsstrengthdata []RBSdata =[]RBSdata{
 		RBSdata{wtype.MakeLinearDNASequence("rbs1","gggcgcgc"),0.0},
 		RBSdata{wtype.MakeLinearDNASequence("rbs2","gggcgcgc"),2.0},
@@ -101,7 +101,7 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		_, err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -113,10 +113,10 @@ Steps {
 	
 	
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate) 
+	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
