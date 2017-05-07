@@ -62,7 +62,7 @@ func _AccuracyTest_2Steps(_ctx context.Context, _input *AccuracyTest_2Input, _ou
 
 		// if image is from url, download
 		if _input.UseURL {
-			_, err := download.File(_input.URL, _input.Imagefilename)
+			err := download.File(_input.URL, _input.Imagefilename)
 			if err != nil {
 				execute.Errorf(_ctx, err.Error())
 			}
