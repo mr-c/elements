@@ -45,7 +45,7 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		_, err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

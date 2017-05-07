@@ -44,7 +44,7 @@ func _MakePalette_OneByOneSteps(_ctx context.Context, _input *MakePalette_OneByO
 
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		_, err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

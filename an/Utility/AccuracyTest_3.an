@@ -103,7 +103,7 @@ Steps {
 		
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		_, err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
