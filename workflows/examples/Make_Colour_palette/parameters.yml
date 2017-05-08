@@ -8,5 +8,5 @@ Parameters:
     OutPlate: greiner384_riser
     Rotate: false
     VolumeForFullcolour: 150ul
-    White: whiteFabricDye
     Yellow: Yellow_ink
+    White: whiteFabricDye
