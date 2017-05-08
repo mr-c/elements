@@ -33,9 +33,9 @@ func _MixNtoNSetup(_ctx context.Context, _input *MixNtoNInput) {
 func _MixNtoNSteps(_ctx context.Context, _input *MixNtoNInput, _output *MixNtoNOutput) {
 	if len(_input.ComponentsA) == len(_input.ComponentsB) && len(_input.VolumesA) == len(_input.VolumesB) && len(_input.ComponentsA) == len(_input.VolumesA) {
 		for i := 0; i < len(_input.ComponentsA); i++ {
-			_output.MixedComponents[i] = execute.MixInto(_ctx, _input.OutPlate, "",
+			_output.MixedComponents = append(_output.MixedComponents, execute.MixInto(_ctx, _input.OutPlate, "",
 				mixer.Sample(_input.ComponentsA[i], _input.VolumesA[i]),
-				mixer.Sample(_input.ComponentsB[i], _input.VolumesB[i]))
+				mixer.Sample(_input.ComponentsB[i], _input.VolumesB[i])))
 		}
 	} else {
 		execute.Errorf(_ctx, "The number of components specified in the two lists do not match! You have %s Volumes and %s Components for A and %s Volumes and %s Components for B.", len(_input.VolumesA), len(_input.ComponentsA), len(_input.ComponentsB), len(_input.VolumesB))

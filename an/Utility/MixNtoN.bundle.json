@@ -1,0 +1,38 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "MixNtoN"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "VolumesA": [
+        "5ul",
+        "1ul",
+        "5ul",
+        "10ul"
+      ],
+	  "VolumesB": [
+        "10ul",
+        "1ul",
+        "2ul",
+        "5ul"
+      ],
+	  "ComponentsA": [
+        "water",
+        "water",
+        "water",
+        "water"
+      ],
+      "ComponentsB": [
+        "dna",
+        "dna",
+        "dna",
+        "dna"
+      ],
+	  "OutPlate": "pcrplate_skirted_riser20",
+    }
+  },
+  "config": null
+}
