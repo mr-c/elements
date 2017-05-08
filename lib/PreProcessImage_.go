@@ -38,7 +38,21 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
+	if _input.PosterizeImage {
+		posterizedImg, err = image.Posterize(img, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -49,16 +63,7 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	if _input.CheckAllResizeAlgorithms {
 		image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
-	_, _, newimagename := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
-
-	// if posterize rerun
-	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(newimagename, _input.PosterizeLevels)
-
-		_, _, newimagename = image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
-	}
-
-	_output.ProcessedImageFilename = newimagename
+	_, plateImg, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 }
 

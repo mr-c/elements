@@ -64,16 +64,24 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
-	
-	// Posterize image if desired
+
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
 	}
 	 
 	// make pallette of colours from image based on CMYK profile 

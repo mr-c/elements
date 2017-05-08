@@ -42,14 +42,21 @@ func _PipetteImage_CMYKSteps(_ctx context.Context, _input *PipetteImage_CMYKInpu
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	solutions := make([]*wtype.LHComponent, 0)
 

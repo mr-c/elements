@@ -53,7 +53,21 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	if PosterizeImage{
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -65,14 +79,6 @@ Steps {
 			image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
 	}
 	_, plateImg , _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
-	
-	// if posterize rerun 
-	if PosterizeImage{
-		_, posterizedImg = image.Posterize(img, PosterizeLevels)
-		
-		_, plateImg, _ = image.ImagetoPlatelayout(posterizedImg, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
-	}
-	
 
 }
 // Run after controls and a steps block are completed to

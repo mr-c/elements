@@ -43,7 +43,14 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -61,7 +68,7 @@ func _PipetteImage_livingSteps(_ctx context.Context, _input *PipetteImage_living
 
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 

@@ -44,17 +44,27 @@ func _PipetteImage_fromPalette_refactorSteps(_ctx context.Context, _input *Pipet
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
+		posterizedImg, err = image.Posterize(img, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
 
 	// use position to colour map to make a colour to []well positions map
 	colourtoWellLocationMap := make(map[string][]string)

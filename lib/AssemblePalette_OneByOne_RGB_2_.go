@@ -85,21 +85,32 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
+		img, err = image.Posterize(img, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.PlateWithMasterMix, _input.Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(img, _input.PlateWithMasterMix, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(img, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

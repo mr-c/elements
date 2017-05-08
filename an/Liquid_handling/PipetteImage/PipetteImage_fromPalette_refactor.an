@@ -63,15 +63,24 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
-	
+
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
 	}
 	
 	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate)
