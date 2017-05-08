@@ -44,7 +44,7 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		err := download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
