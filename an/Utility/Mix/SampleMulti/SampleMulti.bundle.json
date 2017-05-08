@@ -1,0 +1,32 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "SampleMulti"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "OneSample" : "water",
+      "Volumes":{
+        "default": "5ul",
+        "Arthur": "10ul",
+        "Barry": "200ul",
+        "Cynthia": "0.3ul",
+        "Doris": "40ul",
+        "Eliza": "50ul"
+      },
+      "SampleNames": [
+        "Arthur",
+        "Barry",
+        "Cynthia",
+        "Doris",
+        "Eliza",
+        "Frederick",
+        "Gertrude",
+        "Hyacinth"
+      ]
+    }
+  },
+  "config": null
+}

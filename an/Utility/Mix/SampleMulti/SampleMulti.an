@@ -1,0 +1,99 @@
+// Protocol SampleMulti performs something.
+//
+// All of this text should be used to describe what this protocol does.  It
+// should begin with a one sentence summary begining with "Protocol X...". If
+// neccessary, a empty line with a detailed description can follow (like this
+// description does).
+//
+// Spend some time thinking of a good protocol name as this is the name by
+// which this protocol will be referred. It should convey the purpose and scope
+// of the protocol to an outsider and should suggest an obvious
+// parameterization.
+//
+// Protocol names are also case-sensitive, so try to use a consistent casing
+// scheme.
+//
+// Examples of bad names:
+//   - MyProtocol
+//   - GeneAssembly
+//   - WildCAPSsmallANDLARGE
+//
+// Better names:
+//   - Aliquot
+//   - TypeIIsConstructAssembly
+protocol SampleMulti
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"fmt"
+)
+
+// Parameters to this protocol
+Parameters (
+Volumes map[string]Volume
+SampleNames []string
+OneSample *wtype.LHComponent
+//OneSample *wtype.LHComponent
+)
+
+// Output data of this protocol
+Data (
+)
+
+// Physical inputs to this protocol
+Inputs (
+)
+
+// Physical outputs to this protocol
+Outputs (
+	Samples []*wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	//Samples := make([]*wtype.LHComponent, 0)
+	//StockConcs := make([]string, 0)
+
+	for _, sampleNames := range SampleNames {
+		OneSample.CName = sampleNames
+		if Val, ok := Volumes[OneSample.CName]; ok {
+			sample := mixer.Sample(OneSample, Val)
+			fmt.Println("The sample named", OneSample.CName, "will have", Val, "µl aspirated" )
+			Samples = append(Samples, sample)
+				} else if Val, ok := Volumes["default"]; ok {
+						sample := mixer.Sample(OneSample, Val)
+						fmt.Println("The sample named", OneSample.CName, "will have", Val, "µl aspirated" )
+						Samples = append(Samples, sample)
+						} else {
+				 			Errorf(`No entry set for %s and no "default" specified in Volumes: please add one of these.`, sampleNames)
+							}
+
+//			Samples = append(Samples, OneSample)
+		}
+//		fmt.Println(OneSample)
+
+
+		}
+
+
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
