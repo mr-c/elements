@@ -198,7 +198,7 @@ func init() {
 		Constructor: SerialDilution_Conc_multiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to make a series of serial dilution sets. Each set targeting a series of specified setpoint concentrations.\nA series of input solutions are specified which must have the stock concentration specified, e.g. by NewLHComponents.\nA common diluent will be used for all.\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/SerialDilution_Conc_multi/SerialDilution_Conc_multi.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution_Conc_multi/SerialDilution_Conc_multi.an",
 			Params: []component.ParamDesc{
 				{Name: "ByRow", Desc: "optionally choose whether to aliqout the serial dilutions by row instead of the default by column\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "Use the same diluent for all component dilutions\n", Kind: "Inputs"},
