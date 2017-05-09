@@ -1,4 +1,4 @@
-protocol MultichannelTestProtocol
+protocol MultichannelTestProtocol2
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -8,6 +8,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Vols []wunit.Volume
+	Wells []string
 )
 
 // Physical Inputs to this protocol with types
@@ -24,7 +25,8 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data ()
 
-Requirements {}
+Requirements {
+}
 
 // Conditions to run on startup
 Setup {}
@@ -36,7 +38,7 @@ Steps {
 		var s *wtype.LHComponent
 		if !Vols[k].IsZero(){
 			s = mixer.Sample(Parts[k], Vols[k])
-		 MixTo(OutputPlateType, "", 1, s)
+		 MixTo(OutputPlateType, Wells[k], 1, s)
 		}
 	}
 }
