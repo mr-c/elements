@@ -134,7 +134,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	_output.PlateWithMastermix = _input.OutPlate
 
 	_output.Status = "Mastermix Made"
-
+	_output.MasterMixVolume = _output.Mastermix.Volume()
 }
 
 // Run after controls and a steps block are completed to
@@ -205,6 +205,7 @@ type MasterMixMakerInput struct {
 }
 
 type MasterMixMakerOutput struct {
+	MasterMixVolume    wunit.Volume
 	Mastermix          *wtype.LHComponent
 	PlateWithMastermix *wtype.LHPlate
 	Status             string
@@ -212,7 +213,8 @@ type MasterMixMakerOutput struct {
 
 type MasterMixMakerSOutput struct {
 	Data struct {
-		Status string
+		MasterMixVolume wunit.Volume
+		Status          string
 	}
 	Outputs struct {
 		Mastermix          *wtype.LHComponent
@@ -233,6 +235,7 @@ func init() {
 				{Name: "OptimisePlateUsage", Desc: "If set to true the mix will be prepared on the next available position on the input plate\nOtherwise the mastermix will be added to OutPlate\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.\n", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\" vol is \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
+				{Name: "MasterMixVolume", Desc: "", Kind: "Data"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},
 				{Name: "PlateWithMastermix", Desc: "", Kind: "Outputs"},
 				{Name: "Status", Desc: "", Kind: "Data"},
