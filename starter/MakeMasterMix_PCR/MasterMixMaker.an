@@ -40,6 +40,7 @@ Parameters (
 // Data which is returned from this protocol, and data types
 Data (
 	Status string
+	MasterMixVolume Volume
 )
 
 
@@ -151,7 +152,7 @@ Steps {
 	PlateWithMastermix = OutPlate
 	
  	Status = "Mastermix Made"
-	
+	MasterMixVolume = Mastermix.Volume()
 }
 
 // Run after controls and a steps block are completed to
