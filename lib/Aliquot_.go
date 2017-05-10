@@ -20,10 +20,15 @@ import (
 // Input parameters for this protocol (data)
 
 // This parameter represents the volume of solution that you have in the lab available to be aliquoted. It does not represent the total volume to be aliquoted or the volume of liquid that will be used.
+
 // This parameter dictates the final volume each aliquot will have.
+
 // This parameter states the number of aliquots that will be made from the input Solution.
+
 // This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transfer.
+
 // This parameter is an optional field. If you want to change the name of the input Solution for traceability then do so. If not the default name will be given as the chosen input Solution LHComponent name.
+
 // This parameter is an optional field. If set to true then the aliquots will be transferred to a specific named plate such that if two instances of this element are run in parallel the aliquots from both will be put on the same output plate rather than two separate output plates.
 
 // Data which is returned from this protocol, and data types
@@ -31,6 +36,7 @@ import (
 // Physical Inputs to this protocol with types
 
 // This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the AddNewLHComponent element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
+
 // This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
 
 // Physical outputs from this protocol with types
