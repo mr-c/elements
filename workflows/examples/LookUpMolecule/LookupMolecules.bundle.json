@@ -1,0 +1,23 @@
+{
+  "Parameters": {
+    "LookUpMolecule": {
+      "Compoundlist": [
+        "Water",
+        "Potassium Acetate",
+        "Tris Acetate",
+        "Magnesium Acetate",
+        "Paclitaxel"
+      ],
+      "OverRideDefaultConcentration": {
+        "Paclitaxel": "1mM",
+        "default": "1M/l"
+      }
+    }
+  },
+  "connections": [],
+  "processes": {
+    "LookUpMolecule": {
+      "component": "LookUpMolecules"
+    }
+  }
+}

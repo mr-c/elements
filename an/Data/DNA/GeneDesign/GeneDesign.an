@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
-	"path/filepath"
 )
 
 Parameters (
@@ -46,8 +45,10 @@ Steps {
 	// Retrieve part seqs from entrez
 	for _, part := range Parts {
 		//desiredfilename := filepath.Join(anthapath.Path(), part+".gb")
-		desiredfilename := filepath.Join(ConstructName, part+".gb")
-		DNA,_, _ := entrez.RetrieveSequence(part, "nucleotide",desiredfilename)
+		DNA, err := entrez.RetrieveSequence(part, "nucleotide")
+		if err != nil {
+			Errorf("Error getting sequence for part %s: %s",part, err.Error())
+		}
 		PartDNA =append(PartDNA, DNA)
 	}
 	
@@ -59,11 +60,12 @@ Steps {
 	}
 	
 	// look up vector sequence
-	
-	//desiredvectorfilename := filepath.Join(anthapath.Path(), Vector+".gb")
-	desiredvectorfilename := filepath.Join(ConstructName, Vector+".gb")
-	
-	VectorSeq,_, _ := entrez.RetrieveVector(Vector,desiredvectorfilename)
+		
+	VectorSeq,err := entrez.RetrieveVector(Vector)
+
+	if err != nil {
+		Errorf("Errorf getting vector %s: %s", Vector, err.Error())
+	}
 
 	// Add overhangs
 	if EndsAlreadyAdded {

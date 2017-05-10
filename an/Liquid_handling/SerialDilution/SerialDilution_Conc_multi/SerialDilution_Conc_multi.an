@@ -1,0 +1,137 @@
+// Protocol to make a series of serial dilution sets. Each set targeting a series of specified setpoint concentrations. 
+// A series of input solutions are specified which must have the stock concentration specified, e.g. by NewLHComponents.
+// A common diluent will be used for all.
+protocol SerialDilution_Conc_multi
+
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"	
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	
+	// specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution
+	// a "default" may be specified which applies to all values with no explicit value set in this map
+	StartVolumeperDilution 	map[string]Volume 
+	
+	// specify target concentrations to make for each solution
+	// a "default" may be specified which applies to all values with no explicit value set in this map
+	TargetConcentrations  	map[string][]Concentration// specify target concentrations for 
+	
+	// optionally choose whether to aliqout the serial dilutions by row instead of the default by column
+	ByRow 					bool 
+	
+	// optionally start after a specified well position if wells are allready used in the plate
+	WellsAlreadyUsed			int 
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	WellsUsedPostRun 		int
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	
+	// starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
+	SolutionsWithConcentrations []*wtype.LHComponent 
+	
+	// Use the same diluent for all component dilutions
+	Diluent 					*wtype.LHComponent
+	
+	// use the same outplate for all dilutions
+	OutPlate 					*wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	AllDilutions []*wtype.LHComponent
+	DilutionsByComponent map[string][]*wtype.LHComponent
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	wellsused := WellsAlreadyUsed
+	DilutionsByComponent = make(map[string][]*wtype.LHComponent)
+	
+	for _, solution := range SolutionsWithConcentrations {
+			
+		var startVol Volume
+		
+		if vol, found := StartVolumeperDilution[solution.CName];found{
+			startVol = vol
+		}else if vol, found := StartVolumeperDilution["default"];found{
+			startVol = vol
+		}else{
+			Errorf("No volume specified for %s and no default volume specified",solution.CName)
+		}
+		
+		var targetConcs []Concentration
+		
+		if concs, found := TargetConcentrations[solution.CName];found{
+			targetConcs = concs
+		}else if concs, found := TargetConcentrations["default"];found{
+			targetConcs = concs
+		}else{
+			Errorf("No target concentrations specified for %s and no default specified",solution.CName)
+		}
+		
+		var solConc Concentration
+		if solution.HasConcentration(){
+			solConc = solution.Concentration()
+		}else{
+			Errorf("no concentration found for %s, please set this. ",solution.CName)
+		}
+		
+		// run SerialDilution_ForConcentration element
+		result := RunSteps(SerialDilution_forConcentration,Parameters{
+			StartVolumeperDilution: startVol,	
+			StockConcentration:	solConc,
+			TargetConcentrations: targetConcs,  	
+			ByRow: ByRow,	
+			WellsAlreadyUsed: wellsused,
+		},Inputs{
+			Solution: solution,
+			Diluent: Diluent,
+			OutPlate: OutPlate,
+		})
+	
+		// update wells used to carry on next set of dilutions to next available position
+		wellsused = result.Data.WellsUsedPostRun
+	
+		// add all dilutions to output
+		for _, dilution := range result.Outputs.AllDilutions{
+			AllDilutions = append(AllDilutions,dilution)
+		}
+		DilutionsByComponent[solution.CName] = result.Outputs.AllDilutions
+	}
+	
+	WellsUsedPostRun = wellsused
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}
+
