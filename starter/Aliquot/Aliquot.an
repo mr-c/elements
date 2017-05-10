@@ -1,8 +1,9 @@
 // The Aliquot element will transfer a user defined number of aliquots of a specified volume of a solution into a specified plate type.
-// The user has the option to premix the solution to be aliquoted if components sink in the solution. Upstream elements that produce 
-// solutions as outputs can be wired into the Solution parameter of this element for aliquoting. If the solution is already made but 
-// a definition for this solution does not exist in the Antha library then the AddNewLHComponent element can be used to define this 
-// solution with the output from the element wired into the Solution parameter of this element.
+// The user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand 
+// (e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired 
+// into the Solution parameter of this element for aliquoting. If the solution is already made but a definition for this solution does 
+// not exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the 
+// element wired into the Solution parameter of this element.
 protocol Aliquot
 
 import (
@@ -17,7 +18,7 @@ Parameters (
 	SolutionVolume Volume // This parameter represents the volume of solution that you have in the lab available to be aliquoted. It does not represent the total volume to be aliquoted or the volume of liquid that will be used.
 	VolumePerAliquot  Volume // This parameter dictates the final volume each aliquot will have.
 	NumberofAliquots int // This parameter states the number of aliquots that will be made from the input Solution.
-	PreMix bool // This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transer.
+	PreMix bool // This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transfer.
 	ChangeSolutionName string // This parameter is an optional field. If you want to change the name of the input Solution for traceability then do so. If not the default name will be given as the chosen input Solution LHComponent name.
 	OptimisePlateUsage bool // This parameter is an optional field. If set to true then the aliquots will be transferred to a specific named plate such that if two instances of this element are run in parallel the aliquots from both will be put on the same output plate rather than two separate output plates.
 )
@@ -30,7 +31,7 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent // This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the NewLHComponents element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
+	Solution *wtype.LHComponent // This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the AddNewLHComponent element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
 	OutPlate *wtype.LHPlate // This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
 	
 )
