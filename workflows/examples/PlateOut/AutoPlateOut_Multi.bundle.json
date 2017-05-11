@@ -5,8 +5,6 @@
     "Process1": {
       "AgarPlate": "falcon6wellAgar",
       "AgarPlateNumber": 1,
-      "Diluent": "LB",
-      "Dilution": 1,
       "IncubationTemp": "37C",
       "IncubationTime": "57600s",
       "NumberofReplicates": 2,
@@ -14,8 +12,8 @@
       "PlateOutVolume": "100ul",
       "TransformedCells": [
         "neb5compcells",
-        "neb5compcells",
-        "neb5compcells"
+        "protoplasts",
+        "culture"
       ],
       "WellsAlreadyUsed": 0
     }
