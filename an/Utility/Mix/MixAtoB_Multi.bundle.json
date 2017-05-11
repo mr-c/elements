@@ -1,0 +1,16 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "MixAtoB_multi"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentsA": ["dna"],
+      "ComponentsB": ["water"],
+	  "SampleVolume": "1ul"
+    }
+  },
+  "config": null
+}

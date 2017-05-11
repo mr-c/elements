@@ -1,0 +1,76 @@
+// Mix a list of ComponentsA to ComponentsB.
+// By default, each component in ComponentsB will have the component from the corresponding position in ComponentsA added to it
+// e.g.
+// ComponentsA [dna1,dna2] + ComponentsB [water, pbs] = MixedComponents [water + dna1, pbs + dna2]
+protocol MixAtoB_multi
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	// If a sample volume is specifed a sample of each of ComponentsB will be taken according to that volume.
+	// If no sample volume is specified the entire contents will be sampled
+	SampleVolume Volume
+)
+
+// Output data of this protocol
+Data (
+)
+
+// Physical inputs to this protocol
+Inputs (
+	
+	// List of components to add to all components in ComponentsB
+	ComponentsA []*wtype.LHComponent
+	
+	// Each component in ComponentsB will have the component from the corresponding position in ComponentsA added to it
+	ComponentsB []*wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponents []*wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	
+	if len(ComponentsA)<len(ComponentsB) {
+		Errorf("not enough samples in ComponentsA to mix to all of ComponentsB: Found %d in ComponentsA, %d in ComponentsB",len(ComponentsA),len(ComponentsB))
+	}
+	
+	for i := range ComponentsB {
+		var sample *wtype.LHComponent
+		if SampleVolume.RawValue() > 0.0 {			
+			sample = mixer.Sample(ComponentsA[i],SampleVolume)			
+		}else{
+			sample = mixer.SampleAll(ComponentsA[i])
+		}
+		mixedComponent := Mix(ComponentsB[i], sample)
+		MixedComponents = append(MixedComponents, mixedComponent)
+	
+	}
+	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
