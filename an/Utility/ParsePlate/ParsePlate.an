@@ -1,36 +1,37 @@
-// example protocol for parsing the contents of a plate from a csv file
+// Protocol ParsePlate can take in a plate template file (.csv) containing liquid components (e.g. PCR reactions)
+// and be used as an input element into another protocol (e.g. DNA_gel.an)
 protocol ParsePlate
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	inplate "github.com/antha-lang/antha/target/mixer"
+ 	"github.com/antha-lang/antha/target/mixer"
 	"bytes"
 	"fmt"
 )
 // Input parameters for this protocol (data)
 Parameters (
-	InputCSVfile File
-) 
+	InputCSVfile File //the file containg the plate layout
+)
 // Data which is returned from this protocol, and data types
 Data (
-	Error error
-	Warnings []string
+	Error error //Error
+	Warnings []string //Warnings slice to store errors
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-   
-) 
+
+)
 // Physical outputs from this protocol with types
 Outputs (
-	AllComponents []*wtype.LHComponent//Gel
-	PlatewithComponents *wtype.LHPlate
-	ComponentMap map[string]*wtype.LHComponent
+	Components []*wtype.LHComponent //Slice of the liquid components obtained from the input file to be linked into another element
+	PlatewithComponents *wtype.LHPlate //output of the plate layout obtained from the input file
+	ComponentMap map[string]*wtype.LHComponent //map of all the components and volumes
 )
 
 // No special requirements on inputs
 Requirements {
-  
+
 }
 
 // Condititions run on startup
@@ -44,55 +45,62 @@ Setup {
 // for every input
 Steps {
 
-	// Read file
+	//read input .csv file
 	filecontents, err := InputCSVfile.ReadAll()
-	
+
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
-	// create a reader from filecontents
+
+	//create a reader from the filecontents (contens of the .csv file)
 	reader := bytes.NewReader(filecontents)
-	
-	// Parse plate from reader
-	plateresult,err := inplate.ParsePlateCSV(reader) 
-	
+
+	//parse plate information from the reader
+	plateresult,err := mixer.ParsePlateCSV(reader)
+
 	if err != nil {
 		Error = err
-		Errorf(err.Error())
+		Errorf("Errors in input plate layour .csv file: %s", err.Error())
+		Warnings = append(Warnings, err.Error())
+
 	}
-	
-	// assign LHPlate variable
+
+	//assign LHPlate variable to the plate information
 	inputplate := plateresult.Plate
-	
-	// return any warnings from plate parsing process
-	Warnings = plateresult.Warnings
-	
+
+	//return any warnings from plate parsing process and append to the Warnings slice
+	if len(plateresult.Warnings) == 0 {
+		plateWarnings := plateresult.Warnings
+		Warnings = append(Warnings, plateWarnings...)
+	}
+
+	//set up a slice and a map to fill with the components
 	components := make([]*wtype.LHComponent,0)
 	ComponentMap = make(map[string]*wtype.LHComponent)
-	
-	// get all plate components and return into both a slice and a map
+
+	//get all plate components from the well columns and return into both a slice and a map
 	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN){
-	
+
+	//fill the slice and map with the components and report back errors if no compoenents found
 	if !inputplate.WellMap()[wellcontents].Empty() {
-	
 	component := inputplate.WellMap()[wellcontents].WContents
 	components = append(components, component)
 	ComponentMap[component.CName] = component
-	
+		} else {
+			err = fmt.Errorf("No Components found when parsing plate: " + InputCSVfile.Name)
+			Warnings = append(Warnings,err.Error())
+			Error = err
 		}
 	}
-	if len(AllComponents)==0{
-		err = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
-		Warnings = append(Warnings,err.Error())
-		Error = err
-	}
-	AllComponents = components
+
+	//update the output variables
+	Components = components
 	PlatewithComponents = inputplate
 	SetInputPlate(PlatewithComponents)
 
+
 }
-	
+
 
 
 // Run after controls and a steps block are completed to
@@ -107,4 +115,3 @@ Analysis {
 Validation {
 
 }
-
