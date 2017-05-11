@@ -4,6 +4,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -55,6 +56,8 @@ func _DNA_gelSetup(_ctx context.Context, _input *DNA_gelInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelOutput) {
+	//set up some default values
+	var defaultGelLoadingMixPolicy string = "load"
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
 	var loadedSamples []*wtype.LHComponent
@@ -62,14 +65,19 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 	//setup variable for error reporting
 	var err error
 
-	//specify default mixing policy
-	if _input.GelLoadingMixingPolicy == "" {
-		_input.GelLoadingMixingPolicy = "Load"
-	}
-
-	if _input.LoadingDyeMixingPolicy == "" {
-		_input.LoadingDyeMixingPolicy = "NeedToMix"
-	}
+	// //specify default mixing policy
+	// if GelLoadingMixingPolicy == "" {
+	// 	GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
+	// 	err = fmt.Errorf("No GelLoadingMixingPolicy specified so assigning to default: %s", defaultGelLoadingMixPolicy)
+	// 	Errors = append(Errors, err.Error())
+	// }
+	//
+	// //specify default loading dye mixing policy
+	// if LoadingDyeMixingPolicy == "" {
+	// 	LoadingDyeMixingPolicy = defaultLoadingDyeMixingPolicy
+	// 	err = fmt.Errorf("No LoadingDyeMixingPolicy specified so assigning to default: %s", defaultLoadingDyeMixingPolicy)
+	// 	Errors = append(Errors, err.Error())
+	// }
 
 	//get well positions of DNA Gel from plate library ensuring the list is by row rather than by column
 	var wells []string = _input.DNAGel.AllWellPositions(wtype.BYROW)
@@ -86,6 +94,13 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 
 	//get info for total volume of well
 	totalWellVolume := wunit.CopyVolume(wunit.NewVolume(_input.DNAGel.Welltype.MaxVol, "ul"))
+
+	//check if replicates set to 1 or greater
+	if _input.Replicates == 0 {
+		_input.Replicates = 1
+		err = fmt.Errorf("Invalid number of replicates so setting Replicates to 1")
+		_output.Errors = append(_output.Errors, err.Error())
+	}
 
 	//calculate and loop through specified number of replicates
 	for j := 0; j < _input.Replicates; j++ {
@@ -107,7 +122,7 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 				//attribute specified mixinpolicy to the DNA ladder
 				_input.Ladder.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
 				if err != nil {
-					execute.Errorf(_ctx, "Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", _input.GelLoadingMixingPolicy, err.Error())
+					_input.Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
 				}
 
 				//work out how much water to add to ladded
@@ -138,7 +153,8 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 				//attribute specified mixinpolicy to the LoadingDye
 				_input.LoadingDye.Type, err = wtype.LiquidTypeFromString(_input.LoadingDyeMixingPolicy)
 				if err != nil {
-					execute.Errorf(_ctx, "Error in specifying LoadingDyeMixingPolicy %s for DNA Gel: %s", _input.LoadingDyeMixingPolicy, err.Error())
+					execute.Errorf(_ctx, "Error in specifying LoadingDyeMixingPolicy (%s) for DNA Gel. Please assign a valid LHComponent", _input.LoadingDyeMixingPolicy)
+					_output.Errors = append(_output.Errors, err.Error())
 				}
 
 				//perform liquid handling for addiiton and mixing of the loading dye
@@ -160,7 +176,8 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 			//attribute specified mixinpolicy to the samples
 			loadingMix.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
 			if err != nil {
-				execute.Errorf(_ctx, "Error in specifying GelLoadingMixingPolicy %s for DNA Gel: %s", _input.GelLoadingMixingPolicy, err.Error())
+				execute.Errorf(_ctx, "Error in specifying GelLoadingMixingPolicy (%s) for DNA Gel. Please assign a valid LHComponent", _input.GelLoadingMixingPolicy)
+				_output.Errors = append(_output.Errors, err.Error())
 			}
 
 			//get total volume per well including sample and loadingdye
@@ -172,6 +189,7 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 			//detect if the volumes are correct, if not then reprt
 			if waterVolume.LessThan(wunit.NewVolume(0.0, "ul")) {
 				execute.Errorf(_ctx, "The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
+				_output.Errors = append(_output.Errors, err.Error())
 			}
 
 			//sample water at specified water volume
@@ -274,13 +292,13 @@ type DNA_gelInput struct {
 }
 
 type DNA_gelOutput struct {
-	Errors        error
+	Errors        []string
 	LoadedSamples []*wtype.LHComponent
 }
 
 type DNA_gelSOutput struct {
 	Data struct {
-		Errors error
+		Errors []string
 	}
 	Outputs struct {
 		LoadedSamples []*wtype.LHComponent
