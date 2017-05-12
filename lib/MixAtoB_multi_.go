@@ -19,8 +19,9 @@ import
 
 // Parameters to this protocol
 
-// If a sample volume is specifed a sample of each of ComponentsB will be taken according to that volume.
-// If no sample volume is specified the entire contents will be sampled
+// If a sample volume is specifed for a sample name contained  in ComponentsB, that volume of that component will be sampled.
+// if a "default" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.
+// If no sample volume is specified for a component and no default set then the entire contents will be sampled.
 
 // Output data of this protocol
 
@@ -46,8 +47,16 @@ func _MixAtoB_multiSteps(_ctx context.Context, _input *MixAtoB_multiInput, _outp
 
 	for i := range _input.ComponentsB {
 		var sample *wtype.LHComponent
-		if _input.SampleVolume.RawValue() > 0.0 {
-			sample = mixer.Sample(_input.ComponentsA[i], _input.SampleVolume)
+
+		var sampleVol wunit.Volume
+		if vol, found := _input.SampleVolumes[_input.ComponentsB[i].CName]; found {
+			sampleVol = vol
+		} else if vol, found := _input.SampleVolumes["default"]; found {
+			sampleVol = vol
+		}
+
+		if sampleVol.RawValue() > 0.0 {
+			sample = mixer.Sample(_input.ComponentsA[i], sampleVol)
 		} else {
 			sample = mixer.SampleAll(_input.ComponentsA[i])
 		}
@@ -119,9 +128,9 @@ type MixAtoB_multiElement struct {
 }
 
 type MixAtoB_multiInput struct {
-	ComponentsA  []*wtype.LHComponent
-	ComponentsB  []*wtype.LHComponent
-	SampleVolume wunit.Volume
+	ComponentsA   []*wtype.LHComponent
+	ComponentsB   []*wtype.LHComponent
+	SampleVolumes map[string]wunit.Volume
 }
 
 type MixAtoB_multiOutput struct {
@@ -145,7 +154,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "ComponentsA", Desc: "List of components to add to all components in ComponentsB\n", Kind: "Inputs"},
 				{Name: "ComponentsB", Desc: "Each component in ComponentsB will have the component from the corresponding position in ComponentsA added to it\n", Kind: "Inputs"},
-				{Name: "SampleVolume", Desc: "If a sample volume is specifed a sample of each of ComponentsB will be taken according to that volume.\nIf no sample volume is specified the entire contents will be sampled\n", Kind: "Parameters"},
+				{Name: "SampleVolumes", Desc: "If a sample volume is specifed for a sample name contained  in ComponentsB, that volume of that component will be sampled.\nif a \"default\" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.\nIf no sample volume is specified for a component and no default set then the entire contents will be sampled.\n", Kind: "Parameters"},
 				{Name: "MixedComponents", Desc: "", Kind: "Outputs"},
 			},
 		},

@@ -12,9 +12,10 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	// If a sample volume is specifed a sample of each of ComponentsB will be taken according to that volume.
-	// If no sample volume is specified the entire contents will be sampled
-	SampleVolume Volume
+	// If a sample volume is specifed for a sample name contained  in ComponentsB, that volume of that component will be sampled.
+	// if a "default" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.
+	// If no sample volume is specified for a component and no default set then the entire contents will be sampled.
+	SampleVolumes map[string]Volume
 )
 
 // Output data of this protocol
@@ -50,8 +51,16 @@ Steps {
 	
 	for i := range ComponentsB {
 		var sample *wtype.LHComponent
-		if SampleVolume.RawValue() > 0.0 {			
-			sample = mixer.Sample(ComponentsA[i],SampleVolume)			
+		
+		var sampleVol Volume
+		if vol, found := SampleVolumes[ComponentsB[i].CName];found{
+			sampleVol = vol
+		}else if vol, found := SampleVolumes["default"];found{
+			sampleVol = vol
+		}
+		
+		if sampleVol.RawValue() > 0.0 {			
+			sample = mixer.Sample(ComponentsA[i],sampleVol)			
 		}else{
 			sample = mixer.SampleAll(ComponentsA[i])
 		}
