@@ -17,9 +17,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	Imagefilename wtype.File // name of image file or if using URL use this field to set the desired filename
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -34,6 +32,8 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
+	ResizedImage wtype.File
+	ResizedImages []wtype.File
 	Numberofpixels int
 	UniqueComponents []string
 )
@@ -62,15 +62,7 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	// if image is from url, download
-	if UseURL {
-		_, err := download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
-	}
-	
+
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[Palettename]
 	
@@ -94,15 +86,24 @@ Steps {
 	}else {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
-	
+
+	img, err := image.Open(ImageFile)
+	if err!= nil {
+		Errorf(err.Error())
+	}
 	
 	if CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+		resizedImages :=  image.CheckAllResizealgorithms(img,OutPlate,Rotate,image.AllResampleFilters)
+
+
+
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate) 
-	
+	positiontocolourmap, img := image.ImagetoPlatelayout(img, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
+
+	ResizedImage := image.Export(img)
+
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
 	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light 
@@ -115,7 +116,7 @@ Steps {
 		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
-		image.PrintFPImagePreview(Imagefilename,OutPlate, Rotate, visiblemap, uvmap)
+		UVFile = image.PrintFPImagePreview(img,OutPlate, Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
