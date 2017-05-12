@@ -71,9 +71,6 @@ Steps {
 	//get well positions of DNA Gel from plate library ensuring the list is by row rather than by column
 	var wells []string = DNAGel.AllWellPositions(wtype.BYROW)
 
-	//setup position string to hold position information
-	var position string
-
 	//setup liquid handling component variables
 	var loadingMix *wtype.LHComponent
 	var loadedSample *wtype.LHComponent
@@ -131,8 +128,6 @@ Steps {
 
 							//decrease counter by 1, as pipetting Gel backwards
 							counter--
-
-						}
 
 						// refresh position in case ladder was added
 						position = wells[counter]
@@ -215,6 +210,7 @@ Steps {
 
 				//update output variable LoadedSamples with the output of the protocol
 				LoadedSamples = loadedSamples
+}
 }
 
 // Run after controls and a steps block are completed to

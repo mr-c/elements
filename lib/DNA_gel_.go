@@ -69,9 +69,6 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 	//get well positions of DNA Gel from plate library ensuring the list is by row rather than by column
 	var wells []string = _input.DNAGel.AllWellPositions(wtype.BYROW)
 
-	//setup position string to hold position information
-	var position string
-
 	//setup liquid handling component variables
 	var loadingMix *wtype.LHComponent
 	var loadedSample *wtype.LHComponent
@@ -130,88 +127,87 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 			//decrease counter by 1, as pipetting Gel backwards
 			counter--
 
-		}
+			// refresh position in case ladder was added
+			position = wells[counter]
 
-		// refresh position in case ladder was added
-		position = wells[counter]
+			sampletotest := _input.Reactions[i]
 
-		sampletotest := _input.Reactions[i]
+			// load sample
 
-		// load sample
+			// add loading dye if necessary
+			if !_input.LoadingDyeInSample {
 
-		// add loading dye if necessary
-		if !_input.LoadingDyeInSample {
+				//attribute specified mixingpolicy to the LoadingDye
+				if _input.LoadingDyeMixingPolicy == "" {
+					_input.LoadingDyeMixingPolicy = defaultLoadingDyeMixingPolicy
+					err = fmt.Errorf("No liquid policy specified for LoadingDyeMixingPolicy so assigning default mixing policy for this protocol: %s", defaultLoadingDyeMixingPolicy)
+					_output.Errors = append(_output.Errors, err.Error())
+				}
+				_input.LoadingDye.Type, err = wtype.LiquidTypeFromString(_input.LoadingDyeMixingPolicy)
+				if err != nil {
+					err = fmt.Errorf(err.Error())
+					_output.Errors = append(_output.Errors, err.Error())
+				}
+
+				//perform liquid handling for addiiton and mixing of the loading dye
+				var loadingMixSolution *wtype.LHComponent
+
+				// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
+				if _input.OptimisePlateUsage == true {
+					loadingMixSolution = execute.Mix(_ctx, mixer.Sample(sampletotest, _input.SampleVolume))
+					loadingMixSolution = execute.Mix(_ctx, loadingMixSolution, mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
+				} else {
+					loadingMixSolution = execute.MixInto(_ctx, _input.MixPlate, "", mixer.Sample(sampletotest, _input.SampleVolume), mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
+				}
+				//assign newly mixed componenents to the loadin
+				loadingMix = loadingMixSolution
+			} else {
+				loadingMix = sampletotest
+			}
 
 			//attribute specified mixingpolicy to the LoadingDye
-			if _input.LoadingDyeMixingPolicy == "" {
-				_input.LoadingDyeMixingPolicy = defaultLoadingDyeMixingPolicy
-				err = fmt.Errorf("No liquid policy specified for LoadingDyeMixingPolicy so assigning default mixing policy for this protocol: %s", defaultLoadingDyeMixingPolicy)
+			if _input.GelLoadingMixingPolicy == "" {
+				_input.GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
+				err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixPolicy)
 				_output.Errors = append(_output.Errors, err.Error())
 			}
-			_input.LoadingDye.Type, err = wtype.LiquidTypeFromString(_input.LoadingDyeMixingPolicy)
+			loadingMix.Type, err = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
 			if err != nil {
 				err = fmt.Errorf(err.Error())
 				_output.Errors = append(_output.Errors, err.Error())
 			}
 
-			//perform liquid handling for addiiton and mixing of the loading dye
-			var loadingMixSolution *wtype.LHComponent
+			//get total volume per well including sample and loadingdye
+			sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{_input.SampleVolume, _input.LoadingDyeVolume})
 
-			// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
-			if _input.OptimisePlateUsage == true {
-				loadingMixSolution = execute.Mix(_ctx, mixer.Sample(sampletotest, _input.SampleVolume))
-				loadingMixSolution = execute.Mix(_ctx, loadingMixSolution, mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
-			} else {
-				loadingMixSolution = execute.MixInto(_ctx, _input.MixPlate, "", mixer.Sample(sampletotest, _input.SampleVolume), mixer.Sample(_input.LoadingDye, _input.LoadingDyeVolume))
+			//work out how much water to add
+			waterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{sampleAndLoadingDyeVolume})
+
+			//detect if the volumes are correct, if not then reprt
+			if waterVolume.LessThan(wunit.NewVolume(0.0, "ul")) {
+				execute.Errorf(_ctx, "The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
+				_output.Errors = append(_output.Errors, err.Error())
 			}
-			//assign newly mixed componenents to the loadin
-			loadingMix = loadingMixSolution
-		} else {
-			loadingMix = sampletotest
+
+			//sample water at specified water volume
+			waterSample := mixer.Sample(_input.Water, waterVolume)
+
+			//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
+			waterSample = execute.MixInto(_ctx, _input.DNAGel, position, waterSample)
+
+			//transfer sample plus laoding dye to Gel
+			loadedSample = execute.Mix(_ctx, waterSample, mixer.Sample(loadingMix, sampleAndLoadingDyeVolume))
+
+			//add the loaded samples to the loadedSamples array
+			loadedSamples = append(loadedSamples, loadedSample)
+
+			//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
+			counter--
 		}
 
-		//attribute specified mixingpolicy to the LoadingDye
-		if _input.GelLoadingMixingPolicy == "" {
-			_input.GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
-			err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixPolicy)
-			_output.Errors = append(_output.Errors, err.Error())
-		}
-		loadingMix.Type, err = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
-		if err != nil {
-			err = fmt.Errorf(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
-		}
-
-		//get total volume per well including sample and loadingdye
-		sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{_input.SampleVolume, _input.LoadingDyeVolume})
-
-		//work out how much water to add
-		waterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{sampleAndLoadingDyeVolume})
-
-		//detect if the volumes are correct, if not then reprt
-		if waterVolume.LessThan(wunit.NewVolume(0.0, "ul")) {
-			execute.Errorf(_ctx, "The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
-			_output.Errors = append(_output.Errors, err.Error())
-		}
-
-		//sample water at specified water volume
-		waterSample := mixer.Sample(_input.Water, waterVolume)
-
-		//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
-		waterSample = execute.MixInto(_ctx, _input.DNAGel, position, waterSample)
-
-		//transfer sample plus laoding dye to Gel
-		loadedSample = execute.Mix(_ctx, waterSample, mixer.Sample(loadingMix, sampleAndLoadingDyeVolume))
-
-		//add the loaded samples to the loadedSamples array
-		loadedSamples = append(loadedSamples, loadedSample)
-
-		//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
-		counter--
+		//update output variable LoadedSamples with the output of the protocol
+		_output.LoadedSamples = loadedSamples
 	}
-
-	//update output variable LoadedSamples with the output of the protocol
-	_output.LoadedSamples = loadedSamples
 }
 
 // Run after controls and a steps block are completed to
