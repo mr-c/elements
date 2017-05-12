@@ -3,7 +3,7 @@
   "connections": null,
   "parameters": {
     "Process1": {
-      "DNAGel": "EPAGE48",
+      "DNAGel": "EGEL48",
       "GelLoadingMixingPolicy": "load",
       "Ladder": "DNA_ladder",
       "LadderVolume": "10ul",
@@ -12,7 +12,7 @@
       "LoadingDyeMixingPolicy": "NeedToMix",
       "LoadingDyeVolume": "5ul",
       "MixPlate": "greiner384_riser20",
-      "OptimisePlateUsage": false,
+      "OptimisePlateUsage": true,
       "Reactions": [
         "dna",
         "dna",
