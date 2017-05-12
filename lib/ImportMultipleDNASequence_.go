@@ -18,7 +18,7 @@ import (
 // Input parameters for this protocol
 
 //Only supported file format: .fasta
-//Optional for the user to override specification of SequenceType. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded
+//Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a "default" value can be specified which will apply to all sequences with no entry.
 //If true, sequence is searched for ORF's
 
 // Data which is returned from this protocol
@@ -49,74 +49,72 @@ func _ImportMultipleDNASequenceSteps(_ctx context.Context, _input *ImportMultipl
 	}
 
 	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
+
 	if err != nil {
-		execute.Errorf(_ctx, "The file %s could not be imported. Please check if file format supported or if file empty.", _input.SequenceFile.Name)
+		execute.Errorf(_ctx, "The file %s could not be imported. Error: %s ", _input.SequenceFile.Name, err.Error())
 	}
 
 	if err == nil {
 		_output.DNA = seqs
 		l := len(_output.DNA) - 1
+
 		if _input.CheckForORFs {
 			for i := 0; i <= l; i++ {
 				//Finds all ORFs in imported DNA sequence
 				orfs := sequences.FindallORFs(_output.DNA[i].Seq)
-
 				if len(_output.DNA[i].Features) == 0 {
 					features := sequences.ORFs2Features(orfs)
 					_output.DNA[i] = wtype.Annotate(_output.DNA[i], features)
 				}
-
 			}
 		}
-		//Include map checking here for all sequences:
-		for i := 0; i <= l; i++ {
 
-			name := _output.DNA[i].Nm
-			if _input.OverrideSequenceType[name] == "" {
-				return
-			} else if _input.OverrideSequenceType[name] != "" {
-				if _input.OverrideSequenceType[name] == "Plasmid" {
-					if _output.DNA[i].Plasmid == true {
+		if len(_input.OverrideSequenceType) > 0 {
+
+			for i := 0; i <= l; i++ {
+				name := _output.DNA[i].Nm
+				if seqType, found := _input.OverrideSequenceType[name]; found {
+					if seqType == "Plasmid" {
 						_output.DNA[i].Plasmid = true
 						_output.DNA[i].Singlestranded = false
-					} else { //This makes sure the user is notified that the sequence was assigned a different SequenceType to that present in file. As not all files define a SequenceType, no error occurs but a message is printed to the screen.
-						fmt.Printf("SequenceType of %s was overriden by user specification and is now set to Plasmid. ", _output.DNA[i].Nm)
-						_output.DNA[i].Plasmid = true
+					} else if seqType == "Linear" {
+						_output.DNA[i].Plasmid = false
 						_output.DNA[i].Singlestranded = false
-					}
-				} else if _input.OverrideSequenceType[name] == "SingleStranded" {
-					if _output.DNA[i].Singlestranded == true {
+					} else if seqType == "SingleStranded" {
 						_output.DNA[i].Plasmid = false
 						_output.DNA[i].Singlestranded = true
-					} else { //This makes sure the user is notified that the sequence was assigned a different SequenceType to that present in file. As not all files define a SequenceType, no error occurs but a message is printed to the screen.
-						fmt.Printf("SequenceType of %s was overriden by user specification and is now set to SingleStranded. ", _output.DNA[i].Nm)
-						_output.DNA[i].Plasmid = false
-						_output.DNA[i].Singlestranded = true
+					} else {
+						execute.Errorf(_ctx, "SequenceType %s is unknown for %s. Please specify as Plasmid, Linear or SingleStranded", seqType, name)
 					}
-				} else if _input.OverrideSequenceType[name] == "Linear" {
-					if _output.DNA[i].Singlestranded == false && _output.DNA[i].Plasmid == false {
-						_output.DNA[i].Plasmid = false
-						_output.DNA[i].Singlestranded = false
-					} else { //This makes sure the user is notified that the sequence was assigned a different SequenceType to that present in file. As not all files define a SequenceType, no error occurs but a message is printed to the screen.
-						fmt.Printf("SequenceType of %s was overriden by user specification and is now set to Linear.", _output.DNA[i].Nm)
-						_output.DNA[i].Plasmid = false
-						_output.DNA[i].Singlestranded = false
+				} else if !found {
+					if seqType, found := _input.OverrideSequenceType["default"]; found {
+						if seqType == "Plasmid" {
+							_output.DNA[i].Plasmid = true
+							_output.DNA[i].Singlestranded = false
+						} else if seqType == "Linear" {
+							_output.DNA[i].Plasmid = false
+							_output.DNA[i].Singlestranded = false
+						} else if seqType == "SingleStranded" {
+							_output.DNA[i].Plasmid = false
+							_output.DNA[i].Singlestranded = true
+						} else {
+							err = fmt.Errorf("SequenceType %s is unknown. Please specify type as Plasmid, Linear or SingleStranded.", seqType)
+						}
+					} else {
+						fmt.Printf("For %s no SequenceType was found in OverrideSequenceType. No default value was declared so %s's sequenceType was assigned from file. Please check if %s is spelled correctly in map, if SequenceType should be reassigned. ", name, name, name)
 					}
-				} else {
-					execute.Errorf(_ctx, "Unknown DNA type specification (%s) for %s. Please use Plasmid, SingleStranded or Linear as SequenceType", _input.OverrideSequenceType[name], _output.DNA[i].Nm)
+
 				}
 			}
-
 		}
 
+		_output.Status = fmt.Sprintln(
+			text.Print("DNA_Seq: ", _output.DNA),
+		)
+
+		_output.Warnings = err
+
 	}
-
-	_output.Status = fmt.Sprintln(
-		text.Print("DNA_Seq: ", _output.DNA),
-	)
-
-	_output.Warnings = err
-
 }
 
 // Actions to perform after steps block to analyze data
@@ -205,7 +203,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Data/DNAImport/ImportMultipleDNASequence.an",
 			Params: []component.ParamDesc{
 				{Name: "CheckForORFs", Desc: "If true, sequence is searched for ORF's\n", Kind: "Parameters"},
-				{Name: "OverrideSequenceType", Desc: "Optional for the user to override specification of SequenceType. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded\n", Kind: "Parameters"},
+				{Name: "OverrideSequenceType", Desc: "Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a \"default\" value can be specified which will apply to all sequences with no entry.\n", Kind: "Parameters"},
 				{Name: "SequenceFile", Desc: "Only supported file format: .fasta\n", Kind: "Parameters"},
 				{Name: "DNA", Desc: "Return DNA sequence as type wtype.DNASequence\n", Kind: "Data"},
 				{Name: "Status", Desc: "Status for user\n", Kind: "Data"},

@@ -27,7 +27,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/montanaflynn/stats"
 	"math"
@@ -119,7 +118,7 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 	var runs []doe.Run
 
 	// find out int factors from liquidhandling policies
-	policyitemmap := liquidhandling.MakePolicyItems()
+	policyitemmap := wtype.MakePolicyItems()
 	intfactors := make([]string, 0)
 
 	for key, val := range policyitemmap {

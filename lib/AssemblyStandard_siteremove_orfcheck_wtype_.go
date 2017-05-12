@@ -101,6 +101,34 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 		removetheseenzymes = append(removetheseenzymes, enzyTypeII)
 	}
 
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+			sitepositions := enzymes.SitepositionString(info[i])
+
+			if len(sitepositions) > 0 {
+				siteFound = true
+			}
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+
+		if !_input.RemoveproblemRestrictionSites {
+			execute.Errorf(_ctx, errormessage)
+		} else {
+			warnings = append(warnings, errormessage)
+		}
+	}
+
 	warning = text.Print("RemoveproblemRestrictionSites =", _input.RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if _input.RemoveproblemRestrictionSites && !_input.EndsAlreadyadded {
@@ -251,8 +279,7 @@ func _AssemblyStandard_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _inp
 	_output.Insert, err = assembly.Insert()
 
 	if err != nil {
-
-		execute.Errorf(_ctx, "Error calculating insert: %s ", err.Error())
+		execute.Errorf(_ctx, "Error calculating insert from assembly: %s. Sites at positions: %s ", err.Error(), siteReport(partsinorder, removetheseenzymes))
 	}
 
 	// export parts + vector as one array

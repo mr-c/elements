@@ -89,8 +89,8 @@ Steps {
 	OriginalParts = partsinorder
 	
 	warnings = append(warnings,fmt.Sprintln(Seqsinorder))
-			
-	
+		
+		
 	// check parts for restriction sites first and remove if the user has chosen to
 	enz, err := lookup.EnzymeLookup(Enzymename)
 
@@ -111,6 +111,36 @@ Steps {
 		
 		removetheseenzymes = append(removetheseenzymes,enzyTypeII)
 	}
+	
+	
+	// check number of sites per part and return if > 0!
+	var report []string
+	var siteFound bool
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+		sitepositions := enzymes.SitepositionString(info[i])
+
+		if len(sitepositions)>0{
+			siteFound = true
+		}
+		sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+		report = append(report, sitepositions)
+		}
+	}
+	if siteFound {
+		
+		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
+		
+		if !RemoveproblemRestrictionSites{
+			Errorf(errormessage)
+		}else{
+			warnings = append(warnings, errormessage)
+		}
+	}
+	
 
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
@@ -196,7 +226,6 @@ Steps {
 	}
 
 	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 	
 	if EndsAlreadyadded {
 		PartswithOverhangs = partsinorder
@@ -213,9 +242,8 @@ Steps {
 	
 	Insert, err = assembly.Insert()
 	
-	if err != nil {
-		
-		Errorf("Error calculating insert: %s ",err.Error())
+	if err != nil {	
+		Errorf("Error calculating insert from assembly: %s. Sites at positions: %s ",err.Error(),siteReport(partsinorder,removetheseenzymes))
 	}
 
 	Plasmid, ORIpresent, SelectionMarkerPresent, err = features.ValidPlasmid(newDNASequence)
@@ -347,6 +375,25 @@ Steps {
 	}
 	
 	
+}
+
+func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme)[]string{
+	// check number of sites per part !
+	sites := make([]int, 0)
+	multiple := make([]string, 0)
+	for _, part := range partsinorder {
+
+		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
+
+		for i := range info {
+		sitepositions := enzymes.SitepositionString(info[i])
+
+		sites = append(sites, info[i].Numberofsites)
+		sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+		multiple = append(multiple, sitepositions)
+		}
+	}
+	return multiple
 }
 
 // Run after controls and a steps block are completed to

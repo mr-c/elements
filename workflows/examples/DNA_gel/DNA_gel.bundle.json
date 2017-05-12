@@ -1,0 +1,31 @@
+{
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "DNAGel": "EPAGE48",
+      "GelLoadingMixingPolicy": "load",
+      "Ladder": "DNA_ladder",
+      "LadderVolume": "10ul",
+      "LoadingDye": "LoadingDye",
+      "LoadingDyeInSample": false,
+      "LoadingDyeMixingPolicy": "NeedToMix",
+      "LoadingDyeVolume": "5ul",
+      "MixPlate": "greiner384_riser20",
+      "OptimisePlateUsage": false,
+      "Reactions": [
+        "dna",
+        "dna",
+        "dna"
+      ],
+      "Replicates": 1,
+      "SampleVolume": "5ul",
+      "Water": "water"
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "DNA_gel"
+    }
+  }
+}
