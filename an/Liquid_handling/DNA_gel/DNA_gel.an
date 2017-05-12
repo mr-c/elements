@@ -60,6 +60,7 @@ Setup {
 Steps {
 	//set up some default values
 	var defaultGelLoadingMixPolicy string = "load"
+	var defaultLoadingDyeMixingPolicy string = "NeedToMix"
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
 	var loadedSamples []*wtype.LHComponent
@@ -67,22 +68,11 @@ Steps {
 	//setup variable for error reporting
 	var err error
 
-	// //specify default mixing policy
-	// if GelLoadingMixingPolicy == "" {
-	// 	GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
-	// 	err = fmt.Errorf("No GelLoadingMixingPolicy specified so assigning to default: %s", defaultGelLoadingMixPolicy)
-	// 	Errors = append(Errors, err.Error())
-	// }
-	//
-	// //specify default loading dye mixing policy
-	// if LoadingDyeMixingPolicy == "" {
-	// 	LoadingDyeMixingPolicy = defaultLoadingDyeMixingPolicy
-	// 	err = fmt.Errorf("No LoadingDyeMixingPolicy specified so assigning to default: %s", defaultLoadingDyeMixingPolicy)
-	// 	Errors = append(Errors, err.Error())
-	// }
-
 	//get well positions of DNA Gel from plate library ensuring the list is by row rather than by column
 	var wells []string = DNAGel.AllWellPositions(wtype.BYROW)
+
+	//setup position string to hold position information
+	var position string
 
 	//setup liquid handling component variables
 	var loadingMix *wtype.LHComponent
@@ -116,15 +106,17 @@ Steps {
 						//get well coordinates from correct position
 						wellcoords := wtype.MakeWellCoordsA1(position)
 
-						//add ladder
-
 						//if it is the last column, add a ladder sample
 						if wellcoords.X == DNAGel.WlsX -1 {
 
 							//attribute specified mixinpolicy to the DNA ladder
 							Ladder.Type, err = wtype.LiquidTypeFromString(GelLoadingMixingPolicy)
 							if err != nil {
-								Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+										err = fmt.Errorf(err.Error())
+										Errors = append(Errors, err.Error())
+										Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+								}
+
 							}
 
 							//work out how much water to add to ladded
@@ -145,7 +137,6 @@ Steps {
 						// refresh position in case ladder was added
 						position = wells[counter]
 
-
 						sampletotest := Reactions[i]
 
 						// load sample
@@ -153,68 +144,77 @@ Steps {
 						// add loading dye if necessary
 							if !LoadingDyeInSample {
 
-									//attribute specified mixinpolicy to the LoadingDye
+									//attribute specified mixingpolicy to the LoadingDye
+									if LoadingDyeMixingPolicy == "" {
+										LoadingDyeMixingPolicy = defaultLoadingDyeMixingPolicy
+										err = fmt.Errorf("No liquid policy specified for LoadingDyeMixingPolicy so assigning default mixing policy for this protocol: %s", defaultLoadingDyeMixingPolicy)
+										Errors = append(Errors, err.Error())
+										}
 									LoadingDye.Type, err = wtype.LiquidTypeFromString(LoadingDyeMixingPolicy)
 									if err != nil{
-											Errorf("Error in specifying LoadingDyeMixingPolicy (%s) for DNA Gel. Please assign a valid LHComponent", LoadingDyeMixingPolicy)
+											err = fmt.Errorf(err.Error())
 											Errors = append(Errors, err.Error())
-									}
+										}
 
 									//perform liquid handling for addiiton and mixing of the loading dye
 									var loadingMixSolution *wtype.LHComponent
 
 									// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
-									if OptimisePlateUsage ==true {
-												loadingMixSolution = Mix(mixer.Sample(sampletotest, SampleVolume))
-												loadingMixSolution = Mix(loadingMixSolution,mixer.Sample(LoadingDye,LoadingDyeVolume))
-									} else {
-												loadingMixSolution = MixInto(MixPlate,"", mixer.Sample(sampletotest,SampleVolume),mixer.Sample(LoadingDye,LoadingDyeVolume))
-												}
-
+											if OptimisePlateUsage ==true {
+														loadingMixSolution = Mix(mixer.Sample(sampletotest, SampleVolume))
+														loadingMixSolution = Mix(loadingMixSolution,mixer.Sample(LoadingDye,LoadingDyeVolume))
+											} else {
+														loadingMixSolution = MixInto(MixPlate,"", mixer.Sample(sampletotest,SampleVolume),mixer.Sample(LoadingDye,LoadingDyeVolume))
+														}
+									//assign newly mixed componenents to the loadin
 									loadingMix = loadingMixSolution
-									} else {
-									loadingMix = sampletotest
-									}
+							   } else {
+											loadingMix = sampletotest
+											}
 
-							//attribute specified mixinpolicy to the samples
-						loadingMix.Type, err = wtype.LiquidTypeFromString(GelLoadingMixingPolicy)
-						if err != nil {
-							Errorf("Error in specifying GelLoadingMixingPolicy (%s) for DNA Gel. Please assign a valid LHComponent",  GelLoadingMixingPolicy)
-							Errors = append(Errors, err.Error())
-						}
 
-						//get total volume per well including sample and loadingdye
-						sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{SampleVolume, LoadingDyeVolume})
+							//attribute specified mixingpolicy to the LoadingDye
+							if GelLoadingMixingPolicy == "" {
+								GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
+								err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixPolicy)
+								Errors = append(Errors, err.Error())
+								}
+							loadingMix.Type, err = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+							if err != nil {
+								err  = fmt.Errorf(err.Error())
+								Errors = append(Errors, err.Error())
+							}
 
-						//work out how much water to add
-						waterVolume := wunit.SubtractVolumes(totalWellVolume,[]wunit.Volume{sampleAndLoadingDyeVolume})
+							//get total volume per well including sample and loadingdye
+							sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{SampleVolume, LoadingDyeVolume})
 
-						//detect if the volumes are correct, if not then reprt
-						if waterVolume.LessThan(wunit.NewVolume(0.0,"ul"))  {
-							Errorf("The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
-							Errors = append(Errors, err.Error())
-						}
+							//work out how much water to add
+							waterVolume := wunit.SubtractVolumes(totalWellVolume,[]wunit.Volume{sampleAndLoadingDyeVolume})
 
-						//sample water at specified water volume
-						waterSample := mixer.Sample(Water,waterVolume)
+							//detect if the volumes are correct, if not then reprt
+							if waterVolume.LessThan(wunit.NewVolume(0.0,"ul"))  {
+								Errorf("The total volume of sample and loading dye (%s) exceeds the maximum well capacity of the current output plate (%s), please rectify", sampleAndLoadingDyeVolume, totalWellVolume)
+								Errors = append(Errors, err.Error())
+							}
 
-						//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
-						waterSample = MixInto(DNAGel,position,waterSample)
+							//sample water at specified water volume
+							waterSample := mixer.Sample(Water,waterVolume)
 
-						//transfer sample plus laoding dye to Gel
-						loadedSample = Mix(waterSample,mixer.Sample(loadingMix,sampleAndLoadingDyeVolume))
+							//load the DNA samples (either mixed with loading dye or pre-mixed) to the E-GEL
+							waterSample = MixInto(DNAGel,position,waterSample)
 
-						//add the loaded samples to the loadedSamples array
-						loadedSamples = append(loadedSamples,loadedSample)
+							//transfer sample plus laoding dye to Gel
+							loadedSample = Mix(waterSample,mixer.Sample(loadingMix,sampleAndLoadingDyeVolume))
 
-						//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
-						counter--
+							//add the loaded samples to the loadedSamples array
+							loadedSamples = append(loadedSamples,loadedSample)
 
-				}
+							//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
+							counter--
+							}
 
-}
-	//update output variable LoadedSamples with the output of the protocol
-	LoadedSamples = loadedSamples
+				//update output variable LoadedSamples with the output of the protocol
+				LoadedSamples = loadedSamples
 }
 
 // Run after controls and a steps block are completed to
