@@ -114,8 +114,6 @@ Steps {
 										Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
 								}
 
-							}
-
 							//work out how much water to add to ladded
 							correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{LadderVolume})
 
@@ -128,11 +126,14 @@ Steps {
 
 							//decrease counter by 1, as pipetting Gel backwards
 							counter--
+						}
 
 						// refresh position in case ladder was added
 						position = wells[counter]
 
 						sampletotest := Reactions[i]
+
+
 
 						// load sample
 
@@ -203,6 +204,7 @@ Steps {
 
 							//add the loaded samples to the loadedSamples array
 							loadedSamples = append(loadedSamples,loadedSample)
+
 
 							//decrease counter by 1 as loading the E-Gel backwards becuase of position constraints
 							counter--

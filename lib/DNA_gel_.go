@@ -112,20 +112,19 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 					_input.Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
 				}
 
+				//work out how much water to add to ladded
+				correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{_input.LadderVolume})
+
+				//perform liquid handling for addiiton of ladder sample
+				water := execute.MixInto(_ctx, _input.DNAGel, position, mixer.Sample(_input.Water, correctedWaterVolume))
+				ladderSample := execute.Mix(_ctx, water, mixer.Sample(_input.Ladder, _input.LadderVolume))
+
+				//add ladder to array of loaded samples
+				loadedSamples = append(loadedSamples, ladderSample)
+
+				//decrease counter by 1, as pipetting Gel backwards
+				counter--
 			}
-
-			//work out how much water to add to ladded
-			correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{_input.LadderVolume})
-
-			//perform liquid handling for addiiton of ladder sample
-			water := execute.MixInto(_ctx, _input.DNAGel, position, mixer.Sample(_input.Water, correctedWaterVolume))
-			ladderSample := execute.Mix(_ctx, water, mixer.Sample(_input.Ladder, _input.LadderVolume))
-
-			//add ladder to array of loaded samples
-			loadedSamples = append(loadedSamples, ladderSample)
-
-			//decrease counter by 1, as pipetting Gel backwards
-			counter--
 
 			// refresh position in case ladder was added
 			position = wells[counter]
