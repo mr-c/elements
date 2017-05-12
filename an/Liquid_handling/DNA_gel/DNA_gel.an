@@ -59,7 +59,7 @@ Setup {
 // for every input
 Steps {
 	//set up some default values
-	var defaultGelLoadingMixPolicy string = "load"
+	var defaultGelLoadingMixingPolicy string = "load"
 	var defaultLoadingDyeMixingPolicy string = "NeedToMix"
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
@@ -107,11 +107,17 @@ Steps {
 						if wellcoords.X == DNAGel.WlsX -1 {
 
 							//attribute specified mixinpolicy to the DNA ladder
+							if GelLoadingMixingPolicy == "" {
+								GelLoadingMixingPolicy = defaultGelLoadingMixingPolicy
+								err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixingPolicy)
+								Errors = append(Errors, err.Error())
+							}
+
 							Ladder.Type, err = wtype.LiquidTypeFromString(GelLoadingMixingPolicy)
 							if err != nil {
 										err = fmt.Errorf(err.Error())
 										Errors = append(Errors, err.Error())
-										Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+										Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixingPolicy)
 								}
 
 							//work out how much water to add to ladded
@@ -168,14 +174,8 @@ Steps {
 											loadingMix = sampletotest
 											}
 
-
-							//attribute specified mixingpolicy to the LoadingDye
-							if GelLoadingMixingPolicy == "" {
-								GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
-								err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixPolicy)
-								Errors = append(Errors, err.Error())
-								}
-							loadingMix.Type, err = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+							//get liquid policy information from GelLoadingMixingPolicy to apply to samples
+							loadingMix.Type, err = wtype.LiquidTypeFromString(GelLoadingMixingPolicy)
 							if err != nil {
 								err  = fmt.Errorf(err.Error())
 								Errors = append(Errors, err.Error())

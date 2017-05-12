@@ -57,7 +57,7 @@ func _DNA_gelSetup(_ctx context.Context, _input *DNA_gelInput) {
 // for every input
 func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelOutput) {
 	//set up some default values
-	var defaultGelLoadingMixPolicy string = "load"
+	var defaultGelLoadingMixingPolicy string = "load"
 	var defaultLoadingDyeMixingPolicy string = "NeedToMix"
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
@@ -105,11 +105,17 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 			if wellcoords.X == _input.DNAGel.WlsX-1 {
 
 				//attribute specified mixinpolicy to the DNA ladder
+				if _input.GelLoadingMixingPolicy == "" {
+					_input.GelLoadingMixingPolicy = defaultGelLoadingMixingPolicy
+					err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixingPolicy)
+					_output.Errors = append(_output.Errors, err.Error())
+				}
+
 				_input.Ladder.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
 				if err != nil {
 					err = fmt.Errorf(err.Error())
 					_output.Errors = append(_output.Errors, err.Error())
-					_input.Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+					_input.Ladder.Type, _ = wtype.LiquidTypeFromString(defaultGelLoadingMixingPolicy)
 				}
 
 				//work out how much water to add to ladded
@@ -164,13 +170,8 @@ func _DNA_gelSteps(_ctx context.Context, _input *DNA_gelInput, _output *DNA_gelO
 				loadingMix = sampletotest
 			}
 
-			//attribute specified mixingpolicy to the LoadingDye
-			if _input.GelLoadingMixingPolicy == "" {
-				_input.GelLoadingMixingPolicy = defaultGelLoadingMixPolicy
-				err = fmt.Errorf("No liquid policy specified for GelLoadingMixingPolicy so assigning default mixing policy for this protocol: %s", defaultGelLoadingMixPolicy)
-				_output.Errors = append(_output.Errors, err.Error())
-			}
-			loadingMix.Type, err = wtype.LiquidTypeFromString(defaultGelLoadingMixPolicy)
+			//get liquid policy information from GelLoadingMixingPolicy to apply to samples
+			loadingMix.Type, err = wtype.LiquidTypeFromString(_input.GelLoadingMixingPolicy)
 			if err != nil {
 				err = fmt.Errorf(err.Error())
 				_output.Errors = append(_output.Errors, err.Error())
