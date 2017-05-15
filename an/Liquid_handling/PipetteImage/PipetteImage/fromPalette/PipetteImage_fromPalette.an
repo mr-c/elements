@@ -27,7 +27,7 @@ Parameters (
 	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
-	LiquidType string
+	LiquidType wtype.PolicyName
 	LowerThreshold uint8
 )
 

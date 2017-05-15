@@ -214,7 +214,7 @@ type PipetteImage_fromPalette_refactorInput struct {
 	Colourcomponents          []*wtype.LHComponent
 	ColourtoWellLocationMap   map[string][]string
 	Imagefilename             string
-	LiquidType                string
+	LiquidType                wtype.PolicyName
 	NotthisColour             string
 	OnlythisColour            string
 	OutPlate                  *wtype.LHPlate

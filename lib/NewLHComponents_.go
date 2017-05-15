@@ -75,7 +75,7 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
-	var defaultLHPolicy string
+	var defaultLHPolicy wtype.PolicyName
 
 	if policy, found := _input.UseLHPolicy["default"]; found {
 		defaultLHPolicy = policy
@@ -92,7 +92,7 @@ func _NewLHComponentsSteps(_ctx context.Context, _input *NewLHComponentsInput, _
 		var status string
 		var stockConc wunit.Concentration
 		var template *wtype.LHComponent
-		var lhpolicy string
+		var lhpolicy wtype.PolicyName
 		var found bool
 
 		// check if a concentration is specified
@@ -193,7 +193,7 @@ type NewLHComponentsInput struct {
 	Names               []string
 	StockConcentrations map[string]wunit.Concentration
 	TemplateComponents  map[string]*wtype.LHComponent
-	UseLHPolicy         map[string]string
+	UseLHPolicy         map[string]wtype.PolicyName
 }
 
 type NewLHComponentsOutput struct {

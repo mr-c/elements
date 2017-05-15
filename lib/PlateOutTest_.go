@@ -48,7 +48,7 @@ func _PlateOutTestSetup(_ctx context.Context, _input *PlateOutTestInput) {
 // The core process for this protocol. These steps are executed for each input.
 func _PlateOutTestSteps(_ctx context.Context, _input *PlateOutTestInput, _output *PlateOutTestOutput) {
 	//set up some default values
-	var defaultPlateOutPolicy string = "plateout"
+	var defaultPlateOutPolicy wtype.PolicyName = "plateout"
 	var defaultAgarPlateNumber int = 1
 	var defaultNumberofReplicates int = 1
 	var defaultWellsAlreadyUsed int = 0
@@ -200,7 +200,7 @@ type PlateOutTestInput struct {
 	IncubationTemp       wunit.Temperature
 	IncubationTime       wunit.Time
 	NumberofReplicates   int
-	PlateOutLiquidPolicy string
+	PlateOutLiquidPolicy wtype.PolicyName
 	PlateOutVolume       wunit.Volume
 	TransformedCells     *wtype.LHComponent
 	WellsAlreadyUsed     int

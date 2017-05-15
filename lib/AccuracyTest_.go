@@ -159,7 +159,7 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 					//setpoints := volume+"_"+solutionname+"_replicate"+strconv.Itoa(j+1)+"_platenum"+strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -190,7 +190,7 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 					runs[i] = doe.AddAdditionalHeaderandValue(runs[i], "Additional", "Plate WellYStart", _input.OutPlate.WellYStart)
 
 					// add LHPolicy setpoint printout to double check correct match up:
-					runs[i] = doe.AddAdditionalHeaderandValue(runs[i], "Additional", "LHPolicy", doerun)
+					runs[i] = doe.AddAdditionalHeaderandValue(runs[i], "Additional", "LHPolicy", doerun.String())
 
 					// print out LHPolicy info
 					policy, _ := liquidhandling.GetPolicyByName(doerun)
@@ -307,7 +307,7 @@ type AccuracyTestInput struct {
 	DXORJMP                         string
 	Diluent                         *wtype.LHComponent
 	Imagefilename                   string
-	LHPolicy                        string
+	LHPolicy                        wtype.PolicyName
 	NumberofBlanks                  int
 	NumberofReplicates              int
 	OutPlate                        *wtype.LHPlate
