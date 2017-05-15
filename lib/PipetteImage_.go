@@ -2,20 +2,20 @@
 package lib
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/wunit"
+	"github.com/antha-lang/antha/component"
+	"github.com/antha-lang/antha/execute"
+	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
 	"image/color"
 	"sort"
 	"strings"
-	"github.com/antha-lang/antha/execute"
-	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/component"
-	"context"
-	"github.com/antha-lang/antha/antha/anthalib/wunit"
 )
 
 // Input parameters for this protocol (data)
@@ -47,7 +47,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	if !ok {
 		var validpalettes []string
 
-		for key, _ := range image.AvailablePalettes() {
+		for key := range image.AvailablePalettes() {
 			validpalettes = append(validpalettes, key)
 		}
 
@@ -78,7 +78,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	// the output of this is a map of well positions to colours needed
 	positiontocolourmap, img := image.ImagetoPlatelayout(img, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
-	_output.ResizedImage := image.Export(img)
+	_output.ResizedImage = image.Export(img)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
@@ -102,7 +102,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 	}
 
-	for colourname, _ := range colourtostringmap {
+	for colourname := range colourtostringmap {
 
 		componentname := colourtostringmap[colourname]
 
@@ -208,7 +208,7 @@ func PipetteImageRunSteps(_ctx context.Context, input *PipetteImageInput) *Pipet
 
 func PipetteImageNew() interface{} {
 	return &PipetteImageElement{
-		inject.CheckedRunner {
+		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
 				input := &PipetteImageInput{}
 				if err := inject.Assign(value, input); err != nil {
@@ -217,89 +217,85 @@ func PipetteImageNew() interface{} {
 				output := _PipetteImageRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In: 	 &PipetteImageInput{},
-			Out: 	 &PipetteImageOutput{},
+			In:  &PipetteImageInput{},
+			Out: &PipetteImageOutput{},
 		},
 	}
 }
+
 var (
-	 _ = execute.MixInto
-	 _ = wtype.FALSE
-	 _ = wunit.Make_units
-	
+	_ = execute.MixInto
+	_ = wtype.FALSE
+	_ = wunit.Make_units
 )
+
 type PipetteImageElement struct {
 	inject.CheckedRunner
 }
 
 type PipetteImageInput struct {
-	AutoRotate bool
+	AutoRotate            bool
 	CheckResizeAlgorithms bool
-	ComponentType *wtype.LHComponent
-	Imagefilename wtype.File
-	Notthiscolour string
-	OnlythisColour string
-	OutPlate *wtype.LHPlate
-	Palettename string
-	Rotate bool
-	Subset bool
-	Subsetnames []string
-	UVimage bool
-	UseLiquidClass string
-	VolumePerWell wunit.Volume
-	
+	ComponentType         *wtype.LHComponent
+	Imagefilename         wtype.File
+	Notthiscolour         string
+	OnlythisColour        string
+	OutPlate              *wtype.LHPlate
+	Palettename           string
+	Rotate                bool
+	Subset                bool
+	Subsetnames           []string
+	UVimage               bool
+	UseLiquidClass        string
+	VolumePerWell         wunit.Volume
 }
 
 type PipetteImageOutput struct {
-	Numberofpixels int
-	Pixels []*wtype.LHComponent
-	ResizedImage wtype.File
-	ResizedImages []wtype.File
+	Numberofpixels   int
+	Pixels           []*wtype.LHComponent
+	ResizedImage     wtype.File
+	ResizedImages    []wtype.File
 	UniqueComponents []string
-	
 }
 
 type PipetteImageSOutput struct {
 	Data struct {
-		Numberofpixels int
-		ResizedImage wtype.File
-		ResizedImages []wtype.File
+		Numberofpixels   int
+		ResizedImage     wtype.File
+		ResizedImages    []wtype.File
 		UniqueComponents []string
-		
 	}
 	Outputs struct {
 		Pixels []*wtype.LHComponent
-		
 	}
 }
 
 func init() {
 	if err := addComponent(component.Component{Name: "PipetteImage",
-		Constructor: PipetteImageNew, 
+		Constructor: PipetteImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of coloured bacteria\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/PipetteImage/PipetteImage.an",
 			Params: []component.ParamDesc{
-				component.ParamDesc{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "ComponentType", Desc: "", Kind: "Inputs"},
-				component.ParamDesc{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				component.ParamDesc{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				component.ParamDesc{Name: "Palettename", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "Subset", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "UVimage", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
-				component.ParamDesc{Name: "Numberofpixels", Desc: "", Kind: "Data"},
-				component.ParamDesc{Name: "Pixels", Desc: "", Kind: "Outputs"},
-				component.ParamDesc{Name: "ResizedImage", Desc: "", Kind: "Data"},
-				component.ParamDesc{Name: "ResizedImages", Desc: "", Kind: "Data"},
-				component.ParamDesc{Name: "UniqueComponents", Desc: "", Kind: "Data"},
-				
+				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
+				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
+				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
+				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
+				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
+				{Name: "Palettename", Desc: "", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "Subset", Desc: "", Kind: "Parameters"},
+				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
+				{Name: "UVimage", Desc: "", Kind: "Parameters"},
+				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
+				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
+				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
+				{Name: "Pixels", Desc: "", Kind: "Outputs"},
+				{Name: "ResizedImage", Desc: "", Kind: "Data"},
+				{Name: "ResizedImages", Desc: "", Kind: "Data"},
+				{Name: "UniqueComponents", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

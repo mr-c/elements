@@ -102,7 +102,7 @@ Steps {
 	// the output of this is a map of well positions to colours needed
 	positiontocolourmap, img := image.ImagetoPlatelayout(img, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
 
-	ResizedImage := image.Export(img)
+	ResizedImage = image.Export(img)
 
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
