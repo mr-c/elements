@@ -9,6 +9,7 @@ import (
 	"image/color"
 	"strconv"
 	"fmt"
+	goimage "image"
 )
 
 
@@ -103,6 +104,11 @@ Steps {
 
 	fmt.Println(rbsstrengthdata)
 
+	//image placeholders
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
 	//----------------------------------------------------------------------------
 	//Fetch image
 	//----------------------------------------------------------------------------
@@ -117,25 +123,32 @@ Steps {
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
+
+	//----------------------------------------------------------------------------
+	//Processing image
+	//----------------------------------------------------------------------------
 
 	if PosterizeImage{
-		img, err = image.Posterize(img, PosterizeLevels)
+		imgBase, err := image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 
+	//----------------------------------------------------------------------------
+	//choosing palette
+	//----------------------------------------------------------------------------
 
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(img, PlateWithMasterMix,Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, PlateWithMasterMix,Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _ := image.ImagetoPlatelayout(img, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

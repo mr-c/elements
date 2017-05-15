@@ -12,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -70,6 +71,10 @@ func (rbscollection collection) Max() (rbs RBSdata) {
 // for every input
 func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_2Input, _output *AssemblePalette_OneByOne_RGB_2Output) {
 
+	//-----------------------------------------------------------------------------
+	//Globals
+	//-----------------------------------------------------------------------------
+
 	var rbsstrengthdata []RBSdata = []RBSdata{
 		{wtype.MakeLinearDNASequence("rbs1", "gggcgcgc"), 0.0},
 		{wtype.MakeLinearDNASequence("rbs2", "gggcgcgc"), 2.0},
@@ -83,6 +88,15 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 	fmt.Println(rbsstrengthdata)
 
+	//image placeholders
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//----------------------------------------------------------------------------
+	//Fetch image
+	//----------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
 
@@ -93,24 +107,32 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
+
+	//----------------------------------------------------------------------------
+	//Processing image
+	//----------------------------------------------------------------------------
 
 	if _input.PosterizeImage {
-		img, err = image.Posterize(img, _input.PosterizeLevels)
+		imgBase, err := image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//----------------------------------------------------------------------------
+	//choosing palette
+	//----------------------------------------------------------------------------
+
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(img, _input.PlateWithMasterMix, _input.Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, _input.PlateWithMasterMix, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _ := image.ImagetoPlatelayout(img, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
