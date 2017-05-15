@@ -44,6 +44,7 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 
 	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//-------------------------------------------------------------------------------------
 	//Fetching image
@@ -52,13 +53,13 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -69,7 +70,6 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	//--------------------------------------------------------------
 
 	if _input.PosterizeImage {
-		var err error
 
 		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
@@ -90,7 +90,7 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	//--------------------------------------------------------------
 	//Fitting image to plate
 	//--------------------------------------------------------------
-	_, plateImg := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	_, imgBase = image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 }
 

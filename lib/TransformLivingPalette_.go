@@ -95,7 +95,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	//Palette manipulation
 	//---------------------------------------------------------------------
 
-	// make sub pallete if necessary
+	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
 
 	if _input.Subset {

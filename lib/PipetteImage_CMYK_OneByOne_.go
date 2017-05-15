@@ -47,6 +47,7 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 
 	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//-------------------------------------------------------------------------------------
 	//Fetching image
@@ -55,13 +56,13 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

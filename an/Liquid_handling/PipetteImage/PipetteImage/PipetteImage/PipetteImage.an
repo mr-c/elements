@@ -34,7 +34,7 @@ Parameters (
 // Data which is returned from this protocol, and data types
 Data (
 	ResizedImage wtype.File
-	ResizedImages []wtype.File
+	ResizedImages []*goimage.NRGBA
 	Numberofpixels int
 	UniqueComponents []string
 )
@@ -71,13 +71,14 @@ Steps {
 
 	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//--------------------------------------------------------------
 	//Opening image
 	//--------------------------------------------------------------
 
 	//opening the image file
-	imgBase, err := image.OpenFile(imgFile)
+	imgBase, err = image.OpenFile(imgFile)
 	if err != nil{
 		Errorf(err.Error())
 	}
@@ -115,7 +116,7 @@ Steps {
 	//--------------------------------------------------------------
 
 	if CheckResizeAlgorithms {
-		resizedImages :=  image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+		ResizedImages =  image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed

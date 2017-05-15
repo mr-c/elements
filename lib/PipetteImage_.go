@@ -48,13 +48,14 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 
 	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//--------------------------------------------------------------
 	//Opening image
 	//--------------------------------------------------------------
 
 	//opening the image file
-	imgBase, err := image.OpenFile(imgFile)
+	imgBase, err = image.OpenFile(imgFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -92,7 +93,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//--------------------------------------------------------------
 
 	if _input.CheckResizeAlgorithms {
-		resizedImages := image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+		_output.ResizedImages = image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
@@ -285,7 +286,7 @@ type PipetteImageOutput struct {
 	Numberofpixels   int
 	Pixels           []*wtype.LHComponent
 	ResizedImage     wtype.File
-	ResizedImages    []wtype.File
+	ResizedImages    []*goimage.NRGBA
 	UniqueComponents []string
 }
 
@@ -293,7 +294,7 @@ type PipetteImageSOutput struct {
 	Data struct {
 		Numberofpixels   int
 		ResizedImage     wtype.File
-		ResizedImages    []wtype.File
+		ResizedImages    []*goimage.NRGBA
 		UniqueComponents []string
 	}
 	Outputs struct {

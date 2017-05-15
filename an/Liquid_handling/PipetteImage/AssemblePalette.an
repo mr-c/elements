@@ -1,5 +1,5 @@
 // Generates instructions to make a pallette of all colours in an image
-protocol AssemblePalette_OneByOne_RGB_2
+protocol AssemblePalette
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -104,10 +104,11 @@ Steps {
 
 	fmt.Println(rbsstrengthdata)
 
-	//image placeholders
+	//image and error placeholders
 
 	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//----------------------------------------------------------------------------
 	//Fetch image
@@ -117,13 +118,13 @@ Steps {
 	if UseURL {
 
 		//downloading image
-		imgFile , err := download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -134,7 +135,7 @@ Steps {
 	//----------------------------------------------------------------------------
 
 	if PosterizeImage{
-		imgBase, err := image.Posterize(imgBase, PosterizeLevels)
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}

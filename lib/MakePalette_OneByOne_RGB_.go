@@ -49,7 +49,11 @@ func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_On
 	//Globals
 	//--------------------------------------------------------------
 
+	//image and error placeholders
+
+	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+	var err error
 
 	//--------------------------------------------------------------
 	//Fetching image
@@ -58,13 +62,13 @@ func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_On
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -74,7 +78,7 @@ func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_On
 	//Processing image
 	//---------------------------------------------------------
 	if _input.PosterizeImage {
-		imgBase, err := image.Posterize(imgBase, _input.PosterizeLevels)
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
