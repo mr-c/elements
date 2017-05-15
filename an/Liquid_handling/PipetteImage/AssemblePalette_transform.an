@@ -89,8 +89,10 @@ Steps {
 	greenname := Green.CName
 	bluename := Blue.CName
 
-	var imgFile *wtype.File
+	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+
+	var err error
 
 	//--------------------------------------------------------------
 	//Fetching image
@@ -99,13 +101,13 @@ Steps {
 	// if image is from url, download
 	if UseURL {
 		//downloading image
-		imgFile , err := download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -117,7 +119,8 @@ Steps {
 	//--------------------------------------------------------------
 
 	if PosterizeImage{
-		imgBase, err := image.Posterize(imgBase, PosterizeLevels)
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}

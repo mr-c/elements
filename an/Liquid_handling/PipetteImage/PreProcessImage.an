@@ -4,6 +4,9 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+
+	goimage "image"
+
 	)
 
 
@@ -51,6 +54,17 @@ Setup {
 // for every input
 Steps {
 	
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
 		//downloading image
@@ -60,25 +74,39 @@ Steps {
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
+
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
 
 	if PosterizeImage{
-		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		var err error
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 
-	chosencolourpalette := image.AvailablePalettes()[Palette]
-	
 	if CheckAllResizeAlgorithms {
-			image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+			image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
-	_, plateImg , _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
+	chosencolourpalette := image.AvailablePalettes()[Palette]
+
+	//--------------------------------------------------------------
+	//Fitting image to plate
+	//--------------------------------------------------------------
+	_, plateImg := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
 
 }
 // Run after controls and a steps block are completed to

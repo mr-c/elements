@@ -73,8 +73,10 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 	greenname := _input.Green.CName
 	bluename := _input.Blue.CName
 
-	var imgFile *wtype.File
+	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
+
+	var err error
 
 	//--------------------------------------------------------------
 	//Fetching image
@@ -83,13 +85,13 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 
 		//opening the image file
-		imgBase, err := image.OpenFile(imgFile)
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -100,7 +102,8 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 	//--------------------------------------------------------------
 
 	if _input.PosterizeImage {
-		imgBase, err := image.Posterize(imgBase, _input.PosterizeLevels)
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}

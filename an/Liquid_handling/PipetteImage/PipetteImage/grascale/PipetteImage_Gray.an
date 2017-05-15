@@ -7,6 +7,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	goimage "image"
 	)
 
 
@@ -68,39 +69,64 @@ Setup {
 Steps {
 	
 	
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var blackvol Volume
+	var maxuint8 uint8 = 255
+	var minuint8 uint8
+	var fullblackuint8 uint8
+	ShadesofGrey = make([]int,0)
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
-	
-	var blackvol Volume
-	
-	var maxuint8 uint8 = 255	
-		
-	var minuint8 uint8 
-	
-	var fullblackuint8 uint8
-	
-	ShadesofGrey = make([]int,0)
+	//-------------------------------------------------------------------------------------
+	//Palette manipulation
+	//-------------------------------------------------------------------------------------
 	
 	chosencolourpalette := image.AvailablePalettes()["Gray"]
 	
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
 	if CheckResizeAlgorithms {
-	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
-	
-	
-	positiontocolourmap, _, newimagename := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate) 
-	
+
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
 	// if posterize rerun 
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(newimagename, PosterizeLevels)
-		
-		positiontocolourmap, _, _ = image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+		var err error
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		positiontocolourmap, _ = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
 	}
 	
 	

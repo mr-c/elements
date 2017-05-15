@@ -12,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 )
 
 // Input parameters for this protocol (data)
@@ -43,37 +44,64 @@ func _PipetteImage_GraySetup(_ctx context.Context, _input *PipetteImage_GrayInpu
 // for every input
 func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInput, _output *PipetteImage_GrayOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var blackvol wunit.Volume
+	var maxuint8 uint8 = 255
+	var minuint8 uint8
+	var fullblackuint8 uint8
+	_output.ShadesofGrey = make([]int, 0)
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err := download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
-	var blackvol wunit.Volume
-
-	var maxuint8 uint8 = 255
-
-	var minuint8 uint8
-
-	var fullblackuint8 uint8
-
-	_output.ShadesofGrey = make([]int, 0)
+	//-------------------------------------------------------------------------------------
+	//Palette manipulation
+	//-------------------------------------------------------------------------------------
 
 	chosencolourpalette := image.AvailablePalettes()["Gray"]
 
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
 	if _input.CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
 
-	positiontocolourmap, _, newimagename := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	// if posterize rerun
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(newimagename, _input.PosterizeLevels)
+		var err error
 
-		positiontocolourmap, _, _ = image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		positiontocolourmap, _ = image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 	}
 
 	solutions := make([]*wtype.LHComponent, 0)

@@ -6,13 +6,14 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	goimage "image"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	Imagefilename string // name of the desired output file name
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Rotate bool
@@ -54,6 +55,17 @@ Setup {
 Steps {
 	
 	
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
 		//downloading image
@@ -63,15 +75,24 @@ Steps {
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
+
+	//----------------------------------------------------------------------------------------------
+	//Palette Processing
+	//----------------------------------------------------------------------------------------------
+
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
-	
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+
+
+	//----------------------------------------------------------------------------------------------
+	//Pipetting
+	//----------------------------------------------------------------------------------------------
+
 	solutions := make([]*wtype.LHComponent, 0)
 
 	counter := 0

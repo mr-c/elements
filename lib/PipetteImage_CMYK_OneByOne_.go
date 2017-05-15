@@ -11,11 +11,12 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 )
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
+// name of the desired output file name
 // select this if getting the image from a URL
 // enter URL link to the image file here if applicable
 
@@ -40,6 +41,17 @@ func _PipetteImage_CMYK_OneByOneSetup(_ctx context.Context, _input *PipetteImage
 // for every input
 func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage_CMYK_OneByOneInput, _output *PipetteImage_CMYK_OneByOneOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
@@ -49,14 +61,22 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//----------------------------------------------------------------------------------------------
+	//Palette Processing
+	//----------------------------------------------------------------------------------------------
+
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+
+	//----------------------------------------------------------------------------------------------
+	//Pipetting
+	//----------------------------------------------------------------------------------------------
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -211,7 +231,7 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "Imagefilename", Desc: "name of the desired output file name\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},

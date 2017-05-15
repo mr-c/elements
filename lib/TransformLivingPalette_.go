@@ -14,6 +14,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -60,6 +61,10 @@ func _TransformLivingPaletteSetup(_ctx context.Context, _input *TransformLivingP
 // for every input
 func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingPaletteInput, _output *TransformLivingPaletteOutput) {
 
+	//---------------------------------------------------------------------
+	//Globals
+	//---------------------------------------------------------------------
+
 	var (
 		ReactionTemp                wunit.Temperature = wunit.NewTemperature(25, "C")
 		ReactionTime                wunit.Time        = wunit.NewTime(35, "min")
@@ -81,9 +86,17 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
+	// img and error placeholders
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//---------------------------------------------------------------------
+	//Palette manipulation
+	//---------------------------------------------------------------------
+
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
-	var err error
 
 	if _input.Subset {
 		chosencolourpalette = image.MakeSubPallette(_input.Palettename, _input.Subsetnames)
@@ -91,18 +104,33 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
 	}
 
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		_, err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//---------------------------------------------------------------------
+	//Image processing
+	//---------------------------------------------------------------------
+
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
 
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
@@ -119,7 +147,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 			uvmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 			visiblemap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 		}
-		image.PrintFPImagePreview(_input.Imagefilename, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -146,7 +174,10 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		componentmap[componentname] = componenttopick
 
 	}
-	//	fmt.Println(componentmap)
+
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
 
 	solutions := make([]*wtype.LHComponent, 0)
 

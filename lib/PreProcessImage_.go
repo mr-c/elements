@@ -1,14 +1,16 @@
 package lib
 
 import (
-	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+
+	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 )
 
 // Input parameters for this protocol (data)
@@ -36,6 +38,17 @@ func _PreProcessImageSetup(_ctx context.Context, _input *PreProcessImageInput) {
 // for every input
 func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _output *PreProcessImageOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
@@ -45,25 +58,39 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
 	if _input.PosterizeImage {
-		posterizedImg, err = image.Posterize(img, _input.PosterizeLevels)
+		var err error
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
+
+	if _input.CheckAllResizeAlgorithms {
+		image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+	}
+
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
 
 	chosencolourpalette := image.AvailablePalettes()[_input.Palette]
 
-	if _input.CheckAllResizeAlgorithms {
-		image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
-	}
-	_, plateImg, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	//--------------------------------------------------------------
+	//Fitting image to plate
+	//--------------------------------------------------------------
+	_, plateImg := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 }
 
