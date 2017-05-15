@@ -32,7 +32,7 @@ import
 
 // Physical outputs to this protocol
 
-// Output solutions produced.
+// Solutions produced as an output from running the element.
 
 // Conditions to run on startup
 func _MixAtoB_multiSetup(_ctx context.Context, _input *MixAtoB_multiInput) {
@@ -69,7 +69,7 @@ func _MixAtoB_multiSteps(_ctx context.Context, _input *MixAtoB_multiInput, _outp
 			sample = mixer.SampleAll(_input.SolutionAs[i])
 		}
 		mixedComponent := execute.Mix(_ctx, _input.SolutionBs[i], sample)
-		_output.MixedComponents = append(_output.MixedComponents, mixedComponent)
+		_output.MixedOutputSolutions = append(_output.MixedOutputSolutions, mixedComponent)
 
 	}
 
@@ -142,14 +142,14 @@ type MixAtoB_multiInput struct {
 }
 
 type MixAtoB_multiOutput struct {
-	MixedComponents []*wtype.LHComponent
+	MixedOutputSolutions []*wtype.LHComponent
 }
 
 type MixAtoB_multiSOutput struct {
 	Data struct {
 	}
 	Outputs struct {
-		MixedComponents []*wtype.LHComponent
+		MixedOutputSolutions []*wtype.LHComponent
 	}
 }
 
@@ -163,7 +163,7 @@ func init() {
 				{Name: "SampleVolumes", Desc: "If a sample volume is specifed for a sample name contained  in SolutionBs, that volume of that component will be sampled.\nIf a \"default\" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.\nIf no sample volume is specified for a component and no default set then the entire contents will be sampled.\n", Kind: "Parameters"},
 				{Name: "SolutionAs", Desc: "List of components to add to all components in SolutionBs.\n", Kind: "Inputs"},
 				{Name: "SolutionBs", Desc: "Each solution in  the list of SolutionBs will have the component from the corresponding position in SolutionAs added to it.\n", Kind: "Inputs"},
-				{Name: "MixedComponents", Desc: "Output solutions produced.\n", Kind: "Outputs"},
+				{Name: "MixedOutputSolutions", Desc: "Solutions produced as an output from running the element.\n", Kind: "Outputs"},
 			},
 		},
 	}); err != nil {

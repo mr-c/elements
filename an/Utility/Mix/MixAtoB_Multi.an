@@ -33,8 +33,8 @@ Inputs (
 
 // Physical outputs to this protocol
 Outputs (
-	// Output solutions produced.
-	MixedComponents []*wtype.LHComponent
+	// Solutions produced as an output from running the element.
+	MixedOutputSolutions []*wtype.LHComponent
 )
 
 // Conditions to run on startup
@@ -73,7 +73,7 @@ Steps {
 			sample = mixer.SampleAll(SolutionAs[i])
 		}
 		mixedComponent := Mix(SolutionBs[i], sample)
-		MixedComponents = append(MixedComponents, mixedComponent)
+		MixedOutputSolutions = append(MixedOutputSolutions, mixedComponent)
 	
 	}
 	
