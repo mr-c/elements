@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -13,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"sort"
 	"strings"
@@ -20,7 +20,8 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
+//Desired name for the output image file
+// Image File
 
 // Data which is returned from this protocol, and data types
 
@@ -40,6 +41,27 @@ func _PipetteImageSetup(_ctx context.Context, _input *PipetteImageInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output *PipetteImageOutput) {
+
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//--------------------------------------------------------------
+	//Opening image
+	//--------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err := image.OpenFile(imgFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//--------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------
 
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[_input.Palettename]
@@ -65,20 +87,16 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
 	}
 
-	img, err := image.Open(ImageFile)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
+	//--------------------------------------------------------------
+	//Image processing
+	//--------------------------------------------------------------
 
 	if _input.CheckResizeAlgorithms {
-		resizedImages := image.CheckAllResizealgorithms(img, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
-
+		resizedImages := image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, img := image.ImagetoPlatelayout(img, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
-
-	_output.ResizedImage = image.Export(img)
+	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
@@ -92,7 +110,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 			uvmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 			visiblemap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 		}
-		UVFile = image.PrintFPImagePreview(img, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -119,12 +137,15 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		componentmap[componentname] = componenttopick
 
 	}
-	//fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
 	counter := 0
 	_output.UniqueComponents = make([]string, 0)
+
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
 
 	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
@@ -171,6 +192,15 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	_output.Pixels = solutions
 
 	_output.Numberofpixels = len(_output.Pixels)
+
+	//--------------------------------------------------------------
+	//Exporting resulting images
+	//--------------------------------------------------------------
+
+	_output.ResizedImage, err = image.Export(imgBase, _input.ImgFileName)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 }
 
@@ -237,7 +267,8 @@ type PipetteImageInput struct {
 	AutoRotate            bool
 	CheckResizeAlgorithms bool
 	ComponentType         *wtype.LHComponent
-	Imagefilename         wtype.File
+	ImageFile             wtype.File
+	ImgFileName           string
 	Notthiscolour         string
 	OnlythisColour        string
 	OutPlate              *wtype.LHPlate
@@ -280,7 +311,8 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "Image File\n", Kind: "Parameters"},
+				{Name: "ImgFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

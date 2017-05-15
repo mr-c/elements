@@ -5,19 +5,20 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"image/color"
 	"sort"
 	"strings"
+	goimage "image"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename wtype.File // name of image file or if using URL use this field to set the desired filename
+	ImgFileName	string //Desired name for the output image file
+	ImageFile wtype.File // Image File
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -63,6 +64,28 @@ Setup {
 // for every input
 Steps {
 
+
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//--------------------------------------------------------------
+	//Opening image
+	//--------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err := image.OpenFile(imgFile)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
+	//--------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------
+
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[Palettename]
 	
@@ -87,22 +110,16 @@ Steps {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
 
-	img, err := image.Open(ImageFile)
-	if err!= nil {
-		Errorf(err.Error())
-	}
-	
+	//--------------------------------------------------------------
+	//Image processing
+	//--------------------------------------------------------------
+
 	if CheckResizeAlgorithms {
-		resizedImages :=  image.CheckAllResizealgorithms(img,OutPlate,Rotate,image.AllResampleFilters)
-
-
-
+		resizedImages :=  image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, img := image.ImagetoPlatelayout(img, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
-
-	ResizedImage = image.Export(img)
+	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
@@ -116,7 +133,7 @@ Steps {
 		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
-		UVFile = image.PrintFPImagePreview(img,OutPlate, Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase,OutPlate, Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -143,7 +160,6 @@ Steps {
 		componentmap[componentname] = componenttopick
 
 	}
-	//fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -151,7 +167,11 @@ Steps {
 	UniqueComponents = make([]string,0)
 
 
-// loop through the position to colour map pipeting the correct coloured protein into each well
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
+
+	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
 		
 		component := componentmap[colourtostringmap[colour]]
@@ -196,7 +216,16 @@ Steps {
 	Pixels = solutions
 	
 	Numberofpixels = len(Pixels)
-	
+
+	//--------------------------------------------------------------
+	//Exporting resulting images
+	//--------------------------------------------------------------
+
+	ResizedImage, err = image.Export(imgBase,ImgFileName)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
 }
 
 

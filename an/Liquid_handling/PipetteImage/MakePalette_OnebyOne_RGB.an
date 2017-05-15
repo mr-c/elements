@@ -91,7 +91,7 @@ Steps {
 	//Processing image
 	//---------------------------------------------------------
 	if PosterizeImage{
-		posterizedImg, err = image.Posterize(imgBase, PosterizeLevels)
+		imgBase, err := image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -102,10 +102,10 @@ Steps {
 	//---------------------------------------------------------
 
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, OutPlate,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

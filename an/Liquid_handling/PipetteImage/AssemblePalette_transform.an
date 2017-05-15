@@ -92,6 +92,10 @@ Steps {
 	var imgFile *wtype.File
 	var imgBase *goimage.NRGBA
 
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
 		//downloading image
@@ -113,7 +117,7 @@ Steps {
 	//--------------------------------------------------------------
 
 	if PosterizeImage{
-		posterizedImg, err = image.Posterize(imgBase, PosterizeLevels)
+		imgBase, err := image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -124,10 +128,10 @@ Steps {
 	//--------------------------------------------------------------
 
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate) 
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, PlateWithMasterMix,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
