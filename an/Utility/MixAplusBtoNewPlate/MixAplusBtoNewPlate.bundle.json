@@ -1,7 +1,7 @@
 {
   "processes": {
     "Process1": {
-      "component": "MixNtoN"
+      "component": "MixAplusBtoNewPlate"
     }
   },
   "connections": null,
@@ -19,13 +19,13 @@
         "2ul",
         "5ul"
       ],
-	  "ComponentsA": [
+	  "ComponentsB": [
         "water",
         "water",
         "water",
         "water"
       ],
-      "ComponentsB": [
+      "ComponentsA": [
         "dna",
         "dna",
         "dna",

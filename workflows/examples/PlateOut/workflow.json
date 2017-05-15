@@ -2,7 +2,7 @@
   "connections": [],
   "processes": {
     "PlateOut": {
-      "component": "PlateOut"
+      "component": "PlateOutTest"
     }
   }
 }

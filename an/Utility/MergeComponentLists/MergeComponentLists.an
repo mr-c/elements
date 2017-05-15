@@ -1,0 +1,60 @@
+// Protocol MergeComponentLists merges two lists of components together into a single list.
+// A new list of MergedComponents will be made by appending ComponentsA with all entries in ComponentsB.
+// The order of components will be preserved
+protocol MergeComponentLists
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Parameters to this protocol
+Parameters (
+
+)
+
+// Output data of this protocol
+Data (
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentsA []*wtype.LHComponent
+	ComponentsB []*wtype.LHComponent
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MergedComponents []*wtype.LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	
+	for _, component := range ComponentsA {
+		MergedComponents = append(MergedComponents,component)
+	}
+	
+	for _, component := range ComponentsB {
+		MergedComponents = append(MergedComponents,component)
+	}
+	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

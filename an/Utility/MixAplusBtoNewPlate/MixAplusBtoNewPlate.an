@@ -1,7 +1,9 @@
-// Protocol MixNtoN performs mixing for two rows of liquid components of equal length
-
-//This protocol takes in two arrays of components (A and B) of equal length and samples volume I of VolumeA of component i of A and transfers to a new Outplate where volume i of Volume B of component i of B is sampled into.
-protocol MixNtoN
+// Protocol MixA+BtoNewPlate performs mixing for two rows of liquid components of equal length.
+// This protocol takes in two rows of components (ComponentsA and ComponentsB) and two rows of Volumes (VolumesA and VolumesB). All four rows have to be the same length.
+// The element takes a specified volume of component A and transfers it to a new plate where a specified volume of component B is added.
+// The order of the rows specifies which volume and which component is added per reaction.
+// e.g. VolumesA [1ul,2ul] for ComponentsA [DNA1, DNA2] mixed with VolumesB [4ul,3ul] for ComponentsB [water,water] will mix 1ul of DNA1 with 4ul of water into well position 1 on a new plate. Then 2ul of DNA2 are mixed with 3ul of water into well position2 on a new plate.
+protocol MixAplusBtoNewPlate
 
 // Place golang packages to import here
 import (

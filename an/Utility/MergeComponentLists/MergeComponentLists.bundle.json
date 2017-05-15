@@ -1,0 +1,15 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "MergeComponentLists"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentsA": ["water"],
+      "ComponentsB": ["dna"]
+    }
+  },
+  "config": null
+}
