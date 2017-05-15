@@ -8,6 +8,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"image/color"
 	"strconv"
+	goimage "image"
 )
 
 
@@ -59,7 +60,17 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
 		//downloading image
@@ -69,20 +80,27 @@ Steps {
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 
+
+	//--------------------------------------------------------
+	//Processing image
+	//---------------------------------------------------------
 	if PosterizeImage{
-		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		posterizedImg, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
-	
+	//--------------------------------------------------------
+	//Choosing Palette
+	//---------------------------------------------------------
+
 	// make palette of colours from image
 	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
 	
@@ -92,13 +110,14 @@ Steps {
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 	
-	//fmt.Println("positions", positiontocolourmap)
-	
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
 
-	counter := 0
+	//--------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------
 
+	counter := 0
 
 	for _, colour := range positiontocolourmap {
 		

@@ -13,6 +13,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -46,6 +47,10 @@ func _AssemblePalette_OneByOne_RGB_transform_2Setup(_ctx context.Context, _input
 // for every input
 func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_transform_2Input, _output *AssemblePalette_OneByOne_RGB_transform_2Output) {
 
+	//------------------------------------------------------------
+	//Globals
+	//------------------------------------------------------------
+
 	var (
 		ReactionTemp                wunit.Temperature = wunit.NewTemperature(25, "C")
 		ReactionTime                wunit.Time        = wunit.NewTime(35, "min")
@@ -68,6 +73,9 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 	greenname := _input.Green.CName
 	bluename := _input.Blue.CName
 
+	var imgFile *wtype.File
+	var imgBase *goimage.NRGBA
+
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
@@ -77,18 +85,26 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
 	if _input.PosterizeImage {
-		posterizedImg, err = image.Posterize(img, _input.PosterizeLevels)
+		posterizedImg, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
+
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
 
 	// make palette of colours from image
 	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.PlateWithMasterMix, _input.Rotate)

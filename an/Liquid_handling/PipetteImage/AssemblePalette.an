@@ -86,6 +86,10 @@ func (rbscollection collection) Max()(rbs RBSdata) {
 // for every input
 Steps {
 
+	//-----------------------------------------------------------------------------
+	//Globals
+	//-----------------------------------------------------------------------------
+
 	var rbsstrengthdata []RBSdata =[]RBSdata{
 		RBSdata{wtype.MakeLinearDNASequence("rbs1","gggcgcgc"),0.0},
 		RBSdata{wtype.MakeLinearDNASequence("rbs2","gggcgcgc"),2.0},
@@ -98,6 +102,10 @@ Steps {
 	bluename := Blue.CName
 
 	fmt.Println(rbsstrengthdata)
+
+	//----------------------------------------------------------------------------
+	//Fetch image
+	//----------------------------------------------------------------------------
 
 	// if image is from url, download
 	if UseURL {

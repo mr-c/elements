@@ -11,6 +11,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -44,6 +45,16 @@ func _MakePalette_OneByOne_RGBSetup(_ctx context.Context, _input *MakePalette_On
 // for every input
 func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_OneByOne_RGBInput, _output *MakePalette_OneByOne_RGBOutput) {
 
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
@@ -53,18 +64,25 @@ func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_On
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//--------------------------------------------------------
+	//Processing image
+	//---------------------------------------------------------
 	if _input.PosterizeImage {
-		posterizedImg, err = image.Posterize(img, _input.PosterizeLevels)
+		posterizedImg, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
+
+	//--------------------------------------------------------
+	//Choosing Palette
+	//---------------------------------------------------------
 
 	// make palette of colours from image
 	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.OutPlate, _input.Rotate)
@@ -75,10 +93,12 @@ func _MakePalette_OneByOne_RGBSteps(_ctx context.Context, _input *MakePalette_On
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 
-	//fmt.Println("positions", positiontocolourmap)
-
 	solutions := make([]*wtype.LHComponent, 0)
 	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+
+	//--------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------
 
 	counter := 0
 

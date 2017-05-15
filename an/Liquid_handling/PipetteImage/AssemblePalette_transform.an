@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"strconv"
 	"fmt"
+	goimage "image"
 )
 
 
@@ -61,7 +62,11 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
+	//------------------------------------------------------------
+	//Globals
+	//------------------------------------------------------------
+
 	var (
 	ReactionTemp 				Temperature = wunit.NewTemperature(25,"C")
 	ReactionTime				Time = wunit.NewTime(35,"min")
@@ -79,14 +84,14 @@ Steps {
 	PlatewithRecoveryMedia		*wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
 	PlateWithCompetentCells		*wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
 	)
-	
-	
-	
-	
+
 	redname := Red.CName
-	greenname :=	Green.CName
+	greenname := Green.CName
 	bluename := Blue.CName
-	
+
+	var imgFile *wtype.File
+	var imgBase *goimage.NRGBA
+
 	// if image is from url, download
 	if UseURL {
 		//downloading image
@@ -96,20 +101,28 @@ Steps {
 		}
 
 		//opening the image file
-		img, err := image.OpenFile(imgFile)
+		imgBase, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
+
+
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
 	if PosterizeImage{
-		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		posterizedImg, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
-	
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
 	// make palette of colours from image
 	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate) 
 	
