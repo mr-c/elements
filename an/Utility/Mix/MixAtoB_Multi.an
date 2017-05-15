@@ -1,7 +1,6 @@
-// Mix a list of ComponentsA to ComponentsB.
-// By default, each component in ComponentsB will have the component from the corresponding position in ComponentsA added to it
-// e.g.
-// ComponentsA [dna1,dna2] + ComponentsB [water, pbs] = MixedComponents [water + dna1, pbs + dna2]
+// The MixAtoB_multi element can be used to mix corresponding solutions from SolutionAs into SolutionBs, 
+// For example, if mixing solution list A [dna1, dna2] to solution list B [water, pbs] 
+// the resulting mixtures would be [water + dna1, pbs + dna2]. 
 protocol MixAtoB_multi
 
 // Place golang packages to import here
@@ -12,8 +11,8 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	// If a sample volume is specifed for a sample name contained  in ComponentsB, that volume of that component will be sampled.
-	// if a "default" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.
+	// If a sample volume is specifed for a sample name contained  in SolutionBs, that volume of that component will be sampled.
+	// If a "default" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.
 	// If no sample volume is specified for a component and no default set then the entire contents will be sampled.
 	SampleVolumes map[string]Volume
 )
@@ -25,15 +24,16 @@ Data (
 // Physical inputs to this protocol
 Inputs (
 	
-	// List of components to add to all components in ComponentsB
-	ComponentsA []*wtype.LHComponent
+	// List of components to add to all components in SolutionBs.
+	SolutionAs []*wtype.LHComponent
 	
-	// Each component in ComponentsB will have the component from the corresponding position in ComponentsA added to it
-	ComponentsB []*wtype.LHComponent
+	// Each solution in  the list of SolutionBs will have the component from the corresponding position in SolutionAs added to it.
+	SolutionBs []*wtype.LHComponent
 )
 
 // Physical outputs to this protocol
 Outputs (
+	// Output solutions produced.
 	MixedComponents []*wtype.LHComponent
 )
 
@@ -45,26 +45,34 @@ Setup {
 // The core process for this protocol. These steps are executed for each input.
 Steps {
 	
-	if len(ComponentsA)<len(ComponentsB) {
-		Errorf("not enough samples in ComponentsA to mix to all of ComponentsB: Found %d in ComponentsA, %d in ComponentsB",len(ComponentsA),len(ComponentsB))
+	// Check that there are enough solutions in SolutionBs for the number of solutions in SolutionAs.
+	if len(SolutionBs)<len(SolutionAs) {
+		Errorf("Too many solutions listed in SolutionAs for the number of solutions in SolutionsB. Length of SolutionsB must be >= Length of SolutionsA. Found %d in SolutionAs, %d in SolutionBs", len(SolutionAs),len(SolutionBs))
 	}
 	
-	for i := range ComponentsB {
+	for i := range SolutionAs {
 		var sample *wtype.LHComponent
 		
+		
 		var sampleVol Volume
-		if vol, found := SampleVolumes[ComponentsB[i].CName];found{
+		// If a sample volume is specifed for a sample name contained  in SolutionAs, that volume of that component will be sampled.
+		if vol, found := SampleVolumes[SolutionAs[i].CName];found{
 			sampleVol = vol
+		// If a "default" volume is specified that will be used as the sample volume for all components which do not have a value explicitely specified.
 		}else if vol, found := SampleVolumes["default"];found{
 			sampleVol = vol
 		}
 		
+		// If no sample volume is specified and no default set, then the entire contents will be sampled.
+		// i.e. if after going through the map of sample volumes above the volume is greater than zero
+		// that volume will be sampled.
 		if sampleVol.RawValue() > 0.0 {			
-			sample = mixer.Sample(ComponentsA[i],sampleVol)			
+			sample = mixer.Sample(SolutionAs[i],sampleVol)
+		// if zero, then all the solution will be sampled			
 		}else{
-			sample = mixer.SampleAll(ComponentsA[i])
+			sample = mixer.SampleAll(SolutionAs[i])
 		}
-		mixedComponent := Mix(ComponentsB[i], sample)
+		mixedComponent := Mix(SolutionBs[i], sample)
 		MixedComponents = append(MixedComponents, mixedComponent)
 	
 	}

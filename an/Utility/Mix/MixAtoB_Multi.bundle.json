@@ -2,14 +2,36 @@
   "processes": {
     "Process1": {
       "component": "MixAtoB_multi"
+    },
+	 "PreProcess": {
+      "component": "Aliquot"
     }
   },
-  "connections": null,
+  "connections": [
+	{
+      "src": {
+        "port": "Aliquots",
+        "process": "PreProcess"
+      },
+      "tgt": {
+        "port": "SolutionBs",
+        "process": "Process1"
+      }
+    }
+	],
   "parameters": {
     "Process1": {
-      "ComponentsA": ["dna"],
-      "ComponentsB": ["water"],
+      "SolutionAs": ["dna"],
 	  "SampleVolumes": {"default":"1ul"}
+    },
+	"PreProcess": {
+      "ChangeSolutionName": "",
+      "NumberofAliquots": 8,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
     }
   },
   "config": null
