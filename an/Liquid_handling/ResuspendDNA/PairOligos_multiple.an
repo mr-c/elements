@@ -30,7 +30,8 @@ Inputs (
 )
 
 Outputs (
-	OligoPairs map[string]*wtype.LHComponent
+	OligoPairsMap map[string]*wtype.LHComponent
+	OligoPairs []*wtype.LHComponent
 )
 
 Requirements {
@@ -53,7 +54,7 @@ Steps {
 	}
 
 	// initialise output map 
-	OligoPairs = make(map[string]*wtype.LHComponent)
+	OligoPairsMap = make(map[string]*wtype.LHComponent)
 	
 	// get all well locations for plate
 	var welllocations []string = Plate.AllWellPositions(wtype.BYCOLUMN)
@@ -99,16 +100,21 @@ Steps {
 		Plate: Plate,
 	})
 	
-	// add to output map
-	OligoPairs[fwd] = result.Outputs.OligoPairs
+	
+	// update output solution with concentration
+	pair := result.Outputs.OligoPairs
+	pair.SetConcentration(ConcentrationSetPoint)
+	
+	// add to output map and slice
+	OligoPairsMap[fwd] = pair
+	OligoPairs = append(OligoPairs,pair)
 	
 	// increase counter to find next free well
-	
 	if counter +1 == len(welllocations){
-	counter = 0
-	platenum++	
+		counter = 0
+		platenum++	
 	}else {
-	counter++
+		counter++
 	}
 }
 
