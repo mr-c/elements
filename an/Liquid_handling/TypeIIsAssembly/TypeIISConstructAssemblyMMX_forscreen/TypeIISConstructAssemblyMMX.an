@@ -10,18 +10,18 @@ import (
 Parameters (
 	ReactionVolume				Volume
 	MasterMixVolume				Volume
-	PartVols				[]Volume
+	PartVols				    []Volume
 	ReactionTemp				Temperature
 	ReactionTime				Time
 	InactivationTemp			Temperature
 	InactivationTime			Time
 	OutputReactionName			string
 	OutputLocation 				string
-        OutputConstructName                     string
+    OutputConstructName         string
 	OutputPlateNum				int
-	LHPolicyName				string
-        EnzymeName                              string
-        PartSeqs                                []wtype.DNASequence
+	LHPolicyName				wtype.PolicyName
+    EnzymeName                  string
+    PartSeqs                    []wtype.DNASequence
 )
 
 // Physical Inputs to this protocol with types

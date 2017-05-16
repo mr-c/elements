@@ -28,7 +28,7 @@ Parameters (
 	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
-	LiquidType string
+	LiquidType wtype.PolicyName
 )
 
 // Data which is returned from this protocol, and data types

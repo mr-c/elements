@@ -29,7 +29,7 @@ Parameters (
 	TestName string // name of test e.g. branch name, date, name of project; csv file will be named after this
 	Liquidname string // can be whatever you want to call it
 	LiquidVolumes []Volume // List of volumes to test
-	LiquidTypes []string // corresponding to valid antha liquid types
+	LiquidTypes []wtype.PolicyName // corresponding to valid antha liquid types
 	OutPlates []string // list of out plate types to test
 	WellsUsedperOutPlateInorder []int // optional slice of ints which should match the length and order of the OutPlates slice
 
@@ -208,7 +208,7 @@ Steps {
 			aspz := policy["ASPZOFFSET"]
 			dspz := policy["DSPZOFFSET"]
 			
-			record := []string{TestName,platename,Liquidname,LiquidTypes[i],LiquidVolumes[j].ToString(),wellpositionsarray[counter],  "  ","  "," "," ",fmt.Sprint(zstart),fmt.Sprint(plateheight),fmt.Sprint(aspz),fmt.Sprint(dspz)}
+			record := []string{TestName,platename,Liquidname,LiquidTypes[i].String(),LiquidVolumes[j].ToString(),wellpositionsarray[counter],  "  ","  "," "," ",fmt.Sprint(zstart),fmt.Sprint(plateheight),fmt.Sprint(aspz),fmt.Sprint(dspz)}
 			records = append(records, record)
 
 			// evaluate whether plate is full and if so add new plate

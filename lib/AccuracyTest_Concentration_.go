@@ -107,12 +107,12 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 	// if none is specified, use lhpolicy of first solution
 	if _input.LHPolicy == "" {
-		_input.LHPolicy = _input.TestSols[0].TypeName()
+		_input.LHPolicy = wtype.PolicyName(_input.TestSols[0].TypeName())
 	}
 
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
-		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
+		execute.Errorf(_ctx, "policy %s not found", _input.LHPolicy.String())
 		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy, " not found"))
 	}
 
@@ -281,7 +281,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					description := volume + "_" + solutionname + "_replicate" + strconv.Itoa(j+1) + "_platenum" + strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -316,7 +316,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						execute.Errorf(_ctx, "policy "+doerun+" not found")
+						execute.Errorf(_ctx, "policy %s not found", doerun.String())
 						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
 					}
 
@@ -445,7 +445,7 @@ type AccuracyTest_ConcentrationInput struct {
 	Diluent                         *wtype.LHComponent
 	DilutionFactor                  float64
 	Imagefilename                   string
-	LHPolicy                        string
+	LHPolicy                        wtype.PolicyName
 	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int

@@ -135,7 +135,7 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 					execute.Errorf(_ctx, "Liquid type issue with ", _input.LiquidTypes[i], err.Error())
 				}
 
-				Startingsolution.CName = startingsolutionname + "_" + _input.LiquidTypes[i]
+				Startingsolution.CName = startingsolutionname + "_" + _input.LiquidTypes[i].String()
 				// change liquid type to that specified in loop
 				Startingsolution.Type = liquidtypestring
 
@@ -174,7 +174,7 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 				aspz := policy["ASPZOFFSET"]
 				dspz := policy["DSPZOFFSET"]
 
-				record := []string{_input.TestName, platename, _input.Liquidname, _input.LiquidTypes[i], _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  ", " ", " ", fmt.Sprint(zstart), fmt.Sprint(plateheight), fmt.Sprint(aspz), fmt.Sprint(dspz)}
+				record := []string{_input.TestName, platename, _input.Liquidname, _input.LiquidTypes[i].String(), _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  ", " ", " ", fmt.Sprint(zstart), fmt.Sprint(plateheight), fmt.Sprint(aspz), fmt.Sprint(dspz)}
 				records = append(records, record)
 
 				// evaluate whether plate is full and if so add new plate
@@ -269,7 +269,7 @@ type PlateTest3Element struct {
 }
 
 type PlateTest3Input struct {
-	LiquidTypes                 []string
+	LiquidTypes                 []wtype.PolicyName
 	LiquidVolumes               []wunit.Volume
 	Liquidname                  string
 	OutPlates                   []string
