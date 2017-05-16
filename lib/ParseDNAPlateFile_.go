@@ -59,7 +59,14 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 	_output.FwdOligotoRevOligo = make(map[string]string)
 	_output.PartsList = make(map[string]*wtype.LHComponent)
 
-	dnaparts, err := doe.RunsFromDesignPreResponses(_input.SequenceInfoFile, []string{"Length", "MW", "Tm", "Yield"}, _input.SequenceInfoFileformat)
+	// get contents from file
+	fileContents, err := _input.SequenceInfoFile.ReadAll()
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	dnaparts, err := doe.RunsFromDesignPreResponsesContents(fileContents, []string{"Length", "MW", "Tm", "Yield"}, _input.SequenceInfoFileformat)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
@@ -265,7 +272,7 @@ type ParseDNAPlateFileElement struct {
 
 type ParseDNAPlateFileInput struct {
 	DNAPlate               *wtype.LHPlate
-	SequenceInfoFile       string
+	SequenceInfoFile       wtype.File
 	SequenceInfoFileformat string
 }
 

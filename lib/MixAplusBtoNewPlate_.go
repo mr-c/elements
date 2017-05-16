@@ -129,7 +129,7 @@ func init() {
 		Constructor: MixAplusBtoNewPlateNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol MixA+BtoNewPlate performs mixing for two rows of liquid components of equal length.\nThis protocol takes in two rows of components (ComponentsA and ComponentsB) and two rows of Volumes (VolumesA and VolumesB). All four rows have to be the same length.\nThe element takes a specified volume of component A and transfers it to a new plate where a specified volume of component B is added.\nThe order of the rows specifies which volume and which component is added per reaction.\ne.g. VolumesA [1ul,2ul] for ComponentsA [DNA1, DNA2] mixed with VolumesB [4ul,3ul] for ComponentsB [water,water] will mix 1ul of DNA1 with 4ul of water into well position 1 on a new plate. Then 2ul of DNA2 are mixed with 3ul of water into well position2 on a new plate.\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/MixNtoN.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/MixAplusBtoNewPlate/MixAplusBtoNewPlate.an",
 			Params: []component.ParamDesc{
 				{Name: "ComponentsA", Desc: "", Kind: "Inputs"},
 				{Name: "ComponentsB", Desc: "", Kind: "Inputs"},

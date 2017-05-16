@@ -14,7 +14,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-  	SequenceInfoFile string
+  	SequenceInfoFile wtype.File
 	SequenceInfoFileformat string
 	
 )
@@ -81,7 +81,15 @@ var ReplaceMap = map[string]string{
 	FwdOligotoRevOligo = make(map[string]string)
 	PartsList = make(map[string]*wtype.LHComponent)
 
-dnaparts, err := doe.RunsFromDesignPreResponses(SequenceInfoFile,[]string{"Length", "MW","Tm","Yield"},SequenceInfoFileformat)
+	// get contents from file
+	fileContents, err :=  SequenceInfoFile.ReadAll()
+	
+	if err!= nil {
+		Errorf(err.Error())
+	}
+	
+
+	dnaparts, err := doe.RunsFromDesignPreResponsesContents(fileContents,[]string{"Length", "MW","Tm","Yield"},SequenceInfoFileformat)
 
 	if err!= nil {
 		Errorf(err.Error())
@@ -99,7 +107,7 @@ for i, partinfo := range dnaparts {
 	
 	for j := range partinfo.Setpoints {
 	
-//First creates an array of part names	
+	//First creates an array of part names	
 	if partinfo.Factordescriptors[j] == NameHeader {
 		
 		if	name, found := partinfo.Setpoints[j].(string); found{
