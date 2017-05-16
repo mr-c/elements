@@ -121,7 +121,7 @@ func _PlateTest2Steps(_ctx context.Context, _input *PlateTest2Input, _output *Pl
 					execute.Errorf(_ctx, "Liquid type issue with ", _input.LiquidTypes[i], err.Error())
 				}
 
-				Startingsolution.CName = startingsolutionname + "_" + _input.LiquidTypes[i]
+				Startingsolution.CName = startingsolutionname + "_" + _input.LiquidTypes[i].String()
 				// change liquid type to that specified in loop
 				Startingsolution.Type = liquidtypestring
 
@@ -141,9 +141,9 @@ func _PlateTest2Steps(_ctx context.Context, _input *PlateTest2Input, _output *Pl
 				_output.FinalSolutions = append(_output.FinalSolutions, finalSolution)
 
 				// Append status
-				_output.Status = _output.Status + fmt.Sprintln(_input.LiquidVolumes[j].ToString(), " of ", Startingsolution.CName, "Liquid type ", _input.LiquidTypes[i], "was mixed into "+_input.OutPlates[k])
+				_output.Status = _output.Status + fmt.Sprintln(_input.LiquidVolumes[j].ToString(), " of ", Startingsolution.CName, "Liquid type ", _input.LiquidTypes[i].String(), "was mixed into "+_input.OutPlates[k])
 
-				record := []string{_input.TestName, platename, Startingsolution.CName, _input.LiquidTypes[i], _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  "}
+				record := []string{_input.TestName, platename, Startingsolution.CName, _input.LiquidTypes[i].String(), _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  "}
 				records = append(records, record)
 
 				// evaluate whether plate is full and if so add new plate
@@ -246,7 +246,7 @@ type PlateTest2Element struct {
 }
 
 type PlateTest2Input struct {
-	LiquidTypes                 []string
+	LiquidTypes                 []wtype.PolicyName
 	LiquidVolumes               []wunit.Volume
 	Liquidnames                 []string
 	OutPlates                   []string

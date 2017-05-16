@@ -21,7 +21,7 @@ Parameters (
 
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
-	LHPolicy string
+	LHPolicy wtype.PolicyName
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool
@@ -189,7 +189,7 @@ Steps {
 		//setpoints := volume+"_"+solutionname+"_replicate"+strconv.Itoa(j+1)+"_platenum"+strconv.Itoa(platenum)
 		
 		// add run to well position lookup table 
-		Runtowelllocationmap[doerun+"_"+description]= wellpositionarray[counter]	
+		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]	
 	
 	// add additional info for each run
 	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -220,7 +220,7 @@ Steps {
 	runs[i] = doe.AddAdditionalHeaderandValue(runs[i],"Additional","Plate WellYStart", OutPlate.WellYStart)
 	
 	// add LHPolicy setpoint printout to double check correct match up:
-	runs[i] = doe.AddAdditionalHeaderandValue(runs[i],"Additional","LHPolicy", doerun)
+	runs[i] = doe.AddAdditionalHeaderandValue(runs[i],"Additional","LHPolicy", doerun.String())
 	
 	// print out LHPolicy info
 	policy, _ := liquidhandling.GetPolicyByName(doerun)

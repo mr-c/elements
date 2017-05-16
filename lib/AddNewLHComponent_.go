@@ -159,7 +159,7 @@ type AddNewLHComponentInput struct {
 	Name               string
 	StockConcentration wunit.Concentration
 	TemplateComponent  *wtype.LHComponent
-	UseLHPolicy        string
+	UseLHPolicy        wtype.PolicyName
 }
 
 type AddNewLHComponentOutput struct {
