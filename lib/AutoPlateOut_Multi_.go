@@ -136,7 +136,7 @@ type AutoPlateOut_MultiInput struct {
 	IncubationTemp       wunit.Temperature
 	IncubationTime       wunit.Time
 	NumberofReplicates   int
-	PlateOutLiquidPolicy string
+	PlateOutLiquidPolicy wtype.PolicyName
 	PlateOutVolume       wunit.Volume
 	TransformedCells     []*wtype.LHComponent
 	WellsAlreadyUsed     int

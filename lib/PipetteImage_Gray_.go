@@ -240,9 +240,9 @@ type PipetteImage_GrayInput struct {
 	Imagefilename                   string
 	MaxBlackPercentagethreshold     float64
 	MinimumBlackpercentagethreshold float64
-	MixingLiquidClass               string
+	MixingLiquidClass               wtype.PolicyName
 	Negative                        bool
-	NonMixingClass                  string
+	NonMixingClass                  wtype.PolicyName
 	OnlyHighVolumetips              bool
 	OutPlate                        *wtype.LHPlate
 	PosterizeImage                  bool

@@ -115,7 +115,7 @@ type TypeIISConstructAssemblyMMXElement struct {
 type TypeIISConstructAssemblyMMXInput struct {
 	InactivationTemp   wunit.Temperature
 	InactivationTime   wunit.Time
-	LHPolicyName       string
+	LHPolicyName       wtype.PolicyName
 	MasterMix          *wtype.LHComponent
 	OutPlate           *wtype.LHPlate
 	OutputLocation     string
