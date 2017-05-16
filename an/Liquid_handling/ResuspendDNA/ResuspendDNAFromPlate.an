@@ -23,6 +23,7 @@ Parameters (
 Data (
 	PartConcentrations map[string]wunit.Concentration
 	Errors []error
+	PlateContents wtype.File
 )
 
 Inputs (
@@ -32,7 +33,6 @@ Inputs (
 
 Outputs (
 	ResuspendedDNAMap map[string]*wtype.LHComponent
-	
 )
 
 Requirements {
@@ -58,13 +58,38 @@ Steps {
 	PartConcentrations = make(map[string]wunit.Concentration)
 
 	for _, part := range Parts {
+		
+	mass, found := PartMassMap[part]
+	
+	if !found{
+		Errorf("Part %s not found in PartMassMap", part)
+	}
+	
+	mw, found := PartMolecularWeightMap[part]
+	
+	if !found{
+		Errorf("Part %s not found in PartMolecularWeightMap", part)
+	}
+	
+	well, found := PartLocationsMap[part]
+	
+	if !found{
+		Errorf("Part %s not found in PartLocationsMap", part)
+	}
+	
+	plate, found := PartPlateMap[part]
+	
+	if !found{
+		Errorf("Part %s not found in PartPlateMap", part)
+	}
+	
 
 	result := RunSteps(ResuspendDNA,
-	Parameters{	DNAMass: PartMassMap[part],
+	Parameters{	DNAMass: mass,
 			  	TargetConc: TargetConc,
-				MolecularWeight: PartMolecularWeightMap[part],
-				Well: PartLocationsMap[part],
-				PlateName: PartPlateMap[part],
+				MolecularWeight: mw,
+				Well: well,
+				PlateName: plate,
 	},Inputs{
 				Diluent: Diluent,
 				DNAPlate: DNAPlate,
@@ -72,18 +97,27 @@ Steps {
 	
 	result.Outputs.ResuspendedDNA.CName = part
 	
-	ResuspendedDNAMap[part]= result.Outputs.ResuspendedDNA
+	resuspendedDNA := result.Outputs.ResuspendedDNA
 	
-	PartConcentrations[part]= TargetConc.GramPerL(PartMolecularWeightMap[part])
+	// convert concentration to g/l
+	conc := TargetConc.GramPerL(mw)
+	
+	resuspendedDNA.SetConcentration(conc)
+	
+	// add to output maps
+	ResuspendedDNAMap[part]= resuspendedDNA
+	
+	PartConcentrations[part]= conc
 	
 	// add to slices to export as csv later
-	Reactions = append(Reactions,result.Outputs.ResuspendedDNA)
-	volumes = append(volumes,result.Outputs.ResuspendedDNA.Volume())
-	welllocations = append(welllocations,PartLocationsMap[part])
+	Reactions = append(Reactions,resuspendedDNA)
+	volumes = append(volumes,resuspendedDNA.Volume())
+	welllocations = append(welllocations,well)
 	}
 	
-	// once all values of loop have been completed, export the plate contents as a csv file
-	Errors = append(Errors,wtype.ExportPlateCSV(Projectname+".csv", DNAPlate,Projectname+"outputPlate", welllocations, Reactions, volumes) )
+	// once all values of loop have been completed, export the plate contents as a csv file, Not visible in UI at present! refactor exportCSV func.
+	err := wtype.ExportPlateCSV(Projectname+".csv", DNAPlate,Projectname+"outputPlate", welllocations, Reactions, volumes) 
+	Errors = append(Errors,err)
 	
 }
 

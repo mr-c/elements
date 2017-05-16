@@ -35,7 +35,7 @@ func _PairOligos_multipleSteps(_ctx context.Context, _input *PairOligos_multiple
 	}
 
 	// initialise output map
-	_output.OligoPairs = make(map[string]*wtype.LHComponent)
+	_output.OligoPairsMap = make(map[string]*wtype.LHComponent)
 
 	// get all well locations for plate
 	var welllocations []string = _input.Plate.AllWellPositions(wtype.BYCOLUMN)
@@ -78,11 +78,15 @@ func _PairOligos_multipleSteps(_ctx context.Context, _input *PairOligos_multiple
 			Plate:    _input.Plate},
 		)
 
-		// add to output map
-		_output.OligoPairs[fwd] = result.Outputs.OligoPairs
+		// update output solution with concentration
+		pair := result.Outputs.OligoPairs
+		pair.SetConcentration(_input.ConcentrationSetPoint)
+
+		// add to output map and slice
+		_output.OligoPairsMap[fwd] = pair
+		_output.OligoPairs = append(_output.OligoPairs, pair)
 
 		// increase counter to find next free well
-
 		if counter+1 == len(welllocations) {
 			counter = 0
 			platenum++
@@ -160,14 +164,16 @@ type PairOligos_multipleInput struct {
 }
 
 type PairOligos_multipleOutput struct {
-	OligoPairs map[string]*wtype.LHComponent
+	OligoPairs    []*wtype.LHComponent
+	OligoPairsMap map[string]*wtype.LHComponent
 }
 
 type PairOligos_multipleSOutput struct {
 	Data struct {
 	}
 	Outputs struct {
-		OligoPairs map[string]*wtype.LHComponent
+		OligoPairs    []*wtype.LHComponent
+		OligoPairsMap map[string]*wtype.LHComponent
 	}
 }
 
@@ -189,6 +195,7 @@ func init() {
 				{Name: "StockConcentration", Desc: "", Kind: "Parameters"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
 				{Name: "OligoPairs", Desc: "", Kind: "Outputs"},
+				{Name: "OligoPairsMap", Desc: "", Kind: "Outputs"},
 			},
 		},
 	}); err != nil {

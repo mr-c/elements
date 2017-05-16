@@ -32,7 +32,7 @@ func _ResuspendDNASteps(_ctx context.Context, _input *ResuspendDNAInput, _output
 
 	if _input.DNAMass.Unit().BaseSIUnit() == "kg" {
 		dnamassG = dnamassG * 1000
-		fmt.Println("Base Unit correction; Base unit of mass = ", _input.DNAMass.Unit().BaseSIUnit(), " therfore multiplying by 1000 to convert to grams")
+		_output.Warnings = append(_output.Warnings, fmt.Sprintln("Base Unit correction; Base unit of mass = ", _input.DNAMass.Unit().BaseSIUnit(), " therfore multiplying by 1000 to convert to grams"))
 	}
 
 	volumetoadd := wunit.NewVolume(dnamassG/targetconcgperL, "L")
@@ -110,10 +110,12 @@ type ResuspendDNAInput struct {
 
 type ResuspendDNAOutput struct {
 	ResuspendedDNA *wtype.LHComponent
+	Warnings       []string
 }
 
 type ResuspendDNASOutput struct {
 	Data struct {
+		Warnings []string
 	}
 	Outputs struct {
 		ResuspendedDNA *wtype.LHComponent
@@ -135,6 +137,7 @@ func init() {
 				{Name: "TargetConc", Desc: "", Kind: "Parameters"},
 				{Name: "Well", Desc: "", Kind: "Parameters"},
 				{Name: "ResuspendedDNA", Desc: "", Kind: "Outputs"},
+				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
