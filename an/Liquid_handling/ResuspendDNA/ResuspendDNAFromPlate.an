@@ -32,7 +32,6 @@ Inputs (
 
 Outputs (
 	ResuspendedDNAMap map[string]*wtype.LHComponent
-	
 )
 
 Requirements {
