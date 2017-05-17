@@ -257,7 +257,7 @@ type PipetteImage_fromPaletteInput struct {
 	ColourIndextoComponentMap map[string]string
 	Colourcomponents          []*wtype.LHComponent
 	Imagefilename             string
-	LiquidType                string
+	LiquidType                wtype.PolicyName
 	LowerThreshold            uint8
 	NotthisColour             string
 	OnlythisColour            string

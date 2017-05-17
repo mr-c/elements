@@ -278,7 +278,7 @@ type PipetteImageInput struct {
 	Subsetnames           []string
 	URL                   string
 	UVimage               bool
-	UseLiquidClass        string
+	UseLiquidClass        wtype.PolicyName
 	UseURL                bool
 	VolumePerWell         wunit.Volume
 }
