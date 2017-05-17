@@ -1,0 +1,134 @@
+
+// This element will produce a csv report of primer properties and binding sites to a list of input sequences
+protocol PrimerBindingReport
+
+import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"path/filepath"
+	"strconv"
+	"sort"
+)
+
+// Input parameters for this protocol
+Parameters (
+	Sequences map[string]DNASequence
+	AllPrimers map[string]oligos.Primer
+	OutPutFileName string
+)
+
+// Data which is returned from this protocol
+Data (
+	PrimerBindingReport File
+)
+
+// Physical inputs to this protocol
+Inputs (
+
+)
+
+// Physical outputs from this protocol
+Outputs (
+)
+
+Requirements {
+
+}
+
+// Actions to perform before protocol itself
+Setup {
+
+}
+
+
+
+// order outputs 
+func mapToSlice(seqsMap map[string]wtype.DNASequence) []wtype.DNASequence {
+	var names []string
+	var nameToSeq = make(map[string]wtype.DNASequence)
+	
+	for _, seq := range seqsMap {
+		
+		if seq, found := nameToSeq[seq.Name()]; !found{
+			nameToSeq[seq.Name()] = seq
+			names = append(names, seq.Name())
+		}else{
+			originalNm := seq.Name()
+			counter := 2
+			for {
+				seq.Nm = originalNm + strconv.Itoa(counter)
+				if seq, found := nameToSeq[seq.Name()]; !found{
+					nameToSeq[seq.Name()] = seq
+					names = append(names, seq.Name())
+					break
+				}else{
+					counter++
+				}
+			}	
+			break		
+		}
+	}
+
+	sort.Strings(names)
+	
+	var seqsSlice []wtype.DNASequence
+	
+	for _, nm := range names {
+		seqsSlice = append(seqsSlice,nameToSeq[nm])
+	}
+
+	return seqsSlice
+}
+
+
+// Core process of the protocol: steps to be performed for each input
+Steps {
+ 
+	//seqsSlice := mapToSlice(Sequences)
+	
+// check each sequence for binding to other sequences:
+
+	
+	var report [][]string
+	
+	var header []string = []string{"Sequence","Primer", "Primer Sequence", "Binding Sites", "Melting Temp", "GC Content"}
+	
+	report = append(report,header)
+	
+	for _, sequence := range Sequences {
+			
+		for _, primer := range AllPrimers {
+					
+			bindingsites := oligos.CheckNonSpecificBinding(sequence, primer.DNASequence)
+			
+			output := []string{sequence.Nm,primer.Nm, primer.Sequence(),fmt.Sprint(bindingsites), primer.MeltingTemp.ToString(),fmt.Sprint(primer.GCContent * 100)+ "%"}
+			report = append(report, output)
+	
+		}
+	
+	}
+	
+	if filepath.Ext(OutPutFileName) != "csv"{
+		OutPutFileName = OutPutFileName + ".csv"
+	}
+	
+	primerBindingReport, err := export.CSV(report,OutPutFileName)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
+		
+	PrimerBindingReport = primerBindingReport
+	
+}
+// Actions to perform after steps block to analyze data
+Analysis {
+
+}
+Validation {
+	
+	
+}
+
+
