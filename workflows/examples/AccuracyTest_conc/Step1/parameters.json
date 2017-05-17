@@ -5,11 +5,6 @@
       "Diluent": "water",
       "DilutionFactor": 10,
       "Imagefilename": "star.png",
-      "InputFile": {
-        "host_file": {
-          "filename": "star.png"
-        }
-      },
       "LHPolicy": "PostMix",
       "MinVolume": "1ul",
       "NumberofBlanks": 0,
