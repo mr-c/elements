@@ -502,7 +502,7 @@ type AccuracyTest_ConcentrationInput struct {
 type AccuracyTest_ConcentrationOutput struct {
 	Blankwells           []string
 	Errors               []error
-	ExportedFile         *wtype.File
+	ExportedFile         wtype.File
 	Pixelcount           int
 	Reactions            []*wtype.LHComponent
 	Runcount             int
@@ -515,7 +515,7 @@ type AccuracyTest_ConcentrationSOutput struct {
 	Data struct {
 		Blankwells           []string
 		Errors               []error
-		ExportedFile         *wtype.File
+		ExportedFile         wtype.File
 		Pixelcount           int
 		Runcount             int
 		Runs                 []doe.Run

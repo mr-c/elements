@@ -48,7 +48,7 @@ Data (
 	Blankwells []string
 	Runs []doe.Run
 	Wellpositionarray []string
-	ExportedFile *wtype.File
+	ExportedFile wtype.File
 )
 
 
