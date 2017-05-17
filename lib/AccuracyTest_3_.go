@@ -150,8 +150,8 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	// use first policy as reference to ensure consistent range through map values
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
-		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
-		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy, " not found"))
+		execute.Errorf(_ctx, "policy "+_input.LHPolicy.String()+" not found")
+		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy.String(), " not found"))
 	}
 
 	referencekeys := make([]string, 0)
@@ -278,7 +278,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					description := volume + "_" + solutionname + "_replicate" + strconv.Itoa(j+1) + "_platenum" + strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -287,7 +287,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Location", wellpositionarray[counter])
 
 					// add setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun.String())
 
 					// add plate info:
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate Type", _input.OutPlate.Type)
@@ -308,13 +308,13 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellYStart", _input.OutPlate.WellYStart)
 
 					// add LHPolicy setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun.String())
 
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						execute.Errorf(_ctx, "policy "+doerun+" not found")
-						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
+						execute.Errorf(_ctx, "policy "+doerun.String()+" not found")
+						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun.String(), " not found"))
 					}
 
 					for _, key := range referencekeys {
@@ -432,7 +432,7 @@ type AccuracyTest_3Input struct {
 	DilutionFactor                  float64
 	Imagefilename                   string
 	InputFile                       wtype.File
-	LHPolicy                        string
+	LHPolicy                        wtype.PolicyName
 	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int

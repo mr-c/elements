@@ -258,12 +258,12 @@ type DNA_gelElement struct {
 
 type DNA_gelInput struct {
 	DNAGel                 *wtype.LHPlate
-	GelLoadingMixingPolicy string
+	GelLoadingMixingPolicy wtype.PolicyName
 	Ladder                 *wtype.LHComponent
 	LadderVolume           wunit.Volume
 	LoadingDye             *wtype.LHComponent
 	LoadingDyeInSample     bool
-	LoadingDyeMixingPolicy string
+	LoadingDyeMixingPolicy wtype.PolicyName
 	LoadingDyeVolume       wunit.Volume
 	MixPlate               *wtype.LHPlate
 	OptimisePlateUsage     bool

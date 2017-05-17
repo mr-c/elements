@@ -22,8 +22,8 @@ Parameters (
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
 	SkipWhite bool
-	MixingLiquidClass string
-	NonMixingClass string
+	MixingLiquidClass wtype.PolicyName
+	NonMixingClass wtype.PolicyName
 	Negative bool
 	Rotate bool
 	AutoRotate bool
@@ -107,11 +107,11 @@ Steps {
 	if err != nil{
 		Errorf(err.Error())
 	}
-	
+
 	//-------------------------------------------------------------------------------------
 	//Palette manipulation
 	//-------------------------------------------------------------------------------------
-	
+
 	chosencolourpalette := image.AvailablePalettes()["Gray"]
 	
 	//-------------------------------------------------------------------------------------

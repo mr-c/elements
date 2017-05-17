@@ -25,7 +25,7 @@ Parameters (
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
-	LHPolicy string
+	LHPolicy wtype.PolicyName
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool
@@ -90,7 +90,7 @@ Steps {
 		
 	// if image is from url, download
 	if UseURL {
-		_, err := download.File(URL, Imagefilename)
+		err := download.File(URL, Imagefilename)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -120,7 +120,7 @@ Steps {
 	// use first policy as reference to ensure consistent range through map values
 	referencepolicy,found := liquidhandling.GetPolicyByName(LHPolicy)
 	if found == false {
-		Errorf("policy "+LHPolicy+" not found")
+		Errorf("policy "+LHPolicy.String()+" not found")
 		Errors = append(Errors,fmt.Errorf("policy ",LHPolicy," not found"))
 	}
 	
@@ -220,7 +220,7 @@ Steps {
 		//setpoints := volume+"_"+solutionname+"_replicate"+strconv.Itoa(j+1)+"_platenum"+strconv.Itoa(platenum)
 		
 		// add run to well position lookup table 
-		Runtowelllocationmap[doerun+"_"+description]= wellpositionarray[counter]	
+		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]	
 	
 	// add additional info for each run
 	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -232,7 +232,7 @@ Steps {
 	//runs[counter] = doe.AddAdditionalHeaderandValue(runs[counter],"Additional","runorder", counter)
 	
 	// add setpoint printout to double check correct match up:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun)
+	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun.String())
 
 	// add plate info:
 	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Type", OutPlate.Type)
@@ -253,13 +253,13 @@ Steps {
 	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYStart", OutPlate.WellYStart)
 	
 	// add LHPolicy setpoint printout to double check correct match up:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun)
+	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun.String())
 	
 	// print out LHPolicy info
 	policy, found := liquidhandling.GetPolicyByName(doerun)
 	if  !found {
 		panic("policy "+doerun+" not found")
-		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
+		Errors = append(Errors,fmt.Errorf("policy ",doerun.String()," not found"))
 	}
 	
 	for _,key := range referencekeys {

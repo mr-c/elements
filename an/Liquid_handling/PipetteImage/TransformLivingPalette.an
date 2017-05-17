@@ -33,7 +33,7 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass string
+	UseLiquidClass wtype.PolicyName
 	Subsetnames []string
 	//IncTemp Temperature
 	//IncTime Time
@@ -116,7 +116,7 @@ Steps {
 
 	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
-	
+
 	if Subset {
 		chosencolourpalette = image.MakeSubPallette(Palettename, Subsetnames)
 	}else {
@@ -156,7 +156,7 @@ Steps {
 	// the output of this is a map of well positions to colours needed
 
 	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
-	
+
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
 	// make additional palette map

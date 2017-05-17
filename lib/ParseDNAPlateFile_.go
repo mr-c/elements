@@ -1,4 +1,5 @@
-// Protocol for resuspending freeze dried DNA with a diluent
+// Protocol for parsing the contents of a DNAPlate file in xlsx format from Thermo.
+// The products of parsing this plate can the be wired directly into the ResuspendDNA or PairOligos elements.
 package lib
 
 import
@@ -20,6 +21,9 @@ import
 
 // Input parameters for this protocol (data)
 
+// supported format is xlsx file from Thermo
+// default should be JMP
+
 // using the fwd primer name, returns the rev primer name
 
 func _ParseDNAPlateFileRequirements() {
@@ -29,6 +33,10 @@ func _ParseDNAPlateFileSetup(_ctx context.Context, _input *ParseDNAPlateFileInpu
 }
 
 func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInput, _output *ParseDNAPlateFileOutput) {
+
+	if _input.SequenceInfoFileformat == "" {
+		_input.SequenceInfoFileformat = "JMP"
+	}
 
 	var ReplaceMap = map[string]string{
 		"01": "1",
@@ -59,7 +67,14 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 	_output.FwdOligotoRevOligo = make(map[string]string)
 	_output.PartsList = make(map[string]*wtype.LHComponent)
 
-	dnaparts, err := doe.RunsFromDesignPreResponses(_input.SequenceInfoFile, []string{"Length", "MW", "Tm", "Yield"}, _input.SequenceInfoFileformat)
+	// get contents from file
+	fileContents, err := _input.SequenceInfoFile.ReadAll()
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	dnaparts, err := doe.RunsFromDesignPreResponsesContents(fileContents, []string{"Length", "MW", "Tm", "Yield"}, _input.SequenceInfoFileformat)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
@@ -110,6 +125,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				} else {
 					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
 				}
+
 				if i == 0 {
 					headersfound = append(headersfound, MassHeader)
 				}
@@ -130,6 +146,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				} else {
 					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
 				}
+
 				if i == 0 {
 					headersfound = append(headersfound, MWHeader)
 				}
@@ -210,6 +227,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 
 	_output.HeadersFound = headersfound
 }
+
 func _ParseDNAPlateFileAnalysis(_ctx context.Context, _input *ParseDNAPlateFileInput, _output *ParseDNAPlateFileOutput) {
 }
 
@@ -264,8 +282,7 @@ type ParseDNAPlateFileElement struct {
 }
 
 type ParseDNAPlateFileInput struct {
-	DNAPlate               *wtype.LHPlate
-	SequenceInfoFile       string
+	SequenceInfoFile       wtype.File
 	SequenceInfoFileformat string
 }
 
@@ -279,7 +296,6 @@ type ParseDNAPlateFileOutput struct {
 	PartPlateMap           map[string]string
 	Partnames              []string
 	PartsList              map[string]*wtype.LHComponent
-	Platetype              string
 }
 
 type ParseDNAPlateFileSOutput struct {
@@ -292,7 +308,6 @@ type ParseDNAPlateFileSOutput struct {
 		PartMolecularWeightMap map[string]float64
 		PartPlateMap           map[string]string
 		Partnames              []string
-		Platetype              string
 	}
 	Outputs struct {
 		PartsList map[string]*wtype.LHComponent
@@ -303,12 +318,11 @@ func init() {
 	if err := addComponent(component.Component{Name: "ParseDNAPlateFile",
 		Constructor: ParseDNAPlateFileNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol for resuspending freeze dried DNA with a diluent\n",
+			Desc: "Protocol for parsing the contents of a DNAPlate file in xlsx format from Thermo.\nThe products of parsing this plate can the be wired directly into the ResuspendDNA or PairOligos elements.\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/ResuspendDNA/ParseDNAInputFile.an",
 			Params: []component.ParamDesc{
-				{Name: "DNAPlate", Desc: "", Kind: "Inputs"},
-				{Name: "SequenceInfoFile", Desc: "", Kind: "Parameters"},
-				{Name: "SequenceInfoFileformat", Desc: "", Kind: "Parameters"},
+				{Name: "SequenceInfoFile", Desc: "supported format is xlsx file from Thermo\n", Kind: "Parameters"},
+				{Name: "SequenceInfoFileformat", Desc: "default should be JMP\n", Kind: "Parameters"},
 				{Name: "FwdOligotoRevOligo", Desc: "using the fwd primer name, returns the rev primer name\n", Kind: "Data"},
 				{Name: "HeadersFound", Desc: "", Kind: "Data"},
 				{Name: "OligoPairs", Desc: "", Kind: "Data"},
@@ -318,7 +332,6 @@ func init() {
 				{Name: "PartPlateMap", Desc: "", Kind: "Data"},
 				{Name: "Partnames", Desc: "", Kind: "Data"},
 				{Name: "PartsList", Desc: "", Kind: "Outputs"},
-				{Name: "Platetype", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

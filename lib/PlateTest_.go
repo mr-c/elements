@@ -189,7 +189,7 @@ func _PlateTestSteps(_ctx context.Context, _input *PlateTestInput, _output *Plat
 				aspz := policy["ASPZOFFSET"]
 				dspz := policy["DSPZOFFSET"]
 
-				record := []string{_input.TestName, platename, _input.Liquidname, _input.LiquidTypes[i], _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  ", " ", " ", fmt.Sprint(zstart), fmt.Sprint(plateheight), fmt.Sprint(aspz), fmt.Sprint(dspz)}
+				record := []string{_input.TestName, platename, _input.Liquidname, _input.LiquidTypes[i].String(), _input.LiquidVolumes[j].ToString(), wellpositionsarray[counter], "  ", "  ", " ", " ", fmt.Sprint(zstart), fmt.Sprint(plateheight), fmt.Sprint(aspz), fmt.Sprint(dspz)}
 				records = append(records, record)
 
 				// evaluate whether plate is full and if so add new plate
@@ -328,7 +328,7 @@ type PlateTestElement struct {
 }
 
 type PlateTestInput struct {
-	LiquidTypes                 []string
+	LiquidTypes                 []wtype.PolicyName
 	LiquidVolumes               []wunit.Volume
 	Liquidname                  string
 	OutPlates                   []string

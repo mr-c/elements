@@ -28,7 +28,7 @@ Parameters (
 	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
-	LiquidType string
+	LiquidType wtype.PolicyName
 	LowerThreshold uint8
 )
 
@@ -114,7 +114,7 @@ Steps {
 
 	solutions := make([]*wtype.LHComponent, 0)
 	counter := 0
-	
+
 	for locationkey, colour := range positiontocolourmap {
 		
 		

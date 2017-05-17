@@ -29,7 +29,7 @@ Parameters (
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
-	LHPolicy string
+	LHPolicy wtype.PolicyName
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool
@@ -169,12 +169,12 @@ Steps {
 	
 	// if none is specified, use lhpolicy of first solution
 	if LHPolicy == ""{
-		LHPolicy = TestSols[0].TypeName()
+		LHPolicy = wtype.PolicyName(TestSols[0].TypeName())
 	}
 	
 	referencepolicy,found := liquidhandling.GetPolicyByName(LHPolicy)
 	if found == false {
-		Errorf("policy "+LHPolicy+" not found")
+		Errorf("policy %s not found",LHPolicy.String())
 		Errors = append(Errors,fmt.Errorf("policy ",LHPolicy," not found"))
 	}
 	
@@ -352,7 +352,7 @@ Steps {
 		
 		
 		// add run to well position lookup table 
-		Runtowelllocationmap[doerun+"_"+description]= wellpositionarray[counter]	
+		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]
 	
 	// add additional info for each run
 	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -387,7 +387,7 @@ Steps {
 	// print out LHPolicy info
 	policy, found := liquidhandling.GetPolicyByName(doerun)
 	if  !found {
-		Errorf("policy "+doerun+" not found")
+		Errorf("policy %s not found",doerun.String())
 		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
 	}
 	

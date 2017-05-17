@@ -46,6 +46,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	var counter int = _input.WellsAlreadyUsed
 	var dilutionPosition int = 0
+	nilVolume := wunit.NewVolume(0.0, "ul")
 
 	dilutions := make([]*wtype.LHComponent, 0)
 
@@ -64,17 +65,24 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// this time using the substract method
 	diluentVolume.Subtract(solutionVolume)
 
-	// sample diluent
-	diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
-
-	// Ensure liquid type set to Pre and Post Mix
-	_input.Solution.Type = wtype.LTNeedToMix
+	// sample diluent if greater than zero
+	if diluentVolume.GreaterThan(nilVolume) {
+		diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		// mix  to OutPlate
+		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample)
+		// Ensure liquid type set to Pre and Post Mix
+		_input.Solution.Type = wtype.LTNeedToMix
+	}
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
-	// mix both samples to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
+	// mix sample to OutPlate
+	if aliquot == nil {
+		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", solutionSample)
+	} else {
+		aliquot = execute.Mix(_ctx, aliquot, solutionSample)
+	}
 
 	var solutionname string
 
@@ -101,6 +109,9 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	for dilutionPosition < len(_input.TargetConcentrations) {
 
+		var nextdiluentSample *wtype.LHComponent
+		var nextaliquot *wtype.LHComponent
+
 		// calculate new solution volume
 		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[dilutionPosition], _input.TargetConcentrations[dilutionPosition-1], _input.StartVolumeperDilution)
 
@@ -115,18 +126,25 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		diluentVolume.Subtract(solutionVolume)
 
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		if diluentVolume.GreaterThan(nilVolume) {
 
-		nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
+			nextdiluentSample = mixer.Sample(_input.Diluent, diluentVolume)
 
-		// Ensure liquid type set to Pre and Post Mix
-		aliquot.Type = wtype.LTNeedToMix
+			nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
+
+			// Ensure liquid type set to Pre and Post Mix
+			aliquot.Type = wtype.LTNeedToMix
+		}
 
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 
 		// Mix sample into nextdiluent sample
-		nextaliquot := execute.Mix(_ctx, nextdiluentSample, nextSample)
+		if nextdiluentSample != nil {
+			nextaliquot = execute.Mix(_ctx, nextdiluentSample, nextSample)
+		} else {
+			nextaliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextSample)
+		}
 
 		// rename sample to include concentration
 		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname

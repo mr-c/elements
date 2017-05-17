@@ -1,6 +1,6 @@
 Parameters:
   DNAgelParams1:
-    DNAGel: EGEL96_1
+    DNAGel: EGEL48
     GelLoadingMixingPolicy: load
     Ladder: 1kb DNA Ladder
     LadderVolume: 10ul

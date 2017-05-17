@@ -327,7 +327,7 @@ type DNA_gel_fromCSVInput struct {
 	Loadingdyeinsample bool
 	Loadingdyevolume   wunit.Volume
 	MixPlate           *wtype.LHPlate
-	Mixingpolicy       string
+	Mixingpolicy       wtype.PolicyName
 	ProjectName        string
 	Samplenumber       int
 	Sampletotest       *wtype.LHComponent

@@ -16,7 +16,6 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/montanaflynn/stats"
 	"github.com/antha-lang/antha/microArch/factory"
-	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
@@ -144,7 +143,7 @@ Steps {
 	var runs []doe.Run
 	
 	// find out int factors from liquidhandling policies
-	policyitemmap := liquidhandling.MakePolicyItems()
+	policyitemmap := wtype.MakePolicyItems()
 	intfactors := make([]string, 0)
 
 	for key, val := range policyitemmap {
