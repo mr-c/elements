@@ -24,14 +24,8 @@ func _PairOligos_multipleSetup(_ctx context.Context, _input *PairOligos_multiple
 
 func _PairOligos_multipleSteps(_ctx context.Context, _input *PairOligos_multipleInput, _output *PairOligos_multipleOutput) {
 
-	//var nilconcmap map[string]wunit.Concentration
-	var nilconc wunit.Concentration
-
-	if _input.PartConcentrations == nil && _input.StockConcentration != nilconc {
-		_input.PartConcentrations = make(map[string]wunit.Concentration)
-		for key := range _input.DNAPartsMap {
-			_input.PartConcentrations[key] = _input.StockConcentration
-		}
+	if len(_input.FwdOligotoRevOligoMap) == 0 {
+		execute.Errorf(_ctx, "No fwd and reverse oligo pairs specified in FwdOligotoRevOligoMap")
 	}
 
 	// initialise output map
@@ -46,15 +40,36 @@ func _PairOligos_multipleSteps(_ctx context.Context, _input *PairOligos_multiple
 	// range through Oligo pairs map
 	for fwd, rev := range _input.FwdOligotoRevOligoMap {
 
+		var fwdConc wunit.Concentration
+		var revConc wunit.Concentration
+
+		// check if stock concs are specified for the fwd oligo or use a default
+		if conc, found := _input.PartConcentrations[fwd]; found {
+			fwdConc = conc
+		} else if conc, found := _input.PartConcentrations["default"]; found {
+			fwdConc = conc
+		} else {
+			execute.Errorf(_ctx, `No entry set for Fwd Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`, fwd)
+		}
+
+		// check if stock concs are specified for the rev oligo or use a default
+		if conc, found := _input.PartConcentrations[rev]; found {
+			revConc = conc
+		} else if conc, found := _input.PartConcentrations["default"]; found {
+			revConc = conc
+		} else {
+			execute.Errorf(_ctx, `No entry set for Reverse Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`, rev)
+		}
+
 		// calculate volume to add for target conc
-		fwdoligoVol, err := wunit.VolumeForTargetConcentration(_input.ConcentrationSetPoint, _input.PartConcentrations[fwd], _input.TotalVolume)
+		fwdoligoVol, err := wunit.VolumeForTargetConcentration(_input.ConcentrationSetPoint, fwdConc, _input.TotalVolume)
 
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 
 		// calculate volume to add for target conc
-		revoligoVol, err := wunit.VolumeForTargetConcentration(_input.ConcentrationSetPoint, _input.PartConcentrations[rev], _input.TotalVolume)
+		revoligoVol, err := wunit.VolumeForTargetConcentration(_input.ConcentrationSetPoint, revConc, _input.TotalVolume)
 
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -159,7 +174,6 @@ type PairOligos_multipleInput struct {
 	IncubationTime        wunit.Time
 	PartConcentrations    map[string]wunit.Concentration
 	Plate                 *wtype.LHPlate
-	StockConcentration    wunit.Concentration
 	TotalVolume           wunit.Volume
 }
 
@@ -192,7 +206,6 @@ func init() {
 				{Name: "IncubationTime", Desc: "", Kind: "Parameters"},
 				{Name: "PartConcentrations", Desc: "", Kind: "Parameters"},
 				{Name: "Plate", Desc: "", Kind: "Inputs"},
-				{Name: "StockConcentration", Desc: "", Kind: "Parameters"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
 				{Name: "OligoPairs", Desc: "", Kind: "Outputs"},
 				{Name: "OligoPairsMap", Desc: "", Kind: "Outputs"},
