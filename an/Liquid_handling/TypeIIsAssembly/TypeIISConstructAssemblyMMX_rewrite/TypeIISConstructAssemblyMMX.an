@@ -20,7 +20,7 @@ Parameters (
 	OutputLocation 				string
         OutputConstructName                     string
 	OutputPlateNum				int
-	LHPolicyName				wtype.PolicyName
+	LHPolicyName				PolicyName
         EnzymeName                              string
         PartSeqs                                []wtype.DNASequence
 

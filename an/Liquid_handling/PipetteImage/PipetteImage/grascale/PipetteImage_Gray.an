@@ -20,8 +20,8 @@ Parameters (
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
 	SkipWhite bool
-	MixingLiquidClass wtype.PolicyName
-	NonMixingClass wtype.PolicyName
+	MixingLiquidClass PolicyName
+	NonMixingClass PolicyName
 	Negative bool
 	Rotate bool
 	AutoRotate bool

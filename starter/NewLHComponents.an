@@ -23,7 +23,7 @@ Parameters (
 	
 	// If empty this defaults to LHPolicy of TemplateComponent LHComponent, 
 	// if a "default" is specified this policy is used for all entries with no value
-	UseLHPolicy map[string]wtype.PolicyName 
+	UseLHPolicy map[string]PolicyName 
 )
 
 // Output data of this protocol
@@ -79,7 +79,7 @@ Steps {
 	
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
-	var defaultLHPolicy wtype.PolicyName
+	var defaultLHPolicy PolicyName
 	
 	if policy,found := UseLHPolicy["default"];found{
 			defaultLHPolicy = policy
@@ -96,7 +96,7 @@ Steps {
 		var status string
 		var stockConc Concentration
 		var template *wtype.LHComponent
-		var lhpolicy wtype.PolicyName
+		var lhpolicy PolicyName
 		var found bool
 		
 		// check if a concentration is specified 

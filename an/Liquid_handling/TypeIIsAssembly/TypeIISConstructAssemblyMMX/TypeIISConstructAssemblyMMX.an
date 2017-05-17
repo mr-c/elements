@@ -17,7 +17,7 @@ Parameters (
 	OutputReactionName			string
 	OutputLocation 				string
 	OutputPlateNum				int
-	LHPolicyName				wtype.PolicyName
+	LHPolicyName				PolicyName
 )
 
 // Physical Inputs to this protocol with types

@@ -25,7 +25,7 @@ Parameters (
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
-	LHPolicy wtype.PolicyName
+	LHPolicy PolicyName
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool

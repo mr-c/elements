@@ -27,7 +27,7 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass wtype.PolicyName
+	UseLiquidClass PolicyName
 	Subsetnames []string
 	CheckResizeAlgorithms bool
 )

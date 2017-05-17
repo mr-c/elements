@@ -29,7 +29,7 @@ Parameters (
 	TestName string // name of test e.g. branch name, date, name of project; csv file will be named after this
 	Liquidname string // can be whatever you want to call it
 	LiquidVolumes []Volume // List of volumes to test
-	LiquidTypes []wtype.PolicyName // corresponding to valid antha liquid types
+	LiquidTypes []PolicyName // corresponding to valid antha liquid types
 	OutPlates []string // list of out plate types to test
 	WellsUsedperOutPlateInorder []int // optional slice of ints which should match the length and order of the OutPlates slice
 

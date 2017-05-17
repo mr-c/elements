@@ -20,7 +20,7 @@ Parameters (
 	Loadingdyevolume Volume
 	DNAgelrunvolume Volume
 	
-	Mixingpolicy wtype.PolicyName //wtype.LiquidType
+	Mixingpolicy PolicyName //wtype.LiquidType
 	
 	//DNAladder Volume // or should this be a concentration?
 

@@ -9,10 +9,10 @@ import (
 )
 // Input parameters for this protocol (data)
 Parameters (
-	GelLoadingMixingPolicy wtype.PolicyName //default is Load policy but can be overriden by specifying here (i.e. for viscous samples requiring slow dispensing)
+	GelLoadingMixingPolicy PolicyName //default is Load policy but can be overriden by specifying here (i.e. for viscous samples requiring slow dispensing)
 	LadderVolume Volume //specify the volume of DNA ladder to add
 	LoadingDyeInSample bool //select true if DNA samples already contain Loading Dye. If this is selected, the step to add loading dye will be skipped
-	LoadingDyeMixingPolicy wtype.PolicyName //default is NeedToMix but can be overriden by specifying here (i.e. for hard to mix reaction samples)
+	LoadingDyeMixingPolicy PolicyName //default is NeedToMix but can be overriden by specifying here (i.e. for hard to mix reaction samples)
 	LoadingDyeVolume Volume //specify the volume of loading dye to add to each sample
 	OptimisePlateUsage bool //If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)
 	Replicates int //define number of technical replicates
