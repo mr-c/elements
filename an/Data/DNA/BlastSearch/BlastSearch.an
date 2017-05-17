@@ -24,7 +24,7 @@ Data (
 	BestHit biogo.Hit
 	Identity float64
 	Coverage float64
-	AnthaSeq wtype.DNASequence
+	AnthaSeq DNASequence
 	Warning error
 )
 

@@ -22,7 +22,7 @@ Parameters (
 	OutputPlateNum				int
 	LHPolicyName				PolicyName
         EnzymeName                              string
-        PartSeqs                                []wtype.DNASequence
+        PartSeqs                                []DNASequence
 
 )
 
@@ -44,7 +44,7 @@ Outputs (
 Data (
 	Errors        []string
         ConstructName string
-        Sequence      wtype.DNASequence
+        Sequence      DNASequence
 )
 
 Requirements {}

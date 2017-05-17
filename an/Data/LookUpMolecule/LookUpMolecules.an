@@ -21,7 +21,7 @@ Data (
 	CompoundNames []string
 	
 	// A map of molar concentrations required to make up 1 Mol/l of each compound is returned.
-	// The compound name is used as the key. If any duplicate compound names are returned and errow will be generated.
+	// The compound name is used as the key. If any duplicate compound names are returned and error will be generated.
 	MolarConcentrations map[string]Concentration
 	
 	// return any warnings if the default concentrations have been used for any molecule
@@ -30,14 +30,13 @@ Data (
 Inputs (
 )
 Outputs (
+	Molecules []*LHComponent
 )
 Requirements {
 }
 Setup {
 } 
 Steps {
-
-	
 
 	MolarConcentrations = make(map[string]wunit.Concentration)
 

@@ -41,8 +41,8 @@ Data (
 	Warnings error
 	Status string
 	Simulationpass bool
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	PartswithOverhangs []DNASequence // parts to order
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
 	EnzymeUsed wtype.RestrictionEnzyme
 	BackupEnzymes []string
 )
@@ -64,7 +64,7 @@ Steps {
 	var approvedenzymefail bool
 	var Enzyme string // := "No enzymes which passed with these sequences"
 	// make an empty array of DNA Sequences ready to fill
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 	
 	Status = "all parts available"
 	for i, part := range Seqsinorder {

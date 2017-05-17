@@ -17,10 +17,10 @@ import (
 Parameters (
 	EnzymeName 					string
 	ProjectName					string
-	Vectors						[]wtype.DNASequence
-	Part1s						[]wtype.DNASequence
-	Part2s						[]wtype.DNASequence
-	Part3s						[]wtype.DNASequence
+	Vectors						[]DNASequence
+	Part1s						[]DNASequence
+	Part2s						[]DNASequence
+	Part3s						[]DNASequence
 	SitesToRemove				[]string
 	ORFStoconfirm				[]string
 	BlastSearchSeqs				bool
@@ -43,12 +43,12 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
 	StatusMap map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
-	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
+	Assemblies map[string][]DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
 	PassMap map[string]bool
-	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
-	Sequences []wtype.DNASequence
-	Parts[][]wtype.DNASequence
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
+	Sequences []DNASequence
+	Parts[][]DNASequence
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
@@ -69,13 +69,13 @@ Setup {}
 // for every input
 Steps {
 	StatusMap = make(map[string]string)
-	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
-	Assemblies = make(map[string][]wtype.DNASequence)
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
+	Assemblies = make(map[string][]DNASequence)
 	PassMap = make(map[string]bool)
-	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
-	Sequences = make([]wtype.DNASequence,0)
-	Parts = make([][]wtype.DNASequence,0)
-	SequencingPrimers := make([][]wtype.DNASequence,0)
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
+	Sequences = make([]DNASequence,0)
+	Parts = make([][]DNASequence,0)
+	SequencingPrimers := make([][]DNASequence,0)
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
@@ -159,9 +159,9 @@ Steps {
 		// add fasta file for each set of parts with overhangs
 		labels:= []string{"Device1","Device2","Device3"}
 		
-		refactoredparts:= make(map[string][]wtype.DNASequence)
+		refactoredparts:= make(map[string][]DNASequence)
 		
-		newparts := make([]wtype.DNASequence,0)
+		newparts := make([]DNASequence,0)
 		
 		for _, parts := range Parts{
 		
@@ -188,9 +188,9 @@ Steps {
 		// add fasta file for each set of primers
 		labels= []string{"FWDPrimers","REVPrimers"}
 		
-		refactoredparts = make(map[string][]wtype.DNASequence)
+		refactoredparts = make(map[string][]DNASequence)
 		
-		newparts = make([]wtype.DNASequence,0)
+		newparts = make([]DNASequence,0)
 		
 		for _, parts := range SequencingPrimers{
 		

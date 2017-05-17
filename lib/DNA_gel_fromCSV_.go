@@ -25,7 +25,7 @@ import (
 //DNAgelnumberofwells int32
 //Organism Taxonomy //= http://www.ncbi.nlm.nih.gov/nuccore/49175990?report=genbank
 //Organismgenome Genome
-//Target_DNA wtype.DNASequence
+//Target_DNA DNASequence
 //Target_DNAsize float64 //Length
 //Runvoltage float64
 //AgarosePercentage Percentage

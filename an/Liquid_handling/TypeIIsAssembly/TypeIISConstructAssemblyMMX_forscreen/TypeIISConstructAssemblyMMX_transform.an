@@ -22,7 +22,7 @@ Parameters (
 	OutputPlateNum				int
 	LHPolicyName				PolicyName
     EnzymeName                  string
-    PartSeqs                   	[]wtype.DNASequence
+    PartSeqs                   	[]DNASequence
 	CompetentCellPlateWell 		string
 	RecoveryPlateWell 			string
 	RecoveryTemp 				Temperature
@@ -54,7 +54,7 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
         ConstructName string
-        Sequence      wtype.DNASequence
+        Sequence      DNASequence
 		Output string
 )
 

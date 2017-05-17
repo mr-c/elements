@@ -61,7 +61,7 @@ Data (
 	Simulationpass bool
 	Molesperpart []float64
 	MolarratiotoVector []float64
-	NewDNASequence wtype.DNASequence
+	NewDNASequence DNASequence
 	Sitesfound []enzymes.Restrictionsites
 )
 // Input Requirement specification
@@ -77,7 +77,7 @@ Setup {}
 // for every input
 Steps {
 	// Check that assembly is feasible by simulating assembly of the sequences with the chosen enzyme
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 	
 	for _, part := range Partsinorder {
 	partDNA := Inventory.Partslist()[part]

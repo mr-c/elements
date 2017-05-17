@@ -24,13 +24,13 @@ Parameters (
 	ReactionName string
 	
 	// DNA sequence of template from which amplicon will be amplified
-	TemplateSequence wtype.DNASequence
+	TemplateSequence DNASequence
 	
 	// Forward primer sequence
-	FwdPrimerSeq wtype.DNASequence
+	FwdPrimerSeq DNASequence
 	
 	// Reverse primer sequence
-	RevPrimerSeq wtype.DNASequence
+	RevPrimerSeq DNASequence
 	
 	// Volume of mastermix to add to the reaction
 	MasterMixVolume Volume
@@ -82,7 +82,7 @@ Parameters (
 Data (
 	
 	// Sequence of the expected product of the PCR reaction
-	Amplicon wtype.DNASequence
+	Amplicon DNASequence
 	
 	// All exact binding site of the fwd primer found in the template
 	FwdPrimerSites []search.Thingfound

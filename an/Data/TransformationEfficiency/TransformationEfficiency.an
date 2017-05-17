@@ -14,9 +14,9 @@ type transformationEfficiency struct {
 type metaData struct {
 	CFU int
 	PlateOutVolume wunit.Volume
-	DNA wtype.DNASequence
+	DNA DNASequence
 	DNAMass wunit.Mass
-	Assembly map[string][]wtype.DNASequence
+	Assembly map[string][]DNASequence
 }
 
 type relativeTransformationEfficiency struct {
@@ -29,7 +29,7 @@ func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml wunit.Volu
 	return
 }
 
-func newTransformationEfficiency(seq wtype.DNASequence colonyCount int, plateoutVolumeinml wunit.Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(efficiency transformationEfficiency){
+func newTransformationEfficiency(seq DNASequence colonyCount int, plateoutVolumeinml wunit.Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(efficiency transformationEfficiency){
 	cfuperugperml := calcTransformationEfficiency(colonyCount,plateoutVolumeinml,plateOutdilutionX,dnamassinug)
 		
 		efficiency = transformationEfficiency{
@@ -61,8 +61,8 @@ Parameters (
 	DNAMass Mass
 	ControlDNAMass Mass
 	PlateOutVolume Volume
-	DNA wtype.DNASequence
-	ControlDNA wtype.DNASequence
+	DNA DNASequence
+	ControlDNA DNASequence
 	ControlPlateOutVolume Volume
 )
 

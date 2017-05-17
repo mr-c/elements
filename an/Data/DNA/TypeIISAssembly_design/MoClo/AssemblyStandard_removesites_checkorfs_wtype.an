@@ -24,10 +24,10 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Constructname 					string
-	Seqsinorder						[]wtype.DNASequence
+	Seqsinorder						[]DNASequence
 	AssemblyStandard				string //MoClo
 	Level							string // of assembly standard
-	Vector							wtype.DNASequence
+	Vector							DNASequence
 	PartMoClotypesinorder			[]string // labels e.g. pro = promoter
 	OtherEnzymeSitesToRemove		[]string
 	ORFstoConfirm					[]string // enter each as amino acid sequence
@@ -59,12 +59,12 @@ Data (
 	Warnings error
 	Status string
 	Simulationpass bool
-	OriginalParts []wtype.DNASequence 
-	PartsWithSitesRemoved []wtype.DNASequence // and level 1 ends added if MakeLevel1Device is selected
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	PartsAndVector []wtype.DNASequence // parts to order + vector
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
-	Insert wtype.DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
+	OriginalParts []DNASequence 
+	PartsWithSitesRemoved []DNASequence // and level 1 ends added if MakeLevel1Device is selected
+	PartswithOverhangs []DNASequence // parts to order
+	PartsAndVector []DNASequence // parts to order + vector
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
+	Insert DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
@@ -153,7 +153,7 @@ Steps {
 	warning = text.Print("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if RemoveproblemRestrictionSites && !EndsAlreadyadded{
-		newparts := make([]wtype.DNASequence, 0)
+		newparts := make([]DNASequence, 0)
 		warning = "Starting process or removing restrictionsite"
 		warnings = append(warnings, warning)
 
@@ -409,7 +409,7 @@ Steps {
 	
 	// export sequence to fasta
 	if ExporttoFastaFile && Simulationpass{
-		exportedsequences := make([]wtype.DNASequence,0)
+		exportedsequences := make([]DNASequence,0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		if len(exportedsequences)==0{
@@ -421,7 +421,7 @@ Steps {
 			Errorf(err.Error())
 		}
 		// reset 
-		exportedsequences = make([]wtype.DNASequence,0)
+		exportedsequences = make([]DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	

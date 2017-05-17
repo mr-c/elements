@@ -13,11 +13,11 @@ Parameters (
 	ProjectName					string
 	Standard					string // Custom
 	StandardLevel				string // level of assembly standard options are: Level0, Level1 
-	Vectors						[]wtype.DNASequence
-	PROs						[]wtype.DNASequence
-	RBSs						[]wtype.DNASequence
-	CDSs						[]wtype.DNASequence
-	TERs						[]wtype.DNASequence
+	Vectors						[]DNASequence
+	PROs						[]DNASequence
+	RBSs						[]DNASequence
+	CDSs						[]DNASequence
+	TERs						[]DNASequence
 	SitesToRemove				[]string
 	BlastSearchSeqs				bool
 )
@@ -35,10 +35,10 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
 	StatusMap map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
-	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
+	Assemblies map[string][]DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
 	PassMap map[string]bool
-	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
@@ -56,15 +56,15 @@ Setup {}
 // for every input
 Steps {
 	StatusMap = make(map[string]string)
-	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
-	Assemblies = make(map[string][]wtype.DNASequence)
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
+	Assemblies = make(map[string][]DNASequence)
 	PassMap = make(map[string]bool)
-	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
 	PrimerMap = make(map[string]oligos.Primer)
-	SequencingPrimers := make([][]wtype.DNASequence,0)
+	SequencingPrimers := make([][]DNASequence,0)
 
 	var counter int = 1
 	
@@ -74,6 +74,7 @@ Steps {
 				for m := range CDSs {	
 					for n := range TERs {
 						key := 	ProjectName	+Vectors[j].Nm+"_"+PROs[k].Nm+"_"+RBSs[l].Nm+"_"+CDSs[m].Nm
+												
 						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
 		Parameters {
 					Constructname: 				key,
@@ -87,7 +88,7 @@ Steps {
 					RemoveproblemRestrictionSites: true,
 					EndsAlreadyadded:			false,
 					ExporttoFastaFile: 			true,
-					BlastSeqswithNoName:			BlastSearchSeqs,
+					BlastSeqswithNoName:		BlastSearchSeqs,
 		}, Inputs{
                     
                 })

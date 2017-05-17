@@ -57,7 +57,7 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	var plasmid wtype.DNASequence
+	var plasmid DNASequence
 	var allprimers []oligos.Primer
 
 	plasmid, err := parser.GenbankToAnnotatedSeq(DNASeqfile)

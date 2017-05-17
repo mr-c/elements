@@ -23,11 +23,11 @@ Parameters (
 	AssemblyStandard			string //MoClo
 	//Level						string // of assembly standard
 	//PartMoClotypesinorder		[]string // labels e.g. pro = promoter
-	Promoter 					wtype.DNASequence
-	Rbs 						wtype.DNASequence
-	CDS 						wtype.DNASequence
-	Terminator					wtype.DNASequence
-	Vector						wtype.DNASequence //string
+	Promoter 					DNASequence
+	Rbs 						DNASequence
+	CDS 						DNASequence
+	Terminator					DNASequence
+	Vector						DNASequence //string
 )
 
 // Physical Inputs to this protocol with types
@@ -45,8 +45,8 @@ Data (
 	Warnings string
 	Status string
 	Simulationpass bool
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	PartswithOverhangs []DNASequence // parts to order
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
 )
 // Input Requirement specification
 Requirements {
@@ -67,7 +67,7 @@ Steps {
 	
 	/* find sequence data from keyword; looking it up by a given name in an inventory 
 	   or by biobrick ID from iGem parts registry */
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 	
 	partsinorder = append(partsinorder,Promoter,Rbs,CDS,Terminator)
 	

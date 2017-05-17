@@ -21,9 +21,9 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Constructname 				string
-	Seqsinorder					[]wtype.DNASequence
+	Seqsinorder					[]DNASequence
 	OtherEnzymeSitesToRemove	[]string
-	Vector						wtype.DNASequence
+	Vector						DNASequence
 	Enzymename					string
 	ORFstoConfirm				[]string // enter each as amino acid sequence
 	RemoveproblemRestrictionSites bool
@@ -47,12 +47,12 @@ Data (
 	Warnings error
 	Status string
 	Simulationpass bool
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	PartsWithSitesRemoved []wtype.DNASequence
- 	PartsAndVector []wtype.DNASequence// parts + vector 
-	OriginalParts []wtype.DNASequence 
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
-	Insert wtype.DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
+	PartswithOverhangs []DNASequence // parts to order
+	PartsWithSitesRemoved []DNASequence
+ 	PartsAndVector []DNASequence// parts + vector 
+	OriginalParts []DNASequence 
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
+	Insert DNASequence // sequence of the assembled insert. Useful for sequencing validation and Primer design
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
@@ -145,7 +145,7 @@ Steps {
 	warning = fmt.Sprint("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if RemoveproblemRestrictionSites {
-		newparts := make([]wtype.DNASequence, 0)
+		newparts := make([]DNASequence, 0)
 		warning = "Starting process or removing restrictionsite"
 		warnings = append(warnings, warning)
 
@@ -353,7 +353,7 @@ Steps {
 	
 	// export sequence to fasta
 	if ExporttoFastaFile && Simulationpass{
-		exportedsequences := make([]wtype.DNASequence,0)
+		exportedsequences := make([]DNASequence,0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
@@ -363,7 +363,7 @@ Steps {
 			Errorf(err.Error())
 		}
 		// reset 
-		exportedsequences = make([]wtype.DNASequence,0)
+		exportedsequences = make([]DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	
@@ -377,7 +377,7 @@ Steps {
 	
 }
 
-func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.RestrictionEnzyme)[]string{
+func siteReport(partsinorder []DNASequence, removetheseenzymes []wtype.RestrictionEnzyme)[]string{
 	// check number of sites per part !
 	sites := make([]int, 0)
 	multiple := make([]string, 0)

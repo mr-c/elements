@@ -39,9 +39,9 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
 	StatusMap map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
 	PassMap map[string]bool
-	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
@@ -60,9 +60,9 @@ Setup {}
 // for every input
 Steps {
 	StatusMap = make(map[string]string)
-	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
 	PassMap = make(map[string]bool)
-	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)

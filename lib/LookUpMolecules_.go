@@ -22,7 +22,7 @@ import (
 // Names of compounds
 
 // A map of molar concentrations required to make up 1 Mol/l of each compound is returned.
-// The compound name is used as the key. If any duplicate compound names are returned and errow will be generated.
+// The compound name is used as the key. If any duplicate compound names are returned and error will be generated.
 
 // return any warnings if the default concentrations have been used for any molecule
 
@@ -134,6 +134,7 @@ type LookUpMoleculesOutput struct {
 	CompoundNames       []string
 	CompoundProperties  []pubchem.Molecule
 	MolarConcentrations map[string]wunit.Concentration
+	Molecules           []*wtype.LHComponent
 	Warnings            []string
 }
 
@@ -145,6 +146,7 @@ type LookUpMoleculesSOutput struct {
 		Warnings            []string
 	}
 	Outputs struct {
+		Molecules []*wtype.LHComponent
 	}
 }
 
@@ -159,7 +161,8 @@ func init() {
 				{Name: "OverRideDefaultConcentration", Desc: "Set Concentrations for compounds or set default. If no concentration is set the molar concentration will be used\n", Kind: "Parameters"},
 				{Name: "CompoundNames", Desc: "Names of compounds\n", Kind: "Data"},
 				{Name: "CompoundProperties", Desc: "molecule type is returned consisting of name, formula, molecular weight and chemical ID (CID)\n", Kind: "Data"},
-				{Name: "MolarConcentrations", Desc: "A map of molar concentrations required to make up 1 Mol/l of each compound is returned.\nThe compound name is used as the key. If any duplicate compound names are returned and errow will be generated.\n", Kind: "Data"},
+				{Name: "MolarConcentrations", Desc: "A map of molar concentrations required to make up 1 Mol/l of each compound is returned.\nThe compound name is used as the key. If any duplicate compound names are returned and error will be generated.\n", Kind: "Data"},
+				{Name: "Molecules", Desc: "", Kind: "Outputs"},
 				{Name: "Warnings", Desc: "return any warnings if the default concentrations have been used for any molecule\n", Kind: "Data"},
 			},
 		},

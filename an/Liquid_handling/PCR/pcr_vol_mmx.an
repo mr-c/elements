@@ -23,9 +23,9 @@ Parameters (
 	FwdPrimerName string
 	RevPrimerName string
 	WellPosition string
-	Targetsequence wtype.DNASequence
-	FwdPrimerSeq wtype.DNASequence
-	RevPrimerSeq wtype.DNASequence
+	Targetsequence DNASequence
+	FwdPrimerSeq DNASequence
+	RevPrimerSeq DNASequence
 	/*
 	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
 	

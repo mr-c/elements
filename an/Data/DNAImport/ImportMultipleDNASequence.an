@@ -18,7 +18,7 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	DNA []wtype.DNASequence //Return DNA sequence as type wtype.DNASequence
+	DNA []DNASequence //Return DNA sequence as type DNASequence
 	Status string //Status for user
 	Warnings error //Warnings for user
 )
@@ -43,7 +43,7 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 	//Use function DNAFileToDNASequence to read in file. The function determines 
-	//which file type was given as input and returns the DNA sequence as type wtype.DNAsequence
+	//which file type was given as input and returns the DNA sequence as type DNASequence
 	
 	if filepath.Ext(SequenceFile.Name) != ".fasta" {
 		Errorf("The file format of %s is not supported. Please use file of format .fasta for this element.", SequenceFile.Name)		
