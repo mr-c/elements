@@ -18,8 +18,9 @@ import (
 // Input parameters for this protocol (data)
 
 // name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
+
 // enter URL link to the image file here if applicable
+
 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 // above this value pure black will be dispensed
 
@@ -61,8 +62,6 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 	//-------------------------------------------------------------------------------------
 	//Fetching image
 	//-------------------------------------------------------------------------------------
-
-	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
 		imgFile, err = download.File(_input.URL, _input.Imagefilename)
@@ -75,6 +74,12 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
+	}
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -267,6 +272,7 @@ type PipetteImage_GrayInput struct {
 	Diluent                         *wtype.LHComponent
 	DontMix                         bool
 	Imagefilename                   string
+	InputFile                       wtype.File
 	MaxBlackPercentagethreshold     float64
 	MinimumBlackpercentagethreshold float64
 	MixingLiquidClass               string
@@ -318,6 +324,7 @@ func init() {
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DontMix", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "MaxBlackPercentagethreshold", Desc: "above this value pure black will be dispensed\n", Kind: "Parameters"},
 				{Name: "MinimumBlackpercentagethreshold", Desc: "as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white\n", Kind: "Parameters"},
 				{Name: "MixingLiquidClass", Desc: "", Kind: "Parameters"},
@@ -330,7 +337,7 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "SkipWhite", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Fullblack", Desc: "", Kind: "Data"},
 				{Name: "NumberofShadesofGrey", Desc: "", Kind: "Data"},

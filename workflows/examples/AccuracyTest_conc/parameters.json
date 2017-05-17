@@ -5,35 +5,32 @@
       "Diluent": "water",
       "DilutionFactor": 10,
       "Imagefilename": "star.png",
-      "InputFile": {
-        "host_file": {
-          "filename": "star.png"
-        }
-      },
       "LHPolicy": "PostMix",
-      "MinVolume": "1ul",
-      "NumberofBlanks": 0,
+      "NumberofBlanks": 3,
       "NumberofReplicates": 4,
       "OutPlate": "greiner384_riser40",
-      "OutputFilename": "180117AccuracytestPostMixConcOutput_Arnold.xlsx",
+      "OutputFilename": "delete.xlsx",
       "Printasimage": false,
       "StockConcentrations": [
-        "0.2878191305957933mM"
+        "0.0002878191305957933M/l"
       ],
       "TestSolConcs": [
-        "0.0uM",
-        "0.5uM",
         "1uM",
         "2uM",
         "4uM",
-        "8uM"
+        "8uM",
+        "10uM",
+        "20uM",
+        "40uM",
+        "80uM",
+        "160uM",
+        "320uM"
       ],
       "TestSols": [
         "tartrazine"
       ],
       "TotalVolume": "100ul",
-      "UseLiquidPolicyForTestSolutions": true,
-      "WellsUsed": 39
+      "UseLiquidPolicyForTestSolutions": true
     }
   }
 }

@@ -14,7 +14,6 @@ import (
 Parameters (
 	VolumeForFullcolour  Volume
 	Imagefilename string // name of the desired output file name
-	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Rotate bool
 	AutoRotate bool
@@ -67,19 +66,16 @@ Steps {
 	//Fetching image
 	//-------------------------------------------------------------------------------------
 
-	// if image is from url, download
-	if UseURL {
-		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	//downloading image
+	imgFile , err = download.File(URL, Imagefilename)
+	if err != nil{
+		Errorf(err.Error())
+	}
 
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	//opening the image file
+	imgBase, err = image.OpenFile(imgFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
 
 	//----------------------------------------------------------------------------------------------

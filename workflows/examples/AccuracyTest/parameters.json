@@ -4,6 +4,11 @@
       "DXORJMP": "JMP",
       "Diluent": "water",
       "Imagefilename": "star.png",
+      "InputFile": {
+        "host_file": {
+          "filename": "star.png"
+        }
+      },
       "LHPolicy": "PostMix",
       "NumberofBlanks": 1,
       "NumberofReplicates": 5,

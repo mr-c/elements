@@ -22,7 +22,8 @@ Parameters (
 	/*AntibioticVolume Volume
 	InducerVolume Volume
 	RepressorVolume Volume*/
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	ImageFileName string // name of image file or if using URL use this field to set the desired filename
+	InputFile wtype.File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Palettename string
@@ -129,7 +130,7 @@ Steps {
 	// if image is from url, download
 	if UseURL {
 		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, ImageFileName)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -139,6 +140,12 @@ Steps {
 		if err != nil{
 			Errorf(err.Error())
 		}
+	}
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
 
 	//---------------------------------------------------------------------

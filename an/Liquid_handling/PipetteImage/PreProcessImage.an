@@ -13,9 +13,10 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	ImageFileName string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
+	InputFile wtype.File
 	Negative bool
 	Rotate bool
 	AutoRotate bool
@@ -27,7 +28,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	ProcessedImageFilename string
+	ProcessedImage wtype.File
 )
 
 
@@ -69,7 +70,7 @@ Steps {
 	// if image is from url, download
 	if UseURL {
 		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, ImageFileName)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -80,6 +81,13 @@ Steps {
 			Errorf(err.Error())
 		}
 	}
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
 
 	//--------------------------------------------------------------
 	//Image Processing
@@ -107,6 +115,11 @@ Steps {
 	//Fitting image to plate
 	//--------------------------------------------------------------
 	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
+	ProcessedImage, err = image.Export(imgBase,ImageFileName)
+	if err != nil{
+			Errorf(err.Error())
+	}
 
 }
 // Run after controls and a steps block are completed to

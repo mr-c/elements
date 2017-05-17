@@ -46,7 +46,6 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//Globals
 	//--------------------------------------------------------------
 
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -55,7 +54,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//--------------------------------------------------------------
 
 	//opening the image file
-	imgBase, err = image.OpenFile(imgFile)
+	imgBase, err = image.OpenFile(_input.InputFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -198,7 +197,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//Exporting resulting images
 	//--------------------------------------------------------------
 
-	_output.ResizedImage, err = image.Export(imgBase, _input.ImgFileName)
+	_output.ResizedImage, err = image.Export(imgBase, _input.ImageFileName)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -268,8 +267,8 @@ type PipetteImageInput struct {
 	AutoRotate            bool
 	CheckResizeAlgorithms bool
 	ComponentType         *wtype.LHComponent
-	ImageFile             wtype.File
-	ImgFileName           string
+	ImageFileName         string
+	InputFile             wtype.File
 	Notthiscolour         string
 	OnlythisColour        string
 	OutPlate              *wtype.LHPlate
@@ -277,8 +276,10 @@ type PipetteImageInput struct {
 	Rotate                bool
 	Subset                bool
 	Subsetnames           []string
+	URL                   string
 	UVimage               bool
 	UseLiquidClass        string
+	UseURL                bool
 	VolumePerWell         wunit.Volume
 }
 
@@ -312,8 +313,8 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
-				{Name: "ImageFile", Desc: "Image File\n", Kind: "Parameters"},
-				{Name: "ImgFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
+				{Name: "ImageFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "Image File\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -321,8 +322,10 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
+				{Name: "URL", Desc: "", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},

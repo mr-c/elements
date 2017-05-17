@@ -17,8 +17,10 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	ImgFileName	string //Desired name for the output image file
-	ImageFile wtype.File // Image File
+	ImageFileName	string //Desired name for the output image file
+	InputFile wtype.File // Image File
+	URL	string
+	UseURL	bool
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -69,7 +71,6 @@ Steps {
 	//Globals
 	//--------------------------------------------------------------
 
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -78,7 +79,7 @@ Steps {
 	//--------------------------------------------------------------
 
 	//opening the image file
-	imgBase, err = image.OpenFile(imgFile)
+	imgBase, err = image.OpenFile(InputFile)
 	if err != nil{
 		Errorf(err.Error())
 	}
@@ -222,7 +223,7 @@ Steps {
 	//Exporting resulting images
 	//--------------------------------------------------------------
 
-	ResizedImage, err = image.Export(imgBase,ImgFileName)
+	ResizedImage, err = image.Export(imgBase,ImageFileName)
 	if err != nil{
 		Errorf(err.Error())
 	}

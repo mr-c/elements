@@ -26,6 +26,7 @@ import (
 InducerVolume Volume
 RepressorVolume Volume*/
 // name of image file or if using URL use this field to set the desired filename
+
 // select this if getting the image from a URL
 // enter URL link to the image file here if applicable
 
@@ -111,7 +112,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.ImageFileName)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -121,6 +122,12 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
+	}
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	//---------------------------------------------------------------------
@@ -376,7 +383,8 @@ type TransformLivingPaletteElement struct {
 type TransformLivingPaletteInput struct {
 	AutoRotate     bool
 	ComponentType  *wtype.LHComponent
-	Imagefilename  string
+	ImageFileName  string
+	InputFile      wtype.File
 	Notthiscolour  string
 	OnlythisColour string
 	OutPlate       *wtype.LHPlate
@@ -420,7 +428,8 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *wtype.LHComponent\nAntibiotic *wtype.LHComponent\n\tInducer *wtype.LHComponent\n\tRepressor *wtype.LHComponent\n", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFileName", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

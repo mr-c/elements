@@ -5,6 +5,11 @@
       "Black": "Black",
       "Cyan": "Cyan",
       "Imagefilename": "cmyk2.jpg",
+      "InputFile": {
+        "host_file": {
+          "filename": "cymk2.jpg"
+        }
+      },
       "Magenta": "Magenta",
       "OutPlate": "greiner384_riser",
       "Rotate": false,

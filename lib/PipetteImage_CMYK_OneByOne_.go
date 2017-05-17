@@ -17,7 +17,6 @@ import (
 // Input parameters for this protocol (data)
 
 // name of the desired output file name
-// select this if getting the image from a URL
 // enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
@@ -53,19 +52,16 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 	//Fetching image
 	//-------------------------------------------------------------------------------------
 
-	// if image is from url, download
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	//downloading image
+	imgFile, err = download.File(_input.URL, _input.Imagefilename)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	//opening the image file
+	imgBase, err = image.OpenFile(imgFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	//----------------------------------------------------------------------------------------------
@@ -203,7 +199,6 @@ type PipetteImage_CMYK_OneByOneInput struct {
 	OutPlate            *wtype.LHPlate
 	Rotate              bool
 	URL                 string
-	UseURL              bool
 	VolumeForFullcolour wunit.Volume
 	Yellow              *wtype.LHComponent
 }
@@ -237,7 +232,6 @@ func init() {
 				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},

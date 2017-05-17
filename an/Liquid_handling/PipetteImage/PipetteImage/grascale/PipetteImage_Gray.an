@@ -15,8 +15,9 @@ import (
 Parameters (
 	VolumeForFullcolour  Volume
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
+	UseURL bool
 	URL string // enter URL link to the image file here if applicable
+	InputFile wtype.File
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
@@ -86,9 +87,7 @@ Steps {
 	//-------------------------------------------------------------------------------------
 	//Fetching image
 	//-------------------------------------------------------------------------------------
-
-	// if image is from url, download
-	if UseURL {
+	if UseURL{
 		//downloading image
 		imgFile , err = download.File(URL, Imagefilename)
 		if err != nil{
@@ -100,6 +99,13 @@ Steps {
 		if err != nil{
 			Errorf(err.Error())
 		}
+	}
+
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
 	
 	//-------------------------------------------------------------------------------------

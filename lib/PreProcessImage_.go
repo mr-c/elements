@@ -53,7 +53,7 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	// if image is from url, download
 	if _input.UseURL {
 		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		imgFile, err = download.File(_input.URL, _input.ImageFileName)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
@@ -63,6 +63,12 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
+	}
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	//--------------------------------------------------------------
@@ -91,6 +97,11 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	//Fitting image to plate
 	//--------------------------------------------------------------
 	_, imgBase = image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+
+	_output.ProcessedImage, err = image.Export(imgBase, _input.ImageFileName)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 }
 
@@ -156,7 +167,8 @@ type PreProcessImageElement struct {
 type PreProcessImageInput struct {
 	AutoRotate               bool
 	CheckAllResizeAlgorithms bool
-	Imagefilename            string
+	ImageFileName            string
+	InputFile                wtype.File
 	Negative                 bool
 	OutPlate                 *wtype.LHPlate
 	Palette                  string
@@ -168,12 +180,12 @@ type PreProcessImageInput struct {
 }
 
 type PreProcessImageOutput struct {
-	ProcessedImageFilename string
+	ProcessedImage wtype.File
 }
 
 type PreProcessImageSOutput struct {
 	Data struct {
-		ProcessedImageFilename string
+		ProcessedImage wtype.File
 	}
 	Outputs struct {
 	}
@@ -188,7 +200,8 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckAllResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFileName", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "Negative", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Palette", Desc: "", Kind: "Parameters"},
@@ -197,7 +210,7 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
-				{Name: "ProcessedImageFilename", Desc: "", Kind: "Data"},
+				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

@@ -5,7 +5,11 @@
       "Black": "Black",
       "Diluent": "water",
       "DontMix": true,
-      "Imagefilename": "vader.jpeg",
+      "InputFile": {
+        "host_file": {
+          "filename": "vader.jpeg"
+        }
+      },
       "MaxBlackPercentagethreshold": 0.7,
       "MinimumBlackpercentagethreshold": 0.3,
       "MixingLiquidClass": "NeedToMix",

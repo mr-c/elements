@@ -3,7 +3,11 @@
     "PreProcess": {
       "AutoRotate": true,
       "CheckAllResizeAlgorithms": false,
-      "Imagefilename": "nyancat.jpg",
+      "InputFile": {
+        "host_file": {
+          "filename": "nyancat.jpg"
+        }
+      },
       "Negative": false,
       "OutPlate": "greiner384_riser",
       "Palette": "Neon",

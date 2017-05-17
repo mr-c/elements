@@ -3,7 +3,12 @@
     "PipetteImage": {
       "AutoRotate": false,
       "CheckResizeAlgorithms": true,
-      "Imagefilename": "bird.jpg",
+      "ImageFileName": "bird.jpg",
+      "InputFile": {
+        "host_file": {
+          "filename": "bird.jpg"
+        }
+      },
       "Notthiscolour": "white",
       "OnlythisColour": "",
       "OutPlate": "nunc1536_riser20",
