@@ -36,7 +36,7 @@ func _PrimerBindingReportSetup(_ctx context.Context, _input *PrimerBindingReport
 // order outputs
 func mapToSlice(seqsMap map[string]wtype.DNASequence) []wtype.DNASequence {
 	var names []string
-	var nameToSeq = make(map[string]wtype.DNASequence)
+	nameToSeq := make(map[string]wtype.DNASequence)
 
 	for _, seq := range seqsMap {
 

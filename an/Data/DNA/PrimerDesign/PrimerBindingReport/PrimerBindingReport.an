@@ -44,9 +44,9 @@ Setup {
 
 
 // order outputs 
-func mapToSlice(seqsMap map[string]wtype.DNASequence) []wtype.DNASequence {
+func mapToSlice(seqsMap map[string]DNASequence) []DNASequence {
 	var names []string
-	var nameToSeq = make(map[string]wtype.DNASequence)
+	nameToSeq := make(map[string]DNASequence)
 	
 	for _, seq := range seqsMap {
 		
@@ -72,7 +72,7 @@ func mapToSlice(seqsMap map[string]wtype.DNASequence) []wtype.DNASequence {
 
 	sort.Strings(names)
 	
-	var seqsSlice []wtype.DNASequence
+	var seqsSlice []DNASequence
 	
 	for _, nm := range names {
 		seqsSlice = append(seqsSlice,nameToSeq[nm])
