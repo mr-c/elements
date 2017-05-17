@@ -1,0 +1,30 @@
+{
+  "Parameters": {
+    "AccuracyTest": {
+      "DXORJMP": "JMP",
+      "Diluent": "water",
+      "Imagefilename": "star.png",
+      "LHPolicy": "PostMix",
+      "NumberofBlanks": 1,
+      "NumberofReplicates": 5,
+      "OutPlate": "greiner384_riser",
+      "OutputFilename": "AccuracytestPostMixHVoutput_test.xlsx",
+      "Printasimage": true,
+      "TestSolVolumes": [
+        "25ul",
+        "30ul",
+        "35ul",
+        "40ul",
+        "45ul",
+        "50ul"
+      ],
+      "TestSols": [
+        "tartrazine"
+      ],
+      "TotalVolume": "100ul",
+      "URL": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Gold_Star.svg/1000px-Gold_Star.svg.png",
+      "UseLiquidPolicyForTestSolutions": true,
+      "UseURL": true
+    }
+  }
+}

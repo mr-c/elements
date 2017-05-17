@@ -1,0 +1,23 @@
+{
+  "Parameters": {
+    "PipetteImage": {
+      "AutoRotate": true,
+      "Black": "Black",
+      "Diluent": "water",
+      "DontMix": true,
+      "Imagefilename": "vader.jpeg",
+      "MaxBlackPercentagethreshold": 0.7,
+      "MinimumBlackpercentagethreshold": 0.3,
+      "MixingLiquidClass": "NeedToMix",
+      "Negative": false,
+      "NonMixingClass": "water",
+      "OnlyHighVolumetips": false,
+      "OutPlate": "greiner384",
+      "PosterizeImage": true,
+      "PosterizeLevels": 2,
+      "Rotate": false,
+      "SkipWhite": true,
+      "VolumeForFullcolour": "25ul"
+    }
+  }
+}
