@@ -52,8 +52,8 @@ Inputs (
 	Ladder *LHComponent
 	Sampletotest *LHComponent//WaterSolution
 	Loadingdye *LHComponent//WaterSolution //Chemspiderlink // not correct link but similar desirable
-	DNAgel *wtype.LHPlate  // gel
-	MixPlate *wtype.LHPlate// plate to mix samples if required
+	DNAgel *LHPlate  // gel
+	MixPlate *LHPlate// plate to mix samples if required
 
 	//DNAladder *LHComponent//NucleicacidSolution
     //Water *LHComponent//WaterSolution

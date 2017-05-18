@@ -27,7 +27,7 @@ Data (
 Inputs (
 	ComponentsA []*LHComponent
 	ComponentsB []*LHComponent
-	OutPlate 	*wtype.LHPlate
+	OutPlate 	*LHPlate
 )
 
 // Physical outputs to this protocol

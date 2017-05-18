@@ -43,8 +43,8 @@ Inputs (
 	Magenta *LHComponent
 	Black *LHComponent
 	White *LHComponent
-	OutPlate *wtype.LHPlate
-	PalettePlate *wtype.LHPlate
+	OutPlate *LHPlate
+	PalettePlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

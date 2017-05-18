@@ -27,10 +27,10 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	DNAGel *wtype.LHPlate  // E-GEL type. (Current valid options are the 48 and 96 well precast E-GELs from Thermo-Fisher)
+	DNAGel *LHPlate  // E-GEL type. (Current valid options are the 48 and 96 well precast E-GELs from Thermo-Fisher)
 	Ladder *LHComponent //DNA ladder
 	LoadingDye *LHComponent //loading dye to mix with samples
-	MixPlate *wtype.LHPlate// plate to mix samples if required
+	MixPlate *LHPlate// plate to mix samples if required
 	Reactions []*LHComponent //Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.
 	Water	*LHComponent //water
 

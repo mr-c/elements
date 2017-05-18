@@ -32,8 +32,8 @@ Inputs (
 	Water  				*LHComponent
 	Ligase 				*LHComponent
 	Atp 				*LHComponent
-	OutPlate 			*wtype.LHPlate
-	InPlate 			*wtype.LHPlate
+	OutPlate 			*LHPlate
+	InPlate 			*LHPlate
 )
 
 

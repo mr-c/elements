@@ -36,8 +36,8 @@ Inputs (
 
 //Consumables
 	
-	InPlate			*wtype.LHPlate	//Contains protein and buffer
-	OutPlate		*wtype.LHPlate	//Final plate with mixed components
+	InPlate			*LHPlate	//Contains protein and buffer
+	OutPlate		*LHPlate	//Final plate with mixed components
 
 )
 

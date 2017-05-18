@@ -25,7 +25,7 @@ Inputs (
 FwdPrimertype *LHComponent
 RevPrimertype *LHComponent
 Templatetype *LHComponent
-Plate *wtype.LHPlate
+Plate *LHPlate
 )
 
 // Physical outputs from this protocol with types

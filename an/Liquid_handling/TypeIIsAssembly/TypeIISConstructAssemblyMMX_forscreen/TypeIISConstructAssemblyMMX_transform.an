@@ -38,9 +38,9 @@ Parameters (
 Inputs (
 	Parts						[]*LHComponent
 	MasterMix					*LHComponent
-	OutPlate					*wtype.LHPlate
-	PlateWithCompetentCells		 *wtype.LHPlate
-	PlatewithRecoveryMedia		*wtype.LHPlate
+	OutPlate					*LHPlate
+	PlateWithCompetentCells		 *LHPlate
+	PlatewithRecoveryMedia		*LHPlate
 	Water                   	*LHComponent
 )
 

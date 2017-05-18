@@ -25,8 +25,8 @@ Data (
 Inputs (
 	Buffer *LHComponent // optional if nil this is ignored
 	OtherComponents []*LHComponent
-	Inplate *wtype.LHPlate
-	OutPlate *wtype.LHPlate
+	Inplate *LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

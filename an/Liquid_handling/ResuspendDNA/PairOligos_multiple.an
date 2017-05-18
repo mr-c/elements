@@ -25,7 +25,7 @@ Data (
 Inputs (
 	DNAPartsMap map[string]*LHComponent
 	Diluent *LHComponent
-	Plate *wtype.LHPlate
+	Plate *LHPlate
 )
 
 Outputs (

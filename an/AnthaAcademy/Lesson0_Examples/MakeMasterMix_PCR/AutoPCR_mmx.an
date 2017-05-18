@@ -36,7 +36,7 @@ RevPrimertype *LHComponent
 Templatetype *LHComponent
 DefaultPolymerase *LHComponent
 MasterMix *LHComponent
-Plate *wtype.LHPlate
+Plate *LHPlate
 )
 
 // Physical outputs from this protocol with types

@@ -20,8 +20,8 @@ Parameters (
 Inputs (
     Water           *LHComponent  //preload well with 10uL of water
     Protein         *LHComponent  //protein samples for running
-    InPlate         *wtype.LHPlate      //96 well plate with water, marker and samples
-    GelPlate        *wtype.LHPlate      //Gel to load ie OutPlate
+    InPlate         *LHPlate      //96 well plate with water, marker and samples
+    GelPlate        *LHPlate      //Gel to load ie OutPlate
 )
 
 

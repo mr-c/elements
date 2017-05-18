@@ -33,8 +33,8 @@ Inputs (
 	Reaction *LHComponent
 	CompetentCells *LHComponent
     Recoverymedium *LHComponent
-	OutPlate *wtype.LHPlate
-	AgarPlate *wtype.LHPlate
+	OutPlate *LHPlate
+	AgarPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

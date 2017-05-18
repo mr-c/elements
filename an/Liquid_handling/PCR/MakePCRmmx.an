@@ -63,7 +63,7 @@ Inputs (
 	Buffer *LHComponent
 	Water *LHComponent
 	Additives []*LHComponent // e.g. DMSO
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

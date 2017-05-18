@@ -40,7 +40,7 @@ Inputs (
 	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the AddNewLHComponent element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
 	Solution *LHComponent 
 	// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
-	OutPlate *wtype.LHPlate 
+	OutPlate *LHPlate 
 	
 )
 

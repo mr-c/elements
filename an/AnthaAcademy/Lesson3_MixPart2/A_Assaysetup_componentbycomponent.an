@@ -35,7 +35,7 @@ Inputs (
 	Buffer *LHComponent
 	Substrate *LHComponent
 	Enzyme *LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

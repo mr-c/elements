@@ -26,7 +26,7 @@ Inputs (
 	Substrate *LHComponent
 	Enzyme *LHComponent
 	Quenchingagent *LHComponent
-	//OutPlate *wtype.LHPlate 
+	//OutPlate *LHPlate 
 )
 
 // Physical outputs from this protocol with types

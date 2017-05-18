@@ -24,7 +24,7 @@ Inputs (
 // Physical outputs from this protocol with types
 Outputs (
 	AllComponents []*LHComponent//Gel
-	PlatewithComponents *wtype.LHPlate
+	PlatewithComponents *LHPlate
 	ComponentMap map[string]*LHComponent
 )
 

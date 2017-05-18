@@ -40,7 +40,7 @@ Inputs (
 	Sterilise 				bool
 	SterilisationMethod	string
 	AdditionalInstructions []string
-	Vessel					*wtype.LHPlate
+	Vessel					*LHPlate
 )
 
 

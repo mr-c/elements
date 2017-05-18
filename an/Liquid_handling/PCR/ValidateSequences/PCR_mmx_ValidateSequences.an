@@ -129,7 +129,7 @@ Inputs (
 	Template *LHComponent
 	
 	// Type of plate to set up reaction on. Recommended plate is pcrplate
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

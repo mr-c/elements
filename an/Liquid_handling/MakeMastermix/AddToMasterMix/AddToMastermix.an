@@ -49,7 +49,7 @@ Inputs (
 	ComponentIn *LHComponent
 	
 	// if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

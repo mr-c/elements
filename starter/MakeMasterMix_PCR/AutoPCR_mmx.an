@@ -66,7 +66,7 @@ Inputs (
 	// Type of plate to use for the reaction.
 	// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
 	// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
-	Plate *wtype.LHPlate	
+	Plate *LHPlate	
 )
 
 // Physical outputs from this protocol with types

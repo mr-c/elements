@@ -39,7 +39,7 @@ Data (
 Inputs (
 	Sampletotest *LHComponent//Culture
 	Diluent *LHComponent
-	ODplate *wtype.LHPlate
+	ODplate *LHPlate
 )
 // Physical outputs from this protocol with types
 Outputs (

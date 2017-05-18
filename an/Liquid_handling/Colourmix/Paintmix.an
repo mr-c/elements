@@ -23,7 +23,7 @@ Data (
 Inputs (
 	Colour1 *LHComponent
 	Colour2 *LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

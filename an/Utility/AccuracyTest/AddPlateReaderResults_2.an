@@ -90,7 +90,7 @@ Data (
 Inputs (
 	Molecule *LHComponent
 	Diluent *LHComponent
-	PlateType *wtype.LHPlate
+	PlateType *LHPlate
 )
 
 // Physical outputs from this protocol with types

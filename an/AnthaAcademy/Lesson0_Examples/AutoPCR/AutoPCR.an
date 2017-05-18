@@ -39,7 +39,7 @@ DefaultPolymerase *LHComponent
 DefaultBuffer *LHComponent
 DefaultDNTPS *LHComponent
 DefaultWater *LHComponent
-Plate *wtype.LHPlate
+Plate *LHPlate
 )
 
 // Physical outputs from this protocol with types

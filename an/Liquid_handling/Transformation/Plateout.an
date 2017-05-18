@@ -22,7 +22,7 @@ Data (
 Inputs (
 	RecoveredCells *LHComponent
 	Diluent *LHComponent
-	AgarPlate *wtype.LHPlate
+	AgarPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

@@ -31,8 +31,8 @@ Inputs (
 	RE *LHComponent
 	Water *LHComponent
 	
-	InPlate *wtype.LHPlate
-	OutPlate *wtype.LHPlate
+	InPlate *LHPlate
+	OutPlate *LHPlate
 )
 
 

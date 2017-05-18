@@ -24,7 +24,7 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
 	TransformedCells []*LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
 )
 

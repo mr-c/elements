@@ -28,7 +28,7 @@ Data (
 
 Inputs (
 	Diluent *LHComponent
-	DNAPlate *wtype.LHPlate
+	DNAPlate *LHPlate
 )
 
 Outputs (

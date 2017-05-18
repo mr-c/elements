@@ -50,13 +50,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	//InPlate *wtype.LHPlate
+	//InPlate *LHPlate
 	//Media *LHComponent
 	/*Antibiotic *LHComponent
 	Inducer *LHComponent
 	Repressor *LHComponent*/
 	ComponentType *LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
@@ -91,8 +91,8 @@ Steps {
 	CompetentCellTransferVolume 	Volume = wunit.NewVolume(20.0,"ul")
 	RecoveryPlateNumber 			int = 1
 	
-	PlatewithRecoveryMedia		*wtype.LHPlate = factory.GetPlateByType("DSW96_riser40")
-	PlateWithCompetentCells		*wtype.LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
+	PlatewithRecoveryMedia		*LHPlate = factory.GetPlateByType("DSW96_riser40")
+	PlateWithCompetentCells		*LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
 	)
 	
 	colourtoComponentMap := make(map[string]*LHComponent)

@@ -26,8 +26,8 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	Colonytype *LHComponent
-	InPlate *wtype.LHPlate
-	OutPlatewithMedia *wtype.LHPlate
+	InPlate *LHPlate
+	OutPlatewithMedia *LHPlate
 )
 
 // Physical outputs from this protocol with types

@@ -20,7 +20,7 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	Startingsolution *LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

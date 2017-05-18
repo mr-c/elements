@@ -23,7 +23,7 @@ Parameters (
 Inputs (
 	Parts			[]*LHComponent
 	MasterMix		*LHComponent
-	OutPlate		*wtype.LHPlate
+	OutPlate		*LHPlate
 )
 
 

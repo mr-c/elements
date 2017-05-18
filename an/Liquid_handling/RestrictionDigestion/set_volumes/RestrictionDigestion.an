@@ -35,8 +35,8 @@ Inputs (
 	Buffer 				*LHComponent
 	Water  				*LHComponent
 
-	OutPlate 			*wtype.LHPlate
-	InPlate 			*wtype.LHPlate
+	OutPlate 			*LHPlate
+	InPlate 			*LHPlate
 )
 
 

@@ -32,7 +32,7 @@ Data (
 )
 Inputs (
 	// Many of the real parameters required will be looked up via the specific labware (platetype) and liquid type which are being used.
-	Platetype *wtype.LHPlate
+	Platetype *LHPlate
 	Liquid *LHComponent
 )
 Outputs (

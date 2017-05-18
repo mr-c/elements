@@ -45,8 +45,8 @@ Data (
 Inputs (
 	Diluent *LHComponent
 	Black *LHComponent
-	//InPlate *wtype.LHPlate
-	OutPlate *wtype.LHPlate
+	//InPlate *LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

@@ -37,9 +37,9 @@ Inputs (
 	Red *LHComponent
 	Green *LHComponent
 	Blue *LHComponent
-	//InPlate *wtype.LHPlate
-	OutPlate *wtype.LHPlate
-	PalettePlate *wtype.LHPlate
+	//InPlate *LHPlate
+	OutPlate *LHPlate
+	PalettePlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

@@ -32,8 +32,8 @@ Inputs (
 	Water  			*LHComponent     // Water to use
 	Ligase 			*LHComponent     // Ligase to use
 	Atp 			*LHComponent     // ATP to use
-	OutPlate 		*wtype.LHPlate         // Output plate
-	InPlate 		*wtype.LHPlate         // Input plate 
+	OutPlate 		*LHPlate         // Output plate
+	InPlate 		*LHPlate         // Input plate 
 )
 
 Outputs (

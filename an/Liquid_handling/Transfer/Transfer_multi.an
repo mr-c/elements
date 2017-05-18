@@ -31,7 +31,7 @@ Inputs (
 	// The solutions to be transferred
 	Startingsolutions []*LHComponent
 	// one outplate is specified for all transfers
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

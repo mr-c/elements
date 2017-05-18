@@ -47,7 +47,7 @@ Inputs (
 	Diluent 					*LHComponent
 	
 	// Use the same outplate for all dilutions.
-	OutPlate 					*wtype.LHPlate
+	OutPlate 					*LHPlate
 )
 
 // Physical outputs from this protocol with types

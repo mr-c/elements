@@ -33,7 +33,7 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	Solutions []*LHComponent // we're now going to aliquot multiple solutions at the same time (but not mixing them)
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

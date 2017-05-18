@@ -53,7 +53,7 @@ Inputs (
 	Water *LHComponent
 	Template *LHComponent // the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it 
 	Additives []*LHComponent // e.g. DMSO
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types

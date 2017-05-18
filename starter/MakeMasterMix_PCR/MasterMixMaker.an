@@ -47,13 +47,13 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	// if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
 	Mastermix *LHComponent
-	PlateWithMastermix *wtype.LHPlate
+	PlateWithMastermix *LHPlate
 )
 
 Requirements {

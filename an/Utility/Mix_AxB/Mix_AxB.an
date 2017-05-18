@@ -23,7 +23,7 @@ Data (
 Inputs (
 	SampleAs []*LHComponent
 	SampleBs []*LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs to this protocol
