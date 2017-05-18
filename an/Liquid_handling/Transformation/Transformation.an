@@ -7,8 +7,8 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	CompetentCellvolumeperassembly wunit.Volume //= 50.(uL)
-	Reactionvolume wunit.Volume
+	CompetentCellvolumeperassembly Volume //= 50.(uL)
+	Reactionvolume Volume
 	Postplasmidtime wunit.Time
 	Postplasmidtemp wunit.Temperature
 )

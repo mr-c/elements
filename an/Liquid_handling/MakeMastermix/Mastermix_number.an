@@ -127,7 +127,7 @@ Steps {
 	
 	Mastermix = mastermix
 	
-	Error = wtype.ExportPlateCSV(Projectname+"mastermix.csv", OutPlate,Projectname+"mastermixoutputPlate", []string{wellpositions[counter]}, []*LHComponent{Mastermix}, []wunit.Volume{Mastermix.Volume()})
+	Error = wtype.ExportPlateCSV(Projectname+"mastermix.csv", OutPlate,Projectname+"mastermixoutputPlate", []string{wellpositions[counter]}, []*LHComponent{Mastermix}, []Volume{Mastermix.Volume()})
 	
 }
 

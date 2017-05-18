@@ -54,7 +54,7 @@ func _SampleSteps(_ctx context.Context, _input *SampleInput, _output *SampleOutp
 
 	// the Sample function is imported from the mixer library
 	// in the mixer library the function signature can be found, here it is:
-	// func Sample(l *LHComponent, v wunit.Volume) *LHComponent {
+	// func Sample(l *LHComponent, v Volume) *LHComponent {
 	// The function signature  shows that the function requires a *LHComponent and a Volume and returns an *LHComponent
 	_output.Sample = mixer.Sample(_input.Solution, _input.SampleVolume)
 

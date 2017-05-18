@@ -103,7 +103,7 @@ Steps {
 	// count number of colonies from inplate	
 	loadedsamples := make([]*LHComponent,0)
 	wells := make([]string,0)
-	volumes := make([]wunit.Volume,0)
+	volumes := make([]Volume,0)
 	
 	var DNAgelloadmix *LHComponent
 	var loadedsample *LHComponent

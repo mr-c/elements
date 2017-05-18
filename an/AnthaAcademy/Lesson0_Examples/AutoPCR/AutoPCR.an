@@ -65,13 +65,13 @@ Steps {
 	
 	// set up some empty slices to fill as we iterate through the reactions
 	Reactions = make([]*LHComponent,0)
-	volumes := make([]wunit.Volume,0)
+	volumes := make([]Volume,0)
 	welllocations := make([]string,0)
 	// initialise map
 	ReactionMap = make(map[string]*LHComponent)
 
 	additives := make([]*LHComponent,0)
-	additivevolumes := make([]wunit.Volume,0)
+	additivevolumes := make([]Volume,0)
 
 	// get additive info 
 	for additive, volume := range AdditiveToAdditiveVolume {

@@ -113,7 +113,7 @@ Steps {
 							}
 
 							//work out how much water to add to ladded
-							correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []wunit.Volume{LadderVolume})
+							correctedWaterVolume := wunit.SubtractVolumes(totalWellVolume, []Volume{LadderVolume})
 
 							//perform liquid handling for addiiton of ladder sample
 							water := MixInto(DNAGel,position,mixer.Sample(Water,correctedWaterVolume))
@@ -167,10 +167,10 @@ Steps {
 						}
 
 						//get total volume per well including sample and loadingdye
-						sampleAndLoadingDyeVolume := wunit.AddVolumes([]wunit.Volume{SampleVolume, LoadingDyeVolume})
+						sampleAndLoadingDyeVolume := wunit.AddVolumes([]Volume{SampleVolume, LoadingDyeVolume})
 
 						//work out how much water to add
-						waterVolume := wunit.SubtractVolumes(totalWellVolume,[]wunit.Volume{sampleAndLoadingDyeVolume})
+						waterVolume := wunit.SubtractVolumes(totalWellVolume,[]Volume{sampleAndLoadingDyeVolume})
 
 						//detect if the volumes are correct, if not then reprt
 						if waterVolume.LessThan(wunit.NewVolume(0.0,"ul"))  {

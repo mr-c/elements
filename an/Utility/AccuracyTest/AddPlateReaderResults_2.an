@@ -56,7 +56,7 @@ Parameters (
 
 	ManualComparison      bool  //  Option to compare to manual pipetting
 	VolumeToManualwells map[string][]string // if comparing to manual pipetting set the wells to use for each concentration here
-	Stockvol wunit.Volume // volume of diluent per well
+	Stockvol Volume // volume of diluent per well
 	StockEqualsTotalVolPerWell bool // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
 	
 	// validation requirements

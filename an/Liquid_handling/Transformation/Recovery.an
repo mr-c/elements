@@ -7,10 +7,10 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Recoveryvolume wunit.Volume
+	Recoveryvolume Volume
 	Recoverytime wunit.Time // e.g. = 2 hours
 	Recoverytemp wunit.Temperature
-	TransformedcellVolume wunit.Volume
+	TransformedcellVolume Volume
 )
 
 

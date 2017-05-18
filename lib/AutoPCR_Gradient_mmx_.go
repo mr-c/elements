@@ -65,7 +65,7 @@ func _AutoPCR_Gradient_mmxSteps(_ctx context.Context, _input *AutoPCR_Gradient_m
 	       ReactionName: reactionname,
 	             FwdPrimerVol: wunit.NewVolume(1,"ul"),
 	             RevPrimerVol: wunit.NewVolume(1,"ul"),
-	             AdditiveVols: []wunit.Volume{wunit.NewVolume(5,"ul")},
+	             AdditiveVols: []Volume{wunit.NewVolume(5,"ul")},
 	             Templatevolume: wunit.NewVolume(1,"ul"),
 	             PolymeraseVolume: wunit.NewVolume(1,"ul"),
 	             DNTPVol:wunit.NewVolume(1,"ul"),

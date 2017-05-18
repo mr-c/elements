@@ -31,8 +31,8 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	VolumeA wunit.Volume
-	VolumeB wunit.Volume
+	VolumeA Volume
+	VolumeB Volume
 	Platetype string
 	WellA string
 	WellB string

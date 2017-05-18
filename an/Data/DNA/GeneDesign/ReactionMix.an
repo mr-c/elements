@@ -64,7 +64,7 @@ Steps {
 	ATPS := mixer.Sample(ATP, ATPV)
 	RES := mixer.Sample(RE, REV)
 	
-	//com := []wunit.Volume{VectorV, BufferV, LigaseV, ATPV, REV}
+	//com := []Volume{VectorV, BufferV, LigaseV, ATPV, REV}
 	//WaterS := mixer.TopUpVolume(Water, com, ReactionVolume)
 	WaterS:=mixer.SampleForTotalVolume(Water, ReactionVolume)
 	

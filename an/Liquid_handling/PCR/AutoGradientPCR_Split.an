@@ -64,7 +64,7 @@ Steps {
 	
 Reactions := make([]*LHComponent,0)
 NewReactions = make([]*LHComponent,0)
-volumes := make([]wunit.Volume,0)
+volumes := make([]Volume,0)
 welllocations := make([]string,0)
 
 for reactionname, templatename := range Reactiontotemplate {
@@ -94,7 +94,7 @@ result := RunSteps(PCR_vol,
     ReactionName: reactionname,
           FwdPrimerVol: wunit.NewVolume(1*float64(Samplenumber),"ul"),
           RevPrimerVol: wunit.NewVolume(1*float64(Samplenumber),"ul"),
-          AdditiveVols: []wunit.Volume{wunit.NewVolume(5*float64(Samplenumber),"ul")},
+          AdditiveVols: []Volume{wunit.NewVolume(5*float64(Samplenumber),"ul")},
           Templatevolume: wunit.NewVolume(1*float64(Samplenumber),"ul"),
           PolymeraseVolume: wunit.NewVolume(1*float64(Samplenumber),"ul"),
           DNTPVol:wunit.NewVolume(1*float64(Samplenumber),"ul"),

@@ -47,7 +47,7 @@ Steps {
 	var counter int
 	
 Reactions = make([]*LHComponent,0)
-volumes := make([]wunit.Volume,0)
+volumes := make([]Volume,0)
 welllocations := make([]string,0)
 
 for reactionname, templatename := range Reactiontotemplate {

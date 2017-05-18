@@ -7,7 +7,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Plateoutvolume wunit.Volume
+	Plateoutvolume Volume
 	IncubationTemp Temperature
 	IncubationTime Time
 	DilutionX int

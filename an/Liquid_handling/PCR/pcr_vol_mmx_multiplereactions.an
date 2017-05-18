@@ -140,7 +140,7 @@ Steps {
 	// aliquot out to well positions
 	for position := range WellPositions{
 		if position !=0{
-		totalVolume := wunit.AddVolumes([]wunit.Volume{PolymeraseVolume,Templatevolume,RevPrimerVol,FwdPrimerVol,MasterMixVolume})
+		totalVolume := wunit.AddVolumes([]Volume{PolymeraseVolume,Templatevolume,RevPrimerVol,FwdPrimerVol,MasterMixVolume})
 		Reactions = append(Reactions,MixInto(OutPlate,WellPositions[position],mixer.Sample(reaction,totalVolume)))
 		}
 	}

@@ -14,8 +14,8 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	VolumesA []wunit.Volume
-	VolumesB []wunit.Volume
+	VolumesA []Volume
+	VolumesB []Volume
 )
 
 // Output data of this protocol

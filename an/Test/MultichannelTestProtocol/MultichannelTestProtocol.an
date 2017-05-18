@@ -7,7 +7,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Vols []wunit.Volume
+	Vols []Volume
 )
 
 // Physical Inputs to this protocol with types
