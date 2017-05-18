@@ -92,7 +92,7 @@ Steps {
 						assembly := RunSteps(Scarfree_siteremove_orfcheck_wtype,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:				[]wtype.DNASequence{Part1s[k],Part2s[l],Part3s[m]},
+					Seqsinorder:				[]DNASequence{Part1s[k],Part2s[l],Part3s[m]},
 					Enzymename:					EnzymeName,
 					Vector:						Vectors[j],
 					OtherEnzymeSitesToRemove:	SitesToRemove,
@@ -140,7 +140,7 @@ Steps {
 				
 				PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
 				PrimerMap[key+"_REV"]=primer.Data.REVPrimer
-				SequencingPrimers = append(SequencingPrimers,[]wtype.DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
+				SequencingPrimers = append(SequencingPrimers,[]DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
 				counter++
 	}
 	}

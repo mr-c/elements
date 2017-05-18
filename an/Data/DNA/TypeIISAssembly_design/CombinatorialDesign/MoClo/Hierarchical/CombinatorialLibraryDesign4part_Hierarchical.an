@@ -147,7 +147,7 @@ Steps {
 						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:				[]wtype.DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
+					Seqsinorder:				[]DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
 					AssemblyStandard:			Standard,
 					Level:						StandardLevel, // of assembly standard
 					Vector:						Vectors[j],
@@ -197,7 +197,7 @@ Steps {
 				
 				PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
 				PrimerMap[key+"_REV"]=primer.Data.REVPrimer
-				SequencingPrimers = append(SequencingPrimers,[]wtype.DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
+				SequencingPrimers = append(SequencingPrimers,[]DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
 				counter++
 	}
 	}
