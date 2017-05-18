@@ -18,7 +18,7 @@ import (
 
 //Bufferstock		*LHComponent
 
-//OutPlate 		*wtype.LHPlate
+//OutPlate 		*LHPlate
 
 // Physical outputs from this protocol with types
 

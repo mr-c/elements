@@ -22,8 +22,8 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//RecoveryPlate *wtype.LHPlate
-//CompcellPlate *wtype.LHPlate
+//RecoveryPlate *LHPlate
+//CompcellPlate *LHPlate
 
 // Physical outputs from this protocol with types
 

@@ -16,7 +16,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//OutPlate *wtype.LHPlate
+//OutPlate *LHPlate
 
 // Physical outputs from this protocol with types
 

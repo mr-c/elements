@@ -27,7 +27,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
+//InPlate *LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -252,7 +252,7 @@ func init() {
 				{Name: "Blue", Desc: "", Kind: "Inputs"},
 				{Name: "Green", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},

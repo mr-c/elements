@@ -37,7 +37,7 @@ RepressorVolume Volume*/
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
+//InPlate *LHPlate
 //Media *LHComponent
 /*Antibiotic *LHComponent
 Inducer *LHComponent
@@ -388,7 +388,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/TransformLivingPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
+				{Name: "ComponentType", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
