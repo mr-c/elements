@@ -21,7 +21,7 @@ Parameters (
 )
 
 Data (
-	PartConcentrations map[string]wunit.Concentration
+	PartConcentrations map[string]Concentration
 	Errors []error
 	PlateContents wtype.File
 )
@@ -55,7 +55,7 @@ Steps {
 
 
 	ResuspendedDNAMap = make(map[string]*LHComponent)
-	PartConcentrations = make(map[string]wunit.Concentration)
+	PartConcentrations = make(map[string]Concentration)
 
 	for _, part := range Parts {
 		

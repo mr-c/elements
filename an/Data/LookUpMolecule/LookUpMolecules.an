@@ -38,7 +38,7 @@ Setup {
 } 
 Steps {
 
-	MolarConcentrations = make(map[string]wunit.Concentration)
+	MolarConcentrations = make(map[string]Concentration)
 
 	for _, molecule := range Compoundlist {
 		// method of making molecule from name

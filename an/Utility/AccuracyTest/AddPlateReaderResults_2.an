@@ -43,7 +43,7 @@ Parameters (
 
 	Wavelength          int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
 	Extinctioncoefficient float64 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
-	StockconcinMperL wunit.Concentration //= 0.0002878191305957933
+	StockconcinMperL Concentration //= 0.0002878191305957933
 	
 	ReadingTypeinMarsFile string // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
 
@@ -116,7 +116,7 @@ Steps {
 		OutputFilename = strings.Split(filename,".")[0] + "_output" +fmt.Sprint(time.Now().Format("20060102150405")) +".xlsx"
 	}
 	
-	var actualconcentrations = make(map[string]wunit.Concentration)
+	var actualconcentrations = make(map[string]Concentration)
 	ResponsetoManualValuesmap = make(map[string][]float64)
 
 	molecule, err := pubchem.MakeMolecule(Molecule.CName)
