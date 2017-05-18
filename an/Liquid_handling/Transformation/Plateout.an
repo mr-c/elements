@@ -20,14 +20,14 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	RecoveredCells *wtype.LHComponent
-	Diluent *wtype.LHComponent
+	RecoveredCells *LHComponent
+	Diluent *LHComponent
 	AgarPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Platedculture *wtype.LHComponent
+	Platedculture *LHComponent
 )
 
 Requirements {
@@ -41,7 +41,7 @@ Setup {
 // for every input
 Steps {
 
-	plateout := make([]*wtype.LHComponent,0)
+	plateout := make([]*LHComponent,0)
 
 	if Diluent != nil && DilutionX > 1 {
 	diluentsample := mixer.SampleForTotalVolume(Diluent,Plateoutvolume)

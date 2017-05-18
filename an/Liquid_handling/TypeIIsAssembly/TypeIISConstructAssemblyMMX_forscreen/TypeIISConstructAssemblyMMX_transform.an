@@ -36,19 +36,19 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts						[]*wtype.LHComponent
-	MasterMix					*wtype.LHComponent
+	Parts						[]*LHComponent
+	MasterMix					*LHComponent
 	OutPlate					*wtype.LHPlate
 	PlateWithCompetentCells		 *wtype.LHPlate
 	PlatewithRecoveryMedia		*wtype.LHPlate
-	Water                   	*wtype.LHComponent
+	Water                   	*LHComponent
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction      *wtype.LHComponent
-	Recovery	*wtype.LHComponent
+	Reaction      *LHComponent
+	Recovery	*LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -68,7 +68,7 @@ Setup {}
 Steps {
 	var err error
 
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
         ConstructName = OutputConstructName
 	
         last := len(PartSeqs) - 1

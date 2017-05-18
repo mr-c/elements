@@ -44,25 +44,25 @@ Data (
 	
 	// for making a palette of colours in advance
 	Palette color.Palette
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]*LHComponent
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
 	//InPlate *wtype.LHPlate
-	//Media *wtype.LHComponent
-	/*Antibiotic *wtype.LHComponent
-	Inducer *wtype.LHComponent
-	Repressor *wtype.LHComponent*/
-	ComponentType *wtype.LHComponent
+	//Media *LHComponent
+	/*Antibiotic *LHComponent
+	Inducer *LHComponent
+	Repressor *LHComponent*/
+	ComponentType *LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels			[]*wtype.LHComponent
-	//PaletteColours 	[]*wtype.LHComponent// not used 
+	Pixels			[]*LHComponent
+	//PaletteColours 	[]*LHComponent// not used 
 )
 
 Requirements {
@@ -95,7 +95,7 @@ Steps {
 	PlateWithCompetentCells		*wtype.LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
 	)
 	
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	colourtoComponentMap := make(map[string]*LHComponent)
 	
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 	
@@ -144,7 +144,7 @@ Steps {
 	}
 
 	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
+	componentmap := make(map[string]*LHComponent, 0)
 	
 	if Subset {
 	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
@@ -155,7 +155,7 @@ Steps {
 		componentname := colourtostringmap[colourname]
 
 		// use template component instead
-		var componenttopick *wtype.LHComponent
+		var componenttopick *LHComponent
 		
 		if ComponentType != nil{
 		componenttopick = ComponentType
@@ -169,7 +169,7 @@ Steps {
 	}
 //	fmt.Println(componentmap)
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	UniqueComponents = make([]string,0)
@@ -178,7 +178,7 @@ Steps {
 // loop through the position to colour map pipeting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 		
-		//components := make([]*wtype.LHComponent, 0)
+		//components := make([]*LHComponent, 0)
 		
 		component := componentmap[colourtostringmap[colour]]
 		

@@ -47,13 +47,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	InputSolution *wtype.LHComponent
+	InputSolution *LHComponent
 )
 
 // Physical outputs to this protocol
 Outputs (
-	ComponentA *wtype.LHComponent
-	ComponentB *wtype.LHComponent
+	ComponentA *LHComponent
+	ComponentB *LHComponent
 )
 
 // Conditions to run on startup

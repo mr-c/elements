@@ -52,7 +52,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Mastermix *wtype.LHComponent
+	Mastermix *LHComponent
 	PlateWithMastermix *wtype.LHPlate
 )
 
@@ -85,7 +85,7 @@ Steps {
 	}
 	
 	
-	var mastermix *wtype.LHComponent
+	var mastermix *LHComponent
 	
 	if len(Components) != len(ComponentVolumesperReaction){
 		Errorf("len(Components) != len(OtherComponentVolumes)")
@@ -93,7 +93,7 @@ Steps {
 		
 		// get components from factory and if not present use default dna component
 		
-		lhComponents := make([]*wtype.LHComponent,0)
+		lhComponents := make([]*LHComponent,0)
 		
 		for _,component := range Components {
 			
@@ -124,7 +124,7 @@ Steps {
 		
 		// now make mastermix
 		
-		eachmastermix := make([]*wtype.LHComponent, 0)
+		eachmastermix := make([]*LHComponent, 0)
 		
 		
 		for k, component := range lhComponents { 	

@@ -27,13 +27,13 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts 				[]*wtype.LHComponent
-	Vector 				*wtype.LHComponent
-	RestrictionEnzyme 	*wtype.LHComponent
-	Buffer 				*wtype.LHComponent
-	Water  				*wtype.LHComponent
-	Ligase 				*wtype.LHComponent
-	Atp 				*wtype.LHComponent
+	Parts 				[]*LHComponent
+	Vector 				*LHComponent
+	RestrictionEnzyme 	*LHComponent
+	Buffer 				*LHComponent
+	Water  				*LHComponent
+	Ligase 				*LHComponent
+	Atp 				*LHComponent
 	OutPlate 			*wtype.LHPlate
 	InPlate 			*wtype.LHPlate
 )
@@ -41,7 +41,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -58,7 +58,7 @@ Setup {}
 // for every input
 Steps {
 	
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
 
@@ -74,7 +74,7 @@ Steps {
 	
 	s := ""
 	comments := make([]string,0)
-	var partSample *wtype.LHComponent
+	var partSample *LHComponent
 
 	for k, part := range Parts {
 		if PartConcs[k].SIValue() <= 0.1 {

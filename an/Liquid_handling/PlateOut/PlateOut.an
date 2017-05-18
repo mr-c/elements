@@ -29,12 +29,12 @@ Data (
 // Physical inputs to this protocol
 Inputs (
 	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	TransformedCells *wtype.LHComponent //the transformed cells (Default = neb5compcells).
+	TransformedCells *LHComponent //the transformed cells (Default = neb5compcells).
 )
 
 // Physical outputs to this protocol
 Outputs (
-	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	PlatedCultures []*LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
 	TransformedPlateNumber int //the number of plates used
 	WellsUsed int //number of wells used
 )
@@ -95,7 +95,7 @@ Steps {
 	for j := 0; j < NumberofReplicates ;j++{
 
 				//set up a slice to add the plate out reactions to
-				var plateOutSamplesSlice []*wtype.LHComponent
+				var plateOutSamplesSlice []*LHComponent
 
 				//set up variable for tracking well
 				var nextwell string

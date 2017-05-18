@@ -28,15 +28,15 @@ Data (
 	Numberofcolours int
 	//Colournames []string
 	Palette color.Palette
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]*LHComponent
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Red *wtype.LHComponent
-	Green *wtype.LHComponent
-	Blue *wtype.LHComponent
+	Red *LHComponent
+	Green *LHComponent
+	Blue *LHComponent
 	//InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 	PalettePlate *wtype.LHPlate
@@ -44,7 +44,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Colours[]*wtype.LHComponent
+	Colours[]*LHComponent
 )
 
 Requirements {
@@ -84,8 +84,8 @@ Steps {
 	
 	//fmt.Println("positions", positiontocolourmap)
 	
-	solutions := make([]*wtype.LHComponent, 0)
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	solutions := make([]*LHComponent, 0)
+	colourtoComponentMap := make(map[string]*LHComponent)
 
 	counter := 0
 
@@ -95,7 +95,7 @@ Steps {
 		colourindex := chosencolourpalette.Index(colour)
 		
 		if colour != nil {
-		components := make([]*wtype.LHComponent, 0)
+		components := make([]*LHComponent, 0)
 
 		r, g, b, _ := colour.RGBA()
 		

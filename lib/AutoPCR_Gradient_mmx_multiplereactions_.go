@@ -87,7 +87,7 @@ func _AutoPCR_Gradient_mmx_multiplereactionsSteps(_ctx context.Context, _input *
 	             Buffer:factory.GetComponentByType("Q5buffer"),
 	             Water:factory.GetComponentByType("water"),
 	             Template: Templatetype,
-	             Additives: []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")} ,
+	             Additives: []*LHComponent{factory.GetComponentByType("GCenhancer")} ,
 	             OutPlate: Plate,
 
 	                   })

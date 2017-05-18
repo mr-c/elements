@@ -114,19 +114,19 @@ Data (
 Inputs (
 	
 	// Actual FWD primer component to use. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	FwdPrimer *wtype.LHComponent
+	FwdPrimer *LHComponent
 	
 	// Actual REV primer component to use. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	RevPrimer *wtype.LHComponent
+	RevPrimer *LHComponent
 	
 	// Actual Master mix to use
-	MasterMix *wtype.LHComponent
+	MasterMix *LHComponent
 	
 	// Valid options are Q5Polymerase and Taq. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
-	PCRPolymerase *wtype.LHComponent
+	PCRPolymerase *LHComponent
 	
 	// Actual Template component to use
-	Template *wtype.LHComponent
+	Template *LHComponent
 	
 	// Type of plate to set up reaction on. Recommended plate is pcrplate
 	OutPlate *wtype.LHPlate
@@ -136,7 +136,7 @@ Inputs (
 Outputs (
 	
 	// The output PCR reaction
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 Requirements {
@@ -201,7 +201,7 @@ Steps {
 	mastermix := MixInto(OutPlate, OptionalWellPosition, mmxSample)
 	
 	// rest samples to zero
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 		
 	// add primers
 	
@@ -313,7 +313,7 @@ Validation {
 }
 
 /*type Polymerase struct {
-	wtype.LHComponent
+	LHComponent
 	Rate_BPpers float64
 	Fidelity_errorrate float64 // could dictate how many colonies are checked in validation!
 	Extensiontemp Temperature

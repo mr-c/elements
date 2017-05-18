@@ -21,14 +21,14 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	SampleAs []*wtype.LHComponent
-	SampleBs []*wtype.LHComponent
+	SampleAs []*LHComponent
+	SampleBs []*LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs to this protocol
 Outputs (
-	MixedComponents []*wtype.LHComponent
+	MixedComponents []*LHComponent
 )
 
 // Conditions to run on startup
@@ -41,7 +41,7 @@ Steps {
 	
 	for _, componentA := range SampleAs{
 		
-		var sampleA *wtype.LHComponent
+		var sampleA *LHComponent
 		var sampleVol Volume
  		
 		if vol, found := SampleAVolumes[componentA.CName];found{
@@ -57,7 +57,7 @@ Steps {
  		}
 				
 		for _, componentB := range SampleBs{
-			var sampleB *wtype.LHComponent
+			var sampleB *LHComponent
 			var sampleVol Volume
 	 		
 			if vol, found := SampleBVolumes[componentB.CName];found{

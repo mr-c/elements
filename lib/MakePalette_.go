@@ -87,7 +87,7 @@ func _MakePaletteSteps(_ctx context.Context, _input *MakePaletteInput, _output *
 		colourindex := chosencolourpalette.Index(colour)
 
 		if colour != nil {
-			//components := make([]*wtype.LHComponent, 0)
+			//components := make([]*LHComponent, 0)
 
 			cmyk := image.ColourtoCMYK(colour)
 

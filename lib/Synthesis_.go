@@ -26,7 +26,7 @@ func _SynthesisSetup(_ctx context.Context, _input *SynthesisInput) {}
 
 func _SynthesisSteps(_ctx context.Context, _input *SynthesisInput, _output *SynthesisOutput) {
 	// Element with mock synthesises DNA. Converts DNA sequence type to LHComponent.
-	//var dna *wtype.LHComponent
+	//var dna *LHComponent
 	components := make([]*wtype.LHComponent, 0)
 
 	fmt.Println("Parts:", _input.PartsWithOverhangs)

@@ -22,15 +22,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-FwdPrimertype *wtype.LHComponent
-RevPrimertype *wtype.LHComponent
-Templatetype *wtype.LHComponent
+FwdPrimertype *LHComponent
+RevPrimertype *LHComponent
+Templatetype *LHComponent
 Plate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-Reactions []*wtype.LHComponent
+Reactions []*LHComponent
 )
 
 Requirements {
@@ -49,7 +49,7 @@ Steps {
 	
 	
 	// set up some empty slices to fill as we iterate through the reactions
-	Reactions = make([]*wtype.LHComponent,0)
+	Reactions = make([]*LHComponent,0)
 	volumes := make([]wunit.Volume,0)
 	welllocations := make([]string,0)
 
@@ -95,7 +95,7 @@ Steps {
           		Buffer:factory.GetComponentByType("Q5buffer"),
           		Water:factory.GetComponentByType("water"),
           		Template: Templatetype,
-          		Additives: []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")} ,
+          		Additives: []*LHComponent{factory.GetComponentByType("GCenhancer")} ,
           		OutPlate: Plate,
                         
                 })

@@ -25,14 +25,14 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	ComponentsA []*wtype.LHComponent
-	ComponentsB []*wtype.LHComponent
+	ComponentsA []*LHComponent
+	ComponentsB []*LHComponent
 	OutPlate 	*wtype.LHPlate
 )
 
 // Physical outputs to this protocol
 Outputs (
-	MixedComponents []*wtype.LHComponent
+	MixedComponents []*LHComponent
 )
 
 // Conditions to run on startup

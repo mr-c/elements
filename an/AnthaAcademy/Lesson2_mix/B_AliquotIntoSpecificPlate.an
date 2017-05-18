@@ -25,14 +25,14 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent 
+	Solution *LHComponent 
 	OutPlate *wtype.LHPlate // this time we're specifying what plate we're using
 	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Aliquots []*wtype.LHComponent
+	Aliquots []*LHComponent
 )
 
 Requirements {
@@ -55,7 +55,7 @@ Steps {
 	}
 	
 	
-	aliquots := make([]*wtype.LHComponent,0)
+	aliquots := make([]*LHComponent,0)
 	
 	
 	for i := 0; i < NumberofAliquots; i++ {

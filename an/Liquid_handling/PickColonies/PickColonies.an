@@ -25,14 +25,14 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Colonytype *wtype.LHComponent
+	Colonytype *LHComponent
 	InPlate *wtype.LHPlate
 	OutPlatewithMedia *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	ColoniesinRecoveryMedia []*wtype.LHComponent
+	ColoniesinRecoveryMedia []*LHComponent
 )
 
 Requirements {
@@ -48,9 +48,9 @@ Setup {
 // for every input
 Steps {
 	
-	components := make([]*wtype.LHComponent,0)
-	ColoniesinRecoveryMedia = make([]*wtype.LHComponent,0)
-	var colonyinrecoverymedia *wtype.LHComponent
+	components := make([]*LHComponent,0)
+	ColoniesinRecoveryMedia = make([]*LHComponent,0)
+	var colonyinrecoverymedia *LHComponent
 	
 	
 	

@@ -20,13 +20,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	InputVariable *wtype.LHComponent
+	InputVariable *LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	PhysicalOutput *wtype.LHComponent
+	PhysicalOutput *LHComponent
 	
 )
 

@@ -19,13 +19,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Startingsolution *wtype.LHComponent
+	Startingsolution *LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	FinalSolution *wtype.LHComponent
+	FinalSolution *LHComponent
 	
 )
 

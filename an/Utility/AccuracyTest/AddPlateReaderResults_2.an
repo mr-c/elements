@@ -88,8 +88,8 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Molecule *wtype.LHComponent
-	Diluent *wtype.LHComponent
+	Molecule *LHComponent
+	Diluent *LHComponent
 	PlateType *wtype.LHPlate
 )
 

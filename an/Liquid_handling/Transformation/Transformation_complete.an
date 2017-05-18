@@ -30,16 +30,16 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Reaction *wtype.LHComponent
-	CompetentCells *wtype.LHComponent
-    Recoverymedium *wtype.LHComponent
+	Reaction *LHComponent
+	CompetentCells *LHComponent
+    Recoverymedium *LHComponent
 	OutPlate *wtype.LHPlate
 	AgarPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Platedculture *wtype.LHComponent
+	Platedculture *LHComponent
 )
 
 Requirements {
@@ -52,7 +52,7 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	competentcells := make([]*wtype.LHComponent,0)
+	competentcells := make([]*LHComponent,0)
 	competentcells = append(competentcells,CompetentCells)
 	
 	// MixInto a specific plate e.g. plate ID blahblahblah001
@@ -60,8 +60,8 @@ Steps {
 	
 	readycompetentcellsComp := Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false) // we can incubate an LHComponent so this is fine
 	
-	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *wtype.LHComponent from inputs!
-	//transformationmix := make([]*wtype.LHComponent, 0)
+	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *LHComponent from inputs!
+	//transformationmix := make([]*LHComponent, 0)
 	//transformationmix = append(transformationmix, competetentcellmix)
 	DNAsample := mixer.Sample(Reaction, Reactionvolume)
 	//transformationmix = append(transformationmix, DNAsample)
@@ -71,7 +71,7 @@ Steps {
 
 	transformedcellsComp := Incubate (transformedcells, Postplasmidtemp, Postplasmidtime,false)
 
-	//recoverymix := make([]*wtype.LHComponent, 0)
+	//recoverymix := make([]*LHComponent, 0)
 	recoverymixture := mixer.Sample(Recoverymedium, Recoveryvolume)
 
 	//recoverymix = append(recoverymix,transformedcellsComp) // ERROR! transformedcells is now an LHComponent, not a liquid, so can't be used here

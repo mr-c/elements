@@ -38,14 +38,14 @@ RepressorVolume Volume*/
 // Physical Inputs to this protocol with types
 
 //InPlate *wtype.LHPlate
-//Media *wtype.LHComponent
-/*Antibiotic *wtype.LHComponent
-Inducer *wtype.LHComponent
-Repressor *wtype.LHComponent*/
+//Media *LHComponent
+/*Antibiotic *LHComponent
+Inducer *LHComponent
+Repressor *LHComponent*/
 
 // Physical outputs from this protocol with types
 
-//PaletteColours 	[]*wtype.LHComponent// not used
+//PaletteColours 	[]*LHComponent// not used
 
 func _TransformLivingPaletteRequirements() {
 
@@ -156,7 +156,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 
-		//components := make([]*wtype.LHComponent, 0)
+		//components := make([]*LHComponent, 0)
 
 		component := componentmap[colourtostringmap[colour]]
 
@@ -388,7 +388,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/TransformLivingPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *wtype.LHComponent\nAntibiotic *wtype.LHComponent\n\tInducer *wtype.LHComponent\n\tRepressor *wtype.LHComponent\n", Kind: "Inputs"},
+				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},

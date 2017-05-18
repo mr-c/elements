@@ -27,12 +27,12 @@ Data (
 )
 
 Inputs (
-	Diluent *wtype.LHComponent
+	Diluent *LHComponent
 	DNAPlate *wtype.LHPlate
 )
 
 Outputs (
-	ResuspendedDNAMap map[string]*wtype.LHComponent
+	ResuspendedDNAMap map[string]*LHComponent
 )
 
 Requirements {
@@ -49,12 +49,12 @@ Steps {
 	}
 
 	// set up some empty slices to fill as we iterate through the reactions
-	Reactions := make([]*wtype.LHComponent,0)
+	Reactions := make([]*LHComponent,0)
 	volumes := make([]wunit.Volume,0)
 	welllocations := make([]string,0)
 
 
-	ResuspendedDNAMap = make(map[string]*wtype.LHComponent)
+	ResuspendedDNAMap = make(map[string]*LHComponent)
 	PartConcentrations = make(map[string]wunit.Concentration)
 
 	for _, part := range Parts {

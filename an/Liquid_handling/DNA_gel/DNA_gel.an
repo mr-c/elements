@@ -28,17 +28,17 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	DNAGel *wtype.LHPlate  // E-GEL type. (Current valid options are the 48 and 96 well precast E-GELs from Thermo-Fisher)
-	Ladder *wtype.LHComponent //DNA ladder
-	LoadingDye *wtype.LHComponent //loading dye to mix with samples
+	Ladder *LHComponent //DNA ladder
+	LoadingDye *LHComponent //loading dye to mix with samples
 	MixPlate *wtype.LHPlate// plate to mix samples if required
-	Reactions []*wtype.LHComponent //Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.
-	Water	*wtype.LHComponent //water
+	Reactions []*LHComponent //Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.
+	Water	*LHComponent //water
 
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	LoadedSamples []*wtype.LHComponent //samples outputted as an array which can be wired into downstream protocols
+	LoadedSamples []*LHComponent //samples outputted as an array which can be wired into downstream protocols
 
 )
 
@@ -59,7 +59,7 @@ Setup {
 Steps {
 
 	//set up some arrays to fill and LHComponent variables for the DNA samples
-	var loadedSamples []*wtype.LHComponent
+	var loadedSamples []*LHComponent
 
 	//setup variable for error reporting
 	var err error
@@ -77,8 +77,8 @@ Steps {
 	var wells []string = DNAGel.AllWellPositions(wtype.BYROW)
 
 	//setup liquid handling component variables
-	var loadingMix *wtype.LHComponent
-	var loadedSample *wtype.LHComponent
+	var loadingMix *LHComponent
+	var loadedSample *LHComponent
 
 	//begin counter at first well position as E-GEL must be run upside down
 	var counter int = len(wells)-1
@@ -145,7 +145,7 @@ Steps {
 									}
 
 									//perform liquid handling for addiiton and mixing of the loading dye
-									var loadingMixSolution *wtype.LHComponent
+									var loadingMixSolution *LHComponent
 
 									// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
 									if OptimisePlateUsage ==true {

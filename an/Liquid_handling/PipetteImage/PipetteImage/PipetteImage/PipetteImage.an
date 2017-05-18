@@ -41,13 +41,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	ComponentType *wtype.LHComponent
+	ComponentType *LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	 Pixels[]*wtype.LHComponent
+	 Pixels[]*LHComponent
 )
 
 Requirements {
@@ -119,7 +119,7 @@ Steps {
 	}
 
 	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
+	componentmap := make(map[string]*LHComponent, 0)
 	
 	if Subset {
 	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
@@ -130,7 +130,7 @@ Steps {
 		componentname := colourtostringmap[colourname]
 
 		// use template component instead
-		var componenttopick *wtype.LHComponent
+		var componenttopick *LHComponent
 		
 		if ComponentType != nil{
 		componenttopick = ComponentType
@@ -144,7 +144,7 @@ Steps {
 	}
 	//fmt.Println(componentmap)
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	UniqueComponents = make([]string,0)

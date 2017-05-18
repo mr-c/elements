@@ -24,15 +24,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
-	Components []*wtype.LHComponent
+	TopUpBuffer *LHComponent // optional if nil this is ignored
+	Components []*LHComponent
 	Inplate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Mastermixes []*wtype.LHComponent
+	Mastermixes []*LHComponent
 )
 
 Requirements {
@@ -57,14 +57,14 @@ Steps {
 		panic("len(Components) != len(OtherComponentVolumes)")
 	}
 	
-	mastermixes := make([]*wtype.LHComponent,0)
+	mastermixes := make([]*LHComponent,0)
 	
 	if AliquotbyRow {
 			panic("MixTo based method coming soon!")
 		}else {
 	for i := 0; i < NumberofMastermixes; i++ {
 		
-		eachmastermix := make([]*wtype.LHComponent, 0)
+		eachmastermix := make([]*LHComponent, 0)
 		
 		if TopUpBuffer != nil {
 		bufferSample := mixer.SampleForTotalVolume(TopUpBuffer, topupVolume)

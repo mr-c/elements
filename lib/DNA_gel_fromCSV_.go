@@ -46,13 +46,13 @@ import (
 // gel
 // plate to mix samples if required
 
-//DNAladder *wtype.LHComponent//NucleicacidSolution
-//Water *wtype.LHComponent//WaterSolution
+//DNAladder *LHComponent//NucleicacidSolution
+//Water *LHComponent//WaterSolution
 
-//DNAgelbuffer *wtype.LHComponent//WaterSolution
-//DNAgelNucleicacidintercalator *wtype.LHComponent//ToxicSolution // e.g. ethidium bromide, sybrsafe
-//QC_sample *wtype.LHComponent//QC // this is a control
-//DNASizeladder *wtype.LHComponent//WaterSolution
+//DNAgelbuffer *LHComponent//WaterSolution
+//DNAgelNucleicacidintercalator *LHComponent//ToxicSolution // e.g. ethidium bromide, sybrsafe
+//QC_sample *LHComponent//QC // this is a control
+//DNASizeladder *LHComponent//WaterSolution
 //Devices.Gelpowerpack Device
 // need to calculate which DNASizeladder is required based on target sequence length and required resolution to distinguish from incorrect assembly possibilities
 

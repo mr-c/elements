@@ -35,7 +35,7 @@ Inputs (
 )
 
 Outputs (
-	PartsList map[string]*wtype.LHComponent
+	PartsList map[string]*LHComponent
 )
 
 Requirements {
@@ -82,7 +82,7 @@ Steps {
 	PartPlateMap = make(map[string]string)
 	headersfound := make([]string,0)
 	FwdOligotoRevOligo = make(map[string]string)
-	PartsList = make(map[string]*wtype.LHComponent)
+	PartsList = make(map[string]*LHComponent)
 
 	// get contents from file
 	fileContents, err :=  SequenceInfoFile.ReadAll()

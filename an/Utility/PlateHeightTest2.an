@@ -42,13 +42,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Startingsolutions []*wtype.LHComponent
+	Startingsolutions []*LHComponent
 	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	FinalSolutions []*wtype.LHComponent
+	FinalSolutions []*LHComponent
 	
 )
 
@@ -87,7 +87,7 @@ Steps {
 	
 
 	// Make slices to fill up later before exporting as outputs
-	FinalSolutions = make([]*wtype.LHComponent,0)
+	FinalSolutions = make([]*LHComponent,0)
 	WellsUsedPostRunPerPlate = make([]int,0)
 	PlatesUsedPostRunPerPlateType = make([]int,0)
 	

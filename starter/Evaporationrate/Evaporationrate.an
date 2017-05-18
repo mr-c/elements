@@ -55,7 +55,7 @@ Data (
 )
 Inputs (
 	Platetype *wtype.LHPlate
-	Liquid *wtype.LHComponent
+	Liquid *LHComponent
 )
 Outputs (
 )

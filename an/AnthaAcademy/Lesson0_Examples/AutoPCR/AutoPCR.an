@@ -32,20 +32,20 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-FwdPrimertype *wtype.LHComponent
-RevPrimertype *wtype.LHComponent
-Templatetype *wtype.LHComponent
-DefaultPolymerase *wtype.LHComponent
-DefaultBuffer *wtype.LHComponent
-DefaultDNTPS *wtype.LHComponent
-DefaultWater *wtype.LHComponent
+FwdPrimertype *LHComponent
+RevPrimertype *LHComponent
+Templatetype *LHComponent
+DefaultPolymerase *LHComponent
+DefaultBuffer *LHComponent
+DefaultDNTPS *LHComponent
+DefaultWater *LHComponent
 Plate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-Reactions []*wtype.LHComponent
-ReactionMap map[string]*wtype.LHComponent
+Reactions []*LHComponent
+ReactionMap map[string]*LHComponent
 )
 
 Requirements {
@@ -64,19 +64,19 @@ Steps {
 	
 	
 	// set up some empty slices to fill as we iterate through the reactions
-	Reactions = make([]*wtype.LHComponent,0)
+	Reactions = make([]*LHComponent,0)
 	volumes := make([]wunit.Volume,0)
 	welllocations := make([]string,0)
 	// initialise map
-	ReactionMap = make(map[string]*wtype.LHComponent)
+	ReactionMap = make(map[string]*LHComponent)
 
-	additives := make([]*wtype.LHComponent,0)
+	additives := make([]*LHComponent,0)
 	additivevolumes := make([]wunit.Volume,0)
 
 	// get additive info 
 	for additive, volume := range AdditiveToAdditiveVolume {
 		
-		var additivecomponent *wtype.LHComponent
+		var additivecomponent *LHComponent
 		var componentfound bool = factory.ComponentInFactory(additive)
 		if componentfound {
 		additivecomponent = factory.GetComponentByType(additive)

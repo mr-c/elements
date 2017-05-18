@@ -19,13 +19,13 @@ Data (
 )
 // Physical Inputs to this protocol with types
 Inputs (
-	Transformedcells *wtype.LHComponent
-    Recoverymedium *wtype.LHComponent
+	Transformedcells *LHComponent
+    Recoverymedium *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	RecoveredCells *wtype.LHComponent
+	RecoveredCells *LHComponent
 )
 
 Requirements {

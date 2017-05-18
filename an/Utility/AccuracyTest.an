@@ -44,14 +44,14 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	TestSols []*wtype.LHComponent
-	Diluent *wtype.LHComponent
+	TestSols []*LHComponent
+	Diluent *LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reactions []*wtype.LHComponent
+	Reactions []*LHComponent
 )
 
 Requirements {
@@ -101,7 +101,7 @@ Steps {
 	wellpositionarray = OutPlate.AllWellPositions(wtype.BYCOLUMN)
 	
 	}
-	reactions := make([]*wtype.LHComponent,0)
+	reactions := make([]*LHComponent,0)
 	
 	// use first policy as reference to ensure consistent range through map values
 	referencepolicy, _ := liquidhandling.GetPolicyByName(LHPolicy)
@@ -123,11 +123,11 @@ Steps {
 			counter = 0
 		}
 		
-		var eachreaction []*wtype.LHComponent
-		var solution *wtype.LHComponent
+		var eachreaction []*LHComponent
+		var solution *LHComponent
 		
 		if PipetteOnebyOne {
-		eachreaction = make([]*wtype.LHComponent, 0)
+		eachreaction = make([]*LHComponent, 0)
 		}
 		// keep default policy for diluent
 		

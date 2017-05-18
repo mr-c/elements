@@ -41,10 +41,10 @@ Data (
 Inputs (
 	
 	// Starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
-	SolutionsWithConcentrations []*wtype.LHComponent 
+	SolutionsWithConcentrations []*LHComponent 
 	
 	// Use the same diluent for all component dilutions.
-	Diluent 					*wtype.LHComponent
+	Diluent 					*LHComponent
 	
 	// Use the same outplate for all dilutions.
 	OutPlate 					*wtype.LHPlate
@@ -52,8 +52,8 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	AllDilutions []*wtype.LHComponent
-	DilutionsByComponent map[string][]*wtype.LHComponent
+	AllDilutions []*LHComponent
+	DilutionsByComponent map[string][]*LHComponent
 )
 
 Requirements {
@@ -70,7 +70,7 @@ Setup {
 Steps {
 	
 	wellsused := WellsAlreadyUsed
-	DilutionsByComponent = make(map[string][]*wtype.LHComponent)
+	DilutionsByComponent = make(map[string][]*LHComponent)
 	
 	for _, solution := range SolutionsWithConcentrations {
 			

@@ -20,7 +20,7 @@ Parameters (
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Palette color.Palette
-	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourIndextoComponentMap map[string]*LHComponent
 	ColourtoWellLocationMap map[string][]string
 	OnlythisColour string
 	NotthisColour string
@@ -39,13 +39,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Colourcomponents []*wtype.LHComponent
+	Colourcomponents []*LHComponent
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*wtype.LHComponent
+	Pixels[]*LHComponent
 )
 
 Requirements {
@@ -97,7 +97,7 @@ Steps {
 	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
 
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	

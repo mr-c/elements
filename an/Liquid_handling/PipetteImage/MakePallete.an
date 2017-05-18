@@ -29,16 +29,16 @@ Data (
 	Numberofcolours int
 	//Colournames []string
 	Palette color.Palette
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]*LHComponent
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Cyan *wtype.LHComponent
-	Yellow *wtype.LHComponent
-	Magenta *wtype.LHComponent
-	Black *wtype.LHComponent
+	Cyan *LHComponent
+	Yellow *LHComponent
+	Magenta *LHComponent
+	Black *LHComponent
 	//InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 	PalettePlate *wtype.LHPlate
@@ -46,7 +46,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Colours[]*wtype.LHComponent
+	Colours[]*LHComponent
 )
 
 Requirements {
@@ -87,8 +87,8 @@ Steps {
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 	
 	// make an empty slice of liquid handling components and a map of colour name to liquid handling components
-	solutions := make([]*wtype.LHComponent, 0)
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	solutions := make([]*LHComponent, 0)
+	colourtoComponentMap := make(map[string]*LHComponent)
 
 
 	// initialise a counter to use for looking up the next well position for each iteration of the loop below
@@ -103,12 +103,12 @@ Steps {
 
 	for _, colour := range positiontocolourmap {
 		
-		var solution *wtype.LHComponent
+		var solution *LHComponent
 		
 		colourindex := chosencolourpalette.Index(colour)
 		
 		if colour != nil {
-		//components := make([]*wtype.LHComponent, 0)
+		//components := make([]*LHComponent, 0)
 
 		cmyk := image.ColourtoCMYK(colour)
 		

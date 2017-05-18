@@ -24,12 +24,12 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	TemplateComponent *wtype.LHComponent // This TemplateComponent must be specified in the parameters file or the element will have a run time error
+	TemplateComponent *LHComponent // This TemplateComponent must be specified in the parameters file or the element will have a run time error
 )
 
 // Physical outputs to this protocol
 Outputs (
-	NewLHComponent *wtype.LHComponent // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+	NewLHComponent *LHComponent // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
 )
 
 // Conditions to run on startup

@@ -43,15 +43,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Diluent *wtype.LHComponent
-	Black *wtype.LHComponent
+	Diluent *LHComponent
+	Black *LHComponent
 	//InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*wtype.LHComponent
+	Pixels[]*LHComponent
 )
 
 Requirements {
@@ -104,7 +104,7 @@ Steps {
 	}
 	
 	
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	skipped := 0
@@ -113,7 +113,7 @@ Steps {
 	for locationkey, colour := range positiontocolourmap {
 		
 
-		var solution *wtype.LHComponent
+		var solution *LHComponent
 
 		gray := image.ColourtoGrayscale(colour)
 		

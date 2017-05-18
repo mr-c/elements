@@ -14,12 +14,12 @@ Data (
 )
 
 Inputs (
-	Inoculum *wtype.LHComponent
-	Medium *wtype.LHComponent
+	Inoculum *LHComponent
+	Medium *LHComponent
 )
 
 Outputs (
-	Seed *wtype.LHComponent
+	Seed *LHComponent
 )
 
 Requirements {

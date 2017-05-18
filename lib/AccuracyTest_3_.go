@@ -135,7 +135,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 
 					if _input.PipetteOnebyOne {
 						eachreaction = make([]*wtype.LHComponent, 0)
-						//eachdilution = make([]*wtype.LHComponent, 0)
+						//eachdilution = make([]*LHComponent, 0)
 					}
 					// keep default policy for diluent
 

@@ -33,7 +33,7 @@ import // this is the name of the protocol that will be called in a workflow or 
 // the LHComponent is the principal liquidhandling type in antha
 // the * signifies that this is a pointer to the component rather than the component itself
 // most key antha functions such as Sample and Mix use *LHComponent rather than LHComponent
-// since the type is imported from the wtype package we need to use  *wtype.LHComponent rather than simply *LHComponent
+// since the type is imported from the wtype package we need to use  *LHComponent rather than simply *LHComponent
 
 // Physical outputs from this protocol with types
 
@@ -54,7 +54,7 @@ func _SampleSteps(_ctx context.Context, _input *SampleInput, _output *SampleOutp
 
 	// the Sample function is imported from the mixer library
 	// in the mixer library the function signature can be found, here it is:
-	// func Sample(l *wtype.LHComponent, v wunit.Volume) *wtype.LHComponent {
+	// func Sample(l *LHComponent, v wunit.Volume) *LHComponent {
 	// The function signature  shows that the function requires a *LHComponent and a Volume and returns an *LHComponent
 	_output.Sample = mixer.Sample(_input.Solution, _input.SampleVolume)
 
@@ -152,7 +152,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson1_RunningWorkflows/A_Sample.an",
 			Params: []component.ParamDesc{
 				{Name: "SampleVolume", Desc: "antha, like golang is a strongly typed language in which the type of a variable must be declared.\nIn this case we're creating a variable called SampleVolume which is of type Volume;\nthe type system allows the antha compiler to catch many types of common errors before the programme is run\nthe antha type system extends this to biological types such as volumes here.\nfunctions require inputs of particular types to be adhered to\n", Kind: "Parameters"},
-				{Name: "Solution", Desc: "the LHComponent is the principal liquidhandling type in antha\nthe * signifies that this is a pointer to the component rather than the component itself\nmost key antha functions such as Sample and Mix use *LHComponent rather than LHComponent\nsince the type is imported from the wtype package we need to use  *wtype.LHComponent rather than simply *LHComponent\n", Kind: "Inputs"},
+				{Name: "Solution", Desc: "the LHComponent is the principal liquidhandling type in antha\nthe * signifies that this is a pointer to the component rather than the component itself\nmost key antha functions such as Sample and Mix use *LHComponent rather than LHComponent\nsince the type is imported from the wtype package we need to use  *LHComponent rather than simply *LHComponent\n", Kind: "Inputs"},
 				{Name: "Sample", Desc: "An output LHComponent variable is created called Sample\n", Kind: "Outputs"},
 				{Name: "Status", Desc: "Antha inherits all standard primitives valid in golang;\nfor example the string type shown here used to return a textual message\n", Kind: "Data"},
 			},

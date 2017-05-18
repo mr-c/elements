@@ -21,15 +21,15 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
-	MasterMix		*wtype.LHComponent
+	Parts			[]*LHComponent
+	MasterMix		*LHComponent
 	OutPlate		*wtype.LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types

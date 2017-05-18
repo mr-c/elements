@@ -29,14 +29,14 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	// The solutions to be transferred
-	Startingsolutions []*wtype.LHComponent
+	Startingsolutions []*LHComponent
 	// one outplate is specified for all transfers
 	OutPlate *wtype.LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	FinalSolutions []*wtype.LHComponent
+	FinalSolutions []*LHComponent
 )
 
 Requirements {

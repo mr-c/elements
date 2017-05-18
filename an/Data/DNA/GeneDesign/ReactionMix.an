@@ -23,13 +23,13 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Components []*wtype.LHComponent
-	Vector *wtype.LHComponent
-	Buffer *wtype.LHComponent
-	Ligase *wtype.LHComponent
-	ATP *wtype.LHComponent
-	RE *wtype.LHComponent
-	Water *wtype.LHComponent
+	Components []*LHComponent
+	Vector *LHComponent
+	Buffer *LHComponent
+	Ligase *LHComponent
+	ATP *LHComponent
+	RE *LHComponent
+	Water *LHComponent
 	
 	InPlate *wtype.LHPlate
 	OutPlate *wtype.LHPlate
@@ -38,7 +38,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -56,7 +56,7 @@ Steps {
 	
 	fmt.Println("Components:",Components)
 	
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	
 	VectorS := mixer.Sample(Vector, VectorV)
 	BufferS := mixer.Sample(Buffer, BufferV)
