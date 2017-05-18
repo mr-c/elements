@@ -22,7 +22,7 @@ Parameters (
 
 Data (
 	Partnames[]string
-	PartMassMap map[string]wunit.Mass
+	PartMassMap map[string]Mass
 	PartMolecularWeightMap map[string]float64
 	PartPlateMap map[string]string
 	PartLocationsMap map[string]string
@@ -76,7 +76,7 @@ Steps {
 
 
 	// initialise maps
-	PartMassMap = make(map[string]wunit.Mass)
+	PartMassMap = make(map[string]Mass)
 	PartMolecularWeightMap = make(map[string]float64)
 	PartLocationsMap = make(map[string]string)
 	PartPlateMap = make(map[string]string)

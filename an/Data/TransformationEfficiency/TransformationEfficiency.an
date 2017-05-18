@@ -15,7 +15,7 @@ type metaData struct {
 	CFU int
 	PlateOutVolume Volume
 	DNA DNASequence
-	DNAMass wunit.Mass
+	DNAMass Mass
 	Assembly map[string][]DNASequence
 }
 
@@ -24,12 +24,12 @@ type relativeTransformationEfficiency struct {
 	ExperimentalEfficiency transformationEfficiency
 }
 
-func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(cfuperugperml float64){
+func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(cfuperugperml float64){
 	cfuperugperml = float64(colonyCount) * float64(plateOutdilutionX) / ((volumeToml(plateoutVolumeinml)) * massToug(dnamassinug))
 	return
 }
 
-func newTransformationEfficiency(seq DNASequence colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(efficiency transformationEfficiency){
+func newTransformationEfficiency(seq DNASequence colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(efficiency transformationEfficiency){
 	cfuperugperml := calcTransformationEfficiency(colonyCount,plateoutVolumeinml,plateOutdilutionX,dnamassinug)
 		
 		efficiency = transformationEfficiency{
@@ -48,7 +48,7 @@ func volumeToml (volume Volume) (volumeinml float64) {
 return	
 }
 
-func massToug (mass wunit.Mass) (massinug float64) {
+func massToug (mass Mass) (massinug float64) {
 	massinug = mass.SIValue() * 1000000000
 	return
 }
