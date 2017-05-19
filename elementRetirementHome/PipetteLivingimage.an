@@ -25,7 +25,7 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass wtype.PolicyName
+	UseLiquidClass string
 	Subsetnames []string
 
 )
@@ -64,12 +64,19 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
+
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
 	var err error
@@ -82,7 +89,7 @@ Steps {
 	
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
 	
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	

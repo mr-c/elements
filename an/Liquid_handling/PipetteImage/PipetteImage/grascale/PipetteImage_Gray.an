@@ -7,6 +7,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	goimage "image"
 	)
 
 
@@ -14,8 +15,9 @@ import (
 Parameters (
 	VolumeForFullcolour  Volume
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
+	UseURL bool
 	URL string // enter URL link to the image file here if applicable
+	InputFile wtype.File
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
@@ -68,39 +70,70 @@ Setup {
 Steps {
 	
 	
-	// if image is from url, download
-	if UseURL {
-		err := download.File(URL, Imagefilename)
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var blackvol Volume
+	var maxuint8 uint8 = 255
+	var minuint8 uint8
+	var fullblackuint8 uint8
+	ShadesofGrey = make([]int,0)
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+	if UseURL{
+		//downloading image
+		imgFile , err = download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
-	
-	var blackvol Volume
-	
-	var maxuint8 uint8 = 255	
-		
-	var minuint8 uint8 
-	
-	var fullblackuint8 uint8
-	
-	ShadesofGrey = make([]int,0)
-	
+
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
+	//-------------------------------------------------------------------------------------
+	//Palette manipulation
+	//-------------------------------------------------------------------------------------
+
 	chosencolourpalette := image.AvailablePalettes()["Gray"]
 	
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
 	if CheckResizeAlgorithms {
-	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
-	
-	
-	positiontocolourmap, _, newimagename := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate) 
-	
+
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
 	// if posterize rerun 
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(newimagename, PosterizeLevels)
-		
-		positiontocolourmap, _, _ = image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+		var err error
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		positiontocolourmap, _ = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
 	}
 	
 	
