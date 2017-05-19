@@ -14,6 +14,20 @@ import (
 
 // Input parameters for this protocol (data)
 
+<<<<<<< HEAD
+// Specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution.
+// A "default" may be specified which applies to all values with no explicit value set in this map.
+
+// Specify target concentrations to make for each solution.
+// A "default" may be specified which applies to all values with no explicit value set in this map.
+
+// Optional parameter to override the solution concentration.
+// A "default" may be specified which applies to all values with no explicit value set in this map.
+
+// Optionally choose whether to aliqout the serial dilutions by row instead of the default by column.
+
+// Optionally start after a specified well position if wells are allready used in the plate.
+=======
 // specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution
 // a "default" may be specified which applies to all values with no explicit value set in this map
 
@@ -24,16 +38,25 @@ import (
 // optionally choose whether to aliqout the serial dilutions by row instead of the default by column
 
 // optionally start after a specified well position if wells are allready used in the plate
+>>>>>>> origin/master
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
 
+<<<<<<< HEAD
+// Starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
+
+// Use the same diluent for all component dilutions.
+
+// Use the same outplate for all dilutions.
+=======
 // starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
 
 // Use the same diluent for all component dilutions
 
 // use the same outplate for all dilutions
+>>>>>>> origin/master
 
 // Physical outputs from this protocol with types
 
@@ -76,10 +99,21 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 		}
 
 		var solConc wunit.Concentration
+<<<<<<< HEAD
+		if conc, found := _input.OverrideStockConcentrations[solution.CName]; found {
+			solConc = conc
+		} else if conc, found := _input.OverrideStockConcentrations["default"]; found {
+			solConc = conc
+		} else if solution.HasConcentration() {
+			solConc = solution.Concentration()
+		} else {
+			execute.Errorf(_ctx, "no Stock Concentration found for %s, please set this. ", solution.CName)
+=======
 		if solution.HasConcentration() {
 			solConc = solution.Concentration()
 		} else {
 			execute.Errorf(_ctx, "no concentration found for %s, please set this. ", solution.CName)
+>>>>>>> origin/master
 		}
 
 		// run SerialDilution_ForConcentration element
@@ -171,6 +205,10 @@ type SerialDilution_Conc_multiInput struct {
 	ByRow                       bool
 	Diluent                     *wtype.LHComponent
 	OutPlate                    *wtype.LHPlate
+<<<<<<< HEAD
+	OverrideStockConcentrations map[string]wunit.Concentration
+=======
+>>>>>>> origin/master
 	SolutionsWithConcentrations []*wtype.LHComponent
 	StartVolumeperDilution      map[string]wunit.Volume
 	TargetConcentrations        map[string][]wunit.Concentration
@@ -200,6 +238,16 @@ func init() {
 			Desc: "Protocol to make a series of serial dilution sets. Each set targeting a series of specified setpoint concentrations.\nA series of input solutions are specified which must have the stock concentration specified, e.g. by NewLHComponents.\nA common diluent will be used for all.\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution_Conc_multi/SerialDilution_Conc_multi.an",
 			Params: []component.ParamDesc{
+<<<<<<< HEAD
+				{Name: "ByRow", Desc: "Optionally choose whether to aliqout the serial dilutions by row instead of the default by column.\n", Kind: "Parameters"},
+				{Name: "Diluent", Desc: "Use the same diluent for all component dilutions.\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "Use the same outplate for all dilutions.\n", Kind: "Inputs"},
+				{Name: "OverrideStockConcentrations", Desc: "Optional parameter to override the solution concentration.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
+				{Name: "SolutionsWithConcentrations", Desc: "Starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters\n", Kind: "Inputs"},
+				{Name: "StartVolumeperDilution", Desc: "Specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
+				{Name: "TargetConcentrations", Desc: "Specify target concentrations to make for each solution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "Optionally start after a specified well position if wells are allready used in the plate.\n", Kind: "Parameters"},
+=======
 				{Name: "ByRow", Desc: "optionally choose whether to aliqout the serial dilutions by row instead of the default by column\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "Use the same diluent for all component dilutions\n", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "use the same outplate for all dilutions\n", Kind: "Inputs"},
@@ -207,6 +255,7 @@ func init() {
 				{Name: "StartVolumeperDilution", Desc: "specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution\na \"default\" may be specified which applies to all values with no explicit value set in this map\n", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "specify target concentrations to make for each solution\na \"default\" may be specified which applies to all values with no explicit value set in this map\n\nspecify target concentrations for\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "optionally start after a specified well position if wells are allready used in the plate\n", Kind: "Parameters"},
+>>>>>>> origin/master
 				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
 				{Name: "DilutionsByComponent", Desc: "", Kind: "Outputs"},
 				{Name: "WellsUsedPostRun", Desc: "", Kind: "Data"},
