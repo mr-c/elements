@@ -10,7 +10,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"fmt"
 	"strconv"
-
+	goimage "image"
 )
 
 
@@ -21,6 +21,7 @@ Parameters (
 	NumberofReplicates int
 	Printasimage bool
 	Imagefilename string
+	InputFile	wtype.File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
@@ -70,48 +71,92 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	// if dilution factor not set dilute by 10x 
-	if DilutionFactor == 0 {
-		DilutionFactor = 10
-	}
-	
+
+	//--------------------------------------------------------------------
+	// Global variables declarations
+	//--------------------------------------------------------------------
+
+	// image placeholder variables
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+
 	var minVolume Volume
-	
-	if MinVolume.EqualTo(wunit.NewVolume(0.0,"ul")){
-		minVolume = wunit.NewVolume(0.5,"ul")
-	}else {
-		minVolume = MinVolume
-	}
-	
 	// declare some global variables for use later
 	var rotate = false
 	var autorotate = true
 	var wellpositionarray = make([]string, 0)
 	Runtowelllocationmap = make(map[string]string)
 	Blankwells = make([]string,0)
-	counter := WellsUsed 
-	
+	counter := WellsUsed
+
 	var platenum = 1
 	var runs = make([]doe.Run,1)
 	var newruns = make([]doe.Run,0)
 	var err error
 	Errors = make([]error,0)
-	// work out plate layout based on picture or just in order
-	
-	if Printasimage {
-		
-	// if image is from url, download
+
+	//--------------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------------
+
+	//Downloading from URL if requested
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
+
+	//Opening from File if one is present
+	_, err = InputFile.ReadAll()
+	if err == nil {
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}else{
+		Errorf("no input File Provided")
+	}
+
+
+	//--------------------------------------------------------------------
+	//Dilution calculations
+	//--------------------------------------------------------------------
+
+	// if dilution factor not set dilute by 10x
+	if DilutionFactor == 0 {
+		DilutionFactor = 10
+	}
+
+	if MinVolume.EqualTo(wunit.NewVolume(0.0,"ul")){
+		minVolume = wunit.NewVolume(0.5,"ul")
+	}else {
+		minVolume = MinVolume
+	}
+
+	//--------------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------------
+
+	// work out plate layout based on picture or just in order
+
+	if Printasimage {
+
 	chosencolourpalette := image.AvailablePalettes()["Palette1"]
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, rotate,autorotate) 
-	
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, rotate,autorotate)
+
+
+	//--------------------------------------------------------------------
+	//Pipetting
+	//--------------------------------------------------------------------
+
 	//Runtowelllocationmap = make([]string,0)
 	
 	for location, colour := range positiontocolourmap {
@@ -125,7 +170,7 @@ Steps {
 	
 	}else{
 			
-	wellpositionarray = OutPlate.AllWellPositions(wtype.BYCOLUMN)
+		wellpositionarray = OutPlate.AllWellPositions(wtype.BYCOLUMN)
 	
 	}
 	reactions := make([]*wtype.LHComponent,0)
@@ -270,7 +315,7 @@ Steps {
 		
 		
 		// add run to well position lookup table 
-		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]	
+		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]
 	
 	// add additional info for each run
 	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
