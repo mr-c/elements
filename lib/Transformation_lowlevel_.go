@@ -12,7 +12,7 @@ import (
 
 // Input parameters for this protocol (data)
 
-//CompetentCellvolumeperassembly wunit.Volume //= 50.(uL)
+//CompetentCellvolumeperassembly Volume //= 50.(uL)
 
 //Coolplatepositions []string
 //HotplatePositions []string
@@ -22,8 +22,8 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//RecoveryPlate *wtype.LHPlate
-//CompcellPlate *wtype.LHPlate
+//RecoveryPlate *LHPlate
+//CompcellPlate *LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -164,7 +164,7 @@ func init() {
 				{Name: "Postplasmidtemp", Desc: "", Kind: "Parameters"},
 				{Name: "Postplasmidtime", Desc: "", Kind: "Parameters"},
 				{Name: "Reactions", Desc: "", Kind: "Inputs"},
-				{Name: "Reactionvolume", Desc: "CompetentCellvolumeperassembly wunit.Volume //= 50.(uL)\n", Kind: "Parameters"},
+				{Name: "Reactionvolume", Desc: "CompetentCellvolumeperassembly Volume //= 50.(uL)\n", Kind: "Parameters"},
 				{Name: "ReadyCompCells", Desc: "", Kind: "Inputs"},
 				{Name: "RecoveryMediaAliquots", Desc: "", Kind: "Inputs"},
 				{Name: "Recoverytemp", Desc: "", Kind: "Parameters"},

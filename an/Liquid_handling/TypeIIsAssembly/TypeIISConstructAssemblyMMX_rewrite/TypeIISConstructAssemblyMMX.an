@@ -20,31 +20,31 @@ Parameters (
 	OutputLocation 				string
         OutputConstructName                     string
 	OutputPlateNum				int
-	LHPolicyName				wtype.PolicyName
+	LHPolicyName				PolicyName
         EnzymeName                              string
-        PartSeqs                                []wtype.DNASequence
+        PartSeqs                                []DNASequence
 
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
-	MasterMix		*wtype.LHComponent
-	OutPlate		*wtype.LHPlate
-	Water                   *wtype.LHComponent
+	Parts			[]*LHComponent
+	MasterMix		*LHComponent
+	OutPlate		*LHPlate
+	Water                   *LHComponent
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction      *wtype.LHComponent
+	Reaction      *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
 Data (
 	Errors        []string
         ConstructName string
-        Sequence      wtype.DNASequence
+        Sequence      DNASequence
 )
 
 Requirements {}

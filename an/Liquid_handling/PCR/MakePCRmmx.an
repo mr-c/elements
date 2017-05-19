@@ -7,7 +7,7 @@ import (
 )
 
 /*type Polymerase struct {
-	wtype.LHComponent
+	LHComponent
 	Rate_BPpers float64
 	Fidelity_errorrate float64 // could dictate how many colonies are checked in validation!
 	Extensiontemp Temperature
@@ -56,19 +56,19 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	FwdPrimer *wtype.LHComponent
-	RevPrimer *wtype.LHComponent
-	DNTPS *wtype.LHComponent
-	PCRPolymerase *wtype.LHComponent
-	Buffer *wtype.LHComponent
-	Water *wtype.LHComponent
-	Additives []*wtype.LHComponent // e.g. DMSO
-	OutPlate *wtype.LHPlate
+	FwdPrimer *LHComponent
+	RevPrimer *LHComponent
+	DNTPS *LHComponent
+	PCRPolymerase *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
+	Additives []*LHComponent // e.g. DMSO
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 Requirements {
@@ -88,7 +88,7 @@ Steps {
 	bufferVolume.DivideBy(float64(BufferConcinX))
 	
 	// Make a mastermix
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.Sample(Water, WaterVolume)
 	bufferSample := mixer.Sample(Buffer,bufferVolume)
 	samples = append(samples, waterSample, bufferSample)
@@ -124,7 +124,7 @@ Steps {
 	mastermix := MixInto(OutPlate, "", samples...)
 	
 	// rest samples to zero
-	samples = make([]*wtype.LHComponent, 0)
+	samples = make([]*LHComponent, 0)
 	
 	// if this is false do stuff inside {}
 	if !AddPrimerstoMasterMix {

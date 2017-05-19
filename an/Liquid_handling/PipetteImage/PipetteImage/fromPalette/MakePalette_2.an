@@ -33,24 +33,24 @@ Data (
 	//Colournames []string
 	Palette color.Palette
 	ColourtoComponentMap map[string]string // map of colour name (as index) to component name
-	PaletteFile wtype.File
+	PaletteFile File
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Cyan *wtype.LHComponent
-	Yellow *wtype.LHComponent
-	Magenta *wtype.LHComponent
-	Black *wtype.LHComponent
-	White *wtype.LHComponent
-	OutPlate *wtype.LHPlate
-	PalettePlate *wtype.LHPlate
+	Cyan *LHComponent
+	Yellow *LHComponent
+	Magenta *LHComponent
+	Black *LHComponent
+	White *LHComponent
+	OutPlate *LHPlate
+	PalettePlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Colours[]*wtype.LHComponent
+	Colours[]*LHComponent
 )
 
 Requirements {
@@ -72,7 +72,7 @@ Steps {
 
 	//image and error placeholders
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -119,7 +119,7 @@ Steps {
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 	
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 	colourtoComponentMap := make(map[string]string)
 	
 	counter := 0
@@ -140,7 +140,7 @@ Steps {
 			
 				}else{
 				
-			var solution *wtype.LHComponent
+			var solution *LHComponent
 			var componentVols []Volume
 	
 			counter = counter + 1

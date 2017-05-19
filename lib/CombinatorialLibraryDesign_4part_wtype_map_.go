@@ -63,8 +63,8 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 	_output.Sequences = make([]wtype.DNASequence, 0)
 	_output.Parts = make([][]wtype.DNASequence, 0)
 	_output.SequencingPrimers = make([][]wtype.DNASequence, 0)
-	//uniqueFWDPrimers := make([]wtype.DNASequence,0)
-	//uniqueREVPrimers := make([]wtype.DNASequence,0)
+	//uniqueFWDPrimers := make([]DNASequence,0)
+	//uniqueREVPrimers := make([]DNASequence,0)
 
 	var counter int = 1
 

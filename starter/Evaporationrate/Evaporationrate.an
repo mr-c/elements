@@ -54,8 +54,8 @@ Data (
 	Warnings []error
 )
 Inputs (
-	Platetype *wtype.LHPlate
-	Liquid *wtype.LHComponent
+	Platetype *LHPlate
+	Liquid *LHComponent
 )
 Outputs (
 )

@@ -7,16 +7,16 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	CompetentCellvolumeperassembly wunit.Volume //= 50.(uL)
-	Reactionvolume wunit.Volume
+	CompetentCellvolumeperassembly Volume //= 50.(uL)
+	Reactionvolume Volume
 	Preplasmidtime wunit.Time
 	Preplasmidtemp wunit.Temperature
 	Postplasmidtime wunit.Time
 	Postplasmidtemp wunit.Temperature
-	Recoveryvolume wunit.Volume
+	Recoveryvolume Volume
 	Recoverytime wunit.Time //= 2 (hours)
 	Recoverytemp wunit.Temperature
-	Plateoutvolume wunit.Volume
+	Plateoutvolume Volume
 	//Shakerspeed float64 // correct type?
 	
 	//Plateoutdilution float64
@@ -30,16 +30,16 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Reaction *wtype.LHComponent
-	CompetentCells *wtype.LHComponent
-    Recoverymedium *wtype.LHComponent
-	OutPlate *wtype.LHPlate
-	AgarPlate *wtype.LHPlate
+	Reaction *LHComponent
+	CompetentCells *LHComponent
+    Recoverymedium *LHComponent
+	OutPlate *LHPlate
+	AgarPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Platedculture *wtype.LHComponent
+	Platedculture *LHComponent
 )
 
 Requirements {
@@ -54,7 +54,7 @@ Setup {
 Steps {
 	
 	
-	competentcells := make([]*wtype.LHComponent,0)
+	competentcells := make([]*LHComponent,0)
 	
 	
 	competentcells = append(competentcells,CompetentCells)
@@ -65,8 +65,8 @@ Steps {
 	readycompetentcellsComp := Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false) // we can incubate an LHComponent so this is fine
 	*/
 	
-	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *wtype.LHComponent from inputs!
-	//transformationmix := make([]*wtype.LHComponent, 0)
+	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *LHComponent from inputs!
+	//transformationmix := make([]*LHComponent, 0)
 	//transformationmix = append(transformationmix, competetentcellmix)
 	DNAsample := mixer.Sample(Reaction, Reactionvolume)
 	//transformationmix = append(transformationmix, DNAsample)
@@ -76,7 +76,7 @@ Steps {
 
 	//transformedcellsComp := Incubate (transformedcells, Postplasmidtemp, Postplasmidtime,false)
 
-	//recoverymix := make([]*wtype.LHComponent, 0)
+	//recoverymix := make([]*LHComponent, 0)
 	recoverymixture := mixer.Sample(Recoverymedium, Recoveryvolume)
 
 	//recoverymix = append(recoverymix,transformedcellsComp) // ERROR! transformedcells is now an LHComponent, not a liquid, so can't be used here

@@ -17,13 +17,13 @@ Parameters (
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool
 	URL string // enter URL link to the image file here if applicable
-	InputFile wtype.File
+	InputFile File
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
 	SkipWhite bool
-	MixingLiquidClass wtype.PolicyName
-	NonMixingClass wtype.PolicyName
+	MixingLiquidClass PolicyName
+	NonMixingClass PolicyName
 	Negative bool
 	Rotate bool
 	AutoRotate bool
@@ -45,15 +45,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Diluent *wtype.LHComponent
-	Black *wtype.LHComponent
-	//InPlate *wtype.LHPlate
-	OutPlate *wtype.LHPlate
+	Diluent *LHComponent
+	Black *LHComponent
+	//InPlate *LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*wtype.LHComponent
+	Pixels[]*LHComponent
 )
 
 Requirements {
@@ -80,7 +80,7 @@ Steps {
 	var fullblackuint8 uint8
 	ShadesofGrey = make([]int,0)
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -137,7 +137,7 @@ Steps {
 	}
 	
 	
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	skipped := 0
@@ -146,7 +146,7 @@ Steps {
 	for locationkey, colour := range positiontocolourmap {
 		
 
-		var solution *wtype.LHComponent
+		var solution *LHComponent
 
 		gray := image.ColourtoGrayscale(colour)
 		

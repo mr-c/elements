@@ -13,7 +13,7 @@ Parameters (
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy wtype.PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
@@ -24,13 +24,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	TransformedCells []*wtype.LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
+	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	TransformedCells []*LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
 )
 
 // Physical outputs to this protocol
 Outputs (
-	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	PlatedCultures []*LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
 )
 
 // Conditions to run on startup

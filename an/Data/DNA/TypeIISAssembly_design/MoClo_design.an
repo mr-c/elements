@@ -45,8 +45,8 @@ Data (
 	Warnings string
 	Status string
 	Simulationpass bool
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	PartswithOverhangs []DNASequence // parts to order
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
 )
 // Input Requirement specification
 Requirements {
@@ -68,8 +68,8 @@ Steps {
 	
 	/* find sequence data from keyword; looking it up by a given name in an inventory 
 	   or by biobrick ID from iGem parts registry */
-	partsinorder := make([]wtype.DNASequence,0)
-	var partDNA wtype.DNASequence
+	partsinorder := make([]DNASequence,0)
+	var partDNA DNASequence
 	
 	Status = "all parts available"
 	for _, part := range Partsinorder {

@@ -31,23 +31,23 @@ Data (
 	Numberofcolours int
 	//Colournames []string
 	Palette color.Palette
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]*LHComponent
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Red *wtype.LHComponent
-	Green *wtype.LHComponent
-	Blue *wtype.LHComponent
-	//InPlate *wtype.LHPlate
-	PlateWithMasterMix *wtype.LHPlate
-	PalettePlate *wtype.LHPlate
+	Red *LHComponent
+	Green *LHComponent
+	Blue *LHComponent
+	//InPlate *LHPlate
+	PlateWithMasterMix *LHPlate
+	PalettePlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Colours[]*wtype.LHComponent
+	Colours[]*LHComponent
 )
 
 Requirements {
@@ -81,15 +81,15 @@ Steps {
 	CompetentCellTransferVolume Volume = wunit.NewVolume(20.0,"ul")
 	RecoveryPlateNumber 		int = 1
 	
-	PlatewithRecoveryMedia		*wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
-	PlateWithCompetentCells		*wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
+	PlatewithRecoveryMedia		*LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
+	PlateWithCompetentCells		*LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
 	)
 
 	redname := Red.CName
 	greenname := Green.CName
 	bluename := Blue.CName
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	var err error
@@ -141,8 +141,8 @@ Steps {
 	
 	//fmt.Println("positions", positiontocolourmap)
 	
-	solutions := make([]*wtype.LHComponent, 0)
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	solutions := make([]*LHComponent, 0)
+	colourtoComponentMap := make(map[string]*LHComponent)
 
 	counter := 0
 	//wellpositionarray := PlateWithMasterMix.AllWellPositions(wtype.BYCOLUMN)
@@ -153,7 +153,7 @@ Steps {
 		colourindex := chosencolourpalette.Index(colour)
 		
 		if colour != nil {
-		components := make([]*wtype.LHComponent, 0)
+		components := make([]*LHComponent, 0)
 
 		r, g, b, _ := colour.RGBA()
 		

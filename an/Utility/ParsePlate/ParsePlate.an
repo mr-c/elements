@@ -23,9 +23,9 @@ Inputs (
 ) 
 // Physical outputs from this protocol with types
 Outputs (
-	AllComponents []*wtype.LHComponent//Gel
-	PlatewithComponents *wtype.LHPlate
-	ComponentMap map[string]*wtype.LHComponent
+	AllComponents []*LHComponent//Gel
+	PlatewithComponents *LHPlate
+	ComponentMap map[string]*LHComponent
 )
 
 // No special requirements on inputs
@@ -68,8 +68,8 @@ Steps {
 	// return any warnings from plate parsing process
 	Warnings = plateresult.Warnings
 	
-	components := make([]*wtype.LHComponent,0)
-	ComponentMap = make(map[string]*wtype.LHComponent)
+	components := make([]*LHComponent,0)
+	ComponentMap = make(map[string]*LHComponent)
 	
 	// get all plate components and return into both a slice and a map
 	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN){

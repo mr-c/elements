@@ -20,9 +20,9 @@ Parameters (
 	OutputLocation 				string
     OutputConstructName         string
 	OutputPlateNum				int
-	LHPolicyName				wtype.PolicyName
+	LHPolicyName				PolicyName
     EnzymeName                  string
-    PartSeqs                   	[]wtype.DNASequence
+    PartSeqs                   	[]DNASequence
 	CompetentCellPlateWell 		string
 	RecoveryPlateWell 			string
 	RecoveryTemp 				Temperature
@@ -36,25 +36,25 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts						[]*wtype.LHComponent
-	MasterMix					*wtype.LHComponent
-	OutPlate					*wtype.LHPlate
-	PlateWithCompetentCells		 *wtype.LHPlate
-	PlatewithRecoveryMedia		*wtype.LHPlate
-	Water                   	*wtype.LHComponent
+	Parts						[]*LHComponent
+	MasterMix					*LHComponent
+	OutPlate					*LHPlate
+	PlateWithCompetentCells		 *LHPlate
+	PlatewithRecoveryMedia		*LHPlate
+	Water                   	*LHComponent
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction      *wtype.LHComponent
-	Recovery	*wtype.LHComponent
+	Reaction      *LHComponent
+	Recovery	*LHComponent
 )
 
 // Data which is returned from this protocol, and data types
 Data (
         ConstructName string
-        Sequence      wtype.DNASequence
+        Sequence      DNASequence
 		Output string
 )
 
@@ -68,7 +68,7 @@ Setup {}
 Steps {
 	var err error
 
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
         ConstructName = OutputConstructName
 	
         last := len(PartSeqs) - 1

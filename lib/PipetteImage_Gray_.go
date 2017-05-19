@@ -28,7 +28,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
+//InPlate *LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -331,7 +331,7 @@ func init() {
 				{Name: "Negative", Desc: "", Kind: "Parameters"},
 				{Name: "NonMixingClass", Desc: "", Kind: "Parameters"},
 				{Name: "OnlyHighVolumetips", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},

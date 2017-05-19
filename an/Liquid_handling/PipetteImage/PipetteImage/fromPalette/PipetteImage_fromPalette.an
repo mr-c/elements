@@ -40,13 +40,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Colourcomponents []*wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Colourcomponents []*LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*wtype.LHComponent
+	Pixels[]*LHComponent
 )
 
 Requirements {
@@ -67,7 +67,7 @@ Steps {
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	var err error
@@ -112,7 +112,7 @@ Steps {
 	//Pipetting
 	//-------------------------------------------------------------------------------------
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 	counter := 0
 
 	for locationkey, colour := range positiontocolourmap {
@@ -217,7 +217,7 @@ Validation {
 
 // Looks for a component matching on name only.
 // If more than one component present the first component will be returned with no error
-func findComponent(components []*wtype.LHComponent, componentName string)(component *wtype.LHComponent, err error){
+func findComponent(components []*LHComponent, componentName string)(component *LHComponent, err error){
 	for _,comp := range components {
 		if comp.CName == componentName {
 			return comp, nil

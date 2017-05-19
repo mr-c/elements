@@ -19,9 +19,9 @@ Data (
 )
 
 Inputs (
-	SampleForReading *wtype.LHComponent
-	Diluent *wtype.LHComponent
-	Plate *wtype.LHPlate
+	SampleForReading *LHComponent
+	Diluent *LHComponent
+	Plate *LHPlate
 )
 
 Outputs (

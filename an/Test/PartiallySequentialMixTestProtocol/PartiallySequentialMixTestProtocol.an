@@ -21,15 +21,15 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
-	MasterMix		*wtype.LHComponent
-	OutPlate		*wtype.LHPlate
+	Parts			[]*LHComponent
+	MasterMix		*LHComponent
+	OutPlate		*LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -46,7 +46,7 @@ Steps {
 	mmxSample:=mixer.SampleForTotalVolume(MasterMix,ReactionVolume)
 	mixture:=MixTo(OutPlate.Type, OutputLocation, OutputPlateNum, mmxSample)
 
-	samples:=make([]*wtype.LHComponent, 0, 1)
+	samples:=make([]*LHComponent, 0, 1)
 	samples=append(samples, mixture)
 
 	for k, part := range Parts {

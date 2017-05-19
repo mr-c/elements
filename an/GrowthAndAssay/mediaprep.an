@@ -17,14 +17,14 @@ Data (
 )
 
 Inputs (
-	YeastExtract *wtype.LHComponent
-	Tryptone *wtype.LHComponent
-	Glycerol *wtype.LHComponent
-	BaseMedium *wtype.LHComponent
+	YeastExtract *LHComponent
+	Tryptone *LHComponent
+	Glycerol *LHComponent
+	BaseMedium *LHComponent
 )
 
 Outputs (
-	GrowthMedium *wtype.LHComponent
+	GrowthMedium *LHComponent
 )
 
 Requirements {

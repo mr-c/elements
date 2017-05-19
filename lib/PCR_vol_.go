@@ -318,7 +318,7 @@ func init() {
 }
 
 /*type Polymerase struct {
-	wtype.LHComponent
+	LHComponent
 	Rate_BPpers float64
 	Fidelity_errorrate float64 // could dictate how many colonies are checked in validation!
 	Extensiontemp Temperature

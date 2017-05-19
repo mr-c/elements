@@ -23,7 +23,7 @@ Parameters (
 	
 	// If empty this defaults to LHPolicy of TemplateComponent LHComponent, 
 	// if a "default" is specified this policy is used for all entries with no value
-	UseLHPolicy map[string]wtype.PolicyName 
+	UseLHPolicy map[string]PolicyName 
 )
 
 // Output data of this protocol
@@ -38,13 +38,13 @@ Data (
 Inputs (
 	// This TemplateComponent must be specified in the parameters file or the element will have a run time error, 
 	// if "default" is specified that will be used as default for all entries with no value
-	TemplateComponents map[string]*wtype.LHComponent 
+	TemplateComponents map[string]*LHComponent 
 )
 
 // Physical outputs to this protocol
 Outputs (
 	// This is the list of NewLHComponents output that can be wired into another element and be used straight away without having to input it into the LHComponent library
-	NewLHComponents []*wtype.LHComponent 
+	NewLHComponents []*LHComponent 
 )
 
 // Conditions to run on startup
@@ -69,7 +69,7 @@ Steps {
 	
 	// if the length of the map is 1 this template will be used for all components
 	// if empty the protocol will terminate with an error
-	var defaultTemplate *wtype.LHComponent
+	var defaultTemplate *LHComponent
 	
 	if _, found := TemplateComponents["default"];found{
 		defaultTemplate = TemplateComponents["default"]
@@ -79,7 +79,7 @@ Steps {
 	
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
-	var defaultLHPolicy wtype.PolicyName
+	var defaultLHPolicy PolicyName
 	
 	if policy,found := UseLHPolicy["default"];found{
 			defaultLHPolicy = policy
@@ -95,8 +95,8 @@ Steps {
 		
 		var status string
 		var stockConc Concentration
-		var template *wtype.LHComponent
-		var lhpolicy wtype.PolicyName
+		var template *LHComponent
+		var lhpolicy PolicyName
 		var found bool
 		
 		// check if a concentration is specified 
