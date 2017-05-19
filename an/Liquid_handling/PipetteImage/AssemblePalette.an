@@ -106,7 +106,7 @@ Steps {
 
 	//image and error placeholders
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 

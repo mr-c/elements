@@ -21,7 +21,7 @@ Parameters (
 	NumberofReplicates int
 	Printasimage bool
 	Imagefilename string
-	InputFile	wtype.File
+	InputFile	File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
@@ -77,7 +77,7 @@ Steps {
 	//--------------------------------------------------------------------
 
 	// image placeholder variables
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 

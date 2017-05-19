@@ -45,8 +45,8 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	PartsToOrder map[string]wtype.File
-	AssembledSequenceFiles map[string]wtype.File
+	PartsToOrder map[string]File
+	AssembledSequenceFiles map[string]File
 )
 // Input Requirement specification
 Requirements {
@@ -67,8 +67,8 @@ Steps {
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
 	PrimerMap = make(map[string]oligos.Primer)
-	AssembledSequenceFiles = make(map[string]wtype.File)
-	PartsToOrder = make(map[string]wtype.File)
+	AssembledSequenceFiles = make(map[string]File)
+	PartsToOrder = make(map[string]File)
 	
 	var counter int = 1
 	

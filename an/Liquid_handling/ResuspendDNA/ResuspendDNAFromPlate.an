@@ -23,7 +23,7 @@ Parameters (
 Data (
 	PartConcentrations map[string]Concentration
 	Errors []error
-	PlateContents wtype.File
+	PlateContents File
 )
 
 Inputs (

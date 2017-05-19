@@ -58,9 +58,9 @@ Data (
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	AssembledSequences wtype.File
-	PartsToOrder []wtype.File
-	PrimersToOrder []wtype.File
+	AssembledSequences File
+	PartsToOrder []File
+	PrimersToOrder []File
 )
 // Input Requirement specification
 Requirements {

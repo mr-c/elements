@@ -33,7 +33,7 @@ Data (
 	Status string
 	WellsUsedPostRunPerPlate []int
 	PlatesUsedPostRunPerPlateType []int
-	Report wtype.File
+	Report File
 )
 
 

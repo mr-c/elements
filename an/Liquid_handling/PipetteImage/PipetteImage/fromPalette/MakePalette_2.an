@@ -33,7 +33,7 @@ Data (
 	//Colournames []string
 	Palette color.Palette
 	ColourtoComponentMap map[string]string // map of colour name (as index) to component name
-	PaletteFile wtype.File
+	PaletteFile File
 )
 
 
@@ -72,7 +72,7 @@ Steps {
 
 	//image and error placeholders
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 

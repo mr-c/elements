@@ -89,7 +89,7 @@ Steps {
 	greenname := Green.CName
 	bluename := Blue.CName
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	var err error

@@ -59,7 +59,7 @@ Data (
 	Plasmid bool
 	ORIpresent bool
 	SelectionMarkerPresent bool
-	AssembledSequenceFile wtype.File
+	AssembledSequenceFile File
 	PartsToOrder File
 	
 )

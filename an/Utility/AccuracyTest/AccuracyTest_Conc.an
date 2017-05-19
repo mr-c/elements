@@ -25,7 +25,7 @@ Parameters (
 	Printasimage bool
 	UseURL bool // select this if getting the image from a URL
 	Imagefilename	string
-	InputFile wtype.File
+	InputFile File
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
@@ -48,7 +48,7 @@ Data (
 	Blankwells []string
 	Runs []doe.Run
 	Wellpositionarray []string
-	ExportedFile wtype.File
+	ExportedFile File
 )
 
 
@@ -106,7 +106,7 @@ Steps {
 	if Printasimage {
 		
 	// image placeholder variables
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	//--------------------------------------------------------------------

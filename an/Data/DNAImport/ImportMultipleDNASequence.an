@@ -11,7 +11,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	SequenceFile wtype.File //Only supported file format: .fasta 
+	SequenceFile File //Only supported file format: .fasta 
 	OverrideSequenceType map[string]string //Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a "default" value can be specified which will apply to all sequences with no entry.
 	CheckForORFs bool //If true, sequence is searched for ORF's
 )

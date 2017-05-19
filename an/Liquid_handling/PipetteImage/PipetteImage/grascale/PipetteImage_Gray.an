@@ -17,7 +17,7 @@ Parameters (
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool
 	URL string // enter URL link to the image file here if applicable
-	InputFile wtype.File
+	InputFile File
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
@@ -80,7 +80,7 @@ Steps {
 	var fullblackuint8 uint8
 	ShadesofGrey = make([]int,0)
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 

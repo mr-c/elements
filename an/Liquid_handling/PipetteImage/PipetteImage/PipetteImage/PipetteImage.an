@@ -18,7 +18,7 @@ import (
 Parameters (
 	VolumePerWell  Volume
 	ImageFileName	string //Desired name for the output image file
-	InputFile wtype.File // Image File
+	InputFile File // Image File
 	URL	string
 	UseURL	bool
 	Palettename string
@@ -35,7 +35,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	ResizedImage wtype.File
+	ResizedImage File
 	ResizedImages []*goimage.NRGBA
 	Numberofpixels int
 	UniqueComponents []string

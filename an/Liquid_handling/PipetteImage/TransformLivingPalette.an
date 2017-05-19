@@ -23,7 +23,7 @@ Parameters (
 	InducerVolume Volume
 	RepressorVolume Volume*/
 	ImageFileName string // name of image file or if using URL use this field to set the desired filename
-	InputFile wtype.File
+	InputFile File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Palettename string
@@ -106,7 +106,7 @@ Steps {
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
 	// img and error placeholders
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 

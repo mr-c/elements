@@ -67,7 +67,7 @@ Steps {
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	var err error

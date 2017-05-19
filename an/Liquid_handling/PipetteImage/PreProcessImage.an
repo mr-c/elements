@@ -16,7 +16,7 @@ Parameters (
 	ImageFileName string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
-	InputFile wtype.File
+	InputFile File
 	Negative bool
 	Rotate bool
 	AutoRotate bool
@@ -28,7 +28,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	ProcessedImage wtype.File
+	ProcessedImage File
 )
 
 
@@ -59,7 +59,7 @@ Steps {
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile wtype.File
+	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 

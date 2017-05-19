@@ -51,7 +51,7 @@ type collection []RBSdata
 
 func (rbscollection collection) Max() (rbs RBSdata) {
 
-	//var maxSeq wtype.DNASequence
+	//var maxSeq DNASequence
 	var maxStrength float64
 	for i := range rbscollection {
 		if i == 0 {
