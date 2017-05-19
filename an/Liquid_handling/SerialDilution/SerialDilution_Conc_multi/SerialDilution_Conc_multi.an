@@ -12,18 +12,22 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	
-	// specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution
-	// a "default" may be specified which applies to all values with no explicit value set in this map
+	// Specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution.
+	// A "default" may be specified which applies to all values with no explicit value set in this map.
 	StartVolumeperDilution 	map[string]Volume 
 	
-	// specify target concentrations to make for each solution
-	// a "default" may be specified which applies to all values with no explicit value set in this map
-	TargetConcentrations  	map[string][]Concentration// specify target concentrations for 
+	// Specify target concentrations to make for each solution.
+	// A "default" may be specified which applies to all values with no explicit value set in this map.
+	TargetConcentrations  	map[string][]Concentration
 	
-	// optionally choose whether to aliqout the serial dilutions by row instead of the default by column
+	// Optional parameter to override the solution concentration.
+	// A "default" may be specified which applies to all values with no explicit value set in this map.
+	OverrideStockConcentrations map[string]Concentration
+	
+	// Optionally choose whether to aliqout the serial dilutions by row instead of the default by column.
 	ByRow 					bool 
 	
-	// optionally start after a specified well position if wells are allready used in the plate
+	// Optionally start after a specified well position if wells are allready used in the plate.
 	WellsAlreadyUsed			int 
 )
 
@@ -36,20 +40,20 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	
-	// starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
-	SolutionsWithConcentrations []*wtype.LHComponent 
+	// Starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters
+	SolutionsWithConcentrations []*LHComponent 
 	
-	// Use the same diluent for all component dilutions
-	Diluent 					*wtype.LHComponent
+	// Use the same diluent for all component dilutions.
+	Diluent 					*LHComponent
 	
-	// use the same outplate for all dilutions
-	OutPlate 					*wtype.LHPlate
+	// Use the same outplate for all dilutions.
+	OutPlate 					*LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	AllDilutions []*wtype.LHComponent
-	DilutionsByComponent map[string][]*wtype.LHComponent
+	AllDilutions []*LHComponent
+	DilutionsByComponent map[string][]*LHComponent
 )
 
 Requirements {
@@ -66,7 +70,7 @@ Setup {
 Steps {
 	
 	wellsused := WellsAlreadyUsed
-	DilutionsByComponent = make(map[string][]*wtype.LHComponent)
+	DilutionsByComponent = make(map[string][]*LHComponent)
 	
 	for _, solution := range SolutionsWithConcentrations {
 			
@@ -91,10 +95,14 @@ Steps {
 		}
 		
 		var solConc Concentration
-		if solution.HasConcentration(){
+		if conc, found := OverrideStockConcentrations[solution.CName];found{
+			solConc = conc
+		}else if conc, found := OverrideStockConcentrations["default"];found{
+			solConc = conc
+		}else if solution.HasConcentration(){
 			solConc = solution.Concentration()
 		}else{
-			Errorf("no concentration found for %s, please set this. ",solution.CName)
+			Errorf("no Stock Concentration found for %s, please set this. ",solution.CName)
 		}
 		
 		// run SerialDilution_ForConcentration element
