@@ -199,7 +199,7 @@ type AutoColonyPCRInput struct {
 	FwdPrimertype        *wtype.LHComponent
 	Plate                *wtype.LHPlate
 	Projectname          string
-	Reactiontoprimerpair map[string][]string
+	Reactiontoprimerpair map[string][2]string
 	RecoveryPlate        *wtype.LHPlate
 	RevPrimertype        *wtype.LHComponent
 	Templatetype         *wtype.LHComponent
