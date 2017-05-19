@@ -56,7 +56,14 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
@@ -64,7 +71,7 @@ Steps {
 	
 	
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	solutions := make([]*LHComponent, 0)
 

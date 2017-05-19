@@ -28,7 +28,11 @@ Parameters (
 	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
+<<<<<<< HEAD:an/Liquid_handling/PipetteImage/PipetteImage_fromPalette_refactor.an
 	LiquidType PolicyName
+=======
+	LiquidType string
+>>>>>>> origin/master:elementRetirementHome/PipetteImage_fromPalette_refactor.an
 )
 
 // Data which is returned from this protocol, and data types
@@ -63,18 +67,27 @@ Steps {
 	
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	if PosterizeImage{
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
-	
-	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
-	}
-	
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate)
 	
 	// use position to colour map to make a colour to []well positions map
 	colourtoWellLocationMap := make(map[string][]string)

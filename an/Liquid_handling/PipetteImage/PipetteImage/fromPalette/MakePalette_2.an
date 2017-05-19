@@ -9,6 +9,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"image/color"
 	"strconv"
+	goimage "image"
 )
 
 
@@ -64,26 +65,56 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	
+
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	//image and error placeholders
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err = download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
 	}
 	
-	
+	//-------------------------------------------------------------------------------------
+	//Palettes selection
+	//-------------------------------------------------------------------------------------
+
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, OutPlate,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -258,7 +289,6 @@ Steps {
 	Palette = chosencolourpalette
 	ColourtoComponentMap = colourtoComponentMap
 
-	var err error 
 	PaletteFile, err = export.JSON(Palette, "Palette.json")
 	
 	if err != nil {

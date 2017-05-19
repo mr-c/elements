@@ -6,14 +6,14 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	goimage "image"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
+	Imagefilename string // name of the desired output file name
 	URL string // enter URL link to the image file here if applicable
 	Rotate bool
 	AutoRotate bool
@@ -54,17 +54,42 @@ Setup {
 Steps {
 	
 	
-	// if image is from url, download
-	if UseURL {
-		err := download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
+	//downloading image
+	imgFile , err = download.File(URL, Imagefilename)
+	if err != nil{
+		Errorf(err.Error())
 	}
-	
+
+	//opening the image file
+	imgBase, err = image.OpenFile(imgFile)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
+	//----------------------------------------------------------------------------------------------
+	//Palette Processing
+	//----------------------------------------------------------------------------------------------
+
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
-	
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+
+
+	//----------------------------------------------------------------------------------------------
+	//Pipetting
+	//----------------------------------------------------------------------------------------------
+
 	solutions := make([]*LHComponent, 0)
 
 	counter := 0

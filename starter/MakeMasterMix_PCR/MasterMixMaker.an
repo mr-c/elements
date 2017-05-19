@@ -1,5 +1,6 @@
 // Make a general mastermix comprising of a list of components, list of volumes
-// and specifying the number of reactions required
+// and specifying the number of reactions required.
+// The output of this element can be wired into other elements such as AutoAssembly, AutoPCR or Aliquot.
 protocol MasterMixMaker
 
 import (
@@ -39,20 +40,30 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	Status string
+	// Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.
 	MasterMixVolume Volume
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	// if OptimisePlateUsage is set to false this will be the plate type which the mastermix will be transferred to.
+
+	// The plate which the mastermix will be made in. 
+	// However, There is one scenario where it will not be used.
+	// 1. If OptimisePlateUsage is selected then the Antha scheduler will search for a suitable location to use to make the mastermix without adding an additional plate on to the deck.
+	// In either of these two cases if a plate is selected here then that plate's residual volume per well will be added to the total mastermix volume.
+	// If OptimisePlateUsage is selected it is therefore advisable to select the platetype of the most likely destination of the mastermix to be mixed to 
+	// (i.e. one of the other plates used or the inplate, default inplate is usually pcrplate_skirted. You can simulate to check where the mastermix will be put.
 	OutPlate *LHPlate
+
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+
+	// The output of the protocol which can be wired into downstream elements such as Aliquot, AutoAssembly or AutoPCR
 	Mastermix *LHComponent
+	// The output plate containing the mastermix.
 	PlateWithMastermix *LHPlate
 )
 
@@ -135,7 +146,20 @@ Steps {
 		
 		// multiply volume of each component by number of reactions per mastermix
 		adjustedvol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
+		
+		var nilPlate *LHPlate
+		
+		if OutPlate != nilPlate {
+			residualVol := OutPlate.Welltype.ResidualVolume()
 			
+			adjustedvol = wunit.AddVolumes([]Volume{adjustedvol,residualVol})
+			
+			if OutPlate.Welltype.MaxVolume().LessThan(adjustedvol){
+				Errorf("After accounting for residual well volume of %s, the Volume required of %s is too high for the %s well capacity of %s. Please select a plate with a large enough well capacity for this volume",residualVol,adjustedvol,OutPlate.Name(),OutPlate.Welltype.MaxVolume().ToString())
+			}	
+		}
+		
+		
 		componentSample := mixer.Sample(component,adjustedvol)
 		
 		eachmastermix = append(eachmastermix,componentSample)
@@ -151,7 +175,6 @@ Steps {
 	Mastermix = mastermix
 	PlateWithMastermix = OutPlate
 	
- 	Status = "Mastermix Made"
 	MasterMixVolume = Mastermix.Volume()
 }
 

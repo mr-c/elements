@@ -4,15 +4,19 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+
+	goimage "image"
+
 	)
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	ImageFileName string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
+	InputFile wtype.File
 	Negative bool
 	Rotate bool
 	AutoRotate bool
@@ -24,7 +28,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	ProcessedImageFilename string
+	ProcessedImage wtype.File
 )
 
 
@@ -51,30 +55,71 @@ Setup {
 // for every input
 Steps {
 	
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err = download.File(URL, ImageFileName)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 
-	chosencolourpalette := image.AvailablePalettes()[Palette]
-	
-	if CheckAllResizeAlgorithms {
-			image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
-	_, _, newimagename := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate) 
-	
-	// if posterize rerun 
+
+
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
 	if PosterizeImage{
-		_, Imagefilename = image.Posterize(newimagename, PosterizeLevels)
-		
-		_, _, newimagename = image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
 	}
-	
-	ProcessedImageFilename = newimagename
-	
+
+	if CheckAllResizeAlgorithms {
+			image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+	}
+
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
+	chosencolourpalette := image.AvailablePalettes()[Palette]
+
+	//--------------------------------------------------------------
+	//Fitting image to plate
+	//--------------------------------------------------------------
+	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+
+	ProcessedImage, err = image.Export(imgBase,ImageFileName)
+	if err != nil{
+			Errorf(err.Error())
+	}
 
 }
 // Run after controls and a steps block are completed to

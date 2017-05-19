@@ -215,7 +215,7 @@ type AutoPCR_Gradient_mmxInput struct {
 	FwdPrimertype               *wtype.LHComponent
 	Plate                       *wtype.LHPlate
 	Projectname                 string
-	Reactiontoprimerpair        map[string][]string
+	Reactiontoprimerpair        map[string][2]string
 	Reactiontotemplate          map[string]string
 	RevPrimertype               *wtype.LHComponent
 	RowGradientRatherthanColumn bool

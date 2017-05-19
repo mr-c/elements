@@ -10,6 +10,7 @@ import (
 	"image/color"
 	"strconv"
 	"fmt"
+	goimage "image"
 )
 
 
@@ -61,7 +62,11 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
+	//------------------------------------------------------------
+	//Globals
+	//------------------------------------------------------------
+
 	var (
 	ReactionTemp 				Temperature = wunit.NewTemperature(25,"C")
 	ReactionTime				Time = wunit.NewTime(35,"min")
@@ -79,32 +84,57 @@ Steps {
 	PlatewithRecoveryMedia		*LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
 	PlateWithCompetentCells		*LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
 	)
-	
-	
-	
-	
+
 	redname := Red.CName
-	greenname :=	Green.CName
+	greenname := Green.CName
 	bluename := Blue.CName
-	
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	var err error
+
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err = download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
+	if PosterizeImage{
+
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
-	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
-	}
-	
-	
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, PlateWithMasterMix,Rotate) 
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, PlateWithMasterMix,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, PlateWithMasterMix, &chosencolourpalette, Rotate, AutoRotate)
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)

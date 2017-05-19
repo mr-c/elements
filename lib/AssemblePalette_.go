@@ -12,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -32,12 +33,12 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AssemblePalette_OneByOne_RGB_2Requirements() {
+func _AssemblePaletteRequirements() {
 
 }
 
 // Conditions to run on startup
-func _AssemblePalette_OneByOne_RGB_2Setup(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_2Input) {
+func _AssemblePaletteSetup(_ctx context.Context, _input *AssemblePaletteInput) {
 
 }
 
@@ -50,7 +51,7 @@ type collection []RBSdata
 
 func (rbscollection collection) Max() (rbs RBSdata) {
 
-	//var maxSeq DNASequence
+	//var maxSeq wtype.DNASequence
 	var maxStrength float64
 	for i := range rbscollection {
 		if i == 0 {
@@ -68,7 +69,11 @@ func (rbscollection collection) Max() (rbs RBSdata) {
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_2Input, _output *AssemblePalette_OneByOne_RGB_2Output) {
+func _AssemblePaletteSteps(_ctx context.Context, _input *AssemblePaletteInput, _output *AssemblePaletteOutput) {
+
+	//-----------------------------------------------------------------------------
+	//Globals
+	//-----------------------------------------------------------------------------
 
 	var rbsstrengthdata []RBSdata = []RBSdata{
 		{wtype.MakeLinearDNASequence("rbs1", "gggcgcgc"), 0.0},
@@ -83,23 +88,52 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 	fmt.Println(rbsstrengthdata)
 
+	//image and error placeholders
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//----------------------------------------------------------------------------
+	//Fetch image
+	//----------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//----------------------------------------------------------------------------
+	//Processing image
+	//----------------------------------------------------------------------------
+
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
+	//----------------------------------------------------------------------------
+	//choosing palette
+	//----------------------------------------------------------------------------
+
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.PlateWithMasterMix, _input.Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, _input.PlateWithMasterMix, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -181,27 +215,27 @@ func _AssemblePalette_OneByOne_RGB_2Steps(_ctx context.Context, _input *Assemble
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AssemblePalette_OneByOne_RGB_2Analysis(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_2Input, _output *AssemblePalette_OneByOne_RGB_2Output) {
+func _AssemblePaletteAnalysis(_ctx context.Context, _input *AssemblePaletteInput, _output *AssemblePaletteOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AssemblePalette_OneByOne_RGB_2Validation(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_2Input, _output *AssemblePalette_OneByOne_RGB_2Output) {
+func _AssemblePaletteValidation(_ctx context.Context, _input *AssemblePaletteInput, _output *AssemblePaletteOutput) {
 
 }
-func _AssemblePalette_OneByOne_RGB_2Run(_ctx context.Context, input *AssemblePalette_OneByOne_RGB_2Input) *AssemblePalette_OneByOne_RGB_2Output {
-	output := &AssemblePalette_OneByOne_RGB_2Output{}
-	_AssemblePalette_OneByOne_RGB_2Setup(_ctx, input)
-	_AssemblePalette_OneByOne_RGB_2Steps(_ctx, input, output)
-	_AssemblePalette_OneByOne_RGB_2Analysis(_ctx, input, output)
-	_AssemblePalette_OneByOne_RGB_2Validation(_ctx, input, output)
+func _AssemblePaletteRun(_ctx context.Context, input *AssemblePaletteInput) *AssemblePaletteOutput {
+	output := &AssemblePaletteOutput{}
+	_AssemblePaletteSetup(_ctx, input)
+	_AssemblePaletteSteps(_ctx, input, output)
+	_AssemblePaletteAnalysis(_ctx, input, output)
+	_AssemblePaletteValidation(_ctx, input, output)
 	return output
 }
 
-func AssemblePalette_OneByOne_RGB_2RunSteps(_ctx context.Context, input *AssemblePalette_OneByOne_RGB_2Input) *AssemblePalette_OneByOne_RGB_2SOutput {
-	soutput := &AssemblePalette_OneByOne_RGB_2SOutput{}
-	output := _AssemblePalette_OneByOne_RGB_2Run(_ctx, input)
+func AssemblePaletteRunSteps(_ctx context.Context, input *AssemblePaletteInput) *AssemblePaletteSOutput {
+	soutput := &AssemblePaletteSOutput{}
+	output := _AssemblePaletteRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -211,19 +245,19 @@ func AssemblePalette_OneByOne_RGB_2RunSteps(_ctx context.Context, input *Assembl
 	return soutput
 }
 
-func AssemblePalette_OneByOne_RGB_2New() interface{} {
-	return &AssemblePalette_OneByOne_RGB_2Element{
+func AssemblePaletteNew() interface{} {
+	return &AssemblePaletteElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AssemblePalette_OneByOne_RGB_2Input{}
+				input := &AssemblePaletteInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AssemblePalette_OneByOne_RGB_2Run(_ctx, input)
+				output := _AssemblePaletteRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AssemblePalette_OneByOne_RGB_2Input{},
-			Out: &AssemblePalette_OneByOne_RGB_2Output{},
+			In:  &AssemblePaletteInput{},
+			Out: &AssemblePaletteOutput{},
 		},
 	}
 }
@@ -234,11 +268,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AssemblePalette_OneByOne_RGB_2Element struct {
+type AssemblePaletteElement struct {
 	inject.CheckedRunner
 }
 
-type AssemblePalette_OneByOne_RGB_2Input struct {
+type AssemblePaletteInput struct {
 	AutoRotate                 bool
 	Blue                       *wtype.LHComponent
 	Green                      *wtype.LHComponent
@@ -254,14 +288,14 @@ type AssemblePalette_OneByOne_RGB_2Input struct {
 	VolumeForeachColourPlasmid wunit.Volume
 }
 
-type AssemblePalette_OneByOne_RGB_2Output struct {
+type AssemblePaletteOutput struct {
 	Colours              []*wtype.LHComponent
 	ColourtoComponentMap map[string]*wtype.LHComponent
 	Numberofcolours      int
 	Palette              color.Palette
 }
 
-type AssemblePalette_OneByOne_RGB_2SOutput struct {
+type AssemblePaletteSOutput struct {
 	Data struct {
 		ColourtoComponentMap map[string]*wtype.LHComponent
 		Numberofcolours      int
@@ -273,8 +307,8 @@ type AssemblePalette_OneByOne_RGB_2SOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AssemblePalette_OneByOne_RGB_2",
-		Constructor: AssemblePalette_OneByOne_RGB_2New,
+	if err := addComponent(component.Component{Name: "AssemblePalette",
+		Constructor: AssemblePaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to make a pallette of all colours in an image\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/AssemblePalette.an",

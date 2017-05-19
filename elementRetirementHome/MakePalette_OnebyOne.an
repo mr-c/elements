@@ -1,11 +1,10 @@
 // Generates instructions to make a pallette of all colours in an image
-protocol MakePalette
+protocol MakePalette_OneByOne
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"image/color"
 	"strconv"
@@ -18,10 +17,11 @@ Parameters (
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
-	Rotate bool
-	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
+	Rotate bool
+	AutoRotate bool
+	LowerThreshold uint8
 )
 
 // Data which is returned from this protocol, and data types
@@ -39,7 +39,7 @@ Inputs (
 	Yellow *LHComponent
 	Magenta *LHComponent
 	Black *LHComponent
-	//InPlate *LHPlate
+	White *LHComponent
 	OutPlate *LHPlate
 	PalettePlate *LHPlate
 )
@@ -62,169 +62,142 @@ Setup {
 // for every input
 Steps {
 	
+	
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	if PosterizeImage{
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
 	
 	
-	// Posterize image if desired
-	if PosterizeImage{
-		_, Imagefilename = image.Posterize(Imagefilename, PosterizeLevels)
-	}
-	 
-	// make pallette of colours from image based on CMYK profile 
+	// make palette of colours from image
 	chosencolourpalette := image.MakeSmallPalleteFromImage(Imagefilename, OutPlate,Rotate) 
 	
-	// Resize image to fit microplate, one pixel per well. Produce map to correspond the colour required for each well position. 
-	// The nearest matching colour from the colourpalette made above will be used.
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate) 
+	// make a map of colour to well coordinates
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	
-	// remove duplicate colours so each is only made once
+	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 	
-	// make an empty slice of liquid handling components and a map of colour name to liquid handling components
 	solutions := make([]*LHComponent, 0)
 	colourtoComponentMap := make(map[string]*LHComponent)
-
-
-	// initialise a counter to use for looking up the next well position for each iteration of the loop below
-	counter := 0
-
-	platenum := 1
 	
-	// make a slice of well positions for the plate set in the parameters file
-	paletteplatepositions := PalettePlate.AllWellPositions(wtype.BYCOLUMN)
 
+	counter := 0
 
 
 	for _, colour := range positiontocolourmap {
 		
-		var solution *LHComponent
-		
 		colourindex := chosencolourpalette.Index(colour)
 		
 		if colour != nil {
-		//components := make([]*LHComponent, 0)
+		components := make([]*LHComponent, 0)
 
 		cmyk := image.ColourtoCMYK(colour)
 		
 		var maxuint8 uint8 = 255		
 		
-		if cmyk.C ==0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+		if cmyk.C <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
 		
 		continue
 			
 			}else{
 			
-			nextwellpostion := paletteplatepositions[counter]
-			
-		if counter +1 == len(paletteplatepositions){
-		platenum = platenum + 1
-		counter = 0
-		}else{
-		counter = counter + 1	
-		}
-		if cmyk.C > 0{
+		counter = counter + 1
+		
+		if cmyk.C > LowerThreshold{
 			
 		cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
+		
 		if cyanvol.RawValue() < 0.5 && cyanvol.Unit().PrefixedSymbol() == "ul"{
-				cyanvol = wunit.NewVolume(0.5,"ul")
+				cyanvol.SetValue(0.5)
 			}
-		
-		if cmyk.K == 0 && cmyk.M == 0 && cmyk.Y == 0{
-		Cyan.Type  =	wtype.LTPostMix
-		}else {
-		Cyan.Type = wtype.LTDISPENSEABOVE
-		}
-		
+			
 		cyanSample := mixer.Sample(Cyan, cyanvol)
-		
-		solution = MixTo(PalettePlate.Type, nextwellpostion,platenum,cyanSample)
-		//solution = MixTo(PalettePlate.Type, position,1,cyanSample)
-		
-		//components = append(components, cyanSample)
+		components = append(components, cyanSample)
 		}
 		
-		if cmyk.Y > 0{
+		if cmyk.Y > LowerThreshold{
 		yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if yellowvol.RawValue() < 0.5 && yellowvol.Unit().PrefixedSymbol() == "ul"{
-				yellowvol= wunit.NewVolume(0.5,"ul")
+				yellowvol.SetValue(0.5)
 			}
-		if cmyk.K == 0 && cmyk.M == 0{
-		Yellow.Type  =	wtype.LTPostMix
-		}else {
-		Yellow.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		
 		yellowSample := mixer.Sample(Yellow, yellowvol)
-		
-		if solution != nil {
-		solution = Mix(solution, yellowSample)
-		}else {
-			solution = MixTo(PalettePlate.Type, nextwellpostion, platenum,yellowSample)
-			//solution = MixTo(PalettePlate.Type, position,1,yellowSample)
+		components = append(components, yellowSample)
 		}
 		
-		
-		//components = append(components, yellowSample)
-		}
-		
-		if cmyk.M > 0{
+		if cmyk.M > LowerThreshold{
 		magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul"{
-				magentavol= wunit.NewVolume(0.5,"ul")
+				magentavol.SetValue(0.5)
 			}
 		
-		if cmyk.K == 0 {
-		Magenta.Type  =	wtype.LTPostMix
-		}else {
-		Magenta.Type = wtype.LTDISPENSEABOVE
-		}
-		
 		magentaSample := mixer.Sample(Magenta, magentavol)
-		
-		if solution != nil {
-		solution = Mix(solution, magentaSample)
-		}else {
-			solution = MixTo(PalettePlate.Type, nextwellpostion, platenum,magentaSample)
-			//solution = MixTo(PalettePlate.Type, position,1,magentaSample)
+		components = append(components, magentaSample)
 		}
 		
-		//components = append(components, magentaSample)
-		}
-		
-		if cmyk.K > 0{
+		if cmyk.K > LowerThreshold{
+				
 		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 		
 		if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul"{
-				blackvol= wunit.NewVolume(0.5,"ul")
+				blackvol.SetValue(0.5)
 			}
 		
-		Black.Type = wtype.LTPostMix
-		
 		blackSample := mixer.Sample(Black, blackvol)
-		
-		if solution != nil {
-		solution = Mix(solution, blackSample)
-		}else {
-			solution = MixTo(PalettePlate.Type, nextwellpostion,platenum, blackSample)
-			//solution = MixTo(PalettePlate.Type, position,1,blackSample)
+		components = append(components, blackSample)
 		}
 		
-		//components = append(components, blackSample)
-		}
+		// top up colour to 4 x volumeforfullcolour with white to make the correct shade
 		
-		//solution := MixInto(PalettePlate, "", components...)
+	  	// get all component volumes 
+		// and change liquid types
+		var componentvols []Volume
+		for _, component := range components {
+			componentvols = append(componentvols,component.Volume())
+			component.Type = wtype.LTDoNotMix
+		}	
+		// calculate volume of white to add
+		whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentvols)
+		
+		// mix with white sample
+		White.Type = wtype.LTPostMix
+		
+		whiteSample := mixer.Sample(White, whitevol)
+		components = append(components, whiteSample)
+		
+
+		solution := MixInto(PalettePlate, "", components...)
+		
+		// change name of component
+		originalname := solution.CName
+		solution.CName = originalname + "_colour_"+strconv.Itoa(colourindex)
+		
+		// add solution to be exported later
 		solutions = append(solutions, solution)
 		colourtoComponentMap[strconv.Itoa(colourindex)] = solution
+		
+		
 		
 		}
 		
@@ -235,7 +208,6 @@ Steps {
 	Numberofcolours = len(chosencolourpalette)
 	Palette = chosencolourpalette
 	ColourtoComponentMap = colourtoComponentMap
-	fmt.Println("Unique Colours =",Numberofcolours,"from palette:", chosencolourpalette)
 
 }
 // Run after controls and a steps block are completed to
@@ -249,4 +221,3 @@ Analysis {
 Validation {
 	
 }
-
