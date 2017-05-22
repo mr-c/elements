@@ -4,28 +4,40 @@
       "AutoRotate": true,
       "Black": "Black",
       "Cyan": "Cyan",
-      "Imagefilename": "spaceinvader.png",
+      "ImageFile": {
+        "host_file":{
+          "filename":"taylor.png"
+        },
+        "name": "taylor.png"
+      },
       "Magenta": "Magenta",
       "OutPlate": "pcrplate_skirted_riser20",
       "PalettePlate": "pcrplate_skirted_riser20",
       "PosterizeImage": true,
       "PosterizeLevels": 2,
       "Rotate": false,
-      "VolumeForFullcolour": "50ul",
+      "VolumeForFullcolour": "70ul",
       "Yellow": "Yellow_ink",
-      "White":"white"
+      "White": "whiteFabricDye",
+      "LowerThreshold": 50
     },
     "Pipette1": {
       "AutoRotate": true,
-      "Imagefilename": "spaceinvader.png",
-      "NotthisColour": "Black",
+      "ImageFile": {
+        "host_file":{
+          "filename":"taylor.png"
+        },
+        "name": "taylor.png"
+      },
+      "NotthisColour": "white",
       "OnlythisColour": "",
-      "OutPlate": "Agarplateforpicking1536_riser20",
-      "PosterizeImage": false,
+      "OutPlate": "Agarplateforpicking768_riser20",
+      "PosterizeImage": true,
       "PosterizeLevels": 2,
       "Rotate": false,
       "VolumePerWell": "1ul",
-      "LiquidType":"water"
+      "LiquidType":"water",
+      "LowerThreshold": 50
     }
   },
   "config": {
@@ -33,22 +45,22 @@
       "position_4"
     ],
     "DriverSpecificOutputPreferences": [
-      "position_8",
-      "position_9"
-      
+      "position_7",
+      "position_8"
     ],
     "DriverSpecificTipPreferences": [
-      "position_5",
+      "position_9",
       "position_6",
+      "position_5",
       "position_3",
-      "position_2",
-      "position_1"
+      "position_2"
     ],
     "DriverSpecificTipWastePreferences": [
-      "position_7"
+      "position_1"
     ],
     "InputPlateType": [
       "DWST12_riser20"
-    ]
+    ],
+    "OutputSort": false
   }
 }
