@@ -2,7 +2,7 @@
     "connections": [],
     "processes": {
         "SerialDilute": {
-            "component": "SerialDilution"
+            "component": "SequentialMixing"
         }
     }
 }
