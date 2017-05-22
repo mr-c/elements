@@ -4,7 +4,6 @@ protocol PipetteImage_fromPalette
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"image/color"
 	"strconv"
@@ -17,9 +16,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	ImageFile File 
 	Palette color.Palette
 	ColourIndextoComponentMap map[string]string
 	OnlythisColour string
@@ -67,7 +64,6 @@ Steps {
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile File
 	var imgBase *goimage.NRGBA
 
 	var err error
@@ -77,18 +73,12 @@ Steps {
 	//-------------------------------------------------------------------------------------
 
 	// if image is from url, download
-	if UseURL {
-		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
 
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	//opening the image file
+	imgBase, err = image.OpenFile(ImageFile)
+	
+	if err != nil{
+		Errorf(err.Error())
 	}
 
 	//-------------------------------------------------------------------------------------
