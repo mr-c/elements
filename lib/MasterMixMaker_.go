@@ -14,6 +14,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	"strconv"
 )
 
 // Input parameters for this protocol (data)
@@ -37,6 +38,8 @@ import (
 // Data which is returned from this protocol, and data types
 
 // Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.
+
+// Data output supplying the total volume added for each component.
 
 // Physical Inputs to this protocol with types
 
@@ -63,6 +66,8 @@ func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
+
+	_output.VolumesUsed = make(map[string]wunit.Volume)
 
 	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
 	extraReactions := float64(_input.Reactionspermastermix) * 1.2
@@ -118,6 +123,19 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 		lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
 	}
 
+	var adjustedVols []wunit.Volume
+	// adjust volumes
+	for k := range _input.ComponentVolumesperReaction {
+
+		// multiply volume of each component by number of reactions per mastermix
+		adjustedVol := wunit.MultiplyVolume(_input.ComponentVolumesperReaction[k], float64(_input.Reactionspermastermix))
+
+		adjustedVols = append(adjustedVols, adjustedVol)
+
+	}
+
+	prelimTotalVol := wunit.AddVolumes(adjustedVols)
+
 	// now make mastermix
 
 	eachmastermix := make([]*wtype.LHComponent, 0)
@@ -129,17 +147,32 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 		}
 
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(_input.ComponentVolumesperReaction[k], float64(_input.Reactionspermastermix))
+		adjustedvol := adjustedVols[k]
 
 		var nilPlate *wtype.LHPlate
 
 		if _input.OutPlate != nilPlate {
 			residualVol := _input.OutPlate.Welltype.ResidualVolume()
 
-			adjustedvol = wunit.AddVolumes([]wunit.Volume{adjustedvol, residualVol})
+			proportionOfresidualVol := wunit.MultiplyVolume(residualVol, float64(adjustedvol.SIValue()/prelimTotalVol.SIValue()))
+
+			adjustedvol = wunit.AddVolumes([]wunit.Volume{adjustedvol, proportionOfresidualVol})
 
 			if _input.OutPlate.Welltype.MaxVolume().LessThan(adjustedvol) {
 				execute.Errorf(_ctx, "After accounting for residual well volume of %s, the Volume required of %s is too high for the %s well capacity of %s. Please select a plate with a large enough well capacity for this volume", residualVol, adjustedvol, _input.OutPlate.Name(), _input.OutPlate.Welltype.MaxVolume().ToString())
+			}
+			if _, found := _output.VolumesUsed[component.CName]; !found {
+				_output.VolumesUsed[component.CName] = adjustedvol
+			} else {
+				var counter int
+				for counter < 100 {
+					name := component.CName + strconv.Itoa(counter)
+					if _, found := _output.VolumesUsed[name]; !found {
+						_output.VolumesUsed[component.CName] = adjustedvol
+						break
+					}
+					counter++
+				}
 			}
 		}
 
@@ -231,11 +264,13 @@ type MasterMixMakerOutput struct {
 	MasterMixVolume    wunit.Volume
 	Mastermix          *wtype.LHComponent
 	PlateWithMastermix *wtype.LHPlate
+	VolumesUsed        map[string]wunit.Volume
 }
 
 type MasterMixMakerSOutput struct {
 	Data struct {
 		MasterMixVolume wunit.Volume
+		VolumesUsed     map[string]wunit.Volume
 	}
 	Outputs struct {
 		Mastermix          *wtype.LHComponent
@@ -259,6 +294,7 @@ func init() {
 				{Name: "MasterMixVolume", Desc: "Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.\n", Kind: "Data"},
 				{Name: "Mastermix", Desc: "The output of the protocol which can be wired into downstream elements such as Aliquot, AutoAssembly or AutoPCR\n", Kind: "Outputs"},
 				{Name: "PlateWithMastermix", Desc: "The output plate containing the mastermix.\n", Kind: "Outputs"},
+				{Name: "VolumesUsed", Desc: "Data output supplying the total volume added for each component.\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

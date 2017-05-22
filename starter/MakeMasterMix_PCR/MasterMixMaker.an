@@ -9,7 +9,7 @@ import (
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
-	
+	"strconv"
 )
 
 
@@ -42,6 +42,9 @@ Parameters (
 Data (
 	// Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.
 	MasterMixVolume Volume
+	
+	// Data output supplying the total volume added for each component.
+	VolumesUsed map[string]Volume
 )
 
 
@@ -77,6 +80,8 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	
+	VolumesUsed = make(map[string]Volume)
 	
 	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
 	extraReactions := float64(Reactionspermastermix) * 1.2
@@ -133,30 +138,60 @@ Steps {
     		lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
 		}
 		
+		
+		
+		var adjustedVols []Volume
+		// adjust volumes
+		for k := range ComponentVolumesperReaction { 	
+				
+			// multiply volume of each component by number of reactions per mastermix
+			adjustedVol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
+			
+			adjustedVols = append(adjustedVols,adjustedVol)
+			
+		}
+		
+		prelimTotalVol := wunit.AddVolumes(adjustedVols)
+		
 		// now make mastermix
 		
 		eachmastermix := make([]*LHComponent, 0)
-		
 		
 		for k, component := range lhComponents { 	
 			
 			if k == len(lhComponents)-1{
 				component.Type = wtype.LTPostMix 
 			}
+				
 		
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
+		adjustedvol := adjustedVols[k]
 		
 		var nilPlate *LHPlate
 		
 		if OutPlate != nilPlate {
 			residualVol := OutPlate.Welltype.ResidualVolume()
 			
-			adjustedvol = wunit.AddVolumes([]Volume{adjustedvol,residualVol})
+			proportionOfresidualVol := wunit.MultiplyVolume(residualVol,float64(adjustedvol.SIValue()/prelimTotalVol.SIValue()))
+			
+			adjustedvol = wunit.AddVolumes([]Volume{adjustedvol,proportionOfresidualVol})
 			
 			if OutPlate.Welltype.MaxVolume().LessThan(adjustedvol){
 				Errorf("After accounting for residual well volume of %s, the Volume required of %s is too high for the %s well capacity of %s. Please select a plate with a large enough well capacity for this volume",residualVol,adjustedvol,OutPlate.Name(),OutPlate.Welltype.MaxVolume().ToString())
 			}	
+			if _, found := VolumesUsed[component.CName];!found{
+				VolumesUsed[component.CName] = adjustedvol
+			}else{
+				var counter int
+				for counter < 100 {
+					name := component.CName + strconv.Itoa(counter)
+					if _, found := VolumesUsed[name];!found{
+						VolumesUsed[component.CName] = adjustedvol
+						break
+					}
+					counter++
+				}
+			}
 		}
 		
 		
