@@ -143,7 +143,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	for k, component := range lhComponents {
 
 		if k == len(lhComponents)-1 {
-			component.Type = wtype.LTPostMix
+			component.Type = wtype.LTMegaMix
 		}
 
 		// multiply volume of each component by number of reactions per mastermix
