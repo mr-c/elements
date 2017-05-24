@@ -100,7 +100,7 @@ Steps {
 				for m := range CDSs {	
 					for n := range TERs {
 						key := 	ProjectName	+Vectors[j].Nm+"_"+PROs[k].Nm+"_"+RBSs[l].Nm+"_"+CDSs[m].Nm
-						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
+						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
 					Seqsinorder:				[]DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},

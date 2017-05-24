@@ -16,18 +16,17 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	ProjectName			string
-	Standard			string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
+	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
 	StandardLabels 		[4]string
 	StandardLevel		string // default is "level0"
 	Vectors				[]wtype.DNASequence
-	PROs				[]wtype.DNASequence
-	RBSs				[]wtype.DNASequence
-	CDSs				[]wtype.DNASequence
-	TERs				[]wtype.DNASequence
+	Part1s				[]wtype.DNASequence
+	Part2s				[]wtype.DNASequence
+	Part3s				[]wtype.DNASequence
+	Part4s				[]wtype.DNASequence
 	SitesToRemove		[]string
 	BlastSearchSeqs		bool
 	FolderPerConstruct	bool
-	FolderPerProject	bool
 	EndsAlreadyAdded 	bool
 	
 	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
@@ -89,6 +88,11 @@ Steps {
 	Parts = make([][]wtype.DNASequence,0)
 	SequencingPrimers = make([][]wtype.DNASequence,0)
 	
+	var standardLabels []string
+	
+	for _, level := range StandardLabels {
+		standardLabels = append(standardLabels,level) 
+	}
 
 	var counter int = 1
 
@@ -98,19 +102,19 @@ Steps {
 	
 	
 	for j := range Vectors {
-		for k := range PROs {
-			for l := range RBSs {
-				for m := range CDSs {	
-					for n := range TERs {
-						key := 	ProjectName	+Vectors[j].Nm+"_"+PROs[k].Nm+"_"+RBSs[l].Nm+"_"+CDSs[m].Nm
-						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
+		for k := range Part1s {
+			for l := range Part2s {
+				for m := range Part3s {	
+					for n := range Part4s {
+						key := 	ProjectName	+Vectors[j].Nm+"_"+Part1s[k].Nm+"_"+Part2s[l].Nm+"_"+Part3s[m].Nm+Part4s[n].Nm
+						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:					[]wtype.DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
+					Seqsinorder:					[]wtype.DNASequence{Part1s[k],Part2s[l],Part3s[m],Part4s[n]},
 					AssemblyStandard:			Standard,
 					Level:						StandardLevel, // of assembly standard
 					Vector:						Vectors[j],
-					PartMoClotypesinorder:		StandardLabels, 
+					PartMoClotypesinorder:		standardLabels, 
 					OtherEnzymeSitesToRemove:	SitesToRemove,
 					ORFstoConfirm:				[]string{}, // enter each as amino acid sequence
 					RemoveproblemRestrictionSites: true,
@@ -177,7 +181,8 @@ Steps {
 		Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
 	}
 	// add fasta file for each set of parts with overhangs
-	labels:= []string{"Promoters","RBSs","CDSs","Ters"}
+	
+	labels := standardLabels
 	
 	refactoredparts:= make(map[string][]wtype.DNASequence)
 	

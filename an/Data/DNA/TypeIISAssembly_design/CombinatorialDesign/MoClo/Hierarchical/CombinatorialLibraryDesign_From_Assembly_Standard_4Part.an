@@ -16,7 +16,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	ProjectName			string
-	Standard			string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
+	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
 	StandardLabels 		[3]string
 	StandardLevel		string // default is "level0"
 	Vectors				[]wtype.DNASequence
@@ -26,7 +26,6 @@ Parameters (
 	SitesToRemove		[]string
 	BlastSearchSeqs		bool
 	FolderPerConstruct	bool
-	FolderPerProject	bool
 	EndsAlreadyAdded 	bool
 	
 	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
@@ -91,6 +90,12 @@ Steps {
 
 	var counter int = 1
 
+	var standardLabels []string
+	
+	for _, level := range StandardLabels {
+		standardLabels = append(standardLabels,level) 
+	}
+
 	if StandardLevel == ""{
 		StandardLevel = "Level0" 
 	}	
@@ -101,14 +106,14 @@ Steps {
 			for l := range Part2s {
 				for m := range Part3s {	
 						key := 	ProjectName	+Vectors[j].Nm+"_"+Part1s[k].Nm+"_"+Part2s[l].Nm+"_"+Part3s[m].Nm
-						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
+						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
 					Seqsinorder:					[]wtype.DNASequence{Part1s[k],Part2s[l],Part3s[m]},
 					AssemblyStandard:			Standard,
 					Level:						StandardLevel, // of assembly standard
 					Vector:						Vectors[j],
-					PartMoClotypesinorder:		StandardLabels, 
+					PartMoClotypesinorder:		standardLabels, 
 					OtherEnzymeSitesToRemove:	SitesToRemove,
 					ORFstoConfirm:				[]string{}, // enter each as amino acid sequence
 					RemoveproblemRestrictionSites: true,
@@ -176,7 +181,7 @@ Steps {
 		Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
 	}
 	// add fasta file for each set of parts with overhangs
-	labels:= StandardLabels // []string{"Part1s","Part2s","Part3s"}
+	labels := standardLabels
 	
 	refactoredparts:= make(map[string][]wtype.DNASequence)
 	

@@ -39,17 +39,17 @@ import (
 // desired sequence to end up with after assembly
 
 // Input Requirement specification
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRequirements() {
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Requirements() {
 	// e.g. are MoClo types valid?
 }
 
 // Conditions to run on startup
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSetup(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput) {
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput) {
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
 	_output.Assemblies = make(map[string][]wtype.DNASequence)
@@ -120,7 +120,7 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 				for m := range _input.CDSs {
 					for n := range _input.TERs {
 						key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.PROs[k].Nm + "_" + _input.RBSs[l].Nm + "_" + _input.CDSs[m].Nm
-						assembly := AssemblyStandard_siteremove_orfcheck_wtypeRunSteps(_ctx, &AssemblyStandard_siteremove_orfcheck_wtypeInput{Constructname: key,
+						assembly := AssemblyStandard_TypeIIsDesignRunSteps(_ctx, &AssemblyStandard_TypeIIsDesignInput{Constructname: key,
 							Seqsinorder:                   []wtype.DNASequence{_input.PROs[k], _input.RBSs[l], _input.CDSs[m], _input.TERs[n]},
 							AssemblyStandard:              _input.Standard,
 							Level:                         StandardLevel, // of assembly standard
@@ -174,98 +174,96 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx context
 	}
 
 	// export sequence to fasta
-	if _input.FolderPerProject {
 
-		var err error
-		// export simulated sequences to file
-		_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+	var err error
+	// export simulated sequences to file
+	_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+
+	if err != nil {
+		execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
+	}
+	// add fasta file for each set of parts with overhangs
+	labels := []string{"Promoters", "RBSs", "CDSs", "Ters"}
+
+	refactoredparts := make(map[string][]wtype.DNASequence)
+
+	newparts := make([]wtype.DNASequence, 0)
+
+	for _, parts := range _output.Parts {
+
+		for j := range parts {
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts, parts[j])
+			refactoredparts[labels[j]] = newparts
+		}
+	}
+
+	for key, value := range refactoredparts {
+
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+
+		file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 
 		if err != nil {
-			execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
-		}
-		// add fasta file for each set of parts with overhangs
-		labels := []string{"Promoters", "RBSs", "CDSs", "Ters"}
-
-		refactoredparts := make(map[string][]wtype.DNASequence)
-
-		newparts := make([]wtype.DNASequence, 0)
-
-		for _, parts := range _output.Parts {
-
-			for j := range parts {
-				newparts = refactoredparts[labels[j]]
-				newparts = append(newparts, parts[j])
-				refactoredparts[labels[j]] = newparts
-			}
+			execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
 		}
 
-		for key, value := range refactoredparts {
-
-			duplicateremoved := search.RemoveDuplicateSequences(value)
-
-			file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
-
-			if err != nil {
-				execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
-			}
-
-			_output.PartsToOrder = append(_output.PartsToOrder, file)
-		}
-
-		// add fasta file for each set of primers
-		labels = []string{"FWDPrimers", "REVPrimers"}
-
-		refactoredparts = make(map[string][]wtype.DNASequence)
-
-		newparts = make([]wtype.DNASequence, 0)
-
-		for _, parts := range _output.SequencingPrimers {
-
-			for j := range parts {
-				newparts = refactoredparts[labels[j]]
-				newparts = append(newparts, parts[j])
-				refactoredparts[labels[j]] = newparts
-			}
-		}
-
-		for key, value := range refactoredparts {
-
-			duplicateremoved := search.RemoveDuplicateSequences(value)
-
-			primerFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
-
-			if err != nil {
-				execute.Errorf(_ctx, "Error exporting primers to order file for %s %s: %s", _input.ProjectName, key, err.Error())
-			}
-
-			_output.PrimersToOrder = append(_output.PrimersToOrder, primerFile)
-		}
-
+		_output.PartsToOrder = append(_output.PartsToOrder, file)
 	}
+
+	// add fasta file for each set of primers
+	labels = []string{"FWDPrimers", "REVPrimers"}
+
+	refactoredparts = make(map[string][]wtype.DNASequence)
+
+	newparts = make([]wtype.DNASequence, 0)
+
+	for _, parts := range _output.SequencingPrimers {
+
+		for j := range parts {
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts, parts[j])
+			refactoredparts[labels[j]] = newparts
+		}
+	}
+
+	for key, value := range refactoredparts {
+
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+
+		primerFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+
+		if err != nil {
+			execute.Errorf(_ctx, "Error exporting primers to order file for %s %s: %s", _input.ProjectName, key, err.Error())
+		}
+
+		_output.PrimersToOrder = append(_output.PrimersToOrder, primerFile)
+	}
+
 }
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapAnalysis(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput) {
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapValidation(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput) {
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 }
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRun(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput {
-	output := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput{}
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSetup(_ctx, input)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSteps(_ctx, input, output)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapAnalysis(_ctx, input, output)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapValidation(_ctx, input, output)
+func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output {
+	output := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{}
+	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx, input)
+	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx, input, output)
+	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx, input, output)
+	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx, input, output)
 	return output
 }
 
-func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRunSteps(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput {
-	soutput := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput{}
-	output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRun(_ctx, input)
+func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1RunSteps(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput {
+	soutput := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput{}
+	output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -275,19 +273,19 @@ func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRunSteps(_ctx conte
 	return soutput
 }
 
-func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapNew() interface{} {
-	return &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapElement{
+func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New() interface{} {
+	return &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput{}
+				input := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapRun(_ctx, input)
+				output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput{},
-			Out: &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput{},
+			In:  &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{},
+			Out: &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{},
 		},
 	}
 }
@@ -298,11 +296,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapElement struct {
+type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element struct {
 	inject.CheckedRunner
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput struct {
+type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input struct {
 	BlastSearchSeqs          bool
 	CDSs                     []wtype.DNASequence
 	FolderPerConstruct       bool
@@ -318,7 +316,7 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapInput struct {
 	Vectors                  []wtype.DNASequence
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
+type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output struct {
 	AssembledSequences    wtype.File
 	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
@@ -335,7 +333,7 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapOutput struct {
 	StatusMap             map[string]string
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput struct {
+type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput struct {
 	Data struct {
 		AssembledSequences    wtype.File
 		Assemblies            map[string][]wtype.DNASequence
@@ -357,8 +355,8 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_map",
-		Constructor: CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1_wtype_mapNew,
+	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1",
+		Constructor: CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,\nRBSs, CDSs and Terminators according to an assembly standard ensuring compatibility with level 1 design.\nLevel 1 adaptor sites (containing the correct restriction site are expected to be included in the promoter and terminator parts.\nThese level 1 sites can be designed such that a series of level 1 parts may be joined together in a second assembly reaction.\nA list of sequencing primers to order will also be returned.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/MoClo/Hierarchical/PRO_RBS_CDS_TER.an",

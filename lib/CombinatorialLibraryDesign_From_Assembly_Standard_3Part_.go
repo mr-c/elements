@@ -65,6 +65,12 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_3PartSteps(_ctx context.
 	_output.Parts = make([][]wtype.DNASequence, 0)
 	_output.SequencingPrimers = make([][]wtype.DNASequence, 0)
 
+	var standardLabels []string
+
+	for _, level := range _input.StandardLabels {
+		standardLabels = append(standardLabels, level)
+	}
+
 	var counter int = 1
 
 	if _input.StandardLevel == "" {
@@ -75,12 +81,12 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_3PartSteps(_ctx context.
 		for k := range _input.Part1s {
 			for l := range _input.Part2s {
 				key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.Part1s[k].Nm + "_" + _input.Part2s[l].Nm
-				assembly := AssemblyStandard_siteremove_orfcheck_wtypeRunSteps(_ctx, &AssemblyStandard_siteremove_orfcheck_wtypeInput{Constructname: key,
+				assembly := AssemblyStandard_TypeIIsDesignRunSteps(_ctx, &AssemblyStandard_TypeIIsDesignInput{Constructname: key,
 					Seqsinorder:                   []wtype.DNASequence{_input.Part1s[k], _input.Part2s[l]},
 					AssemblyStandard:              _input.Standard,
 					Level:                         _input.StandardLevel, // of assembly standard
 					Vector:                        _input.Vectors[j],
-					PartMoClotypesinorder:         _input.StandardLabels,
+					PartMoClotypesinorder:         standardLabels,
 					OtherEnzymeSitesToRemove:      _input.SitesToRemove,
 					ORFstoConfirm:                 []string{}, // enter each as amino acid sequence
 					RemoveproblemRestrictionSites: true,
@@ -138,8 +144,9 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_3PartSteps(_ctx context.
 	if err != nil {
 		execute.Errorf(_ctx, "Error exporting sequence file for %d sequences: %s: %s", len(_output.Sequences), _input.ProjectName, err.Error())
 	}
+
 	// add fasta file for each set of parts with overhangs
-	labels := _input.StandardLabels // []string{"Part1s","Part2s","Part3s"}
+	labels := standardLabels
 
 	refactoredparts := make(map[string][]wtype.DNASequence)
 
@@ -264,7 +271,6 @@ type CombinatorialLibraryDesign_From_Assembly_Standard_3PartInput struct {
 	BlastSearchSeqs          bool
 	EndsAlreadyAdded         bool
 	FolderPerConstruct       bool
-	FolderPerProject         bool
 	MakeLevel1Device         string
 	Part1s                   []wtype.DNASequence
 	Part2s                   []wtype.DNASequence
@@ -272,7 +278,7 @@ type CombinatorialLibraryDesign_From_Assembly_Standard_3PartInput struct {
 	ReverseLevel1Orientation bool
 	SitesToRemove            []string
 	Standard                 string
-	StandardLabels           []string
+	StandardLabels           [2]string
 	StandardLevel            string
 	Vectors                  []wtype.DNASequence
 }
@@ -325,7 +331,6 @@ func init() {
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "EndsAlreadyAdded", Desc: "", Kind: "Parameters"},
 				{Name: "FolderPerConstruct", Desc: "", Kind: "Parameters"},
-				{Name: "FolderPerProject", Desc: "", Kind: "Parameters"},
 				{Name: "MakeLevel1Device", Desc: "Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly\nIf Custom design the valid options currently supported are: \"Device1\",\"Device2\", \"Device3\".\nIf left empty no adaptor sequence is added.\n", Kind: "Parameters"},
 				{Name: "Part1s", Desc: "", Kind: "Parameters"},
 				{Name: "Part2s", Desc: "", Kind: "Parameters"},

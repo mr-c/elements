@@ -32,17 +32,17 @@ import (
 // desired sequence to end up with after assembly
 
 // Input Requirement specification
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeRequirements() {
+func _CombinatorialLibraryDesign_Scarfree_4PartRequirements() {
 	// e.g. are MoClo types valid?
 }
 
 // Conditions to run on startup
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSetup(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput) {
+func _CombinatorialLibraryDesign_Scarfree_4PartSetup(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree_4PartInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput, _output *CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput) {
+func _CombinatorialLibraryDesign_Scarfree_4PartSteps(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree_4PartInput, _output *CombinatorialLibraryDesign_Scarfree_4PartOutput) {
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
 	_output.Assemblies = make(map[string][]wtype.DNASequence)
@@ -64,7 +64,7 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 				for m := range _input.Part3s {
 
 					key := _input.ProjectName + "_" + _input.Vectors[j].Name() + "_" + _input.Part1s[k].Name() + "_" + _input.Part2s[l].Name() + "_" + _input.Part3s[m].Name()
-					assembly := Scarfree_siteremove_orfcheck_wtypeRunSteps(_ctx, &Scarfree_siteremove_orfcheck_wtypeInput{Constructname: key,
+					assembly := Scarfree_TypeIIsDesignRunSteps(_ctx, &Scarfree_TypeIIsDesignInput{Constructname: key,
 						Seqsinorder: []wtype.DNASequence{_input.Part1s[k], _input.Part2s[l], _input.Part3s[m]},
 						Enzymename:  _input.EnzymeName,
 						Vector:      _input.Vectors[j],
@@ -111,75 +111,73 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 				}
 			}
 		}
+	}
+	// export sequence to fasta
+	if _input.ExportSequences {
 
-		// export sequence to fasta
-		if _input.FolderPerProject {
+		var err error
+		// export simulated sequences to file
+		_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
-			var err error
-			// export simulated sequences to file
-			_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
+		if err != nil {
+			execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
+		}
+		// add fasta file for each set of parts with overhangs
+		labels := []string{"Part1", "Part2", "Part3"}
+
+		refactoredparts := make(map[string][]wtype.DNASequence)
+
+		newparts := make([]wtype.DNASequence, 0)
+
+		for _, parts := range _output.Parts {
+
+			for j := range parts {
+				newparts = refactoredparts[labels[j]]
+				newparts = append(newparts, parts[j])
+				refactoredparts[labels[j]] = newparts
+			}
+		}
+
+		for key, value := range refactoredparts {
+
+			duplicateremoved := search.RemoveDuplicateSequences(value)
+
+			file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
 
 			if err != nil {
-				execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
-			}
-			// add fasta file for each set of parts with overhangs
-			labels := []string{"Device1", "Device2", "Device3"}
-
-			refactoredparts := make(map[string][]wtype.DNASequence)
-
-			newparts := make([]wtype.DNASequence, 0)
-
-			for _, parts := range _output.Parts {
-
-				for j := range parts {
-					newparts = refactoredparts[labels[j]]
-					newparts = append(newparts, parts[j])
-					refactoredparts[labels[j]] = newparts
-				}
+				execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
 			}
 
-			for key, value := range refactoredparts {
+			_output.PartsToOrder = append(_output.PartsToOrder, file)
+		}
 
-				duplicateremoved := search.RemoveDuplicateSequences(value)
+		// add fasta file for each set of primers
+		labels = []string{"FWDPrimers", "REVPrimers"}
 
-				file, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+		refactoredparts = make(map[string][]wtype.DNASequence)
 
-				if err != nil {
-					execute.Errorf(_ctx, "Error exporting parts to order file for %s %s: %s", _input.ProjectName, key, err.Error())
-				}
+		newparts = make([]wtype.DNASequence, 0)
 
-				_output.PartsToOrder = append(_output.PartsToOrder, file)
+		for _, parts := range SequencingPrimers {
+
+			for j := range parts {
+				newparts = refactoredparts[labels[j]]
+				newparts = append(newparts, parts[j])
+				refactoredparts[labels[j]] = newparts
+			}
+		}
+
+		for key, value := range refactoredparts {
+
+			duplicateremoved := search.RemoveDuplicateSequences(value)
+
+			primerFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
+
+			if err != nil {
+				execute.Errorf(_ctx, "Error exporting primers to order file for %s %s: %s", _input.ProjectName, key, err.Error())
 			}
 
-			// add fasta file for each set of primers
-			labels = []string{"FWDPrimers", "REVPrimers"}
-
-			refactoredparts = make(map[string][]wtype.DNASequence)
-
-			newparts = make([]wtype.DNASequence, 0)
-
-			for _, parts := range SequencingPrimers {
-
-				for j := range parts {
-					newparts = refactoredparts[labels[j]]
-					newparts = append(newparts, parts[j])
-					refactoredparts[labels[j]] = newparts
-				}
-			}
-
-			for key, value := range refactoredparts {
-
-				duplicateremoved := search.RemoveDuplicateSequences(value)
-
-				primerFile, _, err := export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, key), duplicateremoved)
-
-				if err != nil {
-					execute.Errorf(_ctx, "Error exporting primers to order file for %s %s: %s", _input.ProjectName, key, err.Error())
-				}
-
-				_output.PrimersToOrder = append(_output.PrimersToOrder, primerFile)
-			}
-
+			_output.PrimersToOrder = append(_output.PrimersToOrder, primerFile)
 		}
 
 	}
@@ -187,26 +185,26 @@ func _CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx context.Context, 
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeAnalysis(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput, _output *CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput) {
+func _CombinatorialLibraryDesign_Scarfree_4PartAnalysis(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree_4PartInput, _output *CombinatorialLibraryDesign_Scarfree_4PartOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeValidation(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput, _output *CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput) {
+func _CombinatorialLibraryDesign_Scarfree_4PartValidation(_ctx context.Context, _input *CombinatorialLibraryDesign_Scarfree_4PartInput, _output *CombinatorialLibraryDesign_Scarfree_4PartOutput) {
 }
-func _CombinatorialLibraryDesign_Scarfree3Part_wtypeRun(_ctx context.Context, input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput) *CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput {
-	output := &CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput{}
-	_CombinatorialLibraryDesign_Scarfree3Part_wtypeSetup(_ctx, input)
-	_CombinatorialLibraryDesign_Scarfree3Part_wtypeSteps(_ctx, input, output)
-	_CombinatorialLibraryDesign_Scarfree3Part_wtypeAnalysis(_ctx, input, output)
-	_CombinatorialLibraryDesign_Scarfree3Part_wtypeValidation(_ctx, input, output)
+func _CombinatorialLibraryDesign_Scarfree_4PartRun(_ctx context.Context, input *CombinatorialLibraryDesign_Scarfree_4PartInput) *CombinatorialLibraryDesign_Scarfree_4PartOutput {
+	output := &CombinatorialLibraryDesign_Scarfree_4PartOutput{}
+	_CombinatorialLibraryDesign_Scarfree_4PartSetup(_ctx, input)
+	_CombinatorialLibraryDesign_Scarfree_4PartSteps(_ctx, input, output)
+	_CombinatorialLibraryDesign_Scarfree_4PartAnalysis(_ctx, input, output)
+	_CombinatorialLibraryDesign_Scarfree_4PartValidation(_ctx, input, output)
 	return output
 }
 
-func CombinatorialLibraryDesign_Scarfree3Part_wtypeRunSteps(_ctx context.Context, input *CombinatorialLibraryDesign_Scarfree3Part_wtypeInput) *CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput {
-	soutput := &CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput{}
-	output := _CombinatorialLibraryDesign_Scarfree3Part_wtypeRun(_ctx, input)
+func CombinatorialLibraryDesign_Scarfree_4PartRunSteps(_ctx context.Context, input *CombinatorialLibraryDesign_Scarfree_4PartInput) *CombinatorialLibraryDesign_Scarfree_4PartSOutput {
+	soutput := &CombinatorialLibraryDesign_Scarfree_4PartSOutput{}
+	output := _CombinatorialLibraryDesign_Scarfree_4PartRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -216,19 +214,19 @@ func CombinatorialLibraryDesign_Scarfree3Part_wtypeRunSteps(_ctx context.Context
 	return soutput
 }
 
-func CombinatorialLibraryDesign_Scarfree3Part_wtypeNew() interface{} {
-	return &CombinatorialLibraryDesign_Scarfree3Part_wtypeElement{
+func CombinatorialLibraryDesign_Scarfree_4PartNew() interface{} {
+	return &CombinatorialLibraryDesign_Scarfree_4PartElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &CombinatorialLibraryDesign_Scarfree3Part_wtypeInput{}
+				input := &CombinatorialLibraryDesign_Scarfree_4PartInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _CombinatorialLibraryDesign_Scarfree3Part_wtypeRun(_ctx, input)
+				output := _CombinatorialLibraryDesign_Scarfree_4PartRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &CombinatorialLibraryDesign_Scarfree3Part_wtypeInput{},
-			Out: &CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput{},
+			In:  &CombinatorialLibraryDesign_Scarfree_4PartInput{},
+			Out: &CombinatorialLibraryDesign_Scarfree_4PartOutput{},
 		},
 	}
 }
@@ -239,16 +237,16 @@ var (
 	_ = wunit.Make_units
 )
 
-type CombinatorialLibraryDesign_Scarfree3Part_wtypeElement struct {
+type CombinatorialLibraryDesign_Scarfree_4PartElement struct {
 	inject.CheckedRunner
 }
 
-type CombinatorialLibraryDesign_Scarfree3Part_wtypeInput struct {
+type CombinatorialLibraryDesign_Scarfree_4PartInput struct {
 	BlastSearchSeqs               bool
 	EndsAlreadyadded              bool
 	EnzymeName                    string
+	ExportSequences               bool
 	FolderPerConstruct            bool
-	FolderPerProject              bool
 	ORFStoconfirm                 []string
 	Part1s                        []wtype.DNASequence
 	Part2s                        []wtype.DNASequence
@@ -259,7 +257,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeInput struct {
 	Vectors                       []wtype.DNASequence
 }
 
-type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
+type CombinatorialLibraryDesign_Scarfree_4PartOutput struct {
 	AssembledSequences    wtype.File
 	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
@@ -275,7 +273,7 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeOutput struct {
 	StatusMap             map[string]string
 }
 
-type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
+type CombinatorialLibraryDesign_Scarfree_4PartSOutput struct {
 	Data struct {
 		AssembledSequences    wtype.File
 		Assemblies            map[string][]wtype.DNASequence
@@ -296,17 +294,17 @@ type CombinatorialLibraryDesign_Scarfree3Part_wtypeSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_Scarfree3Part_wtype",
-		Constructor: CombinatorialLibraryDesign_Scarfree3Part_wtypeNew,
+	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_Scarfree_4Part",
+		Constructor: CombinatorialLibraryDesign_Scarfree_4PartNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design a combinatorial library of all combinations of lists of options for 3 parts plus vectors.\nOverhangs are added to complement the adjacent parts and leave no scar according to a specified TypeIIs Restriction Enzyme.\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/scarfree/CombinatorialLibraryDesign_Scarfree_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/scarfree/CombinatorialLibraryDesign_Scarfree_4Part.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "EndsAlreadyadded", Desc: "", Kind: "Parameters"},
 				{Name: "EnzymeName", Desc: "", Kind: "Parameters"},
+				{Name: "ExportSequences", Desc: "", Kind: "Parameters"},
 				{Name: "FolderPerConstruct", Desc: "", Kind: "Parameters"},
-				{Name: "FolderPerProject", Desc: "", Kind: "Parameters"},
 				{Name: "ORFStoconfirm", Desc: "", Kind: "Parameters"},
 				{Name: "Part1s", Desc: "", Kind: "Parameters"},
 				{Name: "Part2s", Desc: "", Kind: "Parameters"},

@@ -65,6 +65,12 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_5PartSteps(_ctx context.
 	_output.Parts = make([][]wtype.DNASequence, 0)
 	_output.SequencingPrimers = make([][]wtype.DNASequence, 0)
 
+	var standardLabels []string
+
+	for _, level := range _input.StandardLabels {
+		standardLabels = append(standardLabels, level)
+	}
+
 	var counter int = 1
 
 	if _input.StandardLevel == "" {
@@ -72,17 +78,17 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_5PartSteps(_ctx context.
 	}
 
 	for j := range _input.Vectors {
-		for k := range _input.PROs {
-			for l := range _input.RBSs {
-				for m := range _input.CDSs {
-					for n := range _input.TERs {
-						key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.PROs[k].Nm + "_" + _input.RBSs[l].Nm + "_" + _input.CDSs[m].Nm
-						assembly := AssemblyStandard_siteremove_orfcheck_wtypeRunSteps(_ctx, &AssemblyStandard_siteremove_orfcheck_wtypeInput{Constructname: key,
-							Seqsinorder:                   []wtype.DNASequence{_input.PROs[k], _input.RBSs[l], _input.CDSs[m], _input.TERs[n]},
+		for k := range _input.Part1s {
+			for l := range _input.Part2s {
+				for m := range _input.Part3s {
+					for n := range _input.Part4s {
+						key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.Part1s[k].Nm + "_" + _input.Part2s[l].Nm + "_" + _input.Part3s[m].Nm + _input.Part4s[n].Nm
+						assembly := AssemblyStandard_TypeIIsDesignRunSteps(_ctx, &AssemblyStandard_TypeIIsDesignInput{Constructname: key,
+							Seqsinorder:                   []wtype.DNASequence{_input.Part1s[k], _input.Part2s[l], _input.Part3s[m], _input.Part4s[n]},
 							AssemblyStandard:              _input.Standard,
 							Level:                         _input.StandardLevel, // of assembly standard
 							Vector:                        _input.Vectors[j],
-							PartMoClotypesinorder:         _input.StandardLabels,
+							PartMoClotypesinorder:         standardLabels,
 							OtherEnzymeSitesToRemove:      _input.SitesToRemove,
 							ORFstoConfirm:                 []string{}, // enter each as amino acid sequence
 							RemoveproblemRestrictionSites: true,
@@ -142,7 +148,8 @@ func _CombinatorialLibraryDesign_From_Assembly_Standard_5PartSteps(_ctx context.
 		execute.Errorf(_ctx, "Error exporting sequence file for %s: %s", _input.ProjectName, err.Error())
 	}
 	// add fasta file for each set of parts with overhangs
-	labels := []string{"Promoters", "RBSs", "CDSs", "Ters"}
+
+	labels := standardLabels
 
 	refactoredparts := make(map[string][]wtype.DNASequence)
 
@@ -261,20 +268,19 @@ type CombinatorialLibraryDesign_From_Assembly_Standard_5PartElement struct {
 
 type CombinatorialLibraryDesign_From_Assembly_Standard_5PartInput struct {
 	BlastSearchSeqs          bool
-	CDSs                     []wtype.DNASequence
 	EndsAlreadyAdded         bool
 	FolderPerConstruct       bool
-	FolderPerProject         bool
 	MakeLevel1Device         string
-	PROs                     []wtype.DNASequence
+	Part1s                   []wtype.DNASequence
+	Part2s                   []wtype.DNASequence
+	Part3s                   []wtype.DNASequence
+	Part4s                   []wtype.DNASequence
 	ProjectName              string
-	RBSs                     []wtype.DNASequence
 	ReverseLevel1Orientation bool
 	SitesToRemove            []string
 	Standard                 string
-	StandardLabels           []string
+	StandardLabels           [4]string
 	StandardLevel            string
-	TERs                     []wtype.DNASequence
 	Vectors                  []wtype.DNASequence
 }
 
@@ -324,20 +330,19 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/MoClo/Hierarchical/CombinatorialLibraryDesign_From_Assembly_Standard_5Part.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
-				{Name: "CDSs", Desc: "", Kind: "Parameters"},
 				{Name: "EndsAlreadyAdded", Desc: "", Kind: "Parameters"},
 				{Name: "FolderPerConstruct", Desc: "", Kind: "Parameters"},
-				{Name: "FolderPerProject", Desc: "", Kind: "Parameters"},
 				{Name: "MakeLevel1Device", Desc: "Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly\nIf Custom design the valid options currently supported are: \"Device1\",\"Device2\", \"Device3\".\nIf left empty no adaptor sequence is added.\n", Kind: "Parameters"},
-				{Name: "PROs", Desc: "", Kind: "Parameters"},
+				{Name: "Part1s", Desc: "", Kind: "Parameters"},
+				{Name: "Part2s", Desc: "", Kind: "Parameters"},
+				{Name: "Part3s", Desc: "", Kind: "Parameters"},
+				{Name: "Part4s", Desc: "", Kind: "Parameters"},
 				{Name: "ProjectName", Desc: "", Kind: "Parameters"},
-				{Name: "RBSs", Desc: "", Kind: "Parameters"},
 				{Name: "ReverseLevel1Orientation", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
 				{Name: "Standard", Desc: "Custom design, may support MoClo, EcoFlex and GoldenBraid.\n", Kind: "Parameters"},
 				{Name: "StandardLabels", Desc: "", Kind: "Parameters"},
 				{Name: "StandardLevel", Desc: "default is \"level0\"\n", Kind: "Parameters"},
-				{Name: "TERs", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequences", Desc: "", Kind: "Data"},
 				{Name: "Assemblies", Desc: "parts + vector map ready for feeding into downstream AutoAssembly element\n", Kind: "Data"},
