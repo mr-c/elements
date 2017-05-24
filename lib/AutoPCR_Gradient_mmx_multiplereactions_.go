@@ -65,7 +65,7 @@ func _AutoPCR_Gradient_mmx_multiplereactionsSteps(_ctx context.Context, _input *
 	       ReactionName: reactionname,
 	             FwdPrimerVol: wunit.NewVolume(1,"ul"),
 	             RevPrimerVol: wunit.NewVolume(1,"ul"),
-	             AdditiveVols: []wunit.Volume{wunit.NewVolume(5,"ul")},
+	             AdditiveVols: []Volume{wunit.NewVolume(5,"ul")},
 	             Templatevolume: wunit.NewVolume(1,"ul"),
 	             PolymeraseVolume: wunit.NewVolume(1,"ul"),
 	             DNTPVol:wunit.NewVolume(1,"ul"),
@@ -87,7 +87,7 @@ func _AutoPCR_Gradient_mmx_multiplereactionsSteps(_ctx context.Context, _input *
 	             Buffer:factory.GetComponentByType("Q5buffer"),
 	             Water:factory.GetComponentByType("water"),
 	             Template: Templatetype,
-	             Additives: []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")} ,
+	             Additives: []*LHComponent{factory.GetComponentByType("GCenhancer")} ,
 	             OutPlate: Plate,
 
 	                   })
@@ -221,7 +221,7 @@ type AutoPCR_Gradient_mmx_multiplereactionsInput struct {
 	FwdPrimertype               *wtype.LHComponent
 	Plate                       *wtype.LHPlate
 	Projectname                 string
-	Reactiontoprimerpair        map[string][]string
+	Reactiontoprimerpair        map[string][2]string
 	Reactiontotemplate          map[string]string
 	RevPrimertype               *wtype.LHComponent
 	RowGradientRatherthanColumn bool

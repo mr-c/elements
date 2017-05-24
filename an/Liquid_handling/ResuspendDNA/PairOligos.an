@@ -25,14 +25,14 @@ Data (
 )
 
 Inputs (
-	FwdOligo *wtype.LHComponent
-	RevOligo *wtype.LHComponent
-	Diluent *wtype.LHComponent
-	Plate *wtype.LHPlate
+	FwdOligo *LHComponent
+	RevOligo *LHComponent
+	Diluent *LHComponent
+	Plate *LHPlate
 )
 
 Outputs (
-	OligoPairs *wtype.LHComponent
+	OligoPairs *LHComponent
 )
 
 Requirements {

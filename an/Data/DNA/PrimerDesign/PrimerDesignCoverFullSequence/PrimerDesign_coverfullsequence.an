@@ -49,7 +49,7 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	var plasmid wtype.DNASequence
+	var plasmid DNASequence
 
 	plasmids, _ := parser.DNAFileToDNASequence(DNASeqfile)
 	

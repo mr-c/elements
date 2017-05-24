@@ -7,12 +7,12 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Vols []wunit.Volume
+	Vols []Volume
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
+	Parts			[]*LHComponent
 	OutputPlateType		string
 )
 
@@ -33,7 +33,7 @@ Setup {}
 // for every input
 Steps {
 	for k:=0;k<len(Vols);k++{
-		var s *wtype.LHComponent
+		var s *LHComponent
 		if !Vols[k].IsZero(){
 			s = mixer.Sample(Parts[k], Vols[k])
 		 MixTo(OutputPlateType, "", 1, s)

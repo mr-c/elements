@@ -16,7 +16,6 @@ import
 // Parameters to this protocol
 
 //optionally specify the number of agar plates to begin counting from (Default = 1)
-//specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 //set Incubation temperature
 //set Incubation time
 //specify number of technical replicates to plate out
@@ -29,7 +28,6 @@ import
 // Physical inputs to this protocol
 
 //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-//the liquid with which to dilute the transformed cells (Default = LB)
 //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
 
 // Physical outputs to this protocol
@@ -43,20 +41,21 @@ func _AutoPlateOut_MultiSetup(_ctx context.Context, _input *AutoPlateOut_MultiIn
 
 // The core process for this protocol. These steps are executed for each input.
 func _AutoPlateOut_MultiSteps(_ctx context.Context, _input *AutoPlateOut_MultiInput, _output *AutoPlateOut_MultiOutput) {
+	//setup counter to track WellsAlreadyUsed
+	var counter int = _input.WellsAlreadyUsed
+	var platecounter int = _input.AgarPlateNumber
 
 	//range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range _input.TransformedCells {
 
 		// Run PlateOut element
-		result := PlateOutTestRunSteps(_ctx, &PlateOutTestInput{AgarPlateNumber: _input.AgarPlateNumber,
-			Diluent:              _input.Diluent,
-			Dilution:             _input.Dilution,
+		result := PlateOutTestRunSteps(_ctx, &PlateOutTestInput{AgarPlateNumber: platecounter,
 			IncubationTemp:       _input.IncubationTemp,
 			IncubationTime:       _input.IncubationTime,
 			NumberofReplicates:   _input.NumberofReplicates,
 			PlateOutVolume:       _input.PlateOutVolume,
 			PlateOutLiquidPolicy: _input.PlateOutLiquidPolicy,
-			WellsAlreadyUsed:     _input.WellsAlreadyUsed,
+			WellsAlreadyUsed:     counter,
 
 			TransformedCells: plateout,
 			AgarPlate:        _input.AgarPlate},
@@ -65,6 +64,9 @@ func _AutoPlateOut_MultiSteps(_ctx context.Context, _input *AutoPlateOut_MultiIn
 			_output.PlatedCultures = append(_output.PlatedCultures, plateoutorder)
 		}
 
+		//increase counter
+		counter = result.Outputs.WellsUsed
+		platecounter = result.Outputs.TransformedPlateNumber
 	}
 }
 
@@ -131,12 +133,10 @@ type AutoPlateOut_MultiElement struct {
 type AutoPlateOut_MultiInput struct {
 	AgarPlate            *wtype.LHPlate
 	AgarPlateNumber      int
-	Diluent              *wtype.LHComponent
-	Dilution             int
 	IncubationTemp       wunit.Temperature
 	IncubationTime       wunit.Time
 	NumberofReplicates   int
-	PlateOutLiquidPolicy string
+	PlateOutLiquidPolicy wtype.PolicyName
 	PlateOutVolume       wunit.Volume
 	TransformedCells     []*wtype.LHComponent
 	WellsAlreadyUsed     int
@@ -163,8 +163,6 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AgarPlate", Desc: "the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\n", Kind: "Inputs"},
 				{Name: "AgarPlateNumber", Desc: "optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
-				{Name: "Diluent", Desc: "the liquid with which to dilute the transformed cells (Default = LB)\n", Kind: "Inputs"},
-				{Name: "Dilution", Desc: "specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)\n", Kind: "Parameters"},
 				{Name: "IncubationTemp", Desc: "set Incubation temperature\n", Kind: "Parameters"},
 				{Name: "IncubationTime", Desc: "set Incubation time\n", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "specify number of technical replicates to plate out\n", Kind: "Parameters"},

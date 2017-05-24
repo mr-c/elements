@@ -38,11 +38,35 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 
 	for _, part := range _input.Parts {
 
-		result := ResuspendDNARunSteps(_ctx, &ResuspendDNAInput{DNAMass: _input.PartMassMap[part],
+		mass, found := _input.PartMassMap[part]
+
+		if !found {
+			execute.Errorf(_ctx, "Part %s not found in PartMassMap", part)
+		}
+
+		mw, found := _input.PartMolecularWeightMap[part]
+
+		if !found {
+			execute.Errorf(_ctx, "Part %s not found in PartMolecularWeightMap", part)
+		}
+
+		well, found := _input.PartLocationsMap[part]
+
+		if !found {
+			execute.Errorf(_ctx, "Part %s not found in PartLocationsMap", part)
+		}
+
+		plate, found := _input.PartPlateMap[part]
+
+		if !found {
+			execute.Errorf(_ctx, "Part %s not found in PartPlateMap", part)
+		}
+
+		result := ResuspendDNARunSteps(_ctx, &ResuspendDNAInput{DNAMass: mass,
 			TargetConc:      _input.TargetConc,
-			MolecularWeight: _input.PartMolecularWeightMap[part],
-			Well:            _input.PartLocationsMap[part],
-			PlateName:       _input.PartPlateMap[part],
+			MolecularWeight: mw,
+			Well:            well,
+			PlateName:       plate,
 
 			Diluent:  _input.Diluent,
 			DNAPlate: _input.DNAPlate},
@@ -50,18 +74,27 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 
 		result.Outputs.ResuspendedDNA.CName = part
 
-		_output.ResuspendedDNAMap[part] = result.Outputs.ResuspendedDNA
+		resuspendedDNA := result.Outputs.ResuspendedDNA
 
-		_output.PartConcentrations[part] = _input.TargetConc.GramPerL(_input.PartMolecularWeightMap[part])
+		// convert concentration to g/l
+		conc := _input.TargetConc.GramPerL(mw)
+
+		resuspendedDNA.SetConcentration(conc)
+
+		// add to output maps
+		_output.ResuspendedDNAMap[part] = resuspendedDNA
+
+		_output.PartConcentrations[part] = conc
 
 		// add to slices to export as csv later
-		Reactions = append(Reactions, result.Outputs.ResuspendedDNA)
-		volumes = append(volumes, result.Outputs.ResuspendedDNA.Volume())
-		welllocations = append(welllocations, _input.PartLocationsMap[part])
+		Reactions = append(Reactions, resuspendedDNA)
+		volumes = append(volumes, resuspendedDNA.Volume())
+		welllocations = append(welllocations, well)
 	}
 
-	// once all values of loop have been completed, export the plate contents as a csv file
-	_output.Errors = append(_output.Errors, wtype.ExportPlateCSV(_input.Projectname+".csv", _input.DNAPlate, _input.Projectname+"outputPlate", welllocations, Reactions, volumes))
+	// once all values of loop have been completed, export the plate contents as a csv file, Not visible in UI at present! refactor exportCSV func.
+	err := wtype.ExportPlateCSV(_input.Projectname+".csv", _input.DNAPlate, _input.Projectname+"outputPlate", welllocations, Reactions, volumes)
+	_output.Errors = append(_output.Errors, err)
 
 }
 
@@ -133,6 +166,7 @@ type ResuspendDNA_MultipleInput struct {
 type ResuspendDNA_MultipleOutput struct {
 	Errors             []error
 	PartConcentrations map[string]wunit.Concentration
+	PlateContents      wtype.File
 	ResuspendedDNAMap  map[string]*wtype.LHComponent
 }
 
@@ -140,6 +174,7 @@ type ResuspendDNA_MultipleSOutput struct {
 	Data struct {
 		Errors             []error
 		PartConcentrations map[string]wunit.Concentration
+		PlateContents      wtype.File
 	}
 	Outputs struct {
 		ResuspendedDNAMap map[string]*wtype.LHComponent
@@ -164,6 +199,7 @@ func init() {
 				{Name: "TargetConc", Desc: "", Kind: "Parameters"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "PartConcentrations", Desc: "", Kind: "Data"},
+				{Name: "PlateContents", Desc: "", Kind: "Data"},
 				{Name: "ResuspendedDNAMap", Desc: "", Kind: "Outputs"},
 			},
 		},

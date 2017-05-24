@@ -23,7 +23,7 @@ import (
 
 // Data which is returned from this protocol
 
-//Return DNA sequence as type wtype.DNASequence
+//Return DNA sequence as type DNASequence
 //Status for user
 //Warnings for user
 
@@ -42,7 +42,7 @@ func _ImportMultipleDNASequenceSetup(_ctx context.Context, _input *ImportMultipl
 // Core process of the protocol: steps to be performed for each input
 func _ImportMultipleDNASequenceSteps(_ctx context.Context, _input *ImportMultipleDNASequenceInput, _output *ImportMultipleDNASequenceOutput) {
 	//Use function DNAFileToDNASequence to read in file. The function determines
-	//which file type was given as input and returns the DNA sequence as type wtype.DNAsequence
+	//which file type was given as input and returns the DNA sequence as type DNASequence
 
 	if filepath.Ext(_input.SequenceFile.Name) != ".fasta" {
 		execute.Errorf(_ctx, "The file format of %s is not supported. Please use file of format .fasta for this element.", _input.SequenceFile.Name)
@@ -205,7 +205,7 @@ func init() {
 				{Name: "CheckForORFs", Desc: "If true, sequence is searched for ORF's\n", Kind: "Parameters"},
 				{Name: "OverrideSequenceType", Desc: "Optional for the user to override specification of SequenceType using the name of the sequence specified in the file as the key. Each sequence name should be assigned to a SequenceType of the following list: Plasmid, Linear, SingleStranded. If no entry for a sequence is specified the value in the sequence file is used. Alternatively a \"default\" value can be specified which will apply to all sequences with no entry.\n", Kind: "Parameters"},
 				{Name: "SequenceFile", Desc: "Only supported file format: .fasta\n", Kind: "Parameters"},
-				{Name: "DNA", Desc: "Return DNA sequence as type wtype.DNASequence\n", Kind: "Data"},
+				{Name: "DNA", Desc: "Return DNA sequence as type DNASequence\n", Kind: "Data"},
 				{Name: "Status", Desc: "Status for user\n", Kind: "Data"},
 				{Name: "Warnings", Desc: "Warnings for user\n", Kind: "Data"},
 			},

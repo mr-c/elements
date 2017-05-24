@@ -23,15 +23,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Substrate *wtype.LHComponent
-	Enzyme *wtype.LHComponent
-	Quenchingagent *wtype.LHComponent
-	//OutPlate *wtype.LHPlate 
+	Substrate *LHComponent
+	Enzyme *LHComponent
+	Quenchingagent *LHComponent
+	//OutPlate *LHPlate 
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	QuenchedReaction *wtype.LHComponent
+	QuenchedReaction *LHComponent
 	
 )
 
@@ -51,7 +51,7 @@ Steps {
 	substrate := mixer.Sample(Substrate,SubstrateVolume) 
 	enzyme := mixer.Sample(Enzyme,EnzymeVolume)
 	
-	// MixTo(platetype string, address string, platenum int, components ...*wtype.LHComponent)
+	// MixTo(platetype string, address string, platenum int, components ...*LHComponent)
 	
 	reaction:= MixTo(OutPlate,"",1,substrate, enzyme)
 	

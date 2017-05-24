@@ -1,4 +1,5 @@
-// Protocol for resuspending freeze dried DNA with a diluent
+// Protocol for parsing the contents of a DNAPlate file in xlsx format from Thermo.
+// The products of parsing this plate can the be wired directly into the ResuspendDNA or PairOligos elements.
 protocol ParseDNAPlateFile
 
 // we need to import the wtype package to use the LHComponent type
@@ -14,29 +15,27 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-  	SequenceInfoFile string
-	SequenceInfoFileformat string
+  	SequenceInfoFile File // supported format is xlsx file from Thermo
+	SequenceInfoFileformat string // default should be JMP
 	
 )
 
 Data (
 	Partnames[]string
-	PartMassMap map[string]wunit.Mass
+	PartMassMap map[string]Mass
 	PartMolecularWeightMap map[string]float64
 	PartPlateMap map[string]string
 	PartLocationsMap map[string]string
-	Platetype string
 	FwdOligotoRevOligo map[string]string // using the fwd primer name, returns the rev primer name
 	OligoPairs int
 	HeadersFound []string
 )
 
 Inputs (
-	DNAPlate *wtype.LHPlate
 )
 
 Outputs (
-	PartsList map[string]*wtype.LHComponent
+	PartsList map[string]*LHComponent
 )
 
 Requirements {
@@ -49,20 +48,24 @@ Setup {
 Steps {
 
 
-var ReplaceMap = map[string]string{
-	"01":"1",
-	"02":"2",
-	"03":"3",
-	"04":"4",
-	"05":"5",
-	"06":"6",
-	"07":"7",
-	"08":"8",
-	"09":"9",
-	"_":"",
-}
-
-
+	if SequenceInfoFileformat == ""{
+		SequenceInfoFileformat = "JMP"
+	}
+	
+	var ReplaceMap = map[string]string{
+		"01":"1",
+		"02":"2",
+		"03":"3",
+		"04":"4",
+		"05":"5",
+		"06":"6",
+		"07":"7",
+		"08":"8",
+		"09":"9",
+		"_":"",
+	}
+	
+	
 	// headers
 	NameHeader := "Seq Name"
 	MassHeader := "Yield_ug"
@@ -73,170 +76,180 @@ var ReplaceMap = map[string]string{
 
 
 	// initialise maps
-	PartMassMap = make(map[string]wunit.Mass)
+	PartMassMap = make(map[string]Mass)
 	PartMolecularWeightMap = make(map[string]float64)
 	PartLocationsMap = make(map[string]string)
 	PartPlateMap = make(map[string]string)
 	headersfound := make([]string,0)
 	FwdOligotoRevOligo = make(map[string]string)
-	PartsList = make(map[string]*wtype.LHComponent)
+	PartsList = make(map[string]*LHComponent)
 
-dnaparts, err := doe.RunsFromDesignPreResponses(SequenceInfoFile,[]string{"Length", "MW","Tm","Yield"},SequenceInfoFileformat)
+	// get contents from file
+	fileContents, err :=  SequenceInfoFile.ReadAll()
+	
+	if err!= nil {
+		Errorf(err.Error())
+	}
+	
+
+	dnaparts, err := doe.RunsFromDesignPreResponsesContents(fileContents,[]string{"Length", "MW","Tm","Yield"},SequenceInfoFileformat)
 
 	if err!= nil {
 		Errorf(err.Error())
 	}
-
-// code for parsing the data from the xl file into the strings, this searches the file in direction i followed by j
-for i, partinfo := range dnaparts {
 	
-	
-	var partname string
-	var partmass float64
-	var partwell string
-	var partmw float64
-	var platename string
-	
-	for j := range partinfo.Setpoints {
-	
-//First creates an array of part names	
-	if partinfo.Factordescriptors[j] == NameHeader {
+	// code for parsing the data from the xl file into the strings, this searches the file in direction i followed by j
+	for i, partinfo := range dnaparts {
 		
-		if	name, found := partinfo.Setpoints[j].(string); found{
+		
+		var partname string
+		var partmass float64
+		var partwell string
+		var partmw float64
+		var platename string
+		
+		for j := range partinfo.Setpoints {
 			
-			if name == ""|| name == "BLANK"{
-				fmt.Print("Skipping ", name)
-				}else{
-			partname = name
-			Partnames = append(Partnames,name)
+			//First creates an array of part names	
+			if partinfo.Factordescriptors[j] == NameHeader {
+				
+				if	name, found := partinfo.Setpoints[j].(string); found{
+					
+					if name == ""|| name == "BLANK"{
+						fmt.Print("Skipping ", name)
+						}else{
+					partname = name
+					Partnames = append(Partnames,name)
+					}
+				} else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if i == 0 {
+					headersfound = append(headersfound,NameHeader)
+				}
+				
 			}
-		} else {
-			Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
-		}
-		
-			if i == 0 {
-		headersfound = append(headersfound,NameHeader)
-		}
-		
-	}
-	
-//second create an array of plasmid masses	
-	if partinfo.Factordescriptors[j] == MassHeader {
-		
-		if	mass, found := partinfo.Setpoints[j].(float64); found{
-			partmass = mass
-		}  else if	mass, found := partinfo.Setpoints[j].(string); found{
-			if mass == ""{
-			partmass = 0.0 // mw
-			// empty so skip
-			}
-		}else {
-			Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
-		}
-			if  i == 0 {
-		headersfound = append(headersfound,MassHeader)
-		}
-	}
-
-//third creates an array of part lengths in bp	
-	if partinfo.Factordescriptors[j] == MWHeader {
-		
-		if	mw, found := partinfo.Setpoints[j].(int); found{
-			partmw = float64(mw)
-		}  else if	mw, found := partinfo.Setpoints[j].(float64); found{
-			partmw = mw
-		}  else if	mw, found := partinfo.Setpoints[j].(string); found{
-			if mw == ""{
-			partmw = 0.0 // mw
-			// empty so skip
-			}
-		}else {
-			Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
-		}
-			if  i == 0 {
-		headersfound = append(headersfound,MWHeader)
-		}
-	}
-	
-	//third creates an array of part lengths in bp	
-	if partinfo.Factordescriptors[j] == WellHeader {
-		
-		if	well, found := partinfo.Setpoints[j].(string); found{
 			
-			for key, value := range ReplaceMap {
-			
-			if strings.Contains(well,key){
-				well = strings.Replace(well,key,value,1)
-		
-				break
+		//second create an array of plasmid masses	
+			if partinfo.Factordescriptors[j] == MassHeader {
+				
+				if	mass, found := partinfo.Setpoints[j].(float64); found{
+					partmass = mass
+				}  else if	mass, found := partinfo.Setpoints[j].(string); found{
+					if mass == ""{
+						partmass = 0.0 // mw
+					// empty so skip
+					}
+				}else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if i == 0 {
+						headersfound = append(headersfound,MassHeader)
+				}
 			}
-			}
-			partwell = well
-		}  else {
-			Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
-		}
-			if  i == 0 {
-		headersfound = append(headersfound,WellHeader)
-		}
-	}
-
-	//third creates an array of part lengths in bp	
-	if partinfo.Factordescriptors[j] == PlateNameHeader {
 		
-		if	plate, found := partinfo.Setpoints[j].(string); found{
+		//third creates an array of part lengths in bp	
+			if partinfo.Factordescriptors[j] == MWHeader {
+				
+				if	mw, found := partinfo.Setpoints[j].(int); found{
+					partmw = float64(mw)
+				}  else if	mw, found := partinfo.Setpoints[j].(float64); found{
+					partmw = mw
+				}  else if	mw, found := partinfo.Setpoints[j].(string); found{
+					if mw == ""{
+					partmw = 0.0 // mw
+					// empty so skip
+					}
+				}else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if  i == 0 {
+				headersfound = append(headersfound,MWHeader)
+				}
+			}
 			
-			platename = plate
-		}  else {
-			Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+			//third creates an array of part lengths in bp	
+			if partinfo.Factordescriptors[j] == WellHeader {
+				
+				if	well, found := partinfo.Setpoints[j].(string); found{
+					
+					for key, value := range ReplaceMap {
+					
+					if strings.Contains(well,key){
+						well = strings.Replace(well,key,value,1)
+				
+						break
+					}
+					}
+					partwell = well
+				}  else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+					if  i == 0 {
+				headersfound = append(headersfound,WellHeader)
+				}
+			}
+		
+			//third creates an array of part lengths in bp	
+			if partinfo.Factordescriptors[j] == PlateNameHeader {
+				
+				if	plate, found := partinfo.Setpoints[j].(string); found{
+					
+					platename = plate
+				}  else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+					if  i == 0 {
+				headersfound = append(headersfound,PlateNameHeader)
+				}
+			}
+			
+			
+		//internal check if there are not 4 headers (as we know there should be 4) return an error telling us which ones were found and which were not	
+			/*
+			if len(headersfound)!= 4 {
+				Errorf(fmt.Sprint("Only found these headers in input file: ", headersfound))
+			}
+			*/
 		}
-			if  i == 0 {
-		headersfound = append(headersfound,PlateNameHeader)
-		}
-	}
-	
-	
-//internal check if there are not 4 headers (as we know there should be 4) return an error telling us which ones were found and which were not	
-	/*
-	if len(headersfound)!= 4 {
-		Errorf(fmt.Sprint("Only found these headers in input file: ", headersfound))
-	}
-	*/
-}
-
-if partname == "" || partname == "BLANK"{
-	fmt.Print("Skipping ", partname)
+		
+	if partname == "" || partname == "BLANK"{
+		fmt.Print("Skipping ", partname)
 	}else{
-PartLocationsMap[partname] = partwell
-PartMolecularWeightMap[partname] = partmw
-PartMassMap[partname] = wunit.NewMass(partmass,"ug")
-PartPlateMap[partname]= platename
-
-part := factory.GetComponentByType("dna_part")
-part.CName = partname
-
-PartsList[partname] = part
-}
-
-
-
-}
-
-for _, partname := range Partnames {
-	
-	if !strings.Contains(partname, "_Revers"){
-	for _, partname2 := range Partnames {
-	if strings.Contains(partname2, "_Revers")&& strings.Contains(partname2, partname){
-		FwdOligotoRevOligo[partname] = partname2
-		break
+		PartLocationsMap[partname] = partwell
+		PartMolecularWeightMap[partname] = partmw
+		PartMassMap[partname] = wunit.NewMass(partmass,"ug")
+		PartPlateMap[partname]= platename
+		
+		part := factory.GetComponentByType("dna_part")
+		part.CName = partname
+		
+		PartsList[partname] = part
 	}
+	
+	
+	
+	}
+	
+	for _, partname := range Partnames {
+		
+		if !strings.Contains(partname, "_Revers"){
+			for _, partname2 := range Partnames {
+				if strings.Contains(partname2, "_Revers")&& strings.Contains(partname2, partname){
+					FwdOligotoRevOligo[partname] = partname2
+					break
+					}
+				}
+		}
+	}
+	OligoPairs = len(FwdOligotoRevOligo)
+	
+	HeadersFound = headersfound
 }
-}
-}
-OligoPairs = len(FwdOligotoRevOligo)
 
-
-HeadersFound = headersfound
-}
 Analysis {
 }
 

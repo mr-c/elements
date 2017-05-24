@@ -42,8 +42,8 @@ Data (
 	Warnings string
 	Status string
 	Simulationpass bool
-	PartswithOverhangs []wtype.DNASequence // i.e. parts to order
-	NewDNASequence wtype.DNASequence
+	PartswithOverhangs []DNASequence // i.e. parts to order
+	NewDNASequence DNASequence
 	Sitesfound []enzymes.Restrictionsites
 	BackupParts []string
 	PartsToOrder File
@@ -68,13 +68,13 @@ Steps {
 	
 	/* find sequence data from keyword; looking it up by a given name in an inventory 
 	   or by biobrick ID from iGem parts registry */
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 	
 	
 	Status = "all parts available"
 	for _, part := range Partsinorder {
 		
-		var partDNA =wtype.DNASequence{"","",false, false, wtype.Overhang{0, 0, 0, "", false}, wtype.Overhang{0, 0, 0, "", false}, "",nofeatures}
+		partDNA :=DNASequence{"","",false, false, wtype.Overhang{0, 0, 0, "", false}, wtype.Overhang{0, 0, 0, "", false}, "",nofeatures}
 		
 		if strings.Contains(part,"BBa_") ==true{
 		
@@ -197,7 +197,7 @@ Steps {
 	
 	// Export sequences to order into a fasta file
 	
-	partswithOverhangs := make([]wtype.DNASequence,0)
+	partswithOverhangs := make([]DNASequence,0)
 	for _, part := range PartswithOverhangs{
 		partFile,_, err := export.Fasta(Constructname,&part)
 		if err != nil{

@@ -25,19 +25,19 @@ Parameters (
 )
 
 Inputs (
-	Parts 			[][]*wtype.LHComponent // Input parts, one per assembly
-	Vector 			*wtype.LHComponent     // Vector to use
-	RestrictionEnzyme 	*wtype.LHComponent     // Restriction enzyme to use
-	Buffer 			*wtype.LHComponent     // Buffer to use
-	Water  			*wtype.LHComponent     // Water to use
-	Ligase 			*wtype.LHComponent     // Ligase to use
-	Atp 			*wtype.LHComponent     // ATP to use
-	OutPlate 		*wtype.LHPlate         // Output plate
-	InPlate 		*wtype.LHPlate         // Input plate 
+	Parts 			[][]*LHComponent // Input parts, one per assembly
+	Vector 			*LHComponent     // Vector to use
+	RestrictionEnzyme 	*LHComponent     // Restriction enzyme to use
+	Buffer 			*LHComponent     // Buffer to use
+	Water  			*LHComponent     // Water to use
+	Ligase 			*LHComponent     // Ligase to use
+	Atp 			*LHComponent     // ATP to use
+	OutPlate 		*LHPlate         // Output plate
+	InPlate 		*LHPlate         // Input plate 
 )
 
 Outputs (
-	Reactions []*wtype.LHComponent      // List of assembled parts
+	Reactions []*LHComponent      // List of assembled parts
 )
 
 Setup {}

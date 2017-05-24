@@ -10,38 +10,38 @@ import (
 Parameters (
 	ReactionVolume				Volume
 	MasterMixVolume				Volume
-	PartVols				[]Volume
+	PartVols				    []Volume
 	ReactionTemp				Temperature
 	ReactionTime				Time
 	InactivationTemp			Temperature
 	InactivationTime			Time
 	OutputReactionName			string
 	OutputLocation 				string
-        OutputConstructName                     string
+    OutputConstructName         string
 	OutputPlateNum				int
-	LHPolicyName				string
-        EnzymeName                              string
-        PartSeqs                                []wtype.DNASequence
+	LHPolicyName				PolicyName
+    EnzymeName                  string
+    PartSeqs                    []DNASequence
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
-	MasterMix		*wtype.LHComponent
-	OutPlate		*wtype.LHPlate
-	Water                   *wtype.LHComponent
+	Parts			[]*LHComponent
+	MasterMix		*LHComponent
+	OutPlate		*LHPlate
+	Water                   *LHComponent
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction      *wtype.LHComponent
+	Reaction      *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
 Data (
         ConstructName string
-        Sequence      wtype.DNASequence
+        Sequence      DNASequence
 )
 
 Requirements {}
@@ -54,7 +54,7 @@ Setup {}
 Steps {
 	var err error
 
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
         ConstructName = OutputConstructName
 	
         last := len(PartSeqs) - 1

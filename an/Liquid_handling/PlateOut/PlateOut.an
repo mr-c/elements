@@ -5,18 +5,16 @@ protocol PlateOutTest
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/microArch/factory"
 	"fmt"
 )
 
 // Parameters to this protocol
 Parameters (
 	AgarPlateNumber int //optionally specify the number of agar plates to begin counting from (Default = 1)
-	Dilution int //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy string //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolume Volume //optionally specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
@@ -24,19 +22,21 @@ Parameters (
 // Output data of this protocol
 Data (
 	AgarPlatesUsed int //returns number of output AgarPlates used
+	Errors []string
+	WellLocationsUsed []string
 )
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	Diluent *wtype.LHComponent //the liquid with which to dilute the transformed cells (Default = LB)
-	TransformedCells *wtype.LHComponent //the transformed cells (Default = neb5compcells).
+	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	TransformedCells *LHComponent //the transformed cells (Default = neb5compcells).
 )
 
 // Physical outputs to this protocol
 Outputs (
-	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
-	TransformedPlate int //the number of plates used
+	PlatedCultures []*LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	TransformedPlateNumber int //the number of plates used
+	WellsUsed int //number of wells used
 )
 
 // Conditions to run on startup
@@ -46,78 +46,91 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
+	//set up some default values
+	var defaultPlateOutPolicy PolicyName = "plateout"
+	var defaultAgarPlateNumber int = 1
+	var defaultNumberofReplicates int = 1
+	var defaultWellsAlreadyUsed int = 0
 
-	//set platenumber variable (Default = 1) that will count up number of plates used
-	var platenumber int = AgarPlateNumber
-
-	if AgarPlateNumber == 0 {
-			AgarPlateNumber = 1
-			}
+	//set up error variable
+	var warnings []string
 
 	//set counter variable to count up number of wells used, and set at the number of wells already used in the output agar plate (Default = 0)
 	var counter int = WellsAlreadyUsed
 
-	//set up error variable
-	var err error
+	if WellsAlreadyUsed < 0 {
+			WellsAlreadyUsed = defaultWellsAlreadyUsed
+			wellsUsedError := fmt.Errorf("Invalid WellsAlreadyUsed specified, assinging to default: %d", defaultWellsAlreadyUsed)
+			warnings = append(warnings, wellsUsedError.Error())
+			}
 
-	//set up a slice to add the plate out reactions to
-	var plateOutVolumes []*wtype.LHComponent
+	if AgarPlateNumber <= 0 {
+			AgarPlateNumber = defaultAgarPlateNumber
+			agarPlateNumError := fmt.Errorf("Invalid AgarPlateNumber specified, assinging to default: %d", defaultAgarPlateNumber)
+			warnings = append(warnings, agarPlateNumError.Error())
+			}
 
-	//attribute specified liquidpolicy to the plate out reaction (Default = plateout)
-	TransformedCells.Type, err = wtype.LiquidTypeFromString(PlateOutLiquidPolicy)
+			//set platenumber variable (Default = 1) that will count up number of plates used
+			var platenumber int = AgarPlateNumber
 
 	if PlateOutLiquidPolicy == "" {
-			PlateOutLiquidPolicy = "plateout"
+			PlateOutLiquidPolicy = defaultPlateOutPolicy
+			plateOutPolicyError := fmt.Errorf("Invalid PlateOutLiquidPolicy specified, assinging to default: %s", defaultPlateOutPolicy)
+			warnings = append(warnings, plateOutPolicyError.Error())
 			}
+
+	//attribute specified liquidpolicy to the plate out reaction (Default = plateout)
+	TransformedCells.Type, _ = wtype.LiquidTypeFromString(PlateOutLiquidPolicy)
 
 	//get plate dimenson and well info for specified agarplate from plate library
 	var wellpositionarray []string = AgarPlate.AllWellPositions(wtype.BYCOLUMN)
 
-	if err != nil {
-		Errorf("Error in specifying Liquid Policy %s for Plate Out: %s", PlateOutLiquidPolicy, err.Error())
-	}
+	if NumberofReplicates <= 0 {
+		NumberofReplicates = defaultNumberofReplicates
+		numberOfReplicatesError := fmt.Errorf("Invalid NumberofReplicates specified, assigning to default: %s", defaultNumberofReplicates)
+		warnings = append(warnings, numberOfReplicatesError.Error())
 
+		}
 	//create loop for processing through specified number of replicates
-	for j := 0; j < NumberofReplicates;j++{
+	for j := 0; j < NumberofReplicates ;j++{
 
-	//detect next well location accessing array slice using counter as pointer
-	nextwell := wellpositionarray[counter]
+				//set up a slice to add the plate out reactions to
+				var plateOutSamplesSlice []*LHComponent
 
+				//set up variable for tracking well
+				var nextwell string
 
-	//check if dilution is required and calculate required dilution, performing mix command with speicifed Diluent (Default = LB)
-	var nilComponent *wtype.LHComponent
+				//detect next well location accessing array slice using counter as pointer
+				nextwell = wellpositionarray[counter]
 
-	if Diluent == nilComponent {
-			Diluent = factory.GetComponentByType("LB")
-			}
+				//aspirate transformed cells at specified volumes
+				plateOutSample := mixer.Sample(TransformedCells, PlateOutVolume)
 
-	if Dilution > 1 {
-								dilutedSample := mixer.SampleForTotalVolume(Diluent, PlateOutVolume)
-								plateOutVolumes = append(plateOutVolumes,dilutedSample)
-								PlateOutVolume = wunit.DivideVolume(PlateOutVolume,float64(Dilution))
-									}
+				//append transformed cell volumes to plate out volumes array
+				plateOutSamplesSlice = append(plateOutSamplesSlice,plateOutSample)
 
-	//aspirate transformed cells at specified volumes
-	plateOutSample := mixer.Sample(TransformedCells, PlateOutVolume)
+				//perform mix actions with the plate out volume reactions from above into specified plate and location
+				platedCulture := MixNamed(AgarPlate.Type, nextwell, fmt.Sprint("TransformedPlateNumber", platenumber), plateOutSamplesSlice...)
 
-	//append transformed cell volumes to plate out volumes array
-	plateOutVolumes = append(plateOutVolumes,plateOutSample)
+				//append plated out cultures to output array
+				PlatedCultures = append(PlatedCultures,platedCulture)
 
-	//perform mix actions with the plate out volume reactions from above into specified plate and location
-	platedCulture := MixNamed(AgarPlate.Type, nextwell, fmt.Sprint("TransformedPlate", platenumber), plateOutVolumes...)
+				//increase counter for next iteration and add additonal plate if needed
+				if counter +1 == len(wellpositionarray) {
+					platenumber++
+					counter=0
+				}else{
+					counter++
+				}
 
-	//append plated out cultures to output array
-	PlatedCultures = append(PlatedCultures,platedCulture)
+				//add WellLocationsUsed to output data slice
+				WellLocationsUsed = append(WellLocationsUsed,nextwell)
+		}
 
-	}
-
-	//increase counter for next iteration and add additonal plate if needed
-	if counter +1 == len(wellpositionarray) {
-	platenumber++
-	counter=0
-	}else{
-	counter++
-	}
+		//update counters and append warnings
+		WellsUsed = counter
+		TransformedPlateNumber = platenumber
+		Errors = warnings
 }
 
 

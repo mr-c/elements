@@ -8,12 +8,12 @@ import (
 
 Parameters (
 
-	PartsWithOverhangs []wtype.DNASequence
-	Vector wtype.DNASequence
+	PartsWithOverhangs []DNASequence
+	Vector DNASequence
 	SynthesisProvider string
 )
 Data (
-	ValidatedPartsWithOverhangs []wtype.DNASequence
+	ValidatedPartsWithOverhangs []DNASequence
 	Validated bool
 	ValidationStatus string
 )

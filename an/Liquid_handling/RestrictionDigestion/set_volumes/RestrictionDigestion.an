@@ -29,20 +29,20 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	DNASolution 		*wtype.LHComponent
-	EnzSolutions 		[]*wtype.LHComponent
-	BSAoptional		 	*wtype.LHComponent
-	Buffer 				*wtype.LHComponent
-	Water  				*wtype.LHComponent
+	DNASolution 		*LHComponent
+	EnzSolutions 		[]*LHComponent
+	BSAoptional		 	*LHComponent
+	Buffer 				*LHComponent
+	Water  				*LHComponent
 
-	OutPlate 			*wtype.LHPlate
-	InPlate 			*wtype.LHPlate
+	OutPlate 			*LHPlate
+	InPlate 			*LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -56,7 +56,7 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
 

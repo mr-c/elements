@@ -1,0 +1,194 @@
+// Generates instructions to pipette out a defined image onto a defined plate by blending cyan magenta yellow and black dyes
+protocol PipetteImage_CMYK
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	VolumeForFullcolour  Volume
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
+	Rotate bool
+	AutoRotate bool
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	Numberofpixels int
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Cyan *LHComponent
+	Yellow *LHComponent
+	Magenta *LHComponent
+	Black *LHComponent
+	//InPlate *LHPlate
+	OutPlate *LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Pixels[]*LHComponent
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	
+	// if image is from url, download
+	if UseURL {
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
+	
+	chosencolourpalette := image.AvailablePalettes()["Plan9"]
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+	
+	solutions := make([]*LHComponent, 0)
+
+	counter := 0
+
+	for locationkey, colour := range positiontocolourmap {
+		
+		var solution *LHComponent
+
+		cmyk := image.ColourtoCMYK(colour)
+		
+		var maxuint8 uint8 = 255		
+		
+		if cmyk.C ==0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+		
+		continue
+			
+			}else{
+			
+		counter = counter + 1
+		
+		if cmyk.C > 0{
+			
+		cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+		
+		if cyanvol.RawValue() < 10 && cyanvol.Unit().PrefixedSymbol() == "ul"{
+				cyanvol.SetValue(10)
+			}
+		
+		if cmyk.K == 0 && cmyk.M == 0 && cmyk.Y == 0{
+		Cyan.Type  =	wtype.LTNeedToMix
+		}else {
+		Cyan.Type = wtype.LTDISPENSEABOVE
+		}
+		
+		cyanSample := mixer.Sample(Cyan, cyanvol)
+		
+		solution = MixTo(OutPlate.Type, locationkey,1,cyanSample)
+		}
+		if cmyk.Y > 0{
+		yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+		
+		if yellowvol.RawValue() < 10 && yellowvol.Unit().PrefixedSymbol() == "ul"{
+				yellowvol.SetValue(10)
+			}
+		if cmyk.K == 0 && cmyk.M == 0{
+		Yellow.Type  =	wtype.LTNeedToMix
+		}else {
+		Yellow.Type = wtype.LTDISPENSEABOVE
+		}
+		
+		
+		yellowSample := mixer.Sample(Yellow, yellowvol)
+		
+		if solution != nil {
+		solution = Mix(solution, yellowSample)
+		}else {
+			solution = MixTo(OutPlate.Type, locationkey,1,yellowSample)
+		}
+		}
+		if cmyk.M > 0{
+		magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+		
+		if magentavol.RawValue() < 10 && magentavol.Unit().PrefixedSymbol() == "ul"{
+				magentavol.SetValue(10)
+			}
+		
+		if cmyk.K == 0 {
+		Magenta.Type  =	wtype.LTNeedToMix
+		}else {
+		Magenta.Type = wtype.LTDISPENSEABOVE
+		}
+		
+		magentaSample := mixer.Sample(Magenta, magentavol)
+		
+		if solution != nil {
+		solution = Mix(solution, magentaSample)
+		}else {
+			solution = MixTo(OutPlate.Type, locationkey,1,magentaSample)
+		}
+		}
+		if cmyk.K > 0{
+		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+		
+		if blackvol.RawValue() < 10 && blackvol.Unit().PrefixedSymbol() == "ul"{
+				blackvol.SetValue(10)
+			}
+		
+		Black.Type = wtype.LTNeedToMix
+		
+		blackSample := mixer.Sample(Black, blackvol)
+		
+		if solution != nil {
+		solution = Mix(solution, blackSample)
+		}else {
+			solution = MixTo(OutPlate.Type, locationkey,1,blackSample)
+		}
+		
+		}
+				solutions = append(solutions, solution)
+		
+		}
+	}
+
+	Pixels = solutions
+	Numberofpixels = len(Pixels)
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}
+

@@ -16,7 +16,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Sequencekey					string //wtype.DNASequence
+	Sequencekey					string //DNASequence
 	RestrictionsitetoAvoid		[]string
 	RemoveifnotinORF 			bool
 	PreserveTranslatedseq 		bool
@@ -38,7 +38,7 @@ Outputs (
 Data (
 	Warnings 							string
 	Status 								string
-	SiteFreeSequence 					wtype.DNASequence // i.e. parts to order
+	SiteFreeSequence 					DNASequence // i.e. parts to order
 	Sitesfoundinoriginal 				[]enzymes.Restrictionsites
 	FragmentSizesfromRestrictionmapping []int
 )
@@ -94,7 +94,7 @@ Steps {
 	for _, site := range sitesfound{
 		if site.Sitefound {
 			
-			var tempseq wtype.DNASequence
+			var tempseq DNASequence
 			var err error
 			
 			orfs := sequences.FindallORFs(Sequence.Seq)

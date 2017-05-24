@@ -48,34 +48,34 @@ Data (
 Inputs (
 	
 	// Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	FwdPrimertype *wtype.LHComponent
+	FwdPrimertype *LHComponent
 	
 	// Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	RevPrimertype *wtype.LHComponent
+	RevPrimertype *LHComponent
 	
 	// Actual Template type to use. e.g. dna_part, culture
-	Templatetype *wtype.LHComponent
+	Templatetype *LHComponent
 	
 	// Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.
 	// This input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
-	DefaultPolymerase *wtype.LHComponent
+	DefaultPolymerase *LHComponent
 	
 	// Use the MasterMixMaker element to make the mastermix and wire it in here.
-	MasterMix *wtype.LHComponent
+	MasterMix *LHComponent
 	
 	// Type of plate to use for the reaction.
 	// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
 	// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
-	Plate *wtype.LHPlate	
+	Plate *LHPlate	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
 	// The PCR reaction products as a slice.
-	Reactions []*wtype.LHComponent
+	Reactions []*LHComponent
 	
 	// The PCR reaction products in the form of a map of components.
-	ReactionMap map[string]*wtype.LHComponent
+	ReactionMap map[string]*LHComponent
 )
 
 Requirements {
@@ -93,11 +93,11 @@ Steps {
 	var counter int
 	
 	// set up some empty slices to fill as we iterate through the reactions
-	Reactions = make([]*wtype.LHComponent,0)
-	volumes := make([]wunit.Volume,0)
+	Reactions = make([]*LHComponent,0)
+	volumes := make([]Volume,0)
 	welllocations := make([]string,0)
 	// initialise map
-	ReactionMap = make(map[string]*wtype.LHComponent)
+	ReactionMap = make(map[string]*LHComponent)
 
 	// To allow the use of specifying defaults in either the template map or the primer map, 
 	// we first evaluate which map has more entries and make a slice of reactions to iterate through based on that.

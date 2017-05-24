@@ -14,6 +14,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -25,6 +26,7 @@ import (
 InducerVolume Volume
 RepressorVolume Volume*/
 // name of image file or if using URL use this field to set the desired filename
+
 // select this if getting the image from a URL
 // enter URL link to the image file here if applicable
 
@@ -37,15 +39,15 @@ RepressorVolume Volume*/
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
-//Media *wtype.LHComponent
-/*Antibiotic *wtype.LHComponent
-Inducer *wtype.LHComponent
-Repressor *wtype.LHComponent*/
+//InPlate *LHPlate
+//Media *LHComponent
+/*Antibiotic *LHComponent
+Inducer *LHComponent
+Repressor *LHComponent*/
 
 // Physical outputs from this protocol with types
 
-//PaletteColours 	[]*wtype.LHComponent// not used
+//PaletteColours 	[]*LHComponent// not used
 
 func _TransformLivingPaletteRequirements() {
 
@@ -59,6 +61,10 @@ func _TransformLivingPaletteSetup(_ctx context.Context, _input *TransformLivingP
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingPaletteInput, _output *TransformLivingPaletteOutput) {
+
+	//---------------------------------------------------------------------
+	//Globals
+	//---------------------------------------------------------------------
 
 	var (
 		ReactionTemp                wunit.Temperature = wunit.NewTemperature(25, "C")
@@ -81,9 +87,17 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
-	// make sub pallete if necessary
-	var chosencolourpalette color.Palette
+	// img and error placeholders
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
 	var err error
+
+	//---------------------------------------------------------------------
+	//Palette manipulation
+	//---------------------------------------------------------------------
+
+	// make sub pallette if necessary
+	var chosencolourpalette color.Palette
 
 	if _input.Subset {
 		chosencolourpalette = image.MakeSubPallette(_input.Palettename, _input.Subsetnames)
@@ -91,18 +105,39 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
 	}
 
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.ImageFileName)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//---------------------------------------------------------------------
+	//Image processing
+	//---------------------------------------------------------------------
+
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
 
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
@@ -119,7 +154,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 			uvmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 			visiblemap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 		}
-		image.PrintFPImagePreview(_input.Imagefilename, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -146,7 +181,10 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		componentmap[componentname] = componenttopick
 
 	}
-	//	fmt.Println(componentmap)
+
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -156,7 +194,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 
-		//components := make([]*wtype.LHComponent, 0)
+		//components := make([]*LHComponent, 0)
 
 		component := componentmap[colourtostringmap[colour]]
 
@@ -345,7 +383,8 @@ type TransformLivingPaletteElement struct {
 type TransformLivingPaletteInput struct {
 	AutoRotate     bool
 	ComponentType  *wtype.LHComponent
-	Imagefilename  string
+	ImageFileName  string
+	InputFile      wtype.File
 	Notthiscolour  string
 	OnlythisColour string
 	OutPlate       *wtype.LHPlate
@@ -355,7 +394,7 @@ type TransformLivingPaletteInput struct {
 	Subsetnames    []string
 	URL            string
 	UVimage        bool
-	UseLiquidClass string
+	UseLiquidClass wtype.PolicyName
 	UseURL         bool
 	VolumePerWell  wunit.Volume
 }
@@ -388,8 +427,9 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/TransformLivingPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "InPlate *wtype.LHPlate\nMedia *wtype.LHComponent\nAntibiotic *wtype.LHComponent\n\tInducer *wtype.LHComponent\n\tRepressor *wtype.LHComponent\n", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ComponentType", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
+				{Name: "ImageFileName", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

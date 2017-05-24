@@ -37,21 +37,21 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts 				[]*wtype.LHComponent
-	Vector 				*wtype.LHComponent
-	RestrictionEnzyme 	*wtype.LHComponent
-	Buffer 				*wtype.LHComponent
-	Water  				*wtype.LHComponent
-	Ligase 				*wtype.LHComponent
-	Atp 				*wtype.LHComponent
-	OutPlate 			*wtype.LHPlate
-	InPlate 			*wtype.LHPlate
+	Parts 				[]*LHComponent
+	Vector 				*LHComponent
+	RestrictionEnzyme 	*LHComponent
+	Buffer 				*LHComponent
+	Water  				*LHComponent
+	Ligase 				*LHComponent
+	Atp 				*LHComponent
+	OutPlate 			*LHPlate
+	InPlate 			*LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -61,7 +61,7 @@ Data (
 	Simulationpass bool
 	Molesperpart []float64
 	MolarratiotoVector []float64
-	NewDNASequence wtype.DNASequence
+	NewDNASequence DNASequence
 	Sitesfound []enzymes.Restrictionsites
 )
 // Input Requirement specification
@@ -77,7 +77,7 @@ Setup {}
 // for every input
 Steps {
 	// Check that assembly is feasible by simulating assembly of the sequences with the chosen enzyme
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 	
 	for _, part := range Partsinorder {
 	partDNA := Inventory.Partslist()[part]
@@ -134,7 +134,7 @@ Steps {
 	if Simulationpass == true {
 	
 	// Now Perform the physical assembly
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
 

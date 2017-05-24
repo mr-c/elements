@@ -28,15 +28,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent 
-	Diluent *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Solution *LHComponent 
+	Diluent *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Dilutions []*wtype.LHComponent // dilutions only
-	AllDilutions []*wtype.LHComponent // original solution + dilutions
+	Dilutions []*LHComponent // dilutions only
+	AllDilutions []*LHComponent // original solution + dilutions
 )
 
 Requirements {
@@ -56,10 +56,11 @@ Steps {
 	
 	var counter int = WellsAlreadyUsed
 	var dilutionPosition int = 0
+	nilVolume := wunit.NewVolume(0.0,"ul")
 	
-	dilutions := make([]*wtype.LHComponent,0)
+	dilutions := make([]*LHComponent,0)
 
-	var aliquot *wtype.LHComponent
+	var aliquot *LHComponent
 	
 	// calculate solution volume
 	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],StockConcentration,StartVolumeperDilution)
@@ -74,18 +75,25 @@ Steps {
 	// this time using the substract method
 	diluentVolume.Subtract(solutionVolume)	
 	
-	// sample diluent
-	diluentSample := mixer.Sample(Diluent,diluentVolume)
-		
-	// Ensure liquid type set to Pre and Post Mix 
-	Solution.Type = wtype.LTNeedToMix
-		
+	// sample diluent if greater than zero
+	if diluentVolume.GreaterThan(nilVolume){
+		diluentSample := mixer.Sample(Diluent,diluentVolume)
+		// mix  to OutPlate
+		aliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",diluentSample)
+		// Ensure liquid type set to Pre and Post Mix 
+		Solution.Type = wtype.LTNeedToMix
+	}
+	
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
-	// mix both samples to OutPlate
-	aliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",diluentSample, solutionSample)
-
+	// mix sample to OutPlate
+	if aliquot == nil {
+		aliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate", solutionSample)
+	}else{
+		aliquot = Mix(aliquot,solutionSample)
+	}
+	
 	var solutionname string
 	
 	// rename sample to include concentration
@@ -109,14 +117,17 @@ Steps {
 	counter++
 	dilutionPosition++
 	
-	for dilutionPosition  < len(TargetConcentrations) {
+	for dilutionPosition < len(TargetConcentrations) {
+		
+		var nextdiluentSample *LHComponent
+		var nextaliquot *LHComponent
 		
 			// calculate new solution volume
 		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],TargetConcentrations[dilutionPosition-1],StartVolumeperDilution)
 		
-			if err != nil{
-				Errorf(err.Error())
-			}
+		if err != nil{
+			Errorf(err.Error())
+		}
 		
 		// use same approach to work out diluent volume to add	
 		diluentVolume = (wunit.CopyVolume(StartVolumeperDilution))
@@ -125,18 +136,25 @@ Steps {
 		diluentVolume.Subtract(solutionVolume)	
 			
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
+		if diluentVolume.GreaterThan(nilVolume){
+			
+			nextdiluentSample = mixer.Sample(Diluent, diluentVolume)
 		
-		nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",nextdiluentSample)
-		
-		// Ensure liquid type set to Pre and Post Mix 
-		aliquot.Type = wtype.LTNeedToMix
+			nextdiluentSample = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",nextdiluentSample)
+			
+			// Ensure liquid type set to Pre and Post Mix 
+			aliquot.Type = wtype.LTNeedToMix
+		}
 		
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 		
 		// Mix sample into nextdiluent sample
-		nextaliquot := Mix(nextdiluentSample,nextSample)
+		if nextdiluentSample != nil {
+			nextaliquot = Mix(nextdiluentSample,nextSample)
+		}else{
+			nextaliquot = MixNamed(OutPlate.Type,allwellpositions[counter], "DilutionPlate",nextSample)
+		}
 		
 		// rename sample to include concentration
 		nextaliquot.CName = TargetConcentrations[dilutionPosition].ToString()+" " +solutionname

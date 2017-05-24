@@ -1,0 +1,92 @@
+// Protocol Mix_AxB mixes all combinations of two arrays of components or samples to a new location.
+// The components may be samples if the Sample_multi element was used.
+protocol Mix_AxB
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+
+)
+
+// Parameters to this protocol
+Parameters (
+	SampleAVolumes map[string]Volume
+	SampleBVolumes map[string]Volume
+)
+
+// Output data of this protocol
+Data (
+)
+
+// Physical inputs to this protocol
+Inputs (
+	SampleAs []*LHComponent
+	SampleBs []*LHComponent
+	OutPlate *LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponents []*LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	
+	for _, componentA := range SampleAs{
+		
+		var sampleA *LHComponent
+		var sampleVol Volume
+ 		
+		if vol, found := SampleAVolumes[componentA.CName];found{
+ 			sampleVol = vol
+ 		}else if vol, found := SampleAVolumes["default"];found{
+ 			sampleVol = vol
+ 		}
+		
+		if sampleVol.RawValue() > 0.0 {			
+ 			sampleA = mixer.Sample(componentA,sampleVol)			
+ 		}else{
+ 			sampleA = mixer.SampleAll(componentA)
+ 		}
+				
+		for _, componentB := range SampleBs{
+			var sampleB *LHComponent
+			var sampleVol Volume
+	 		
+			if vol, found := SampleBVolumes[componentB.CName];found{
+	 			sampleVol = vol
+	 		}else if vol, found := SampleBVolumes["default"];found{
+	 			sampleVol = vol
+	 		}
+			
+			if sampleVol.RawValue() > 0.0 {			
+	 			sampleB = mixer.Sample(componentB,sampleVol)			
+	 		}else{
+	 			sampleB = mixer.SampleAll(componentB)
+	 		}
+			mixedComponent := MixInto(OutPlate,"", sampleA, sampleB)
+			MixedComponents = append(MixedComponents, mixedComponent)
+		}
+	}
+	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

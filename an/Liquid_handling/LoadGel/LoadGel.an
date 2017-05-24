@@ -18,15 +18,15 @@ Parameters (
 )
 
 Inputs (
-    Water           *wtype.LHComponent  //preload well with 10uL of water
-    Protein         *wtype.LHComponent  //protein samples for running
-    InPlate         *wtype.LHPlate      //96 well plate with water, marker and samples
-    GelPlate        *wtype.LHPlate      //Gel to load ie OutPlate
+    Water           *LHComponent  //preload well with 10uL of water
+    Protein         *LHComponent  //protein samples for running
+    InPlate         *LHPlate      //96 well plate with water, marker and samples
+    GelPlate        *LHPlate      //Gel to load ie OutPlate
 )
 
 
 Outputs (
-    RunSolution    *wtype.LHComponent
+    RunSolution    *LHComponent
 )
 
 Data (
@@ -39,7 +39,7 @@ Setup {
 
 Steps {
 
-    samples := make ([]*wtype.LHComponent, 0)
+    samples := make ([]*LHComponent, 0)
     waterSample := mixer.Sample(Water, WaterVolume)
     waterSample.CName = WaterName
     samples = append(samples, waterSample)

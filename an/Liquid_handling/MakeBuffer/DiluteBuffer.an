@@ -18,15 +18,15 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Bufferstock		*wtype.LHComponent
-	Diluent			*wtype.LHComponent
-	OutPlate 		*wtype.LHPlate
+	Bufferstock		*LHComponent
+	Diluent			*LHComponent
+	OutPlate 		*LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Buffer 			*wtype.LHComponent
+	Buffer 			*LHComponent
 )
 
 // Data which is returned from this protocol, and data types

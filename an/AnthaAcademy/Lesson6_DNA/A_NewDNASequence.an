@@ -20,8 +20,8 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	DNA wtype.DNASequence
-	DNAwithORFs wtype.DNASequence
+	DNA DNASequence
+	DNAwithORFs DNASequence
 	Status string
 )
 

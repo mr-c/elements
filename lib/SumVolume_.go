@@ -36,7 +36,7 @@ func _SumVolumeSetup(_ctx context.Context, _input *SumVolumeInput) {
 
 // Core process of the protocol: steps to be performed for each input
 func _SumVolumeSteps(_ctx context.Context, _input *SumVolumeInput, _output *SumVolumeOutput) {
-	//var Dmassconc wunit.MassConcentration = D
+	//var Dmassconc MassConcentration = D
 
 	/*	molarmass := wunit.NewAmount(E,"M")
 

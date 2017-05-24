@@ -21,12 +21,12 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent
+	Solution *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Sample *wtype.LHComponent
+	Sample *LHComponent
 )
 
 Requirements {

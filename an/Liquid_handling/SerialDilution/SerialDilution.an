@@ -23,14 +23,14 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent 
-	Diluent *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Solution *LHComponent 
+	Diluent *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Dilutions []*wtype.LHComponent
+	Dilutions []*LHComponent
 )
 
 Requirements {
@@ -46,9 +46,9 @@ Setup {
 // for every input
 Steps {
 	
-	dilutions := make([]*wtype.LHComponent,0)
+	dilutions := make([]*LHComponent,0)
 
-	var aliquot *wtype.LHComponent
+	var aliquot *LHComponent
 	
 	// calculate solution volume
 	

@@ -20,15 +20,16 @@ Parameters (
 )
 
 Data (
+	Warnings []string
 )
 
 Inputs (
-	Diluent *wtype.LHComponent
-	DNAPlate *wtype.LHPlate
+	Diluent *LHComponent
+	DNAPlate *LHPlate
 )
 
 Outputs (
-	ResuspendedDNA *wtype.LHComponent
+	ResuspendedDNA *LHComponent
 	
 )
 
@@ -47,7 +48,7 @@ Steps {
 	
 	if DNAMass.Unit().BaseSIUnit()== "kg"{
 		dnamassG = dnamassG * 1000
-		fmt.Println("Base Unit correction; Base unit of mass = ", DNAMass.Unit().BaseSIUnit()," therfore multiplying by 1000 to convert to grams")
+		Warnings = append(Warnings,fmt.Sprintln("Base Unit correction; Base unit of mass = ", DNAMass.Unit().BaseSIUnit()," therfore multiplying by 1000 to convert to grams"))
 	}
 	
 	volumetoadd := wunit.NewVolume(dnamassG/targetconcgperL,"L")

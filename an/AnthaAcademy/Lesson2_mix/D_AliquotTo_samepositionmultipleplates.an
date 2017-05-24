@@ -24,12 +24,12 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent
+	Solution *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Aliquots []*wtype.LHComponent
+	Aliquots []*LHComponent
 )
 
 Requirements {
@@ -45,7 +45,7 @@ Setup {
 // for every input
 Steps {
 		
-	aliquots := make([]*wtype.LHComponent,0)
+	aliquots := make([]*LHComponent,0)
 	
 	// this time round we're going to change the platenumber with each loop until we reach NumberofPlates specified in parameters
 	// note that we're starting counting from 1 instead of zero since a platenumber of 0 is an invalid entry into MixTo

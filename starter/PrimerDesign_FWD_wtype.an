@@ -13,7 +13,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	FullDNASeq   wtype.DNASequence // string // genbank file (.gb)
+	FullDNASeq   DNASequence // string // genbank file (.gb)
 	
 	Maxtemp    Temperature 
 	Mintemp    Temperature 
@@ -22,7 +22,7 @@ Parameters (
 	Maxlength   int 
 	Seqstoavoid []string
 	PermittednucleotideOverlapBetweenPrimers int // number of nucleotides which primers can overlap by
-	RegionSequence wtype.DNASequence
+	RegionSequence DNASequence
 	FlankTargetSequence bool
 )
 
@@ -53,7 +53,7 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 		
-	var region wtype.DNASequence
+	var region DNASequence
 	
 	regionstart, regionend, err := oligos.FindPositioninSequence(FullDNASeq, RegionSequence) 
 

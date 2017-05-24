@@ -19,7 +19,7 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	DNA wtype.DNASequence
+	DNA DNASequence
 	Status string
 	Warnings error
 	Description string

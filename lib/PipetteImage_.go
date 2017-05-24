@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -13,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"sort"
 	"strings"
@@ -20,9 +20,8 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
+//Desired name for the output image file
+// Image File
 
 // Data which is returned from this protocol, and data types
 
@@ -43,13 +42,26 @@ func _PipetteImageSetup(_ctx context.Context, _input *PipetteImageInput) {
 // for every input
 func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output *PipetteImageOutput) {
 
-	// if image is from url, download
-	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//--------------------------------------------------------------
+	//Opening image
+	//--------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
+
+	//--------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------
 
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[_input.Palettename]
@@ -75,12 +87,16 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
 	}
 
+	//--------------------------------------------------------------
+	//Image processing
+	//--------------------------------------------------------------
+
 	if _input.CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+		_output.ResizedImages = image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
@@ -94,7 +110,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 			uvmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 			visiblemap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 		}
-		image.PrintFPImagePreview(_input.Imagefilename, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -121,12 +137,15 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		componentmap[componentname] = componenttopick
 
 	}
-	//fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
 	counter := 0
 	_output.UniqueComponents = make([]string, 0)
+
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
 
 	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
@@ -173,6 +192,15 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	_output.Pixels = solutions
 
 	_output.Numberofpixels = len(_output.Pixels)
+
+	//--------------------------------------------------------------
+	//Exporting resulting images
+	//--------------------------------------------------------------
+
+	_output.ResizedImage, err = image.Export(imgBase, _input.ImageFileName)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 }
 
@@ -239,7 +267,8 @@ type PipetteImageInput struct {
 	AutoRotate            bool
 	CheckResizeAlgorithms bool
 	ComponentType         *wtype.LHComponent
-	Imagefilename         string
+	ImageFileName         string
+	InputFile             wtype.File
 	Notthiscolour         string
 	OnlythisColour        string
 	OutPlate              *wtype.LHPlate
@@ -249,7 +278,7 @@ type PipetteImageInput struct {
 	Subsetnames           []string
 	URL                   string
 	UVimage               bool
-	UseLiquidClass        string
+	UseLiquidClass        wtype.PolicyName
 	UseURL                bool
 	VolumePerWell         wunit.Volume
 }
@@ -257,12 +286,16 @@ type PipetteImageInput struct {
 type PipetteImageOutput struct {
 	Numberofpixels   int
 	Pixels           []*wtype.LHComponent
+	ResizedImage     wtype.File
+	ResizedImages    []*goimage.NRGBA
 	UniqueComponents []string
 }
 
 type PipetteImageSOutput struct {
 	Data struct {
 		Numberofpixels   int
+		ResizedImage     wtype.File
+		ResizedImages    []*goimage.NRGBA
 		UniqueComponents []string
 	}
 	Outputs struct {
@@ -280,7 +313,8 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "Image File\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -288,13 +322,15 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "URL", Desc: "", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},
+				{Name: "ResizedImage", Desc: "", Kind: "Data"},
+				{Name: "ResizedImages", Desc: "", Kind: "Data"},
 				{Name: "UniqueComponents", Desc: "", Kind: "Data"},
 			},
 		},

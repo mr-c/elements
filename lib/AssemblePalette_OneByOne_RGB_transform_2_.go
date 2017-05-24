@@ -13,6 +13,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
@@ -29,7 +30,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
+//InPlate *LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -45,6 +46,10 @@ func _AssemblePalette_OneByOne_RGB_transform_2Setup(_ctx context.Context, _input
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input *AssemblePalette_OneByOne_RGB_transform_2Input, _output *AssemblePalette_OneByOne_RGB_transform_2Output) {
+
+	//------------------------------------------------------------
+	//Globals
+	//------------------------------------------------------------
 
 	var (
 		ReactionTemp                wunit.Temperature = wunit.NewTemperature(25, "C")
@@ -68,23 +73,51 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 	greenname := _input.Green.CName
 	bluename := _input.Blue.CName
 
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	var err error
+
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.PlateWithMasterMix, _input.Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, _input.PlateWithMasterMix, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.PlateWithMasterMix, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -294,7 +327,7 @@ func init() {
 				{Name: "Green", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
-				{Name: "PlateWithMasterMix", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "PlateWithMasterMix", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Red", Desc: "", Kind: "Inputs"},

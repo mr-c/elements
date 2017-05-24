@@ -31,22 +31,22 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Diluent					*wtype.LHComponent
-	LiqComponents			[]*wtype.LHComponent
-	SolidComponents			[]*wtype.LHComponent // should be new type or field indicating solid and mass
-	/*Acid					*wtype.LHComponent
-	Base 					*wtype.LHComponent
+	Diluent					*LHComponent
+	LiqComponents			[]*LHComponent
+	SolidComponents			[]*LHComponent // should be new type or field indicating solid and mass
+	/*Acid					*LHComponent
+	Base 					*LHComponent
 	*/
 	Sterilise 				bool
 	SterilisationMethod	string
 	AdditionalInstructions []string
-	Vessel					*wtype.LHPlate
+	Vessel					*LHPlate
 )
 
 
 // Physical outputs from this protocol with types
 Outputs (
-	Media *wtype.LHComponent
+	Media *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -69,7 +69,7 @@ Steps {
 		recipestring := make([]string,0)
 		var step string
 		stepcounter := 1 // counting from 1 is what makes us human
-		liquids := make([]*wtype.LHComponent,0)
+		liquids := make([]*LHComponent,0)
 		step = text.Print("Recipe for: ",Name)
 		recipestring = append(recipestring,step)
 		
@@ -90,7 +90,7 @@ Steps {
 			stepcounter++
 		}
 		
-		//solids := make([]*wtype.LHComponent,0)
+		//solids := make([]*LHComponent,0)
 		
 		for _, sol := range SolidComponents {
 			

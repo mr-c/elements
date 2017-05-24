@@ -21,7 +21,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
+//TopUpBuffer *LHComponent // optional if nil this is ignored
 
 // Physical outputs from this protocol with types
 
@@ -81,7 +81,7 @@ func _Mastermix_numberofreactionsSteps(_ctx context.Context, _input *Mastermix_n
 
 		for i := counter; i < numberoffullvolumes;i++{
 
-			eachmastermix := make([]*wtype.LHComponent, 0)
+			eachmastermix := make([]*LHComponent, 0)
 
 			//if TopUpBuffer != nil {
 			//bufferSample := mixer.SampleForTotalVolume(TopUpBuffer, topupVolume)
@@ -207,7 +207,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeMastermix/Mastermix_number.an",
 			Params: []component.ParamDesc{
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
-				{Name: "Components", Desc: "TopUpBuffer *wtype.LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
+				{Name: "Components", Desc: "TopUpBuffer *LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
 				{Name: "NumberofReactions", Desc: "TotalVolumeperreaction Volume // if buffer is being added\nVolumetoLeaveforDNAperreaction Volume\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Projectname", Desc: "", Kind: "Parameters"},

@@ -10,11 +10,10 @@ import (
 // Parameters to this protocol
 Parameters (
 	AgarPlateNumber int //optionally specify the number of agar plates to begin counting from (Default = 1)
-	Dilution int //specify if dilution of the transformed cells is required, and the level of dilution (Default = 1 in which the sample will not be diluted). Dilution will be performed with the Diluent (Default = LB)
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy string //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
@@ -25,14 +24,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	Diluent *wtype.LHComponent //the liquid with which to dilute the transformed cells (Default = LB)
-	TransformedCells []*wtype.LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
+	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	TransformedCells []*LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
 )
 
 // Physical outputs to this protocol
 Outputs (
-	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	PlatedCultures []*LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
 )
 
 // Conditions to run on startup
@@ -42,6 +40,9 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
+	//setup counter to track WellsAlreadyUsed
+	var counter int = WellsAlreadyUsed
+	var platecounter int = AgarPlateNumber
 
 	//range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range TransformedCells {
@@ -49,15 +50,13 @@ Steps {
 	// Run PlateOut element
 	result := RunSteps(PlateOutTest,
 			Parameters{
-				AgarPlateNumber: AgarPlateNumber,
-				Diluent: Diluent,
-				Dilution: Dilution,
+				AgarPlateNumber: platecounter,
 				IncubationTemp: IncubationTemp,
 				IncubationTime: IncubationTime,
         NumberofReplicates: NumberofReplicates,
 				PlateOutVolume: PlateOutVolume,
         PlateOutLiquidPolicy: PlateOutLiquidPolicy,
-				WellsAlreadyUsed: WellsAlreadyUsed,
+				WellsAlreadyUsed: counter,
 							},Inputs {
 				TransformedCells: plateout,
 				AgarPlate: AgarPlate,
@@ -66,6 +65,9 @@ Steps {
 			PlatedCultures = append(PlatedCultures, plateoutorder)
 		}
 
+		//increase counter
+		counter = result.Outputs.WellsUsed
+		platecounter = result.Outputs.TransformedPlateNumber
 }
 }
 

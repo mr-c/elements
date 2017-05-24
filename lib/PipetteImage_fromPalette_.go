@@ -4,7 +4,6 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -12,16 +11,13 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 	"strings"
 )
 
 // Input parameters for this protocol (data)
-
-// name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
 
@@ -42,24 +38,48 @@ func _PipetteImage_fromPaletteSetup(_ctx context.Context, _input *PipetteImage_f
 // for every input
 func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_fromPaletteInput, _output *PipetteImage_fromPaletteOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
-	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.ImageFile)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
+	if _input.PosterizeImage {
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
-	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
-	}
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
 
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
+	image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 
-	image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+	//-------------------------------------------------------------------------------------
+	//Pipetting
+	//-------------------------------------------------------------------------------------
 
 	solutions := make([]*wtype.LHComponent, 0)
-
 	counter := 0
 
 	for locationkey, colour := range positiontocolourmap {
@@ -224,8 +244,8 @@ type PipetteImage_fromPaletteInput struct {
 	AutoRotate                bool
 	ColourIndextoComponentMap map[string]string
 	Colourcomponents          []*wtype.LHComponent
-	Imagefilename             string
-	LiquidType                string
+	ImageFile                 wtype.File
+	LiquidType                wtype.PolicyName
 	LowerThreshold            uint8
 	NotthisColour             string
 	OnlythisColour            string
@@ -234,8 +254,6 @@ type PipetteImage_fromPaletteInput struct {
 	PosterizeImage            bool
 	PosterizeLevels           int
 	Rotate                    bool
-	URL                       string
-	UseURL                    bool
 	VolumePerWell             wunit.Volume
 }
 
@@ -263,7 +281,7 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ColourIndextoComponentMap", Desc: "", Kind: "Parameters"},
 				{Name: "Colourcomponents", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "", Kind: "Parameters"},
 				{Name: "LiquidType", Desc: "", Kind: "Parameters"},
 				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "NotthisColour", Desc: "", Kind: "Parameters"},
@@ -273,8 +291,6 @@ func init() {
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},

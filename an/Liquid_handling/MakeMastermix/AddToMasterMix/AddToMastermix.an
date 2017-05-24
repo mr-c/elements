@@ -46,15 +46,15 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	// The component to add all new components to.
-	ComponentIn *wtype.LHComponent
+	ComponentIn *LHComponent
 	
 	// if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Mastermix *wtype.LHComponent
+	Mastermix *LHComponent
 )
 
 Requirements {
@@ -97,11 +97,11 @@ Steps {
 			
 			}else{
 	
-		var mastermix *wtype.LHComponent
+		var mastermix *LHComponent
 	
 		// get components from factory and if not present use default dna component
 		
-		lhComponents := make([]*wtype.LHComponent,0)
+		lhComponents := make([]*LHComponent,0)
 		
 		if MixToNewLocation {
 			lhComponents = append(lhComponents,ComponentIn)
@@ -133,7 +133,7 @@ Steps {
 		
 		// now make mastermix
 		
-		eachmastermix := make([]*wtype.LHComponent, 0)
+		eachmastermix := make([]*LHComponent, 0)
 		
 		
 		for k, component := range lhComponents { 	

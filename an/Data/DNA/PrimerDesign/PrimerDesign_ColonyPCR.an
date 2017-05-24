@@ -58,7 +58,7 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 		
-	var region wtype.DNASequence
+	var region DNASequence
 
 	fulldnaseqs, err := parser.DNAFileToDNASequence(DNASeqfile)
 	

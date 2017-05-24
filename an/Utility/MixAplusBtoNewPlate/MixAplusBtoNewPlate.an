@@ -1,0 +1,67 @@
+// Protocol MixA+BtoNewPlate performs mixing for two rows of liquid components of equal length.
+// This protocol takes in two rows of components (ComponentsA and ComponentsB) and two rows of Volumes (VolumesA and VolumesB). All four rows have to be the same length.
+// The element takes a specified volume of component A and transfers it to a new plate where a specified volume of component B is added.
+// The order of the rows specifies which volume and which component is added per reaction.
+// e.g. VolumesA [1ul,2ul] for ComponentsA [DNA1, DNA2] mixed with VolumesB [4ul,3ul] for ComponentsB [water,water] will mix 1ul of DNA1 with 4ul of water into well position 1 on a new plate. Then 2ul of DNA2 are mixed with 3ul of water into well position2 on a new plate.
+protocol MixAplusBtoNewPlate
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/wunit"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	VolumesA []Volume
+	VolumesB []Volume
+)
+
+// Output data of this protocol
+Data (
+	
+)
+
+// Physical inputs to this protocol
+Inputs (
+	ComponentsA []*LHComponent
+	ComponentsB []*LHComponent
+	OutPlate 	*LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	MixedComponents []*LHComponent
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+	if len(ComponentsA) == len(ComponentsB) && len(VolumesA) == len(VolumesB) && len(ComponentsA) == len(VolumesA){
+		for i := 0; i < len(ComponentsA); i++{		
+			MixedComponents = append(MixedComponents, MixInto(OutPlate,"", 
+			mixer.Sample(ComponentsA[i],VolumesA[i]),
+			mixer.Sample(ComponentsB[i],VolumesB[i])))
+		}
+	}else{
+		Errorf("The number of components specified in the two lists do not match! You have %s Volumes and %s Components for A and %s Volumes and %s Components for B." ,len(VolumesA), len(ComponentsA),len(ComponentsB),len(VolumesB))
+	}	
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

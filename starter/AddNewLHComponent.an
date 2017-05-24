@@ -13,7 +13,7 @@ import (
 Parameters (
 	Name string // Name of new LHComponent, if empty defaults to TemplateComponent name
 	StockConcentration Concentration // Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration
-	UseLHPolicy string // If empty defaults to LHPolicy of TemplateComponent LHComponent
+	UseLHPolicy PolicyName // If empty defaults to LHPolicy of TemplateComponent LHComponent
 )
 
 // Output data of this protocol
@@ -24,12 +24,12 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	TemplateComponent *wtype.LHComponent // This TemplateComponent must be specified in the parameters file or the element will have a run time error
+	TemplateComponent *LHComponent // This TemplateComponent must be specified in the parameters file or the element will have a run time error
 )
 
 // Physical outputs to this protocol
 Outputs (
-	NewLHComponent *wtype.LHComponent // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+	NewLHComponent *LHComponent // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
 )
 
 // Conditions to run on startup

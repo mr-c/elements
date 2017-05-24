@@ -157,7 +157,7 @@ type TypeIISConstructAssemblyMMX_forscreen_transformInput struct {
 	EnzymeName                  string
 	InactivationTemp            wunit.Temperature
 	InactivationTime            wunit.Time
-	LHPolicyName                string
+	LHPolicyName                wtype.PolicyName
 	MasterMix                   *wtype.LHComponent
 	MasterMixVolume             wunit.Volume
 	OutPlate                    *wtype.LHPlate

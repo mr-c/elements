@@ -12,7 +12,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	DNA wtype.DNASequence
+	DNA DNASequence
 )
 
 // Data which is returned from this protocol; output data
@@ -23,7 +23,7 @@ Data (
 	BestHit biogo.Hit
 	Identity float64
 	Coverage float64
-	AnthaSeq wtype.DNASequence
+	AnthaSeq DNASequence
 	Warning error
 )
 

@@ -1,7 +1,7 @@
-// The Aliquot element will transfer a user defined number of aliquots of a specified volume of a solution into a specified plate type.
+// The Aliquot element will transfer a defined liquid at defined volumes a specified number of times into a chosen plate type.
 // The user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand 
 // (e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired 
-// into the Solution parameter of this element for aliquoting. If the solution is already made but a definition for this solution does 
+// into the Solution parameter of this element for aliquoting. If the solution already exists in your lab or has been made manually but a definition for this solution does 
 // not exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the 
 // element wired into the Solution parameter of this element.
 protocol Aliquot
@@ -38,16 +38,16 @@ Data (
 // Physical Inputs to this protocol with types
 Inputs (
 	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the AddNewLHComponent element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
-	Solution *wtype.LHComponent 
+	Solution *LHComponent 
 	// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
-	OutPlate *wtype.LHPlate 
+	OutPlate *LHPlate 
 	
 )
 
 // Physical outputs from this protocol with types
 Outputs (
 	// This is a list of the resulting aliquots that have been made by the element.
-	Aliquots []*wtype.LHComponent 
+	Aliquots []*LHComponent 
 )
 
 Requirements {
@@ -79,7 +79,7 @@ Steps {
 		Solution.CName = ChangeSolutionName
 	}
 	
-	aliquots := make([]*wtype.LHComponent,0)
+	aliquots := make([]*LHComponent,0)
 	
 	
 	for i := 0; i < NumberofAliquots; i++ {
@@ -94,7 +94,7 @@ Steps {
 		// 1. the plate 
 		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
 		// 3. the sample or array of samples to be mixed
-		var aliquot *wtype.LHComponent
+		var aliquot *LHComponent
 		if OptimisePlateUsage{
 		aliquot = MixNamed(OutPlate.Type, "","AliquotPlate", aliquotSample)
 		}else{

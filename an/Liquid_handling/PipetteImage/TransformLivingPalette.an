@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"image/color"
 	"strconv"
+	goimage "image"
 )
 
 
@@ -21,7 +22,8 @@ Parameters (
 	/*AntibioticVolume Volume
 	InducerVolume Volume
 	RepressorVolume Volume*/
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	ImageFileName string // name of image file or if using URL use this field to set the desired filename
+	InputFile File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Palettename string
@@ -31,7 +33,7 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass string
+	UseLiquidClass PolicyName
 	Subsetnames []string
 	//IncTemp Temperature
 	//IncTime Time
@@ -44,25 +46,25 @@ Data (
 	
 	// for making a palette of colours in advance
 	Palette color.Palette
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]*LHComponent
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	//InPlate *wtype.LHPlate
-	//Media *wtype.LHComponent
-	/*Antibiotic *wtype.LHComponent
-	Inducer *wtype.LHComponent
-	Repressor *wtype.LHComponent*/
-	ComponentType *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	//InPlate *LHPlate
+	//Media *LHComponent
+	/*Antibiotic *LHComponent
+	Inducer *LHComponent
+	Repressor *LHComponent*/
+	ComponentType *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels			[]*wtype.LHComponent
-	//PaletteColours 	[]*wtype.LHComponent// not used 
+	Pixels			[]*LHComponent
+	//PaletteColours 	[]*LHComponent// not used 
 )
 
 Requirements {
@@ -77,7 +79,11 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
+	//---------------------------------------------------------------------
+	//Globals
+	//---------------------------------------------------------------------
+
 	var (
 	ReactionTemp 				Temperature = wunit.NewTemperature(25,"C")
 	ReactionTime					Time = wunit.NewTime(35,"min")
@@ -91,39 +97,66 @@ Steps {
 	CompetentCellTransferVolume 	Volume = wunit.NewVolume(20.0,"ul")
 	RecoveryPlateNumber 			int = 1
 	
-	PlatewithRecoveryMedia		*wtype.LHPlate = factory.GetPlateByType("DSW96_riser40")
-	PlateWithCompetentCells		*wtype.LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
+	PlatewithRecoveryMedia		*LHPlate = factory.GetPlateByType("DSW96_riser40")
+	PlateWithCompetentCells		*LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
 	)
 	
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	colourtoComponentMap := make(map[string]*LHComponent)
 	
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
-	
-	// make sub pallete if necessary
-	var chosencolourpalette color.Palette
+
+	// img and error placeholders
+	var imgFile File
+	var imgBase *goimage.NRGBA
 	var err error
-	
+
+	//---------------------------------------------------------------------
+	//Palette manipulation
+	//---------------------------------------------------------------------
+
+	// make sub pallette if necessary
+	var chosencolourpalette color.Palette
+
 	if Subset {
 		chosencolourpalette = image.MakeSubPallette(Palettename, Subsetnames)
 	}else {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
 
+	//--------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------
 
 	// if image is from url, download
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		//downloading image
+		imgFile , err = download.File(URL, ImageFileName)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
+	//---------------------------------------------------------------------
+	//Image processing
+	//---------------------------------------------------------------------
+
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate) 
-	
-	
+
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
+
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
 	// make additional palette map
@@ -140,11 +173,11 @@ Steps {
 		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
-		image.PrintFPImagePreview(Imagefilename,OutPlate, Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase,OutPlate, Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
+	componentmap := make(map[string]*LHComponent, 0)
 	
 	if Subset {
 	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
@@ -155,7 +188,7 @@ Steps {
 		componentname := colourtostringmap[colourname]
 
 		// use template component instead
-		var componenttopick *wtype.LHComponent
+		var componenttopick *LHComponent
 		
 		if ComponentType != nil{
 		componenttopick = ComponentType
@@ -167,18 +200,21 @@ Steps {
 		componentmap[componentname] = componenttopick
 
 	}
-//	fmt.Println(componentmap)
 
-	solutions := make([]*wtype.LHComponent, 0)
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
+
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	UniqueComponents = make([]string,0)
 
 
-// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 		
-		//components := make([]*wtype.LHComponent, 0)
+		//components := make([]*LHComponent, 0)
 		
 		component := componentmap[colourtostringmap[colour]]
 		

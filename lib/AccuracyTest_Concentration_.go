@@ -16,6 +16,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
+	goimage "image"
 	"strconv"
 )
 
@@ -24,6 +25,7 @@ import (
 // corresponds to order of solutions
 
 // select this if getting the image from a URL
+
 // enter URL link to the image file here if applicable
 
 // optional parameter allowing pipetting to resume on partially filled plate
@@ -47,7 +49,10 @@ func _AccuracyTest_ConcentrationSetup(_ctx context.Context, _input *AccuracyTest
 // for every input
 func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
 
-	// declare some global variables for use later
+	//--------------------------------------------------------------------
+	// Global variables declarations
+	//--------------------------------------------------------------------
+
 	var rotate = false
 	var autorotate = true
 	var wellpositionarray = make([]string, 0)
@@ -73,16 +78,45 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 	if _input.Printasimage {
 
-		// if image is from url, download
+		// image placeholder variables
+		var imgFile wtype.File
+		var imgBase *goimage.NRGBA
+
+		//--------------------------------------------------------------------
+		//Fetching image
+		//--------------------------------------------------------------------
+
+		//Downloading from URL if requested
 		if _input.UseURL {
-			err := download.File(_input.URL, _input.Imagefilename)
+			imgFile, err = download.File(_input.URL, _input.Imagefilename)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+			//opening file
+			imgBase, err = image.OpenFile(imgFile)
 			if err != nil {
 				execute.Errorf(_ctx, err.Error())
 			}
 		}
 
+		//Opening from File if requested
+		_, err := _input.InputFile.ReadAll()
+		if err == nil {
+			//opening file
+			imgBase, err = image.OpenFile(imgFile)
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+		} else {
+			execute.Errorf(_ctx, "no input File Provided")
+		}
+
+		//--------------------------------------------------------------------
+		//Determine which palette to use
+		//--------------------------------------------------------------------
+
 		chosencolourpalette := image.AvailablePalettes()["Palette1"]
-		positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
+		positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
 
 		//Runtowelllocationmap = make([]string,0)
 
@@ -107,12 +141,12 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 	// if none is specified, use lhpolicy of first solution
 	if _input.LHPolicy == "" {
-		_input.LHPolicy = _input.TestSols[0].TypeName()
+		_input.LHPolicy = wtype.PolicyName(_input.TestSols[0].TypeName())
 	}
 
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
-		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
+		execute.Errorf(_ctx, "policy %s not found", _input.LHPolicy.String())
 		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy, " not found"))
 	}
 
@@ -281,7 +315,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					description := volume + "_" + solutionname + "_replicate" + strconv.Itoa(j+1) + "_platenum" + strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -316,7 +350,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						execute.Errorf(_ctx, "policy "+doerun+" not found")
+						execute.Errorf(_ctx, "policy %s not found", doerun.String())
 						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
 					}
 
@@ -445,7 +479,8 @@ type AccuracyTest_ConcentrationInput struct {
 	Diluent                         *wtype.LHComponent
 	DilutionFactor                  float64
 	Imagefilename                   string
-	LHPolicy                        string
+	InputFile                       wtype.File
+	LHPolicy                        wtype.PolicyName
 	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int
@@ -503,6 +538,7 @@ func init() {
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
 				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},

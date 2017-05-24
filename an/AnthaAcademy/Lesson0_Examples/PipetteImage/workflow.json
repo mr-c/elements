@@ -33,7 +33,7 @@
   ],
   "processes": {
     "MakePalette1": {
-      "component": "MakePalette_OneByOne"
+      "component": "MakePalette_2"
     },
     "Pipette1": {
       "component": "PipetteImage_fromPalette"

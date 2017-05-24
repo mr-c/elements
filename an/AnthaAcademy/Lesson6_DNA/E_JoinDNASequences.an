@@ -14,12 +14,12 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	Seqsinorder[]wtype.DNASequence
+	Seqsinorder[]DNASequence
 )
 
 // Data which is returned from this protocol
 Data (
-	Seq wtype.DNASequence
+	Seq DNASequence
 )
 
 // Physical inputs to this protocol

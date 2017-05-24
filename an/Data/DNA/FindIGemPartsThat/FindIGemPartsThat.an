@@ -65,7 +65,7 @@ Data (
 	BiobrickDescriptions map[string]string // i.e. map[biobrickID]description
 	HighestRatedMatch string
 	HighestRatedMatchScore int
-	HighestRatedMatchDNASequence wtype.DNASequence
+	HighestRatedMatchDNASequence DNASequence
 )
 // Input Requirement specification
 Requirements {

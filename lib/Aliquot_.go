@@ -1,7 +1,7 @@
-// The Aliquot element will transfer a user defined number of aliquots of a specified volume of a solution into a specified plate type.
+// The Aliquot element will transfer a defined liquid at defined volumes a specified number of times into a chosen plate type.
 // The user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand
 // (e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired
-// into the Solution parameter of this element for aliquoting. If the solution is already made but a definition for this solution does
+// into the Solution parameter of this element for aliquoting. If the solution already exists in your lab or has been made manually but a definition for this solution does
 // not exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the
 // element wired into the Solution parameter of this element.
 package lib
@@ -185,7 +185,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "Aliquot",
 		Constructor: AliquotNew,
 		Desc: component.ComponentDesc{
-			Desc: "The Aliquot element will transfer a user defined number of aliquots of a specified volume of a solution into a specified plate type.\nThe user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand\n(e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired\ninto the Solution parameter of this element for aliquoting. If the solution is already made but a definition for this solution does\nnot exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the\nelement wired into the Solution parameter of this element.\n",
+			Desc: "The Aliquot element will transfer a defined liquid at defined volumes a specified number of times into a chosen plate type.\nThe user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand\n(e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired\ninto the Solution parameter of this element for aliquoting. If the solution already exists in your lab or has been made manually but a definition for this solution does\nnot exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the\nelement wired into the Solution parameter of this element.\n",
 			Path: "src/github.com/antha-lang/elements/starter/Aliquot/Aliquot.an",
 			Params: []component.ParamDesc{
 				{Name: "ChangeSolutionName", Desc: "This parameter is an optional field. If you want to change the name of the input Solution for traceability then do so. If not the default name will be given as the chosen input Solution LHComponent name.\n", Kind: "Parameters"},

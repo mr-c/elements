@@ -51,7 +51,7 @@ Setup {}
 Steps {
 	
 	// make an empty array of DNA Sequences ready to fill
-	partsinorder := make([]wtype.DNASequence,0)
+	partsinorder := make([]DNASequence,0)
 
 	for i, part := range Seqsinorder {
 		if strings.Contains(part, "BBa_") {

@@ -19,13 +19,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	ComponentsA []*wtype.LHComponent
-	ComponentsB []*wtype.LHComponent
+	ComponentsA []*LHComponent
+	ComponentsB []*LHComponent
 )
 
 // Physical outputs to this protocol
 Outputs (
-	MergedComponents []*wtype.LHComponent
+	MergedComponents []*LHComponent
 )
 
 // Conditions to run on startup

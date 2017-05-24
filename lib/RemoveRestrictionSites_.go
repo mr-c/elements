@@ -20,7 +20,7 @@ import (
 
 // Input parameters for this protocol (data)
 
-//wtype.DNASequence
+//DNASequence
 
 // Physical Inputs to this protocol with types
 
@@ -281,7 +281,7 @@ func init() {
 				{Name: "PreserveTranslatedseq", Desc: "", Kind: "Parameters"},
 				{Name: "RemoveifnotinORF", Desc: "", Kind: "Parameters"},
 				{Name: "RestrictionsitetoAvoid", Desc: "", Kind: "Parameters"},
-				{Name: "Sequencekey", Desc: "wtype.DNASequence\n", Kind: "Parameters"},
+				{Name: "Sequencekey", Desc: "DNASequence\n", Kind: "Parameters"},
 				{Name: "FragmentSizesfromRestrictionmapping", Desc: "", Kind: "Data"},
 				{Name: "SiteFreeSequence", Desc: "i.e. parts to order\n", Kind: "Data"},
 				{Name: "Sitesfoundinoriginal", Desc: "", Kind: "Data"},

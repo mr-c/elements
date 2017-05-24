@@ -15,14 +15,14 @@ import (
 // Parameters to this protocol
 Parameters (
 	ProjectName string //this will be used to name the output FASTA file and folder
-	InputSequences	[]wtype.DNASequence //input DNA sequences
+	InputSequences	[]DNASequence //input DNA sequences
 	AddPrefix	string	//string of DNA, if empty nothing is added
 	AddSuffix	string	//string of DNA, if empty nothing is added
 )
 
 // Output data of this protocol
 Data (
-	ModifiedSequences	[]wtype.DNASequence //output modified DNA sequences
+	ModifiedSequences	[]DNASequence //output modified DNA sequences
 	Warnings 	error //error messages reported back to the user
 	ModifiedSequenceFile File //output Fasta file
 )

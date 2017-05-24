@@ -242,7 +242,7 @@ type AutoPCR_mmx_multiInput struct {
 	PolymeraseAlreadyaddedtoMastermix bool
 	PrimersalreadyAddedtoMasterMix    bool
 	Projectname                       string
-	Reactiontoprimerpair              map[string][]string
+	Reactiontoprimerpair              map[string][2]string
 	Reactiontotemplate                map[string]string
 	RevPrimertype                     *wtype.LHComponent
 	Templatetype                      *wtype.LHComponent
