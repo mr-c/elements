@@ -12,6 +12,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 	"strings"
@@ -42,24 +43,55 @@ func _PipetteImage_fromPaletteSetup(_ctx context.Context, _input *PipetteImage_f
 // for every input
 func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_fromPaletteInput, _output *PipetteImage_fromPaletteOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
 	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
 	}
 
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
 
-	image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+	image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
+
+	//-------------------------------------------------------------------------------------
+	//Pipetting
+	//-------------------------------------------------------------------------------------
 
 	solutions := make([]*wtype.LHComponent, 0)
-
 	counter := 0
 
 	for locationkey, colour := range positiontocolourmap {
@@ -225,7 +257,7 @@ type PipetteImage_fromPaletteInput struct {
 	ColourIndextoComponentMap map[string]string
 	Colourcomponents          []*wtype.LHComponent
 	Imagefilename             string
-	LiquidType                string
+	LiquidType                wtype.PolicyName
 	LowerThreshold            uint8
 	NotthisColour             string
 	OnlythisColour            string

@@ -1,0 +1,14 @@
+Parameters:
+  AutoPlateOut:
+    AgarPlate: falcon6wellAgar
+    AgarPlateNumber: 1
+    IncubationTemp: 37C
+    IncubationTime: 57600s
+    NumberofReplicates: 2
+    PlateOutLiquidPolicy: plateout
+    PlateOutVolume: 100ul
+    TransformedCells:
+    - neb5compcells
+    - protoplasts
+    - culture
+    WellsAlreadyUsed: 0

@@ -190,7 +190,8 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 		}
 
 		// add fasta file for each set of primers
-		labels = []string{"FWDPrimers", "REVPrimers"}
+
+		newlabels := []string{"FWDPrimers", "REVPrimers"}
 
 		refactoredparts = make(map[string][]wtype.DNASequence)
 		csv := make([]string, 0)
@@ -199,9 +200,9 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 		for i, parts := range _output.SequencingPrimers {
 
 			for j := range parts {
-				newparts = refactoredparts[labels[j]]
+				newparts = refactoredparts[newlabels[j]]
 				newparts = append(newparts, parts[j])
-				refactoredparts[labels[j]] = newparts
+				refactoredparts[newlabels[j]] = newparts
 			}
 			output := fmt.Sprintln(i+1, ",", "FWD: ", parts[0].Nm, ",", parts[0].Seq, ",", "REV: ", parts[1].Nm, ",", parts[1].Seq)
 			csv = append(csv, output)

@@ -5,21 +5,22 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
 	"image/color"
 	"sort"
 	"strings"
+	goimage "image"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	VolumePerWell  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	ImageFileName	string //Desired name for the output image file
+	InputFile wtype.File // Image File
+	URL	string
+	UseURL	bool
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -27,13 +28,15 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass string
+	UseLiquidClass wtype.PolicyName
 	Subsetnames []string
 	CheckResizeAlgorithms bool
 )
 
 // Data which is returned from this protocol, and data types
 Data (
+	ResizedImage wtype.File
+	ResizedImages []*goimage.NRGBA
 	Numberofpixels int
 	UniqueComponents []string
 )
@@ -62,15 +65,29 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	// if image is from url, download
-	if UseURL {
-		err := download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
+
+
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//--------------------------------------------------------------
+	//Opening image
+	//--------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
-	
+
+	//--------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------
+
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[Palettename]
 	
@@ -94,15 +111,18 @@ Steps {
 	}else {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
-	
-	
+
+	//--------------------------------------------------------------
+	//Image processing
+	//--------------------------------------------------------------
+
 	if CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+		ResizedImages =  image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate) 
-	
+	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
+
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
 	
 	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light 
@@ -115,7 +135,7 @@ Steps {
 		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
-		image.PrintFPImagePreview(Imagefilename,OutPlate, Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase,OutPlate, Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
@@ -142,7 +162,6 @@ Steps {
 		componentmap[componentname] = componenttopick
 
 	}
-	//fmt.Println(componentmap)
 
 	solutions := make([]*wtype.LHComponent, 0)
 
@@ -150,7 +169,11 @@ Steps {
 	UniqueComponents = make([]string,0)
 
 
-// loop through the position to colour map pipeting the correct coloured protein into each well
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
+
+	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
 		
 		component := componentmap[colourtostringmap[colour]]
@@ -195,7 +218,16 @@ Steps {
 	Pixels = solutions
 	
 	Numberofpixels = len(Pixels)
-	
+
+	//--------------------------------------------------------------
+	//Exporting resulting images
+	//--------------------------------------------------------------
+
+	ResizedImage, err = image.Export(imgBase,ImageFileName)
+	if err != nil{
+		Errorf(err.Error())
+	}
+
 }
 
 

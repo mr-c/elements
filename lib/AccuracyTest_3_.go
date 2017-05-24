@@ -14,6 +14,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
+	goimage "image"
 	"strconv"
 )
 
@@ -45,19 +46,15 @@ func _AccuracyTest_3Setup(_ctx context.Context, _input *AccuracyTest_3Input) {
 // for every input
 func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _output *AccuracyTest_3Output) {
 
-	// if dilution factor not set dilute by 10x
-	if _input.DilutionFactor == 0 {
-		_input.DilutionFactor = 10
-	}
+	//--------------------------------------------------------------------
+	// Global variables declarations
+	//--------------------------------------------------------------------
+
+	// image placeholder variables
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
 
 	var minVolume wunit.Volume
-
-	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
-		minVolume = wunit.NewVolume(0.5, "ul")
-	} else {
-		minVolume = _input.MinVolume
-	}
-
 	// declare some global variables for use later
 	var rotate = false
 	var autorotate = true
@@ -71,20 +68,65 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	var newruns = make([]doe.Run, 0)
 	var err error
 	_output.Errors = make([]error, 0)
+
+	//--------------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------------
+
+	//Downloading from URL if requested
+	if _input.UseURL {
+		imgFile, err = download.File(_input.URL, _input.Imagefilename)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
+	//Opening from File if one is present
+	_, err = _input.InputFile.ReadAll()
+	if err == nil {
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	} else {
+		execute.Errorf(_ctx, "no input File Provided")
+	}
+
+	//--------------------------------------------------------------------
+	//Dilution calculations
+	//--------------------------------------------------------------------
+
+	// if dilution factor not set dilute by 10x
+	if _input.DilutionFactor == 0 {
+		_input.DilutionFactor = 10
+	}
+
+	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
+		minVolume = wunit.NewVolume(0.5, "ul")
+	} else {
+		minVolume = _input.MinVolume
+	}
+
+	//--------------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------------
+
 	// work out plate layout based on picture or just in order
 
 	if _input.Printasimage {
 
-		// if image is from url, download
-		if _input.UseURL {
-			err := download.File(_input.URL, _input.Imagefilename)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-		}
-
 		chosencolourpalette := image.AvailablePalettes()["Palette1"]
-		positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
+		positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
+
+		//--------------------------------------------------------------------
+		//Pipetting
+		//--------------------------------------------------------------------
 
 		//Runtowelllocationmap = make([]string,0)
 
@@ -108,8 +150,8 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 	// use first policy as reference to ensure consistent range through map values
 	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
 	if found == false {
-		execute.Errorf(_ctx, "policy "+_input.LHPolicy+" not found")
-		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy, " not found"))
+		execute.Errorf(_ctx, "policy "+_input.LHPolicy.String()+" not found")
+		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy.String(), " not found"))
 	}
 
 	referencekeys := make([]string, 0)
@@ -236,7 +278,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					description := volume + "_" + solutionname + "_replicate" + strconv.Itoa(j+1) + "_platenum" + strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -245,7 +287,7 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Location", wellpositionarray[counter])
 
 					// add setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun.String())
 
 					// add plate info:
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate Type", _input.OutPlate.Type)
@@ -266,13 +308,13 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellYStart", _input.OutPlate.WellYStart)
 
 					// add LHPolicy setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun.String())
 
 					// print out LHPolicy info
 					policy, found := liquidhandling.GetPolicyByName(doerun)
 					if !found {
-						execute.Errorf(_ctx, "policy "+doerun+" not found")
-						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
+						execute.Errorf(_ctx, "policy "+doerun.String()+" not found")
+						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun.String(), " not found"))
 					}
 
 					for _, key := range referencekeys {
@@ -389,7 +431,8 @@ type AccuracyTest_3Input struct {
 	Diluent                         *wtype.LHComponent
 	DilutionFactor                  float64
 	Imagefilename                   string
-	LHPolicy                        string
+	InputFile                       wtype.File
+	LHPolicy                        wtype.PolicyName
 	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
 	NumberofReplicates              int
@@ -438,12 +481,13 @@ func init() {
 		Constructor: AccuracyTest_3New,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest_3.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AccuracyTest_3.an",
 			Params: []component.ParamDesc{
 				{Name: "DXORJMP", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
 				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},

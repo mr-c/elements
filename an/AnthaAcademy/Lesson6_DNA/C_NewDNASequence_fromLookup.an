@@ -60,6 +60,10 @@ Steps {
 				Errorf(err.Error())
 			}
 			
+				if err != nil {
+					Errorf("Error retrieving sequence %s from entrez nucleotide database: %s", ID,err.Error())
+				}
+			
 			}
 		} else if BiobrickID {
 			

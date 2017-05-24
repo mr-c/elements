@@ -1,0 +1,195 @@
+// Generates instructions to pipette out a defined image onto a defined plate using a defined palette of colours
+protocol PipetteImage_fromPalette_refactor
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"image/color"
+	"strconv"
+	"strings"
+	"fmt"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	VolumePerWell  Volume
+	Imagefilename string // name of image file or if using URL use this field to set the desired filename
+	UseURL bool // select this if getting the image from a URL
+	URL string // enter URL link to the image file here if applicable
+	Palette color.Palette
+	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourtoWellLocationMap map[string][]string
+	OnlythisColour string
+	NotthisColour string
+	Rotate bool
+	AutoRotate bool
+	PosterizeImage bool
+	PosterizeLevels int
+	LiquidType string
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	Numberofpixels int
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Colourcomponents []*wtype.LHComponent
+	OutPlate *wtype.LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Pixels[]*wtype.LHComponent
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	// if image is from url, download
+	if UseURL {
+		//downloading image
+		imgFile , err := download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+
+		//opening the image file
+		img, err := image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	if PosterizeImage{
+		posterizedImg, err = image.Posterize(img, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+	
+	positiontocolourmap, _ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &Palette, Rotate,AutoRotate)
+	
+	// use position to colour map to make a colour to []well positions map
+	colourtoWellLocationMap := make(map[string][]string)
+	
+	for well, colour := range positiontocolourmap {
+		
+		colourindex := Palette.Index(colour)
+		
+		colourstring := strconv.Itoa(colourindex)
+		
+		if locations, found := colourtoWellLocationMap[colourstring]; !found{
+			colourtoWellLocationMap[colourstring] = []string{well}
+		}else{
+			locations = append(locations,well)
+			colourtoWellLocationMap[colourstring] = locations
+		}
+	}
+	
+	
+	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+
+
+	solutions := make([]*wtype.LHComponent, 0)
+
+	counter := 0
+	
+	
+	for colourindex, wells := range colourtoWellLocationMap {
+		
+	component, componentpresent := ColourIndextoComponentMap[colourindex]
+	
+	/*
+	if !componentpresent {
+		
+		var foundthese []string
+		
+		for key, _ := range ColourIndextoComponentMap {
+			foundthese = append(foundthese,key)
+		}
+		sort.Strings(foundthese)
+		Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
+		
+	}
+	*/
+	if componentpresent {
+	
+	if LiquidType != "" {
+		fmt.Println("liquidtype",LiquidType )
+	liquidtype, err := wtype.LiquidTypeFromString(LiquidType)
+		
+	if err != nil {
+			Errorf("for component",component.CName, err.Error())
+	}
+	
+	component.Type = liquidtype
+	
+	}	
+			
+		for _, locationkey := range wells {
+		
+		// due to trilution error, temporarily skip any wells with x in the well coordinates, e.g. x1,x2,x12
+		if !strings.Contains(locationkey,"x") && !strings.Contains(locationkey,"X") {
+		
+		// use index of colour in palette to retrieve real colour
+		
+		colourint, err := strconv.Atoi(colourindex)
+		
+		if err!=nil {
+			Errorf(err.Error())
+		}
+		
+		actualcolour := Palette[colourint]
+		
+
+		if OnlythisColour != ""  && image.Colourcomponentmap[actualcolour] == OnlythisColour  {
+		
+		pixelSample := mixer.Sample(component, VolumePerWell)
+		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+		solutions = append(solutions, solution)
+		counter++
+			
+		} else if component.CName != NotthisColour{
+		pixelSample := mixer.Sample(component, VolumePerWell)
+		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+		solutions = append(solutions, solution)
+		counter++
+		}
+		}
+		
+	}
+		
+	}
+	}
+	Pixels = solutions
+	Numberofpixels = len(Pixels)
+	
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}
+

@@ -13,7 +13,7 @@ import (
 Parameters (
 	Name string // Name of new LHComponent, if empty defaults to TemplateComponent name
 	StockConcentration Concentration // Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration
-	UseLHPolicy string // If empty defaults to LHPolicy of TemplateComponent LHComponent
+	UseLHPolicy wtype.PolicyName // If empty defaults to LHPolicy of TemplateComponent LHComponent
 )
 
 // Output data of this protocol

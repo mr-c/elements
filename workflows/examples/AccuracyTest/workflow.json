@@ -2,7 +2,7 @@
   "connections": [],
   "processes": {
     "AccuracyTest": {
-      "component": "AccuracyTest_2"
+      "component": "AccuracyTest_3"
     }
   }
 }

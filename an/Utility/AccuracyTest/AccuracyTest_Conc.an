@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strconv"
 	"bytes"
+	goimage "image"
 )
 
 
@@ -22,12 +23,13 @@ Parameters (
 	TestSolConcs []Concentration
 	NumberofReplicates int
 	Printasimage bool
-	Imagefilename string
 	UseURL bool // select this if getting the image from a URL
+	Imagefilename	string
+	InputFile wtype.File
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
 	UseLiquidPolicyForTestSolutions bool
-	LHPolicy string
+	LHPolicy wtype.PolicyName
 	DXORJMP string
 	OutputFilename string
 	PipetteOnebyOne bool
@@ -46,7 +48,7 @@ Data (
 	Blankwells []string
 	Runs []doe.Run
 	Wellpositionarray []string
-	ExportedFile File
+	ExportedFile wtype.File
 )
 
 
@@ -72,8 +74,12 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-		
-	// declare some global variables for use later
+
+
+	//--------------------------------------------------------------------
+	// Global variables declarations
+	//--------------------------------------------------------------------
+
 	var rotate = false
 	var autorotate = true
 	var wellpositionarray = make([]string, 0)
@@ -99,17 +105,47 @@ Steps {
 	
 	if Printasimage {
 		
-	// if image is from url, download
+	// image placeholder variables
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+
+	//--------------------------------------------------------------------
+	//Fetching image
+	//--------------------------------------------------------------------
+
+	//Downloading from URL if requested
 	if UseURL {
-		err := download.File(URL, Imagefilename)
+		imgFile , err = download.File(URL, Imagefilename)
+		if err != nil{
+			Errorf(err.Error())
+		}
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
 	}
-	
-	
+
+	//Opening from File if requested
+	_, err := InputFile.ReadAll()
+	if err == nil {
+		//opening file
+		imgBase, err = image.OpenFile(imgFile)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}else{
+		Errorf("no input File Provided")
+	}
+
+
+	//--------------------------------------------------------------------
+	//Determine which palette to use
+	//--------------------------------------------------------------------
+
+
 	chosencolourpalette := image.AvailablePalettes()["Palette1"]
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette, rotate,autorotate) 
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, rotate,autorotate)
 	
 	//Runtowelllocationmap = make([]string,0)
 	
@@ -133,12 +169,12 @@ Steps {
 	
 	// if none is specified, use lhpolicy of first solution
 	if LHPolicy == ""{
-		LHPolicy = TestSols[0].TypeName()
+		LHPolicy = wtype.PolicyName(TestSols[0].TypeName())
 	}
 	
 	referencepolicy,found := liquidhandling.GetPolicyByName(LHPolicy)
 	if found == false {
-		Errorf("policy "+LHPolicy+" not found")
+		Errorf("policy %s not found",LHPolicy.String())
 		Errors = append(Errors,fmt.Errorf("policy ",LHPolicy," not found"))
 	}
 	
@@ -316,7 +352,7 @@ Steps {
 		
 		
 		// add run to well position lookup table 
-		Runtowelllocationmap[doerun+"_"+description]= wellpositionarray[counter]	
+		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]
 	
 	// add additional info for each run
 	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -351,7 +387,7 @@ Steps {
 	// print out LHPolicy info
 	policy, found := liquidhandling.GetPolicyByName(doerun)
 	if  !found {
-		Errorf("policy "+doerun+" not found")
+		Errorf("policy %s not found",doerun.String())
 		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
 	}
 	

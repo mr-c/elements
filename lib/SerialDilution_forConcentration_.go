@@ -10,6 +10,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -24,6 +25,9 @@ import (
 // Physical Inputs to this protocol with types
 
 // Physical outputs from this protocol with types
+
+// dilutions only
+// original solution + dilutions
 
 func _SerialDilution_forConcentrationRequirements() {
 
@@ -40,12 +44,16 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
 
+	var counter int = _input.WellsAlreadyUsed
+	var dilutionPosition int = 0
+	nilVolume := wunit.NewVolume(0.0, "ul")
+
 	dilutions := make([]*wtype.LHComponent, 0)
 
 	var aliquot *wtype.LHComponent
 
 	// calculate solution volume
-	solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[0], _input.StockConcentration, _input.StartVolumeperDilution)
+	solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[dilutionPosition], _input.StockConcentration, _input.StartVolumeperDilution)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
@@ -57,30 +65,55 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// this time using the substract method
 	diluentVolume.Subtract(solutionVolume)
 
-	// sample diluent
-	diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
-
-	// Ensure liquid type set to Pre and Post Mix
-	_input.Solution.Type = wtype.LTNeedToMix
-	// check if the enzyme is specified and if not mix the
+	// sample diluent if greater than zero
+	if diluentVolume.GreaterThan(nilVolume) {
+		diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		// mix  to OutPlate
+		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample)
+		// Ensure liquid type set to Pre and Post Mix
+		_input.Solution.Type = wtype.LTNeedToMix
+	}
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
-	// mix both samples to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[_input.WellsAlreadyUsed], "DilutionPlate", diluentSample, solutionSample)
+	// mix sample to OutPlate
+	if aliquot == nil {
+		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", solutionSample)
+	} else {
+		aliquot = execute.Mix(_ctx, aliquot, solutionSample)
+	}
+
+	var solutionname string
 
 	// rename sample to include concentration
-	aliquot.CName = _input.TargetConcentrations[0].ToString() + _input.Solution.CName
+	containsconc, _, componentNameOnly := wunit.ParseConcentration(_input.Solution.CName)
+
+	if containsconc {
+		solutionname = componentNameOnly
+	} else {
+		solutionname = _input.Solution.CName
+	}
+
+	aliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
+	aliquot.CName = normalise(aliquot.CName)
+	aliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
 
 	// loop through NumberOfDilutions until all serial dilutions are made
-	for k := _input.WellsAlreadyUsed + 1; k < len(_input.TargetConcentrations); k++ {
+
+	counter++
+	dilutionPosition++
+
+	for dilutionPosition < len(_input.TargetConcentrations) {
+
+		var nextdiluentSample *wtype.LHComponent
+		var nextaliquot *wtype.LHComponent
 
 		// calculate new solution volume
-		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[k], _input.TargetConcentrations[k-1], _input.StartVolumeperDilution)
+		solutionVolume, err := wunit.VolumeForTargetConcentration(_input.TargetConcentrations[dilutionPosition], _input.TargetConcentrations[dilutionPosition-1], _input.StartVolumeperDilution)
 
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -93,31 +126,78 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		diluentVolume.Subtract(solutionVolume)
 
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		if diluentVolume.GreaterThan(nilVolume) {
 
-		nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[k], "DilutionPlate", nextdiluentSample)
+			nextdiluentSample = mixer.Sample(_input.Diluent, diluentVolume)
 
-		// Ensure liquid type set to Pre and Post Mix
-		aliquot.Type = wtype.LTNeedToMix
+			nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
+
+			// Ensure liquid type set to Pre and Post Mix
+			aliquot.Type = wtype.LTNeedToMix
+		}
 
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 
 		// Mix sample into nextdiluent sample
-		nextaliquot := execute.Mix(_ctx, nextdiluentSample, nextSample)
+		if nextdiluentSample != nil {
+			nextaliquot = execute.Mix(_ctx, nextdiluentSample, nextSample)
+		} else {
+			nextaliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextSample)
+		}
 
 		// rename sample to include concentration
-		nextaliquot.CName = _input.TargetConcentrations[k].ToString() + _input.Solution.CName
+		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 
+		nextaliquot.CName = normalise(nextaliquot.CName)
+
+		nextaliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+
+		counter++
+		dilutionPosition++
 	}
 
 	// export as Output
 	_output.Dilutions = dilutions
 
+	// export all concentrations used as export
+	_output.AllDilutions = append(_output.AllDilutions, _input.Solution)
+	_output.AllConcentrations = append(_output.AllConcentrations, _input.StockConcentration)
+
+	_input.Solution.CName = _input.StockConcentration.ToString() + " " + solutionname
+	_input.Solution.CName = normalise(_input.Solution.CName)
+	_output.ComponentNames = append(_output.ComponentNames, _input.Solution.CName)
+	for i, dilution := range _output.Dilutions {
+
+		_output.AllDilutions = append(_output.AllDilutions, dilution)
+		_output.ComponentNames = append(_output.ComponentNames, dilution.CName)
+		_output.AllConcentrations = append(_output.AllConcentrations, _input.TargetConcentrations[i])
+
+	}
+
+	_output.WellsUsedPostRun = counter
+
+}
+
+// if the component name contains a concentration the concentration name will be normalised
+// e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
+func normalise(name string) (normalised string) {
+
+	if strings.Contains(name, wtype.MIXDELIMITER) {
+		return name
+	}
+
+	containsConc, conc, nameonly := wunit.ParseConcentration(name)
+
+	if containsConc {
+		return conc.ToString() + " " + nameonly
+	} else {
+		return nameonly
+	}
 }
 
 // Run after controls and a steps block are completed to
@@ -191,14 +271,22 @@ type SerialDilution_forConcentrationInput struct {
 }
 
 type SerialDilution_forConcentrationOutput struct {
-	Dilutions []*wtype.LHComponent
+	AllConcentrations []wunit.Concentration
+	AllDilutions      []*wtype.LHComponent
+	ComponentNames    []string
+	Dilutions         []*wtype.LHComponent
+	WellsUsedPostRun  int
 }
 
 type SerialDilution_forConcentrationSOutput struct {
 	Data struct {
+		AllConcentrations []wunit.Concentration
+		ComponentNames    []string
+		WellsUsedPostRun  int
 	}
 	Outputs struct {
-		Dilutions []*wtype.LHComponent
+		AllDilutions []*wtype.LHComponent
+		Dilutions    []*wtype.LHComponent
 	}
 }
 
@@ -217,7 +305,11 @@ func init() {
 				{Name: "StockConcentration", Desc: "specify a starting concentration\n", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "optionally start after a specified well position if wells are allready used in the plate\n", Kind: "Parameters"},
-				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "AllConcentrations", Desc: "", Kind: "Data"},
+				{Name: "AllDilutions", Desc: "original solution + dilutions\n", Kind: "Outputs"},
+				{Name: "ComponentNames", Desc: "", Kind: "Data"},
+				{Name: "Dilutions", Desc: "dilutions only\n", Kind: "Outputs"},
+				{Name: "WellsUsedPostRun", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
