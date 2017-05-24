@@ -297,7 +297,7 @@ type CombinatorialLibraryDesign_4part_wtype_mapInput struct {
 	RBSs               []wtype.DNASequence
 	SitesToRemove      []string
 	Standard           string
-	StandardLabels     []string
+	StandardLabels     [4]string
 	StandardLevel      string
 	TERs               []wtype.DNASequence
 	Vectors            []wtype.DNASequence
