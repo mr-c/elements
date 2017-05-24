@@ -19,11 +19,11 @@ Parameters (
 	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
 	StandardLabels 		[4]string
 	StandardLevel		string // default is "level0"
-	Vectors				[]wtype.DNASequence
-	Part1s				[]wtype.DNASequence
-	Part2s				[]wtype.DNASequence
-	Part3s				[]wtype.DNASequence
-	Part4s				[]wtype.DNASequence
+	Vectors				[]DNASequence
+	Part1s				[]DNASequence
+	Part2s				[]DNASequence
+	Part3s				[]DNASequence
+	Part4s				[]DNASequence
 	SitesToRemove		[]string
 	BlastSearchSeqs		bool
 	FolderPerConstruct	bool
@@ -49,19 +49,19 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
 	StatusMap map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
-	Assemblies map[string][]wtype.DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
-	Sequences[]wtype.DNASequence
-	Parts[][]wtype.DNASequence
-	SequencingPrimers [][]wtype.DNASequence
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
+	Assemblies map[string][]DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
+	Sequences[]DNASequence
+	Parts[][]DNASequence
+	SequencingPrimers [][]DNASequence
 	PassMap map[string]bool
-	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
-	AssembledSequences wtype.File
-	PartsToOrder []wtype.File
-	PrimersToOrder []wtype.File
+	AssembledSequences File
+	PartsToOrder []File
+	PrimersToOrder []File
 )
 // Input Requirement specification
 Requirements {
@@ -75,18 +75,18 @@ Setup {}
 // for every input
 Steps {
 	StatusMap = make(map[string]string)
-	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
-	Assemblies = make(map[string][]wtype.DNASequence)
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
+	Assemblies = make(map[string][]DNASequence)
 	PassMap = make(map[string]bool)
-	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
 	PrimerMap = make(map[string]oligos.Primer)
 	
-	Sequences = make([]wtype.DNASequence,0)
-	Parts = make([][]wtype.DNASequence,0)
-	SequencingPrimers = make([][]wtype.DNASequence,0)
+	Sequences = make([]DNASequence,0)
+	Parts = make([][]DNASequence,0)
+	SequencingPrimers = make([][]DNASequence,0)
 	
 	var standardLabels []string
 	
@@ -110,7 +110,7 @@ Steps {
 						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:					[]wtype.DNASequence{Part1s[k],Part2s[l],Part3s[m],Part4s[n]},
+					Seqsinorder:					[]DNASequence{Part1s[k],Part2s[l],Part3s[m],Part4s[n]},
 					AssemblyStandard:			Standard,
 					Level:						StandardLevel, // of assembly standard
 					Vector:						Vectors[j],
@@ -162,7 +162,7 @@ Steps {
 					
 					PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
 					PrimerMap[key+"_REV"]=primer.Data.REVPrimer
-					SequencingPrimers = append(SequencingPrimers,[]wtype.DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
+					SequencingPrimers = append(SequencingPrimers,[]DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
 					counter++		
 					}
 				}
@@ -184,9 +184,9 @@ Steps {
 	
 	labels := standardLabels
 	
-	refactoredparts:= make(map[string][]wtype.DNASequence)
+	refactoredparts:= make(map[string][]DNASequence)
 	
-	newparts := make([]wtype.DNASequence,0)
+	newparts := make([]DNASequence,0)
 	
 	for _, parts := range Parts{
 	
@@ -213,9 +213,9 @@ Steps {
 	// add fasta file for each set of primers
 	labels= []string{"FWDPrimers","REVPrimers"}
 	
-	refactoredparts = make(map[string][]wtype.DNASequence)
+	refactoredparts = make(map[string][]DNASequence)
 	
-	newparts = make([]wtype.DNASequence,0)
+	newparts = make([]DNASequence,0)
 	
 	for _, parts := range SequencingPrimers{
 	
