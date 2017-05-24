@@ -41,17 +41,16 @@ import (
 // sequence of the assembled insert. Useful for sequencing validation and Primer design
 
 // Input Requirement specification
-func _Scarfree_siteremove_orfcheck_wtypeRequirements() {
+func _Scarfree_TypeIIsDesignRequirements() {
 	// e.g. are MoClo types valid?
 }
 
 // Conditions to run on startup
-func _Scarfree_siteremove_orfcheck_wtypeSetup(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput) {
-}
+func _Scarfree_TypeIIsDesignSetup(_ctx context.Context, _input *Scarfree_TypeIIsDesignInput) {}
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _Scarfree_siteremove_orfcheck_wtypeSteps(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput, _output *Scarfree_siteremove_orfcheck_wtypeOutput) {
+func _Scarfree_TypeIIsDesignSteps(_ctx context.Context, _input *Scarfree_TypeIIsDesignInput, _output *Scarfree_TypeIIsDesignOutput) {
 
 	// set warnings reported back to user to none initially
 	warnings := make([]string, 0)
@@ -371,26 +370,26 @@ func siteReport(partsinorder []wtype.DNASequence, removetheseenzymes []wtype.Res
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _Scarfree_siteremove_orfcheck_wtypeAnalysis(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput, _output *Scarfree_siteremove_orfcheck_wtypeOutput) {
+func _Scarfree_TypeIIsDesignAnalysis(_ctx context.Context, _input *Scarfree_TypeIIsDesignInput, _output *Scarfree_TypeIIsDesignOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _Scarfree_siteremove_orfcheck_wtypeValidation(_ctx context.Context, _input *Scarfree_siteremove_orfcheck_wtypeInput, _output *Scarfree_siteremove_orfcheck_wtypeOutput) {
+func _Scarfree_TypeIIsDesignValidation(_ctx context.Context, _input *Scarfree_TypeIIsDesignInput, _output *Scarfree_TypeIIsDesignOutput) {
 }
-func _Scarfree_siteremove_orfcheck_wtypeRun(_ctx context.Context, input *Scarfree_siteremove_orfcheck_wtypeInput) *Scarfree_siteremove_orfcheck_wtypeOutput {
-	output := &Scarfree_siteremove_orfcheck_wtypeOutput{}
-	_Scarfree_siteremove_orfcheck_wtypeSetup(_ctx, input)
-	_Scarfree_siteremove_orfcheck_wtypeSteps(_ctx, input, output)
-	_Scarfree_siteremove_orfcheck_wtypeAnalysis(_ctx, input, output)
-	_Scarfree_siteremove_orfcheck_wtypeValidation(_ctx, input, output)
+func _Scarfree_TypeIIsDesignRun(_ctx context.Context, input *Scarfree_TypeIIsDesignInput) *Scarfree_TypeIIsDesignOutput {
+	output := &Scarfree_TypeIIsDesignOutput{}
+	_Scarfree_TypeIIsDesignSetup(_ctx, input)
+	_Scarfree_TypeIIsDesignSteps(_ctx, input, output)
+	_Scarfree_TypeIIsDesignAnalysis(_ctx, input, output)
+	_Scarfree_TypeIIsDesignValidation(_ctx, input, output)
 	return output
 }
 
-func Scarfree_siteremove_orfcheck_wtypeRunSteps(_ctx context.Context, input *Scarfree_siteremove_orfcheck_wtypeInput) *Scarfree_siteremove_orfcheck_wtypeSOutput {
-	soutput := &Scarfree_siteremove_orfcheck_wtypeSOutput{}
-	output := _Scarfree_siteremove_orfcheck_wtypeRun(_ctx, input)
+func Scarfree_TypeIIsDesignRunSteps(_ctx context.Context, input *Scarfree_TypeIIsDesignInput) *Scarfree_TypeIIsDesignSOutput {
+	soutput := &Scarfree_TypeIIsDesignSOutput{}
+	output := _Scarfree_TypeIIsDesignRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -400,19 +399,19 @@ func Scarfree_siteremove_orfcheck_wtypeRunSteps(_ctx context.Context, input *Sca
 	return soutput
 }
 
-func Scarfree_siteremove_orfcheck_wtypeNew() interface{} {
-	return &Scarfree_siteremove_orfcheck_wtypeElement{
+func Scarfree_TypeIIsDesignNew() interface{} {
+	return &Scarfree_TypeIIsDesignElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &Scarfree_siteremove_orfcheck_wtypeInput{}
+				input := &Scarfree_TypeIIsDesignInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _Scarfree_siteremove_orfcheck_wtypeRun(_ctx, input)
+				output := _Scarfree_TypeIIsDesignRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &Scarfree_siteremove_orfcheck_wtypeInput{},
-			Out: &Scarfree_siteremove_orfcheck_wtypeOutput{},
+			In:  &Scarfree_TypeIIsDesignInput{},
+			Out: &Scarfree_TypeIIsDesignOutput{},
 		},
 	}
 }
@@ -423,11 +422,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type Scarfree_siteremove_orfcheck_wtypeElement struct {
+type Scarfree_TypeIIsDesignElement struct {
 	inject.CheckedRunner
 }
 
-type Scarfree_siteremove_orfcheck_wtypeInput struct {
+type Scarfree_TypeIIsDesignInput struct {
 	BlastSeqswithNoName           bool
 	Constructname                 string
 	EndsAlreadyadded              bool
@@ -440,7 +439,7 @@ type Scarfree_siteremove_orfcheck_wtypeInput struct {
 	Vector                        wtype.DNASequence
 }
 
-type Scarfree_siteremove_orfcheck_wtypeOutput struct {
+type Scarfree_TypeIIsDesignOutput struct {
 	AssembledSequenceFile  wtype.File
 	Endreport              string
 	Insert                 wtype.DNASequence
@@ -460,7 +459,7 @@ type Scarfree_siteremove_orfcheck_wtypeOutput struct {
 	Warnings               error
 }
 
-type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
+type Scarfree_TypeIIsDesignSOutput struct {
 	Data struct {
 		AssembledSequenceFile  wtype.File
 		Endreport              string
@@ -485,11 +484,11 @@ type Scarfree_siteremove_orfcheck_wtypeSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "Scarfree_siteremove_orfcheck_wtype",
-		Constructor: Scarfree_siteremove_orfcheck_wtypeNew,
+	if err := addComponent(component.Component{Name: "Scarfree_TypeIIsDesign",
+		Constructor: Scarfree_TypeIIsDesignNew,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree/Scarfree_removesites_checkorfs_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/Scarfree/ScarfreeTypeIIsDesign.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},

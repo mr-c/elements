@@ -3,7 +3,7 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
-protocol CombinatorialLibraryDesign_Scarfree3Part_wtype
+protocol CombinatorialLibraryDesign_Scarfree_3Part
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -20,14 +20,13 @@ Parameters (
 	Vectors						[]DNASequence
 	Part1s						[]DNASequence
 	Part2s						[]DNASequence
-	Part3s						[]DNASequence
 	SitesToRemove				[]string
 	ORFStoconfirm				[]string
 	BlastSearchSeqs				bool
 	EndsAlreadyadded 			bool
 	RemoveproblemRestrictionSites bool
 	FolderPerConstruct			bool
-	FolderPerProject				bool
+	ExportSequences				bool
 )
 
 // Physical Inputs to this protocol with types
@@ -86,13 +85,12 @@ Steps {
 	for j := range Vectors {
 		for k := range Part1s {
 			for l := range Part2s {
-				for m := range Part3s {	
 					
-						key := 	ProjectName+"_"+Vectors[j].Name()+"_"+Part1s[k].Name()+"_"+Part2s[l].Name()+"_"+Part3s[m].Name()
-						assembly := RunSteps(Scarfree_siteremove_orfcheck_wtype,
+						key := 	ProjectName+"_"+Vectors[j].Name()+"_"+Part1s[k].Name()+"_"+Part2s[l].Name()
+						assembly := RunSteps(Scarfree_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:				[]DNASequence{Part1s[k],Part2s[l],Part3s[m]},
+					Seqsinorder:				[]DNASequence{Part1s[k],Part2s[l]},
 					Enzymename:					EnzymeName,
 					Vector:						Vectors[j],
 					OtherEnzymeSitesToRemove:	SitesToRemove,
@@ -145,9 +143,8 @@ Steps {
 	}
 	}
 	}
-	
 	// export sequence to fasta
-	if FolderPerProject{
+	if ExportSequences{
 		
 		var err error
 		// export simulated sequences to file
@@ -157,7 +154,7 @@ Steps {
 			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
 		}
 		// add fasta file for each set of parts with overhangs
-		labels:= []string{"Device1","Device2","Device3"}
+		labels:= []string{"Part1","Part2"}
 		
 		refactoredparts:= make(map[string][]DNASequence)
 		
@@ -165,24 +162,24 @@ Steps {
 		
 		for _, parts := range Parts{
 		
-		for j := range parts{
-			newparts = refactoredparts[labels[j]]
-			newparts = append(newparts,parts[j])
-			refactoredparts[labels[j]]=newparts
-		}
+			for j := range parts{
+				newparts = refactoredparts[labels[j]]
+				newparts = append(newparts,parts[j])
+				refactoredparts[labels[j]]=newparts
+			}
 		}
 		
 		for key,value := range refactoredparts{
 			
-		duplicateremoved := search.RemoveDuplicateSequences(value)
-		
-		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
-		
-		if err != nil {
-			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
-		}
-		
-		PartsToOrder = append(PartsToOrder,file)
+			duplicateremoved := search.RemoveDuplicateSequences(value)
+			
+			file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+			
+			if err != nil {
+				Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+			}
+			
+			PartsToOrder = append(PartsToOrder,file)
 		}
 		
 		// add fasta file for each set of primers
@@ -194,27 +191,25 @@ Steps {
 		
 		for _, parts := range SequencingPrimers{
 		
-		for j := range parts{
-			newparts = refactoredparts[labels[j]]
-			newparts = append(newparts,parts[j])
-			refactoredparts[labels[j]]=newparts
-		}
+			for j := range parts{
+				newparts = refactoredparts[labels[j]]
+				newparts = append(newparts,parts[j])
+				refactoredparts[labels[j]]=newparts
+			}
 		}
 		
 		for key,value := range refactoredparts{
+				
+			duplicateremoved := search.RemoveDuplicateSequences(value)
 			
-		duplicateremoved := search.RemoveDuplicateSequences(value)
-		
-		primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
-		
-		if err != nil {
-			Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+			primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+			
+			if err != nil {
+				Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+			}
+			
+			PrimersToOrder = append(PrimersToOrder, primerFile)
 		}
-		
-		PrimersToOrder = append(PrimersToOrder, primerFile)
-		}
-	
-	 }
 	
 	}
 }

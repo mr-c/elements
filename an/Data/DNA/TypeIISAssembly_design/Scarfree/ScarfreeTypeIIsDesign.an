@@ -4,7 +4,7 @@
 // If assembly simulation fails after overhangs are added. In order to help the user
 // diagnose the reason, a report of the part overhangs 
 // is returned to the user along with a list of cut sites in each part.
-protocol Scarfree_siteremove_orfcheck_wtype
+protocol Scarfree_TypeIIsDesign
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
