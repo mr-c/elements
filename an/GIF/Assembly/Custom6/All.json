@@ -306,14 +306,14 @@
             "RemoveproblemRestrictionSites": false
         },
         "vector": {
-            "Filename": "STAR-018a-001.gb",
+            "SequenceFile": "STAR-018a-001.gb",
             "Gene_name": "",
             "Linear": false,
             "Plasmid": true,
             "SingleStranded": false
         },
         "L2_vector": {
-            "Filename": "Rewiring_DaughterVector_I.gb",
+            "SequenceFile": "Rewiring_DaughterVector_I.gb",
             "Gene_name": "",
             "Linear": false,
             "Plasmid": true,
