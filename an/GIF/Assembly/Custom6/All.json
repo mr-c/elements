@@ -306,14 +306,14 @@
             "RemoveproblemRestrictionSites": false
         },
         "vector": {
-            "SequenceFile": "STAR-018a-001.gb",
+            "SequenceFile": "L1_vector_KanR-SacB.fasta",
             "Gene_name": "",
             "Linear": false,
             "Plasmid": true,
             "SingleStranded": false
         },
         "L2_vector": {
-            "SequenceFile": "Rewiring_DaughterVector_I.gb",
+            "SequenceFile": "L2_vector_SacB.fasta",
             "Gene_name": "",
             "Linear": false,
             "Plasmid": true,
