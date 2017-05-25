@@ -36,7 +36,11 @@ Parameters (
 	// If set to true the mix will be prepared on the next available position on the input plate
 	// Otherwise the mastermix will be added to OutPlate
 	OptimisePlateUsage bool
-	)
+	
+	// Factor of total volume to make up as extra volume to account for evaporation.
+	// Default is 0.2 (20%)
+	MakeExtraPercentage float64
+)
 
 // Data which is returned from this protocol, and data types
 Data (
@@ -83,8 +87,20 @@ Steps {
 	
 	VolumesUsed = make(map[string]Volume)
 	
-	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
-	extraReactions := float64(Reactionspermastermix) * 1.2
+	var factor float64
+	
+	if MakeExtraPercentage == 0.0 {
+		factor = 0.1
+	}
+	
+	if MakeExtraPercentage >= 0.0 && MakeExtraPercentage < 1 {
+		factor = 1.0 + MakeExtraPercentage 
+	}else{
+		Errorf("MakeExtraPercentage needs to be specified between 0.01 (1%) and 1 (100%) but specified as %f. Leave as zero to use default of 0.1 (10%)",MakeExtraPercentage)
+	}
+	
+	// make up extra volume based on MakeExtraPercentage parameter to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * factor
 	
 	roundedReactions, err := wutil.RoundDown(extraReactions)
 	
