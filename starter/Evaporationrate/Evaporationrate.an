@@ -52,6 +52,7 @@ Data (
 	Evaporatedliquid Volume // ul
 	Estimatedevaporationtime Time
 	Warnings []error
+	EvaporationFactor float64
 )
 Inputs (
 	Platetype *LHPlate
@@ -116,6 +117,8 @@ Analysis {
 				"total evaporated liquid =", Evaporatedliquid.ToString(), "after", Executiontime.ToString(),
 				"estimated evaporation time = ", Estimatedevaporationtime.ToString(),
 				"Warnings =", Warnings)
+				
+	EvaporationFactor = float64(Evaporatedliquid.SIValue())/float64(Volumeperwell.SIValue())
 	
 } // works in either analysis or steps sections
 

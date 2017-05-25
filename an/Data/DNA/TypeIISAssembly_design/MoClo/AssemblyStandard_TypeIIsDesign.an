@@ -142,7 +142,7 @@ Steps {
 		
 		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
 		
-		if !RemoveproblemRestrictionSites{
+		if !RemoveproblemRestrictionSites && !EndsAlreadyadded {
 			Errorf(errormessage)
 		}else{
 			warnings = append(warnings, errormessage)
