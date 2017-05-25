@@ -36,7 +36,7 @@ import (
 // Otherwise the mastermix will be added to OutPlate
 
 // Factor of total volume to make up as extra volume to account for evaporation.
-// Default is 0.2 (20%)
+// Default is 0.1 (10%)
 
 // Data which is returned from this protocol, and data types
 
@@ -304,7 +304,7 @@ func init() {
 				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
 				{Name: "ComponentVolumesperReaction", Desc: "Specify volumes per component in same order of components.\nThe actual volume added will be multiplied by the number of Reactionspermastermix\n", Kind: "Parameters"},
 				{Name: "Components", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
-				{Name: "MakeExtraPercentage", Desc: "Factor of total volume to make up as extra volume to account for evaporation.\nDefault is 0.2 (20%)\n", Kind: "Parameters"},
+				{Name: "MakeExtraPercentage", Desc: "Factor of total volume to make up as extra volume to account for evaporation.\nDefault is 0.1 (10%)\n", Kind: "Parameters"},
 				{Name: "OptimisePlateUsage", Desc: "If set to true the mix will be prepared on the next available position on the input plate\nOtherwise the mastermix will be added to OutPlate\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "The plate which the mastermix will be made in.\nHowever, There is one scenario where it will not be used.\n1. If OptimisePlateUsage is selected then the Antha scheduler will search for a suitable location to use to make the mastermix without adding an additional plate on to the deck.\nIn either of these two cases if a plate is selected here then that plate's residual volume per well will be added to the total mastermix volume.\nIf OptimisePlateUsage is selected it is therefore advisable to select the platetype of the most likely destination of the mastermix to be mixed to\n(i.e. one of the other plates used or the inplate, default inplate is usually pcrplate_skirted. You can simulate to check where the mastermix will be put.\n", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\" vol is \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
