@@ -122,7 +122,7 @@ func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *Assembly
 
 		errormessage := fmt.Sprintf("Found problem restriction sites in 1 or more parts: %s", report)
 
-		if !_input.RemoveproblemRestrictionSites {
+		if !_input.RemoveproblemRestrictionSites && !_input.EndsAlreadyadded {
 			execute.Errorf(_ctx, errormessage)
 		} else {
 			warnings = append(warnings, errormessage)
