@@ -108,6 +108,8 @@ func _EvaporationrateAnalysis(_ctx context.Context, _input *EvaporationrateInput
 		"estimated evaporation time = ", _output.Estimatedevaporationtime.ToString(),
 		"Warnings =", _output.Warnings)
 
+	_output.EvaporationFactor = float64(_output.Evaporatedliquid.SIValue()) / float64(_input.Volumeperwell.SIValue())
+
 } // works in either analysis or steps sections
 
 func _EvaporationrateValidation(_ctx context.Context, _input *EvaporationrateInput, _output *EvaporationrateOutput) {
@@ -177,6 +179,7 @@ type EvaporationrateInput struct {
 type EvaporationrateOutput struct {
 	Estimatedevaporationtime wunit.Time
 	Evaporatedliquid         wunit.Volume
+	EvaporationFactor        float64
 	Evaporationrateestimate  float64
 	Status                   string
 	Warnings                 []error
@@ -186,6 +189,7 @@ type EvaporationrateSOutput struct {
 	Data struct {
 		Estimatedevaporationtime wunit.Time
 		Evaporatedliquid         wunit.Volume
+		EvaporationFactor        float64
 		Evaporationrateestimate  float64
 		Status                   string
 		Warnings                 []error
@@ -211,6 +215,7 @@ func init() {
 				{Name: "Volumeperwell", Desc: "ul\n", Kind: "Parameters"},
 				{Name: "Estimatedevaporationtime", Desc: "", Kind: "Data"},
 				{Name: "Evaporatedliquid", Desc: "ul\n", Kind: "Data"},
+				{Name: "EvaporationFactor", Desc: "", Kind: "Data"},
 				{Name: "Evaporationrateestimate", Desc: "ul/h\n", Kind: "Data"},
 				{Name: "Status", Desc: "", Kind: "Data"},
 				{Name: "Warnings", Desc: "", Kind: "Data"},
