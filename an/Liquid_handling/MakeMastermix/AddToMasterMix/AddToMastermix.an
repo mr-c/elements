@@ -84,7 +84,7 @@ Steps {
 		factor = 0.1
 	}
 	
-	if MakeExtraPercentage >= 0.0 && MakeExtraPercentage < 1 {
+	if MakeExtraPercentage >= 0.0 && MakeExtraPercentage <= 1 {
 		factor = 1.0 + MakeExtraPercentage 
 	}else{
 		Errorf("MakeExtraPercentage needs to be specified between 0.01 (1%) and 1 (100%) but specified as %f. Leave as zero to use default of 0.1 (10%)",MakeExtraPercentage)

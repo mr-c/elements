@@ -70,7 +70,7 @@ func _AddToMastermixSteps(_ctx context.Context, _input *AddToMastermixInput, _ou
 		factor = 0.1
 	}
 
-	if _input.MakeExtraPercentage >= 0.0 && _input.MakeExtraPercentage < 1 {
+	if _input.MakeExtraPercentage >= 0.0 && _input.MakeExtraPercentage <= 1 {
 		factor = 1.0 + _input.MakeExtraPercentage
 	} else {
 		execute.Errorf(_ctx, "MakeExtraPercentage needs to be specified between 0.01 (1%) and 1 (100%) but specified as %f. Leave as zero to use default of 0.1 (10%)", _input.MakeExtraPercentage)
