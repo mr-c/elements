@@ -37,7 +37,7 @@ import (
 // If not selected, the components will be added to the ComponentIn
 
 // Factor of total volume to make up as extra volume to account for evaporation.
-// Default is 0.2 (20%)
+// Default is 0.1 (10%)
 
 // Data which is returned from this protocol, and data types
 
@@ -324,7 +324,7 @@ func init() {
 				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
 				{Name: "ComponentIn", Desc: "The component to add all new components to.\n", Kind: "Inputs"},
 				{Name: "ComponentsToAdd", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
-				{Name: "MakeExtraPercentage", Desc: "Factor of total volume to make up as extra volume to account for evaporation.\nDefault is 0.2 (20%)\n", Kind: "Parameters"},
+				{Name: "MakeExtraPercentage", Desc: "Factor of total volume to make up as extra volume to account for evaporation.\nDefault is 0.1 (10%)\n", Kind: "Parameters"},
 				{Name: "MixToNewLocation", Desc: "If this is selected the mastermix will be moved to a new location specified by OutPlate type\nIf not selected, the components will be added to the ComponentIn\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "if MixToNewLocation is set to true this will be the plate type which the mastermix will be transferred to.\nOtherwise the residual volume will be used to added to the total volume to add,\nso this plate should be selected as teh plate in which the mastermix is already in.\n", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\": \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
