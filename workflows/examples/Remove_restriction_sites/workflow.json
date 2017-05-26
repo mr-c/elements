@@ -2,7 +2,7 @@
   "connections": [],
   "processes": {
     "RemoveRestrictionSites": {
-      "component": "RemoveRestrictionSites"
+      "component": "RemoveRestrictionSites_wtype"
     }
   }
 }
