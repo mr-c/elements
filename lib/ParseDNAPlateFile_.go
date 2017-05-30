@@ -53,10 +53,13 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 
 	// headers
 	NameHeader := "Seq Name"
+	seqHeader := "Seq"
 	MassHeader := "Yield_ug"
 	MWHeader := "MW"
 	WellHeader := "Customer Well"
 	PlateNameHeader := "Plate"
+	volHeader := "Volume_ul"
+	concHeader := "Conc_ug/ul"
 
 	// initialise maps
 	_output.PartMassMap = make(map[string]wunit.Mass)
@@ -88,6 +91,9 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 		var partwell string
 		var partmw float64
 		var platename string
+		var partSeq string
+		var partConc float64
+		var partVol float64
 
 		for j := range partinfo.Setpoints {
 
@@ -102,6 +108,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 						partname = name
 						_output.Partnames = append(_output.Partnames, name)
 					}
+
 				} else {
 					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
 				}
@@ -131,7 +138,6 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				}
 			}
 
-			//third creates an array of part lengths in bp
 			if partinfo.Factordescriptors[j] == MWHeader {
 
 				if mw, found := partinfo.Setpoints[j].(int); found {
@@ -152,7 +158,55 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				}
 			}
 
-			//third creates an array of part lengths in bp
+			if partinfo.Factordescriptors[j] == seqHeader {
+
+				if seq, found := partinfo.Setpoints[j].(string); found {
+					partSeq = seq
+				} else {
+					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
+				}
+
+				if i == 0 {
+					headersfound = append(headersfound, seqHeader)
+				}
+			}
+
+			if partinfo.Factordescriptors[j] == volHeader {
+
+				if vol, found := partinfo.Setpoints[j].(float64); found {
+					partVol = vol
+				} else if vol, found := partinfo.Setpoints[j].(string); found {
+					if vol == "" {
+						partVol = 0.0 // mw
+						// empty so skip
+					}
+				} else {
+					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
+				}
+
+				if i == 0 {
+					headersfound = append(headersfound, volHeader)
+				}
+			}
+
+			if partinfo.Factordescriptors[j] == concHeader {
+
+				if conc, found := partinfo.Setpoints[j].(float64); found {
+					partConc = conc
+				} else if conc, found := partinfo.Setpoints[j].(string); found {
+					if conc == "" {
+						partConc = 0.0 // mw
+						// empty so skip
+					}
+				} else {
+					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
+				}
+
+				if i == 0 {
+					headersfound = append(headersfound, concHeader)
+				}
+			}
+
 			if partinfo.Factordescriptors[j] == WellHeader {
 
 				if well, found := partinfo.Setpoints[j].(string); found {
@@ -169,6 +223,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				} else {
 					execute.Errorf(_ctx, fmt.Sprint("wrong type", partinfo.Factordescriptors[j], partinfo.Setpoints[j]))
 				}
+
 				if i == 0 {
 					headersfound = append(headersfound, WellHeader)
 				}
@@ -207,7 +262,21 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 			part := factory.GetComponentByType("dna_part")
 			part.CName = partname
 
+			if partVol > 0.0 {
+				part.SetVolume(wunit.NewVolume(partVol, "ul"))
+			}
+
+			if partConc > 0.0 {
+				part.SetConcentration(wunit.NewConcentration(partConc, "ug/ul"))
+			}
+
 			_output.PartsList[partname] = part
+
+			var seq wtype.DNASequence
+			seq.Nm = partname
+			seq.Seq = partSeq
+
+			_output.PartSeqs[partname] = seq
 		}
 
 	}
@@ -222,6 +291,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 				}
 			}
 		}
+
 	}
 	_output.OligoPairs = len(_output.FwdOligotoRevOligo)
 
@@ -294,6 +364,7 @@ type ParseDNAPlateFileOutput struct {
 	PartMassMap            map[string]wunit.Mass
 	PartMolecularWeightMap map[string]float64
 	PartPlateMap           map[string]string
+	PartSeqs               map[string]wtype.DNASequence
 	Partnames              []string
 	PartsList              map[string]*wtype.LHComponent
 }
@@ -307,6 +378,7 @@ type ParseDNAPlateFileSOutput struct {
 		PartMassMap            map[string]wunit.Mass
 		PartMolecularWeightMap map[string]float64
 		PartPlateMap           map[string]string
+		PartSeqs               map[string]wtype.DNASequence
 		Partnames              []string
 	}
 	Outputs struct {
@@ -330,6 +402,7 @@ func init() {
 				{Name: "PartMassMap", Desc: "", Kind: "Data"},
 				{Name: "PartMolecularWeightMap", Desc: "", Kind: "Data"},
 				{Name: "PartPlateMap", Desc: "", Kind: "Data"},
+				{Name: "PartSeqs", Desc: "", Kind: "Data"},
 				{Name: "Partnames", Desc: "", Kind: "Data"},
 				{Name: "PartsList", Desc: "", Kind: "Outputs"},
 			},

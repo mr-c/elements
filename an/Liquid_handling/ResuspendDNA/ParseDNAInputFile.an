@@ -17,11 +17,11 @@ import (
 Parameters (
   	SequenceInfoFile File // supported format is xlsx file from Thermo
 	SequenceInfoFileformat string // default should be JMP
-	
 )
 
 Data (
-	Partnames[]string
+	Partnames []string
+	PartSeqs map[string]DNASequence
 	PartMassMap map[string]Mass
 	PartMolecularWeightMap map[string]float64
 	PartPlateMap map[string]string
@@ -68,11 +68,13 @@ Steps {
 	
 	// headers
 	NameHeader := "Seq Name"
+	seqHeader := "Seq"
 	MassHeader := "Yield_ug"
 	MWHeader := "MW"
 	WellHeader := "Customer Well"
 	PlateNameHeader := "Plate"
-
+	volHeader := "Volume_ul"
+	concHeader := "Conc_ug/ul"
 
 
 	// initialise maps
@@ -107,6 +109,9 @@ Steps {
 		var partwell string
 		var partmw float64
 		var platename string
+		var partSeq string
+		var partConc float64
+		var partVol float64
 		
 		for j := range partinfo.Setpoints {
 			
@@ -117,10 +122,11 @@ Steps {
 					
 					if name == ""|| name == "BLANK"{
 						fmt.Print("Skipping ", name)
-						}else{
-					partname = name
-					Partnames = append(Partnames,name)
+					}else{
+						partname = name
+						Partnames = append(Partnames,name)
 					}
+					
 				} else {
 					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
 				}
@@ -131,7 +137,7 @@ Steps {
 				
 			}
 			
-		//second create an array of plasmid masses	
+			//second create an array of plasmid masses	
 			if partinfo.Factordescriptors[j] == MassHeader {
 				
 				if	mass, found := partinfo.Setpoints[j].(float64); found{
@@ -146,11 +152,10 @@ Steps {
 				}
 				
 				if i == 0 {
-						headersfound = append(headersfound,MassHeader)
+					headersfound = append(headersfound,MassHeader)
 				}
 			}
 		
-		//third creates an array of part lengths in bp	
 			if partinfo.Factordescriptors[j] == MWHeader {
 				
 				if	mw, found := partinfo.Setpoints[j].(int); found{
@@ -171,7 +176,55 @@ Steps {
 				}
 			}
 			
-			//third creates an array of part lengths in bp	
+			if partinfo.Factordescriptors[j] == seqHeader {
+				
+				if seq, found := partinfo.Setpoints[j].(string); found{
+					partSeq = seq
+				} else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if  i == 0 {
+					headersfound = append(headersfound,seqHeader)
+				}
+			}
+			
+			if partinfo.Factordescriptors[j] == volHeader {
+				
+				if	vol, found := partinfo.Setpoints[j].(float64); found{
+					partVol = vol
+				}  else if vol, found := partinfo.Setpoints[j].(string); found{
+					if vol == ""{
+						partVol = 0.0 // mw
+					// empty so skip
+					}
+				}else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if i == 0 {
+					headersfound = append(headersfound,volHeader)
+				}
+			}
+			
+			if partinfo.Factordescriptors[j] == concHeader {
+				
+				if	conc, found := partinfo.Setpoints[j].(float64); found{
+					partConc = conc
+				}  else if conc, found := partinfo.Setpoints[j].(string); found{
+					if conc == ""{
+						partConc = 0.0 // mw
+					// empty so skip
+					}
+				}else {
+					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
+				}
+				
+				if i == 0 {
+					headersfound = append(headersfound,concHeader)
+				}
+			}
+			
 			if partinfo.Factordescriptors[j] == WellHeader {
 				
 				if	well, found := partinfo.Setpoints[j].(string); found{
@@ -188,8 +241,9 @@ Steps {
 				}  else {
 					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
 				}
-					if  i == 0 {
-				headersfound = append(headersfound,WellHeader)
+				
+				if  i == 0 {
+					headersfound = append(headersfound,WellHeader)
 				}
 			}
 		
@@ -202,8 +256,8 @@ Steps {
 				}  else {
 					Errorf(fmt.Sprint("wrong type", partinfo.Factordescriptors[j],partinfo.Setpoints[j]))
 				}
-					if  i == 0 {
-				headersfound = append(headersfound,PlateNameHeader)
+				if  i == 0 {
+					headersfound = append(headersfound,PlateNameHeader)
 				}
 			}
 			
@@ -216,21 +270,33 @@ Steps {
 			*/
 		}
 		
-	if partname == "" || partname == "BLANK"{
-		fmt.Print("Skipping ", partname)
-	}else{
-		PartLocationsMap[partname] = partwell
-		PartMolecularWeightMap[partname] = partmw
-		PartMassMap[partname] = wunit.NewMass(partmass,"ug")
-		PartPlateMap[partname]= platename
-		
-		part := factory.GetComponentByType("dna_part")
-		part.CName = partname
-		
-		PartsList[partname] = part
-	}
-	
-	
+		if partname == "" || partname == "BLANK"{
+			fmt.Print("Skipping ", partname)
+		}else{
+			PartLocationsMap[partname] = partwell
+			PartMolecularWeightMap[partname] = partmw
+			PartMassMap[partname] = wunit.NewMass(partmass,"ug")
+			PartPlateMap[partname]= platename
+			
+			part := factory.GetComponentByType("dna_part")
+			part.CName = partname
+			
+			if partVol > 0.0 {
+				part.SetVolume(wunit.NewVolume(partVol,"ul"))
+			}
+			
+			if partConc > 0.0 {
+				part.SetConcentration(wunit.NewConcentration(partConc,"ug/ul"))
+			}
+			
+			PartsList[partname] = part
+			
+			var seq DNASequence
+			seq.Nm = partname
+			seq.Seq = partSeq
+			
+			PartSeqs[partname] = seq
+		}
 	
 	}
 	
@@ -244,6 +310,7 @@ Steps {
 					}
 				}
 		}
+	
 	}
 	OligoPairs = len(FwdOligotoRevOligo)
 	
