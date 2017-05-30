@@ -62,17 +62,18 @@ Parameters (
 	// Specify a minimum volume below which a dilution will need to be made.
 	// The default value is 0.5ul
 	MinVolume Volume
+	
+	// Option to specify the specific dilution to be used if the volume of a solution needed to achieve a target concentration is below the  MinVolume.
+	DilutionFactor float64
 )
 
 // Data which is returned from this protocol, and data types
 Data (
 	Runtowelllocationmap map[string]string 
 	Runcount int
-	Pixelcount int
 	Errors []error
 	Blankwells []string
 	Runs []doe.Run
-	Wellpositionarray []string
 	ExportedFile File
 )
 
@@ -111,7 +112,6 @@ Steps {
 	Runtowelllocationmap = make(map[string]string)
 	Blankwells = make([]string,0)
 	counter := WellsUsed 
-	var DilutionFactor float64
 	
 	var minVolume Volume
 	
@@ -207,8 +207,8 @@ Steps {
 		
 		if !found && TestSols[k].HasConcentration(){
 			stockConc = TestSols[k].Concentration()
-		}else{
-			Errorf("No Stock concentration found for %s. Please choose a component with a concentration or override the concentration in OverrideStockConcentrations",TestSols[k].CName)
+		}else if !found{
+			Errorf("No Stock concentration found for %s. Please choose a component with a concentration or override the concentration in OverrideStockConcentrations",TestSols[k].CName,)
 		}
 		
 		vol, err := wunit.VolumeForTargetConcentration(TestSolConcs[l],stockConc,TotalVolume)
@@ -542,9 +542,7 @@ Steps {
 	
 	Reactions = reactions
 	Runcount = len(Reactions)
-	Pixelcount = len(wellpositionarray)
-	Runs = runs
-	Wellpositionarray = wellpositionarray
+	Runs = newruns
 }
 
 // Run after controls and a steps block are completed to
