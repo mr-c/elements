@@ -8,7 +8,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	PartsWithOverhangs []wtype.DNASequence
+	PartsWithOverhangs []DNASequence
 )
 
 // Physical Inputs to this protocol with types
@@ -18,7 +18,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Components []*wtype.LHComponent
+	Components []*LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -35,8 +35,8 @@ Setup {}
 
 Steps {
 	// Element with mock synthesises DNA. Converts DNA sequence type to LHComponent.
-	//var dna *wtype.LHComponent
-	components := make([]*wtype.LHComponent, 0)
+	//var dna *LHComponent
+	components := make([]*LHComponent, 0)
 	
 	fmt.Println("Parts:",PartsWithOverhangs)
 	for i, part := range PartsWithOverhangs {

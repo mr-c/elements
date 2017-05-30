@@ -31,8 +31,8 @@ import (
 // Physical Inputs to this protocol with types
 
 // should be new type or field indicating solid and mass
-/*Acid					*wtype.LHComponent
-Base 					*wtype.LHComponent
+/*Acid					*LHComponent
+Base 					*LHComponent
 */
 
 // Physical outputs from this protocol with types
@@ -74,7 +74,7 @@ func _MakeMediaSteps(_ctx context.Context, _input *MakeMediaInput, _output *Make
 		stepcounter++
 	}
 
-	//solids := make([]*wtype.LHComponent,0)
+	//solids := make([]*LHComponent,0)
 
 	for _, sol := range _input.SolidComponents {
 
@@ -263,7 +263,7 @@ func init() {
 				{Name: "SolidComponentFinalConcentrations", Desc: "Volume //Mass // Should be Mass\n", Kind: "Parameters"},
 				{Name: "SolidComponents", Desc: "should be new type or field indicating solid and mass\n", Kind: "Inputs"},
 				{Name: "SterilisationMethod", Desc: "", Kind: "Inputs"},
-				{Name: "Sterilise", Desc: "Acid\t\t\t\t\t*wtype.LHComponent\n\tBase \t\t\t\t\t*wtype.LHComponent\n", Kind: "Inputs"},
+				{Name: "Sterilise", Desc: "Acid\t\t\t\t\t*LHComponent\n\tBase \t\t\t\t\t*LHComponent\n", Kind: "Inputs"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
 				{Name: "Vessel", Desc: "", Kind: "Inputs"},
 				{Name: "Media", Desc: "", Kind: "Outputs"},

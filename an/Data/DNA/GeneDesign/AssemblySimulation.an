@@ -7,14 +7,14 @@ import (
 )
 
 Parameters (
-	PartsWithOverhangs []wtype.DNASequence
-	VectorSeq wtype.DNASequence
+	PartsWithOverhangs []DNASequence
+	VectorSeq DNASequence
 	RE string
 	SynthesisProvider string
 )
 Data (
 
-	SimulatedSequence wtype.DNASequence
+	SimulatedSequence DNASequence
 	RestrictionSitesFound []enzymes.Restrictionsites
 	NumberofSuccessfulAssemblies int
 	Warnings error

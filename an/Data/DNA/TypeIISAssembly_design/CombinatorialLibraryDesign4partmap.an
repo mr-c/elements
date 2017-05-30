@@ -23,11 +23,11 @@ Parameters (
 	Standard					string //MoClo
 	StandardLevel			string // of assembly standard
 	StandardLabels 			[4]string
-	Vectors					[]wtype.DNASequence
-	PROs						[]wtype.DNASequence
-	RBSs						[]wtype.DNASequence
-	CDSs						[]wtype.DNASequence
-	TERs						[]wtype.DNASequence
+	Vectors					[]DNASequence
+	PROs						[]DNASequence
+	RBSs						[]DNASequence
+	CDSs						[]DNASequence
+	TERs						[]DNASequence
 	SitesToRemove			[]string
 	BlastSearchSeqs			bool
 	FolderPerConstruct		bool
@@ -47,12 +47,12 @@ Outputs (
 // Data which is returned from this protocol, and data types
 Data (
 	StatusMap map[string]string
-	PartswithOverhangsMap map[string][]wtype.DNASequence // parts to order
-	Sequences[]wtype.DNASequence
-	Parts[][]wtype.DNASequence
-	SequencingPrimers [][]wtype.DNASequence
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
+	Sequences[]DNASequence
+	Parts[][]DNASequence
+	SequencingPrimers [][]DNASequence
 	PassMap map[string]bool
-	SeqsMap map[string]wtype.DNASequence // desired sequence to end up with after assembly
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
 	EndreportMap  map[string]string
 	PositionReportMap  map[string][]string
 	PrimerMap map[string]oligos.Primer
@@ -78,19 +78,19 @@ Setup {}
 Steps {
 	
 	StatusMap = make(map[string]string)
-	PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
 	PassMap = make(map[string]bool)
-	SeqsMap = make(map[string]wtype.DNASequence) // desired sequence to end up with after assembly
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
 	EndreportMap  = make(map[string]string)
 	PositionReportMap = make(map[string][]string)
 	StatusMap = make(map[string]string)
 	PrimerMap = make(map[string]oligos.Primer)
 	
-	Sequences = make([]wtype.DNASequence,0)
-	Parts = make([][]wtype.DNASequence,0)
-	SequencingPrimers = make([][]wtype.DNASequence,0)
-	//uniqueFWDPrimers := make([]wtype.DNASequence,0)
-	//uniqueREVPrimers := make([]wtype.DNASequence,0)
+	Sequences = make([]DNASequence,0)
+	Parts = make([][]DNASequence,0)
+	SequencingPrimers = make([][]DNASequence,0)
+	//uniqueFWDPrimers := make([]DNASequence,0)
+	//uniqueREVPrimers := make([]DNASequence,0)
 	
 	var counter int = 1
 	
@@ -100,10 +100,10 @@ Steps {
 				for m := range CDSs {	
 					for n := range TERs {
 						key := 	ProjectName	+Vectors[j].Nm+"_"+PROs[k].Nm+"_"+RBSs[l].Nm+"_"+CDSs[m].Nm
-						assembly := RunSteps(AssemblyStandard_siteremove_orfcheck_wtype,
+						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
 		Parameters {
 					Constructname: 				key,
-					Seqsinorder:				[]wtype.DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
+					Seqsinorder:				[]DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
 					AssemblyStandard:			Standard,
 					Level:						StandardLevel, // of assembly standard
 					Vector:						Vectors[j],
@@ -152,7 +152,7 @@ Steps {
 				
 				PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
 				PrimerMap[key+"_REV"]=primer.Data.REVPrimer
-				SequencingPrimers = append(SequencingPrimers,[]wtype.DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
+				SequencingPrimers = append(SequencingPrimers,[]DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
 				
 				//uniqueFWDPrimers = append(uniqueFWDPrimers,primer.Data.FWDPrimer.Seq)
 				//uniqueREVPrimers = append(uniqueREVPrimers,primer.Data.REVPrimer.Seq)
@@ -178,9 +178,9 @@ Steps {
 		// add fasta file for each set of parts with overhangs
 		labels:= StandardLabels //[]string{"Promoters","RBSs","CDSs","Ters"}
 		
-		refactoredparts:= make(map[string][]wtype.DNASequence)
+		refactoredparts:= make(map[string][]DNASequence)
 		
-		newparts := make([]wtype.DNASequence,0)
+		newparts := make([]DNASequence,0)
 		
 		for _, parts := range Parts{
 		
@@ -195,7 +195,7 @@ Steps {
 			
 		duplicateremoved := search.RemoveDuplicateSequences(value)
 		csv  := make([]string, 0)
-		revcompseqs := make([]wtype.DNASequence,0)
+		revcompseqs := make([]DNASequence,0)
 		
 		for _, seq := range duplicateremoved {
 			revcomp := wtype.RevComp(seq.Seq)
@@ -228,9 +228,9 @@ Steps {
 		
 		newlabels := []string{"FWDPrimers","REVPrimers"}
 		
-		refactoredparts = make(map[string][]wtype.DNASequence)
+		refactoredparts = make(map[string][]DNASequence)
 		csv  := make([]string, 0)
-		newparts = make([]wtype.DNASequence,0)
+		newparts = make([]DNASequence,0)
 		
 		for i, parts := range SequencingPrimers{
 		

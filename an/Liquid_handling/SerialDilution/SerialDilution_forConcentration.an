@@ -28,15 +28,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent 
-	Diluent *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Solution *LHComponent 
+	Diluent *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Dilutions []*wtype.LHComponent // dilutions only
-	AllDilutions []*wtype.LHComponent // original solution + dilutions
+	Dilutions []*LHComponent // dilutions only
+	AllDilutions []*LHComponent // original solution + dilutions
 )
 
 Requirements {
@@ -58,9 +58,9 @@ Steps {
 	var dilutionPosition int = 0
 	nilVolume := wunit.NewVolume(0.0,"ul")
 	
-	dilutions := make([]*wtype.LHComponent,0)
+	dilutions := make([]*LHComponent,0)
 
-	var aliquot *wtype.LHComponent
+	var aliquot *LHComponent
 	
 	// calculate solution volume
 	solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],StockConcentration,StartVolumeperDilution)
@@ -119,8 +119,8 @@ Steps {
 	
 	for dilutionPosition < len(TargetConcentrations) {
 		
-		var nextdiluentSample *wtype.LHComponent
-		var nextaliquot *wtype.LHComponent
+		var nextdiluentSample *LHComponent
+		var nextaliquot *LHComponent
 		
 			// calculate new solution volume
 		solutionVolume,err := wunit.VolumeForTargetConcentration(TargetConcentrations[dilutionPosition],TargetConcentrations[dilutionPosition-1],StartVolumeperDilution)

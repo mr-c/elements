@@ -20,7 +20,7 @@ Parameters (
 )
 Data (
 	// output parts with correct overhangs
-	PartsWithOverhangs []wtype.DNASequence
+	PartsWithOverhangs []DNASequence
 	SimulationStatus string
 	Validated bool
 	ValidationStatus string
@@ -40,7 +40,7 @@ Setup {
 } 
 
 Steps {
-	PartDNA := make([]wtype.DNASequence, 0)
+	PartDNA := make([]DNASequence, 0)
 	
 	// Retrieve part seqs from entrez
 	for _, part := range Parts {

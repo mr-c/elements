@@ -25,12 +25,12 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent
+	Solution *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Aliquots []*wtype.LHComponent
+	Aliquots []*LHComponent
 )
 
 Requirements {
@@ -58,7 +58,7 @@ Steps {
 	
 	// make a slice of components which we'll fill with aliquots; 
 	// same as we would for an array of samples but this time we won't mix together
-	aliquots := make([]*wtype.LHComponent,0)
+	aliquots := make([]*LHComponent,0)
 	
 	// this is golang syntax for a for loop
 	// variable i is initialised at 0 and will increase with each loop whilst i < NumberofAliquots is still true

@@ -63,8 +63,8 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 	_output.Sequences = make([]wtype.DNASequence, 0)
 	_output.Parts = make([][]wtype.DNASequence, 0)
 	_output.SequencingPrimers = make([][]wtype.DNASequence, 0)
-	//uniqueFWDPrimers := make([]wtype.DNASequence,0)
-	//uniqueREVPrimers := make([]wtype.DNASequence,0)
+	//uniqueFWDPrimers := make([]DNASequence,0)
+	//uniqueREVPrimers := make([]DNASequence,0)
 
 	var counter int = 1
 
@@ -74,7 +74,7 @@ func _CombinatorialLibraryDesign_4part_wtype_mapSteps(_ctx context.Context, _inp
 				for m := range _input.CDSs {
 					for n := range _input.TERs {
 						key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.PROs[k].Nm + "_" + _input.RBSs[l].Nm + "_" + _input.CDSs[m].Nm
-						assembly := AssemblyStandard_siteremove_orfcheck_wtypeRunSteps(_ctx, &AssemblyStandard_siteremove_orfcheck_wtypeInput{Constructname: key,
+						assembly := AssemblyStandard_TypeIIsDesignRunSteps(_ctx, &AssemblyStandard_TypeIIsDesignInput{Constructname: key,
 							Seqsinorder:                   []wtype.DNASequence{_input.PROs[k], _input.RBSs[l], _input.CDSs[m], _input.TERs[n]},
 							AssemblyStandard:              _input.Standard,
 							Level:                         _input.StandardLevel, // of assembly standard

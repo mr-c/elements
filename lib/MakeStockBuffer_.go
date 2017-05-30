@@ -16,13 +16,13 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//Bufferstock		*wtype.LHComponent
+//Bufferstock		*LHComponent
 
-//OutPlate 		*wtype.LHPlate
+//OutPlate 		*LHPlate
 
 // Physical outputs from this protocol with types
 
-//Buffer 			*wtype.LHComponent
+//Buffer 			*LHComponent
 
 // Data which is returned from this protocol, and data types
 
@@ -147,7 +147,7 @@ func init() {
 			Desc: "",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/MakeBuffer/MakeStockBuffer.an",
 			Params: []component.ParamDesc{
-				{Name: "Diluent", Desc: "Bufferstock\t\t*wtype.LHComponent\n", Kind: "Inputs"},
+				{Name: "Diluent", Desc: "Bufferstock\t\t*LHComponent\n", Kind: "Inputs"},
 				{Name: "MassAddedinG", Desc: "", Kind: "Parameters"},
 				{Name: "Moleculename", Desc: "", Kind: "Parameters"},
 				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},

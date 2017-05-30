@@ -24,15 +24,15 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-FwdPrimertype *wtype.LHComponent
-RevPrimertype *wtype.LHComponent
-Templatetype *wtype.LHComponent
-Plate *wtype.LHPlate
+FwdPrimertype *LHComponent
+RevPrimertype *LHComponent
+Templatetype *LHComponent
+Plate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-Reactions []*wtype.LHComponent
+Reactions []*LHComponent
 )
 
 Requirements {
@@ -59,8 +59,8 @@ Steps {
 	
 	var counter int
 	
-Reactions = make([]*wtype.LHComponent,0)
-volumes := make([]wunit.Volume,0)
+Reactions = make([]*LHComponent,0)
+volumes := make([]Volume,0)
 welllocations := make([]string,0)
 
 /*
@@ -76,7 +76,7 @@ mastermix := RunSteps(MakePCRmmx,
     ReactionName: reactionname,
           FwdPrimerVol: wunit.NewVolume(1,"ul"),
           RevPrimerVol: wunit.NewVolume(1,"ul"),
-          AdditiveVols: []wunit.Volume{wunit.NewVolume(5,"ul")},
+          AdditiveVols: []Volume{wunit.NewVolume(5,"ul")},
           Templatevolume: wunit.NewVolume(1,"ul"),
           PolymeraseVolume: wunit.NewVolume(1,"ul"),
           DNTPVol:wunit.NewVolume(1,"ul"),
@@ -98,7 +98,7 @@ mastermix := RunSteps(MakePCRmmx,
           Buffer:factory.GetComponentByType("Q5buffer"),
           Water:factory.GetComponentByType("water"),
           Template: Templatetype,
-          Additives: []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")} ,
+          Additives: []*LHComponent{factory.GetComponentByType("GCenhancer")} ,
           OutPlate: Plate,
                         
                 })

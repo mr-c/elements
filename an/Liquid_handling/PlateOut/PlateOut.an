@@ -14,7 +14,7 @@ Parameters (
 	IncubationTemp wunit.Temperature //set Incubation temperature
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy wtype.PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
+	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolume Volume //optionally specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
@@ -28,13 +28,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *wtype.LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	TransformedCells *wtype.LHComponent //the transformed cells (Default = neb5compcells).
+	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	TransformedCells *LHComponent //the transformed cells (Default = neb5compcells).
 )
 
 // Physical outputs to this protocol
 Outputs (
-	PlatedCultures []*wtype.LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
+	PlatedCultures []*LHComponent //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
 	TransformedPlateNumber int //the number of plates used
 	WellsUsed int //number of wells used
 )
@@ -47,7 +47,7 @@ Setup {
 // The core process for this protocol. These steps are executed for each input.
 Steps {
 	//set up some default values
-	var defaultPlateOutPolicy wtype.PolicyName = "plateout"
+	var defaultPlateOutPolicy PolicyName = "plateout"
 	var defaultAgarPlateNumber int = 1
 	var defaultNumberofReplicates int = 1
 	var defaultWellsAlreadyUsed int = 0
@@ -95,7 +95,7 @@ Steps {
 	for j := 0; j < NumberofReplicates ;j++{
 
 				//set up a slice to add the plate out reactions to
-				var plateOutSamplesSlice []*wtype.LHComponent
+				var plateOutSamplesSlice []*LHComponent
 
 				//set up variable for tracking well
 				var nextwell string

@@ -23,7 +23,7 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	Parts[]wtype.DNASequence
+	Parts[]DNASequence
 	Status string
 	Warnings []string
 )
@@ -53,9 +53,9 @@ Steps {
 	warnings := make([]string, 0)
 	
 	// make an empty array of DNA Sequences ready to fill
-	partsinorder := make([]wtype.DNASequence, 0)
+	partsinorder := make([]DNASequence, 0)
 
-	var partDNA wtype.DNASequence
+	var partDNA DNASequence
 	
 
 	Status = "all parts available"

@@ -20,7 +20,7 @@ Parameters (
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	Palette color.Palette
-	ColourIndextoComponentMap map[string]*wtype.LHComponent
+	ColourIndextoComponentMap map[string]*LHComponent
 	ColourtoWellLocationMap map[string][]string
 	OnlythisColour string
 	NotthisColour string
@@ -28,7 +28,11 @@ Parameters (
 	AutoRotate bool
 	PosterizeImage bool
 	PosterizeLevels int
+<<<<<<< HEAD:an/Liquid_handling/PipetteImage/PipetteImage_fromPalette_refactor.an
+	LiquidType PolicyName
+=======
 	LiquidType string
+>>>>>>> origin/master:elementRetirementHome/PipetteImage_fromPalette_refactor.an
 )
 
 // Data which is returned from this protocol, and data types
@@ -39,13 +43,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Colourcomponents []*wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Colourcomponents []*LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*wtype.LHComponent
+	Pixels[]*LHComponent
 )
 
 Requirements {
@@ -106,7 +110,7 @@ Steps {
 	image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
 
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	

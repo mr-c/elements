@@ -9,7 +9,7 @@ import (
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/anthalib/setup"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
-	
+	"strconv"
 )
 
 
@@ -36,32 +36,42 @@ Parameters (
 	// If set to true the mix will be prepared on the next available position on the input plate
 	// Otherwise the mastermix will be added to OutPlate
 	OptimisePlateUsage bool
-	)
+	
+	// Factor of total volume to make up as extra volume to account for evaporation.
+	// Default is 0.1 (10%)
+	MakeExtraPercentage float64
+)
 
 // Data which is returned from this protocol, and data types
 Data (
 	// Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.
 	MasterMixVolume Volume
+	
+	// Data output supplying the total volume added for each component.
+	VolumesUsed map[string]Volume
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
+
 	// The plate which the mastermix will be made in. 
 	// However, There is one scenario where it will not be used.
 	// 1. If OptimisePlateUsage is selected then the Antha scheduler will search for a suitable location to use to make the mastermix without adding an additional plate on to the deck.
 	// In either of these two cases if a plate is selected here then that plate's residual volume per well will be added to the total mastermix volume.
 	// If OptimisePlateUsage is selected it is therefore advisable to select the platetype of the most likely destination of the mastermix to be mixed to 
 	// (i.e. one of the other plates used or the inplate, default inplate is usually pcrplate_skirted. You can simulate to check where the mastermix will be put.
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
+
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+
 	// The output of the protocol which can be wired into downstream elements such as Aliquot, AutoAssembly or AutoPCR
-	Mastermix *wtype.LHComponent
+	Mastermix *LHComponent
 	// The output plate containing the mastermix.
-	PlateWithMastermix *wtype.LHPlate
+	PlateWithMastermix *LHPlate
 )
 
 Requirements {
@@ -75,8 +85,22 @@ Setup {
 // for every input
 Steps {
 	
-	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
-	extraReactions := float64(Reactionspermastermix) * 1.2
+	VolumesUsed = make(map[string]Volume)
+	
+	var factor float64
+	
+	if MakeExtraPercentage == 0.0 {
+		factor = 0.1
+	}
+	
+	if MakeExtraPercentage >= 0.0 && MakeExtraPercentage < 1 {
+		factor = 1.0 + MakeExtraPercentage 
+	}else{
+		Errorf("MakeExtraPercentage needs to be specified between 0.01 (1%) and 1 (100%) but specified as %f. Leave as zero to use default of 0.1 (10%)",MakeExtraPercentage)
+	}
+	
+	// make up extra volume based on MakeExtraPercentage parameter to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(Reactionspermastermix) * factor
 	
 	roundedReactions, err := wutil.RoundDown(extraReactions)
 	
@@ -93,7 +117,7 @@ Steps {
 	}
 	
 	
-	var mastermix *wtype.LHComponent
+	var mastermix *LHComponent
 	
 	if len(Components) != len(ComponentVolumesperReaction){
 		Errorf("len(Components) != len(OtherComponentVolumes)")
@@ -101,7 +125,7 @@ Steps {
 		
 		// get components from factory and if not present use default dna component
 		
-		lhComponents := make([]*wtype.LHComponent,0)
+		lhComponents := make([]*LHComponent,0)
 		
 		for _,component := range Components {
 			
@@ -130,30 +154,60 @@ Steps {
     		lhComponents[0] = Handle(setup.MarkForSetup(lhComponents[0]))
 		}
 		
+		
+		
+		var adjustedVols []Volume
+		// adjust volumes
+		for k := range ComponentVolumesperReaction { 	
+				
+			// multiply volume of each component by number of reactions per mastermix
+			adjustedVol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
+			
+			adjustedVols = append(adjustedVols,adjustedVol)
+			
+		}
+		
+		prelimTotalVol := wunit.AddVolumes(adjustedVols)
+		
 		// now make mastermix
 		
-		eachmastermix := make([]*wtype.LHComponent, 0)
-		
+		eachmastermix := make([]*LHComponent, 0)
 		
 		for k, component := range lhComponents { 	
 			
 			if k == len(lhComponents)-1{
-				component.Type = wtype.LTPostMix 
+				component.Type = wtype.LTMegaMix 
 			}
+				
 		
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(ComponentVolumesperReaction[k],float64(Reactionspermastermix))
+		adjustedvol := adjustedVols[k]
 		
 		var nilPlate *LHPlate
 		
 		if OutPlate != nilPlate {
 			residualVol := OutPlate.Welltype.ResidualVolume()
 			
-			adjustedvol = wunit.AddVolumes([]wunit.Volume{adjustedvol,residualVol})
+			proportionOfresidualVol := wunit.MultiplyVolume(residualVol,float64(adjustedvol.SIValue()/prelimTotalVol.SIValue()))
+			
+			adjustedvol = wunit.AddVolumes([]Volume{adjustedvol,proportionOfresidualVol})
 			
 			if OutPlate.Welltype.MaxVolume().LessThan(adjustedvol){
 				Errorf("After accounting for residual well volume of %s, the Volume required of %s is too high for the %s well capacity of %s. Please select a plate with a large enough well capacity for this volume",residualVol,adjustedvol,OutPlate.Name(),OutPlate.Welltype.MaxVolume().ToString())
 			}	
+			if _, found := VolumesUsed[component.CName];!found{
+				VolumesUsed[component.CName] = adjustedvol
+			}else{
+				var counter int
+				for counter < 100 {
+					name := component.CName + strconv.Itoa(counter)
+					if _, found := VolumesUsed[name];!found{
+						VolumesUsed[component.CName] = adjustedvol
+						break
+					}
+					counter++
+				}
+			}
 		}
 		
 		

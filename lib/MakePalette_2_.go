@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -20,12 +19,8 @@ import (
 // Input parameters for this protocol (data)
 
 // name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
 
 // Data which is returned from this protocol, and data types
-
-//Colournames []string
 
 // map of colour name (as index) to component name
 
@@ -52,27 +47,18 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 	//image and error placeholders
 
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
 	//-------------------------------------------------------------------------------------
-	//Fetching image
+	//Open image
 	//-------------------------------------------------------------------------------------
 
-	// if image is from url, download
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.ImageFile)
 
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	//-------------------------------------------------------------------------------------
@@ -336,7 +322,7 @@ type MakePalette_2Input struct {
 	AutoRotate          bool
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
-	Imagefilename       string
+	ImageFile           wtype.File
 	LowerThreshold      uint8
 	Magenta             *wtype.LHComponent
 	NotThisColour       string
@@ -345,8 +331,6 @@ type MakePalette_2Input struct {
 	PosterizeImage      bool
 	PosterizeLevels     int
 	Rotate              bool
-	URL                 string
-	UseURL              bool
 	VolumeForFullcolour wunit.Volume
 	White               *wtype.LHComponent
 	Yellow              *wtype.LHComponent
@@ -382,7 +366,7 @@ func init() {
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
 				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "NotThisColour", Desc: "", Kind: "Parameters"},
@@ -391,15 +375,13 @@ func init() {
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "White", Desc: "", Kind: "Inputs"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "map of colour name (as index) to component name\n", Kind: "Data"},
 				{Name: "Numberofcolours", Desc: "", Kind: "Data"},
-				{Name: "Palette", Desc: "Colournames []string\n", Kind: "Data"},
+				{Name: "Palette", Desc: "", Kind: "Data"},
 				{Name: "PaletteFile", Desc: "", Kind: "Data"},
 			},
 		},

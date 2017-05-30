@@ -28,23 +28,23 @@ Inputs (
 
 //Biologicals
 
-	Protein			*wtype.LHComponent  //Purified protein or cell lysate...
+	Protein			*LHComponent  //Purified protein or cell lysate...
 
 //Chemicals
 	
-	Buffer			*wtype.LHComponent
+	Buffer			*LHComponent
 
 //Consumables
 	
-	InPlate			*wtype.LHPlate	//Contains protein and buffer
-	OutPlate		*wtype.LHPlate	//Final plate with mixed components
+	InPlate			*LHPlate	//Contains protein and buffer
+	OutPlate		*LHPlate	//Final plate with mixed components
 
 )
 
 Outputs (
 
 //Biologicals
-	LoadSample		*wtype.LHComponent
+	LoadSample		*LHComponent
 
 )
 
@@ -66,7 +66,7 @@ Steps {
 //	mixer.Sample(Buffer, BufferVolume))
 //Try something else. Outputs are an array taking in a single (not array) of protein and buffer. Do this 12 times.
 
-    samples := make ([]*wtype.LHComponent, 0)
+    samples := make ([]*LHComponent, 0)
     bufferSample := mixer.Sample(Buffer, BufferVolume)
     bufferSample.CName = BufferName
     samples = append(samples, bufferSample)
@@ -81,7 +81,7 @@ Steps {
 //Methods 2.Make a sample of two things creating a list
 //	Step 1b 
 
-//	sample	    := make([]wtype.LHComponent, 0)
+//	sample	    := make([]LHComponent, 0)
 
 //	bufferPart  := mixer.Sample(Buffer, BufferVolume)
 //	sample	     = append([]samples, bufferSample)

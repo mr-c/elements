@@ -5,7 +5,6 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"image/color"
 	"strconv"
@@ -16,9 +15,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	ImageFile File // name of image file or if using URL use this field to set the desired filename
 	PosterizeImage bool
 	PosterizeLevels int
 	Rotate bool
@@ -30,27 +27,26 @@ Parameters (
 // Data which is returned from this protocol, and data types
 Data (
 	Numberofcolours int
-	//Colournames []string
 	Palette color.Palette
 	ColourtoComponentMap map[string]string // map of colour name (as index) to component name
-	PaletteFile wtype.File
+	PaletteFile File
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Cyan *wtype.LHComponent
-	Yellow *wtype.LHComponent
-	Magenta *wtype.LHComponent
-	Black *wtype.LHComponent
-	White *wtype.LHComponent
-	OutPlate *wtype.LHPlate
-	PalettePlate *wtype.LHPlate
+	Cyan *LHComponent
+	Yellow *LHComponent
+	Magenta *LHComponent
+	Black *LHComponent
+	White *LHComponent
+	OutPlate *LHPlate
+	PalettePlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Colours[]*wtype.LHComponent
+	Colours[]*LHComponent
 )
 
 Requirements {
@@ -72,28 +68,21 @@ Steps {
 
 	//image and error placeholders
 
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
 	//-------------------------------------------------------------------------------------
-	//Fetching image
+	//Open image
 	//-------------------------------------------------------------------------------------
 
-	// if image is from url, download
-	if UseURL {
-		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	
+	//opening the image file
+	imgBase, err = image.OpenFile(ImageFile)
+	
+	if err != nil{
+		Errorf(err.Error())
 	}
+	
 
 	//-------------------------------------------------------------------------------------
 	//Image processing
@@ -119,7 +108,7 @@ Steps {
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
 	
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 	colourtoComponentMap := make(map[string]string)
 	
 	counter := 0
@@ -140,7 +129,7 @@ Steps {
 			
 				}else{
 				
-			var solution *wtype.LHComponent
+			var solution *LHComponent
 			var componentVols []Volume
 	
 			counter = counter + 1

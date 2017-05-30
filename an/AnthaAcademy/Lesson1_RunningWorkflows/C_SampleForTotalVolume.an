@@ -21,13 +21,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *wtype.LHComponent
-	Diluent *wtype.LHComponent
+	Solution *LHComponent
+	Diluent *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	DilutedSample *wtype.LHComponent
+	DilutedSample *LHComponent
 )
 
 Requirements {
@@ -45,7 +45,7 @@ Steps {
 	
 	// make empty slice of LHComponents (i.e. of length 0) ready to sequentially add all samples to
 	// See golangbook chapter 6 for more details on slices and arrays
-	allsamples := make([]*wtype.LHComponent,0)
+	allsamples := make([]*LHComponent,0)
 	
 	// SampleForTotalVolume will "top up" solution to the TotalVolume with Diluent.
 	// In this case it will still add diluent first but calculates the volume to add by substracting the volumes of subsequent components

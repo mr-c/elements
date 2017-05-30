@@ -14,6 +14,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 	"github.com/antha-lang/antha/microArch/factory"
+	"strconv"
 )
 
 // Input parameters for this protocol (data)
@@ -34,9 +35,14 @@ import (
 // If set to true the mix will be prepared on the next available position on the input plate
 // Otherwise the mastermix will be added to OutPlate
 
+// Factor of total volume to make up as extra volume to account for evaporation.
+// Default is 0.1 (10%)
+
 // Data which is returned from this protocol, and data types
 
 // Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.
+
+// Data output supplying the total volume added for each component.
 
 // Physical Inputs to this protocol with types
 
@@ -64,8 +70,22 @@ func _MasterMixMakerSetup(_ctx context.Context, _input *MasterMixMakerInput) {
 // for every input
 func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _output *MasterMixMakerOutput) {
 
-	// make up 20% extra to ensure reagents are sufficient accounting for dead volumes and evaporation
-	extraReactions := float64(_input.Reactionspermastermix) * 1.2
+	_output.VolumesUsed = make(map[string]wunit.Volume)
+
+	var factor float64
+
+	if _input.MakeExtraPercentage == 0.0 {
+		factor = 0.1
+	}
+
+	if _input.MakeExtraPercentage >= 0.0 && _input.MakeExtraPercentage < 1 {
+		factor = 1.0 + _input.MakeExtraPercentage
+	} else {
+		execute.Errorf(_ctx, "MakeExtraPercentage needs to be specified between 0.01 (1%) and 1 (100%) but specified as %f. Leave as zero to use default of 0.1 (10%)", _input.MakeExtraPercentage)
+	}
+
+	// make up extra volume based on MakeExtraPercentage parameter to ensure reagents are sufficient accounting for dead volumes and evaporation
+	extraReactions := float64(_input.Reactionspermastermix) * factor
 
 	roundedReactions, err := wutil.RoundDown(extraReactions)
 
@@ -118,6 +138,19 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 		lhComponents[0] = execute.Handle(_ctx, setup.MarkForSetup(lhComponents[0]))
 	}
 
+	var adjustedVols []wunit.Volume
+	// adjust volumes
+	for k := range _input.ComponentVolumesperReaction {
+
+		// multiply volume of each component by number of reactions per mastermix
+		adjustedVol := wunit.MultiplyVolume(_input.ComponentVolumesperReaction[k], float64(_input.Reactionspermastermix))
+
+		adjustedVols = append(adjustedVols, adjustedVol)
+
+	}
+
+	prelimTotalVol := wunit.AddVolumes(adjustedVols)
+
 	// now make mastermix
 
 	eachmastermix := make([]*wtype.LHComponent, 0)
@@ -125,21 +158,36 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	for k, component := range lhComponents {
 
 		if k == len(lhComponents)-1 {
-			component.Type = wtype.LTPostMix
+			component.Type = wtype.LTMegaMix
 		}
 
 		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.MultiplyVolume(_input.ComponentVolumesperReaction[k], float64(_input.Reactionspermastermix))
+		adjustedvol := adjustedVols[k]
 
 		var nilPlate *wtype.LHPlate
 
 		if _input.OutPlate != nilPlate {
 			residualVol := _input.OutPlate.Welltype.ResidualVolume()
 
-			adjustedvol = wunit.AddVolumes([]wunit.Volume{adjustedvol, residualVol})
+			proportionOfresidualVol := wunit.MultiplyVolume(residualVol, float64(adjustedvol.SIValue()/prelimTotalVol.SIValue()))
+
+			adjustedvol = wunit.AddVolumes([]wunit.Volume{adjustedvol, proportionOfresidualVol})
 
 			if _input.OutPlate.Welltype.MaxVolume().LessThan(adjustedvol) {
 				execute.Errorf(_ctx, "After accounting for residual well volume of %s, the Volume required of %s is too high for the %s well capacity of %s. Please select a plate with a large enough well capacity for this volume", residualVol, adjustedvol, _input.OutPlate.Name(), _input.OutPlate.Welltype.MaxVolume().ToString())
+			}
+			if _, found := _output.VolumesUsed[component.CName]; !found {
+				_output.VolumesUsed[component.CName] = adjustedvol
+			} else {
+				var counter int
+				for counter < 100 {
+					name := component.CName + strconv.Itoa(counter)
+					if _, found := _output.VolumesUsed[name]; !found {
+						_output.VolumesUsed[component.CName] = adjustedvol
+						break
+					}
+					counter++
+				}
 			}
 		}
 
@@ -222,6 +270,7 @@ type MasterMixMakerInput struct {
 	CheckPartsInInventory       bool
 	ComponentVolumesperReaction []wunit.Volume
 	Components                  []string
+	MakeExtraPercentage         float64
 	OptimisePlateUsage          bool
 	OutPlate                    *wtype.LHPlate
 	Reactionspermastermix       int
@@ -231,11 +280,13 @@ type MasterMixMakerOutput struct {
 	MasterMixVolume    wunit.Volume
 	Mastermix          *wtype.LHComponent
 	PlateWithMastermix *wtype.LHPlate
+	VolumesUsed        map[string]wunit.Volume
 }
 
 type MasterMixMakerSOutput struct {
 	Data struct {
 		MasterMixVolume wunit.Volume
+		VolumesUsed     map[string]wunit.Volume
 	}
 	Outputs struct {
 		Mastermix          *wtype.LHComponent
@@ -253,12 +304,14 @@ func init() {
 				{Name: "CheckPartsInInventory", Desc: "If using the inventory system, select whether to check inventory for parts so missing parts may be ordered.\n", Kind: "Parameters"},
 				{Name: "ComponentVolumesperReaction", Desc: "Specify volumes per component in same order of components.\nThe actual volume added will be multiplied by the number of Reactionspermastermix\n", Kind: "Parameters"},
 				{Name: "Components", Desc: "List of names of components to be added\nThese will be used to look up components by name in the factory.\nIf not found in the factory, new components will be created using dna_mix as a template\nIf empty, the the ComponentIn will be returned as an output\n", Kind: "Parameters"},
+				{Name: "MakeExtraPercentage", Desc: "Factor of total volume to make up as extra volume to account for evaporation.\nDefault is 0.1 (10%)\n", Kind: "Parameters"},
 				{Name: "OptimisePlateUsage", Desc: "If set to true the mix will be prepared on the next available position on the input plate\nOtherwise the mastermix will be added to OutPlate\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "The plate which the mastermix will be made in.\nHowever, There is one scenario where it will not be used.\n1. If OptimisePlateUsage is selected then the Antha scheduler will search for a suitable location to use to make the mastermix without adding an additional plate on to the deck.\nIn either of these two cases if a plate is selected here then that plate's residual volume per well will be added to the total mastermix volume.\nIf OptimisePlateUsage is selected it is therefore advisable to select the platetype of the most likely destination of the mastermix to be mixed to\n(i.e. one of the other plates used or the inplate, default inplate is usually pcrplate_skirted. You can simulate to check where the mastermix will be put.\n", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "This specifies the multiplier of each of the Volumes for each component to add\ne.g. if \"glucose\" vol is \"1ul\" and Reactionspermastermix == 3 then 3ul glucose is added to mastermix\n", Kind: "Parameters"},
 				{Name: "MasterMixVolume", Desc: "Volume of mastermix made. This will account for the residual volume of the plate and add 20% extra to account for evaporation and transfer loss etc.\n", Kind: "Data"},
 				{Name: "Mastermix", Desc: "The output of the protocol which can be wired into downstream elements such as Aliquot, AutoAssembly or AutoPCR\n", Kind: "Outputs"},
 				{Name: "PlateWithMastermix", Desc: "The output plate containing the mastermix.\n", Kind: "Outputs"},
+				{Name: "VolumesUsed", Desc: "Data output supplying the total volume added for each component.\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

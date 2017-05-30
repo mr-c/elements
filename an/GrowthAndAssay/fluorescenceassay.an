@@ -16,8 +16,8 @@ Data (
 )
 
 Inputs (
-	SampleForReading *wtype.LHComponent
-	Diluent *wtype.LHComponent
+	SampleForReading *LHComponent
+	Diluent *LHComponent
 )
 
 Outputs (

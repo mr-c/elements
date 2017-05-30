@@ -1,0 +1,288 @@
+// This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,
+// RBSs, CDSs and Terminators according to an assembly standard ensuring compatibility with level 1 design.
+// Level 1 adaptor sites (containing the correct restriction site are expected to be included in the promoter and terminator parts.
+// These level 1 sites can be designed such that a series of level 1 parts may be joined together in a second assembly reaction.
+// A list of sequencing primers to order will also be returned.
+protocol CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	"path/filepath"
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+	ProjectName				string
+	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
+	Vectors					[]DNASequence
+	PROs					[]DNASequence
+	RBSs					[]DNASequence
+	CDSs					[]DNASequence
+	TERs					[]DNASequence
+	SitesToRemove			[]string
+	BlastSearchSeqs			bool
+	FolderPerConstruct		bool
+	FolderPerProject		bool
+	
+	// Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
+	// If Custom design the valid options currently supported are: "Device1","Device2", "Device3". 
+	// If left empty no adaptor sequence is added.
+	MakeLevel1Device 		string
+	ReverseLevel1Orientation bool 
+)
+
+// Physical Inputs to this protocol with types
+Inputs (
+
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	StatusMap map[string]string
+	PartswithOverhangsMap map[string][]DNASequence // parts to order
+	Assemblies map[string][]DNASequence  // parts + vector map ready for feeding into downstream AutoAssembly element
+	Sequences[]DNASequence
+	Parts[][]DNASequence
+	SequencingPrimers [][]DNASequence
+	PassMap map[string]bool
+	SeqsMap map[string]DNASequence // desired sequence to end up with after assembly
+	EndreportMap  map[string]string
+	PositionReportMap  map[string][]string
+	PrimerMap map[string]oligos.Primer
+	AssembledSequences File
+	PartsToOrder []File
+	PrimersToOrder []File
+)
+// Input Requirement specification
+Requirements {
+	// e.g. are MoClo types valid?
+}
+
+// Conditions to run on startup
+Setup {}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	StatusMap = make(map[string]string)
+	PartswithOverhangsMap = make(map[string][]DNASequence) // parts to order
+	Assemblies = make(map[string][]DNASequence)
+	PassMap = make(map[string]bool)
+	SeqsMap = make(map[string]DNASequence) // desired sequence to end up with after assembly
+	EndreportMap  = make(map[string]string)
+	PositionReportMap = make(map[string][]string)
+	StatusMap = make(map[string]string)
+	PrimerMap = make(map[string]oligos.Primer)
+	
+	Sequences = make([]DNASequence,0)
+	Parts = make([][]DNASequence,0)
+	SequencingPrimers = make([][]DNASequence,0)
+	
+
+	var counter int = 1
+
+	var StandardLevel string  = "Level0" 
+	
+	// Add adaptors for Level1 step
+	if MakeLevel1Device != ""{
+		
+		standard, found := enzymes.EndlinksString[Standard]
+		
+		if !found {
+			Errorf("No assembly standard %s found",Standard)
+		}
+		
+		level1, found := standard["Level1"]
+		
+		if !found {
+			Errorf("No Level1 found for standard %s",Standard)
+		}
+		
+		overhangs,found := level1[MakeLevel1Device]
+		
+		if !found {
+			Errorf("No overhangs found for %s in standard %s",MakeLevel1Device,Standard)
+		}
+		
+		if len(overhangs)!= 2 {
+			Errorf("found %d overhangs for %s in standard %s, expecting %d",len(overhangs), MakeLevel1Device,Standard, 2)
+
+		}
+		
+		if overhangs[0] == "" {
+			Errorf("blunt 5' overhang found for %s in standard %s, expecting %d", MakeLevel1Device,Standard, 2)
+		}
+		
+		for a := range PROs {
+			var err error
+			PROs[a], err = enzymes.AddL1UAdaptor(PROs[a],Standard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+			if err != nil {
+				Errorf(err.Error())
+			}
+		}
+		for b := range TERs {
+			var err error
+			TERs[b], err = enzymes.AddL1DAdaptor(TERs[b],Standard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
+			if err != nil {
+				Errorf(err.Error())
+			}
+		}
+	}
+	
+	for j := range Vectors {
+		for k := range PROs {
+			for l := range RBSs {
+				for m := range CDSs {	
+					for n := range TERs {
+						key := 	ProjectName	+Vectors[j].Nm+"_"+PROs[k].Nm+"_"+RBSs[l].Nm+"_"+CDSs[m].Nm
+						assembly := RunSteps(AssemblyStandard_TypeIIsDesign,
+		Parameters {
+					Constructname: 				key,
+					Seqsinorder:				[]DNASequence{PROs[k],RBSs[l],CDSs[m],TERs[n]},
+					AssemblyStandard:			Standard,
+					Level:						StandardLevel, // of assembly standard
+					Vector:						Vectors[j],
+					PartMoClotypesinorder:		[]string{"L1Uadaptor + Pro","5U + NT1","CDS1","3U + Ter + L1Dadaptor"}, 
+					OtherEnzymeSitesToRemove:	SitesToRemove,
+					ORFstoConfirm:				[]string{}, // enter each as amino acid sequence
+					RemoveproblemRestrictionSites: true,
+					OnlyRemovesitesinORFs: 		false,
+					EndsAlreadyadded:			false,
+					ExporttoFastaFile: 			FolderPerConstruct,
+					BlastSeqswithNoName:		BlastSearchSeqs,
+		}, Inputs{
+                    
+                })
+				key = key  //+ Vectors[j]
+				PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
+				Assemblies[key] = assembly.Data.PartsAndVector // parts + vector to be fed into assembly element
+				Parts = append(Parts,assembly.Data.PartswithOverhangs)
+				PassMap[key] = assembly.Data.Simulationpass
+				EndreportMap[key]  = assembly.Data.Endreport
+				PositionReportMap[key] = assembly.Data.PositionReport
+				SeqsMap[key] = assembly.Data.NewDNASequence
+				Sequences = append(Sequences,assembly.Data.NewDNASequence)
+				StatusMap[key] = assembly.Data.Status
+				
+	// for each vector we'll also design sequencing primers
+	
+	primer := RunSteps(PrimerDesign_ColonyPCR_wtype,
+	Parameters {
+				FullDNASeq:assembly.Data.NewDNASequence,
+				Maxtemp:    wunit.NewTemperature(72,"C"),
+				Mintemp:    wunit.NewTemperature(50,"C"),
+				Maxgc:    0.7,
+				Minlength:   12, 
+				Maxlength:  30, 
+				Seqstoavoid: []string{},
+				PermittednucleotideOverlapBetweenPrimers: 10, // number of nucleotides which primers can overlap by
+				RegionSequence: assembly.Data.Insert, // first part
+				FlankTargetSequence:true,
+	}, Inputs{
+                    
+                })
+				
+				// rename primers
+				primer.Data.FWDPrimer.Nm = primer.Data.FWDPrimer.Nm+ProjectName+Vectors[j].Nm+"_FWD"
+				primer.Data.REVPrimer.Nm = primer.Data.REVPrimer.Nm+ProjectName+Vectors[j].Nm+"_REV"
+				
+				PrimerMap[key+"_FWD"]=primer.Data.FWDPrimer
+				PrimerMap[key+"_REV"]=primer.Data.REVPrimer
+				SequencingPrimers = append(SequencingPrimers,[]DNASequence{primer.Data.FWDPrimer.DNASequence,primer.Data.REVPrimer.DNASequence})
+				counter++
+	}
+	}
+	}
+	}
+	}
+	
+	
+	// export sequence to fasta
+		
+		var err error
+		// export simulated sequences to file
+		AssembledSequences, _,err = export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,"AssembledSequences"), Sequences)
+		
+		if err != nil {
+			Errorf("Error exporting sequence file for %s: %s",ProjectName,err.Error())
+		}
+		// add fasta file for each set of parts with overhangs
+		labels:= []string{"Promoters","RBSs","CDSs","Ters"}
+		
+		refactoredparts:= make(map[string][]DNASequence)
+		
+		newparts := make([]DNASequence,0)
+		
+		for _, parts := range Parts{
+		
+		for j := range parts{
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts,parts[j])
+			refactoredparts[labels[j]]=newparts
+		}
+		}
+		
+		for key,value := range refactoredparts{
+			
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+		
+		file, _, err := export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting parts to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PartsToOrder = append(PartsToOrder,file)
+		}
+		
+		// add fasta file for each set of primers
+		labels= []string{"FWDPrimers","REVPrimers"}
+		
+		refactoredparts = make(map[string][]DNASequence)
+		
+		newparts = make([]DNASequence,0)
+		
+		for _, parts := range SequencingPrimers{
+		
+		for j := range parts{
+			newparts = refactoredparts[labels[j]]
+			newparts = append(newparts,parts[j])
+			refactoredparts[labels[j]]=newparts
+		}
+		}
+		
+		for key,value := range refactoredparts{
+			
+		duplicateremoved := search.RemoveDuplicateSequences(value)
+		
+		primerFile, _, err :=  export.FastaSerial(export.LOCAL,filepath.Join(ProjectName,key), duplicateremoved)
+		
+		if err != nil {
+			Errorf("Error exporting primers to order file for %s %s: %s",ProjectName,key,err.Error())
+		}
+		
+		PrimersToOrder = append(PrimersToOrder, primerFile)
+		}
+	
+
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+}

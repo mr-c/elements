@@ -53,10 +53,10 @@ Data (
 	Warnings error
 	Status string
 	Simulationpass bool
-	OriginalParts []wtype.DNASequence 
-	PartsWithSitesRemoved []wtype.DNASequence
-	PartswithOverhangs []wtype.DNASequence // parts to order
-	NewDNASequence wtype.DNASequence // desired sequence to end up with after assembly
+	OriginalParts []DNASequence 
+	PartsWithSitesRemoved []DNASequence
+	PartswithOverhangs []DNASequence // parts to order
+	NewDNASequence DNASequence // desired sequence to end up with after assembly
 	ORFmissing bool
 	Endreport string
 	PositionReport []string
@@ -83,10 +83,10 @@ Steps {
 	var err error
 	
 	// make an empty array of DNA Sequences ready to fill
-	partsinorder := make([]wtype.DNASequence, 0)
+	partsinorder := make([]DNASequence, 0)
 
-	var partDNA wtype.DNASequence
-	var vectordata wtype.DNASequence
+	var partDNA DNASequence
+	var vectordata DNASequence
 
 	Status = "all parts available"
 	for i, part := range Seqsinorder {
@@ -155,7 +155,7 @@ Steps {
 	warning = text.Print("RemoveproblemRestrictionSites =", RemoveproblemRestrictionSites)
 	warnings = append(warnings, warning)
 	if RemoveproblemRestrictionSites {
-		newparts := make([]wtype.DNASequence, 0)
+		newparts := make([]DNASequence, 0)
 		warning = "Starting process or removing restrictionsite"
 		warnings = append(warnings, warning)
 
@@ -354,7 +354,7 @@ Steps {
 	
 	// export sequence to fasta
 	if ExporttoFastaFile && Simulationpass{
-		exportedsequences := make([]wtype.DNASequence,0)
+		exportedsequences := make([]DNASequence,0)
 		// add dna sequence produced
 		exportedsequences = append(exportedsequences,NewDNASequence)
 		
@@ -364,7 +364,7 @@ Steps {
 			Errorf(err.Error())
 		}
 		// reset 
-		exportedsequences = make([]wtype.DNASequence,0)
+		exportedsequences = make([]DNASequence,0)
 		// add all parts with overhangs 
 		for _,part := range PartswithOverhangs{
 		exportedsequences = append(exportedsequences,part)	

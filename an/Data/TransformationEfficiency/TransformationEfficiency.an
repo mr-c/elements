@@ -13,10 +13,10 @@ type transformationEfficiency struct {
 
 type metaData struct {
 	CFU int
-	PlateOutVolume wunit.Volume
-	DNA wtype.DNASequence
-	DNAMass wunit.Mass
-	Assembly map[string][]wtype.DNASequence
+	PlateOutVolume Volume
+	DNA DNASequence
+	DNAMass Mass
+	Assembly map[string][]DNASequence
 }
 
 type relativeTransformationEfficiency struct {
@@ -24,12 +24,12 @@ type relativeTransformationEfficiency struct {
 	ExperimentalEfficiency transformationEfficiency
 }
 
-func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml wunit.Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(cfuperugperml float64){
+func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(cfuperugperml float64){
 	cfuperugperml = float64(colonyCount) * float64(plateOutdilutionX) / ((volumeToml(plateoutVolumeinml)) * massToug(dnamassinug))
 	return
 }
 
-func newTransformationEfficiency(seq wtype.DNASequence colonyCount int, plateoutVolumeinml wunit.Volume, plateOutdilutionX int, dnamassinug wunit.Mass)(efficiency transformationEfficiency){
+func newTransformationEfficiency(seq DNASequence colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(efficiency transformationEfficiency){
 	cfuperugperml := calcTransformationEfficiency(colonyCount,plateoutVolumeinml,plateOutdilutionX,dnamassinug)
 		
 		efficiency = transformationEfficiency{
@@ -43,12 +43,12 @@ func newTransformationEfficiency(seq wtype.DNASequence colonyCount int, plateout
 		return efficiency
 }
 
-func volumeToml (volume wunit.Volume) (volumeinml float64) {
+func volumeToml (volume Volume) (volumeinml float64) {
 	volumeinml = volume.SIValue() * 1000
 return	
 }
 
-func massToug (mass wunit.Mass) (massinug float64) {
+func massToug (mass Mass) (massinug float64) {
 	massinug = mass.SIValue() * 1000000000
 	return
 }
@@ -61,8 +61,8 @@ Parameters (
 	DNAMass Mass
 	ControlDNAMass Mass
 	PlateOutVolume Volume
-	DNA wtype.DNASequence
-	ControlDNA wtype.DNASequence
+	DNA DNASequence
+	ControlDNA DNASequence
 	ControlPlateOutVolume Volume
 )
 

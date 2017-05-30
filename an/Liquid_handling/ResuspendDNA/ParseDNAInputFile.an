@@ -15,14 +15,14 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-  	SequenceInfoFile wtype.File // supported format is xlsx file from Thermo
+  	SequenceInfoFile File // supported format is xlsx file from Thermo
 	SequenceInfoFileformat string // default should be JMP
 	
 )
 
 Data (
 	Partnames[]string
-	PartMassMap map[string]wunit.Mass
+	PartMassMap map[string]Mass
 	PartMolecularWeightMap map[string]float64
 	PartPlateMap map[string]string
 	PartLocationsMap map[string]string
@@ -35,7 +35,7 @@ Inputs (
 )
 
 Outputs (
-	PartsList map[string]*wtype.LHComponent
+	PartsList map[string]*LHComponent
 )
 
 Requirements {
@@ -76,13 +76,13 @@ Steps {
 
 
 	// initialise maps
-	PartMassMap = make(map[string]wunit.Mass)
+	PartMassMap = make(map[string]Mass)
 	PartMolecularWeightMap = make(map[string]float64)
 	PartLocationsMap = make(map[string]string)
 	PartPlateMap = make(map[string]string)
 	headersfound := make([]string,0)
 	FwdOligotoRevOligo = make(map[string]string)
-	PartsList = make(map[string]*wtype.LHComponent)
+	PartsList = make(map[string]*LHComponent)
 
 	// get contents from file
 	fileContents, err :=  SequenceInfoFile.ReadAll()

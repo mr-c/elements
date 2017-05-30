@@ -41,7 +41,7 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	//var Dmassconc wunit.MassConcentration = D
+	//var Dmassconc MassConcentration = D
 	
 /*	molarmass := wunit.NewAmount(E,"M")
 	

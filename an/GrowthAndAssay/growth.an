@@ -15,11 +15,11 @@ Data (
 )
 
 Inputs (
-	StrainInMedium *wtype.LHComponent
+	StrainInMedium *LHComponent
 )
 
 Outputs (
-	Culture *wtype.LHComponent
+	Culture *LHComponent
 )
 
 Requirements {

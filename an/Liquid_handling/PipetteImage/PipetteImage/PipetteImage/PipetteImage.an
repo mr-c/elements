@@ -18,7 +18,7 @@ import (
 Parameters (
 	VolumePerWell  Volume
 	ImageFileName	string //Desired name for the output image file
-	InputFile wtype.File // Image File
+	InputFile File // Image File
 	URL	string
 	UseURL	bool
 	Palettename string
@@ -28,14 +28,14 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass wtype.PolicyName
+	UseLiquidClass PolicyName
 	Subsetnames []string
 	CheckResizeAlgorithms bool
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	ResizedImage wtype.File
+	ResizedImage File
 	ResizedImages []*goimage.NRGBA
 	Numberofpixels int
 	UniqueComponents []string
@@ -44,13 +44,13 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	ComponentType *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	ComponentType *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	 Pixels[]*wtype.LHComponent
+	 Pixels[]*LHComponent
 )
 
 Requirements {
@@ -139,7 +139,7 @@ Steps {
 	}
 
 	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
+	componentmap := make(map[string]*LHComponent, 0)
 	
 	if Subset {
 	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
@@ -150,7 +150,7 @@ Steps {
 		componentname := colourtostringmap[colourname]
 
 		// use template component instead
-		var componenttopick *wtype.LHComponent
+		var componenttopick *LHComponent
 		
 		if ComponentType != nil{
 		componenttopick = ComponentType
@@ -163,7 +163,7 @@ Steps {
 
 	}
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
 	UniqueComponents = make([]string,0)

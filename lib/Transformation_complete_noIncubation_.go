@@ -47,8 +47,8 @@ func _Transformation_complete_noIncubationSteps(_ctx context.Context, _input *Tr
 		readycompetentcellsComp := Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false) // we can incubate an LHComponent so this is fine
 	*/
 
-	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *wtype.LHComponent from inputs!
-	//transformationmix := make([]*wtype.LHComponent, 0)
+	//competetentcellmix := mixer.Sample(readycompetentcellsComp, CompetentCellvolumeperassembly) // ERROR! mixer.Sample needs a liquid, not an LHComponent! however, the typeIIs method worked with a *LHComponent from inputs!
+	//transformationmix := make([]*LHComponent, 0)
 	//transformationmix = append(transformationmix, competetentcellmix)
 	DNAsample := mixer.Sample(_input.Reaction, _input.Reactionvolume)
 	//transformationmix = append(transformationmix, DNAsample)
@@ -57,7 +57,7 @@ func _Transformation_complete_noIncubationSteps(_ctx context.Context, _input *Tr
 
 	//transformedcellsComp := Incubate (transformedcells, Postplasmidtemp, Postplasmidtime,false)
 
-	//recoverymix := make([]*wtype.LHComponent, 0)
+	//recoverymix := make([]*LHComponent, 0)
 	recoverymixture := mixer.Sample(_input.Recoverymedium, _input.Recoveryvolume)
 
 	//recoverymix = append(recoverymix,transformedcellsComp) // ERROR! transformedcells is now an LHComponent, not a liquid, so can't be used here

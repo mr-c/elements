@@ -23,14 +23,14 @@ Data (
 )
 
 Inputs (
-	DNAPartsMap map[string]*wtype.LHComponent
-	Diluent *wtype.LHComponent
-	Plate *wtype.LHPlate
+	DNAPartsMap map[string]*LHComponent
+	Diluent *LHComponent
+	Plate *LHPlate
 )
 
 Outputs (
-	OligoPairsMap map[string]*wtype.LHComponent
-	OligoPairs []*wtype.LHComponent
+	OligoPairsMap map[string]*LHComponent
+	OligoPairs []*LHComponent
 )
 
 Requirements {
@@ -47,7 +47,7 @@ Steps {
 	}
 	
 	// initialise output map 
-	OligoPairsMap = make(map[string]*wtype.LHComponent)
+	OligoPairsMap = make(map[string]*LHComponent)
 	
 	// get all well locations for plate
 	var welllocations []string = Plate.AllWellPositions(wtype.BYCOLUMN)

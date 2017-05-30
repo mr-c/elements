@@ -23,7 +23,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//InPlate *wtype.LHPlate
+//InPlate *LHPlate
 
 // Physical outputs from this protocol with types
 
@@ -229,7 +229,7 @@ func init() {
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
 				{Name: "Imagefilename", Desc: "name of the desired output file name\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
-				{Name: "OutPlate", Desc: "InPlate *wtype.LHPlate\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},

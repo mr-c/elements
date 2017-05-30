@@ -16,12 +16,12 @@ Data (
 )
 
 Inputs (
-	InputStream *wtype.LHComponent
+	InputStream *LHComponent
 )
 
 Outputs (
-	Stream1 *wtype.LHComponent
-	Stream2 *wtype.LHComponent
+	Stream1 *LHComponent
+	Stream2 *LHComponent
 )
 
 Requirements {

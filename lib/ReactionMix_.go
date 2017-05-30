@@ -36,7 +36,7 @@ func _ReactionMixSteps(_ctx context.Context, _input *ReactionMixInput, _output *
 	ATPS := mixer.Sample(_input.ATP, _input.ATPV)
 	RES := mixer.Sample(_input.RE, _input.REV)
 
-	//com := []wunit.Volume{VectorV, BufferV, LigaseV, ATPV, REV}
+	//com := []Volume{VectorV, BufferV, LigaseV, ATPV, REV}
 	//WaterS := mixer.TopUpVolume(Water, com, ReactionVolume)
 	WaterS := mixer.SampleForTotalVolume(_input.Water, _input.ReactionVolume)
 

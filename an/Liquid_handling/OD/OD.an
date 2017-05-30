@@ -37,9 +37,9 @@ Data (
 	)
 // Physical Inputs to this protocol with types
 Inputs (
-	Sampletotest *wtype.LHComponent//Culture
-	Diluent *wtype.LHComponent
-	ODplate *wtype.LHPlate
+	Sampletotest *LHComponent//Culture
+	Diluent *LHComponent
+	ODplate *LHPlate
 )
 // Physical outputs from this protocol with types
 Outputs (
@@ -56,7 +56,7 @@ Setup {
 }
 Steps {
 
-var product *wtype.LHComponent//WaterSolution
+var product *LHComponent//WaterSolution
 var counter int
 if MaxDilutions == 0 {
 	MaxDilutions = 10

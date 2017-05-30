@@ -24,12 +24,12 @@ Data (
 )
 
 Inputs (
-	Diluent *wtype.LHComponent
-	DNAPlate *wtype.LHPlate
+	Diluent *LHComponent
+	DNAPlate *LHPlate
 )
 
 Outputs (
-	ResuspendedDNA *wtype.LHComponent
+	ResuspendedDNA *LHComponent
 	
 )
 

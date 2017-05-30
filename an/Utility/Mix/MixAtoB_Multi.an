@@ -25,16 +25,16 @@ Data (
 Inputs (
 	
 	// List of components to add to all components in SolutionBs.
-	SolutionAs []*wtype.LHComponent
+	SolutionAs []*LHComponent
 	
 	// Each solution in  the list of SolutionBs will have the component from the corresponding position in SolutionAs added to it.
-	SolutionBs []*wtype.LHComponent
+	SolutionBs []*LHComponent
 )
 
 // Physical outputs to this protocol
 Outputs (
 	// Solutions produced as an output from running the element.
-	MixedOutputSolutions []*wtype.LHComponent
+	MixedOutputSolutions []*LHComponent
 )
 
 // Conditions to run on startup
@@ -51,7 +51,7 @@ Steps {
 	}
 	
 	for i := range SolutionAs {
-		var sample *wtype.LHComponent
+		var sample *LHComponent
 		
 		
 		var sampleVol Volume
