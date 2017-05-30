@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -22,17 +21,38 @@ import (
 
 // Input parameters for this protocol (data)
 
-// corresponds to order of solutions
+// Total volunme per well
 
-// select this if getting the image from a URL
+// Option to over ride the stock concentrations of the solutions being tested.
 
-// enter URL link to the image file here if applicable
+// Concentration Set points to make in the accuracy test for each solution.
+
+// Number of replicates of all runs (apart from blanks which is specified separately.
+
+// Select if printing as image
+
+// ImageFile to use if printing as an image
+
+// Number of blanks to be added to end of run.
+
+// Option to override the LHPolicy of the test solution with the LHPolicy specified here.
+
+// Option to override the LHPolicy of the test solution with the LHPolicy specified here.
+
+// Name of the output file
+
+// If selected, for each well, all contents will be added to a well before moving on to the next well.
+// If not selected, diluent will be added to all wells followed by each solution.
+
+// Specify the dilution factor to use when an intermediate dilution needs to be made to achieve a target concentration.
+// If left blank the dilution factor will be calculated based upon the dilution necessary.
 
 // optional parameter allowing pipetting to resume on partially filled plate
 
-// Data which is returned from this protocol, and data types
+// Specify a minimum volume below which a dilution will need to be made.
+// The default value is 0.5ul
 
-//[]string //map[string]string
+// Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
 
@@ -59,6 +79,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 	_output.Runtowelllocationmap = make(map[string]string)
 	_output.Blankwells = make([]string, 0)
 	counter := _input.WellsUsed
+	var DilutionFactor float64
 
 	var minVolume wunit.Volume
 
@@ -74,41 +95,21 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 	var err error
 	_output.Errors = make([]error, 0)
-	// work out plate layout based on picture or just in order
 
+	// work out plate layout based on picture or just in order
 	if _input.Printasimage {
 
 		// image placeholder variables
-		var imgFile wtype.File
 		var imgBase *goimage.NRGBA
 
 		//--------------------------------------------------------------------
 		//Fetching image
 		//--------------------------------------------------------------------
 
-		//Downloading from URL if requested
-		if _input.UseURL {
-			imgFile, err = download.File(_input.URL, _input.Imagefilename)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-			//opening file
-			imgBase, err = image.OpenFile(imgFile)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-		}
-
-		//Opening from File if requested
-		_, err := _input.InputFile.ReadAll()
-		if err == nil {
-			//opening file
-			imgBase, err = image.OpenFile(imgFile)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-		} else {
-			execute.Errorf(_ctx, "no input File Provided")
+		//open Image file
+		imgBase, err = image.OpenFile(_input.ImageFile)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
 		}
 
 		//--------------------------------------------------------------------
@@ -117,8 +118,6 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 		chosencolourpalette := image.AvailablePalettes()["Palette1"]
 		positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, rotate, autorotate)
-
-		//Runtowelllocationmap = make([]string,0)
 
 		for location, colour := range positiontocolourmap {
 			R, G, B, A := colour.RGBA()
@@ -135,19 +134,30 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 		wellpositionarray = _input.OutPlate.AllWellPositions(wtype.BYCOLUMN)
 
 	}
+
 	reactions := make([]*wtype.LHComponent, 0)
 
 	// use first policy as reference to ensure consistent range through map values
 
 	// if none is specified, use lhpolicy of first solution
-	if _input.LHPolicy == "" {
-		_input.LHPolicy = wtype.PolicyName(_input.TestSols[0].TypeName())
-	}
+	var referencepolicy wtype.LHPolicy
+	var found bool
 
-	referencepolicy, found := liquidhandling.GetPolicyByName(_input.LHPolicy)
-	if found == false {
-		execute.Errorf(_ctx, "policy %s not found", _input.LHPolicy.String())
-		_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.LHPolicy, " not found"))
+	if _input.OverrideLHPolicyForTestSolutions == "" {
+		lhPolicy := wtype.PolicyName(_input.TestSols[0].TypeName())
+		referencepolicy, found = liquidhandling.GetPolicyByName(lhPolicy)
+
+		if found == false {
+			execute.Errorf(_ctx, "policy %s not found", lhPolicy.String())
+			_output.Errors = append(_output.Errors, fmt.Errorf("policy ", lhPolicy, " not found"))
+		}
+	} else {
+		referencepolicy, found = liquidhandling.GetPolicyByName(_input.OverrideLHPolicyForTestSolutions)
+
+		if found == false {
+			execute.Errorf(_ctx, "policy %s not found", _input.OverrideLHPolicyForTestSolutions.String())
+			_output.Errors = append(_output.Errors, fmt.Errorf("policy ", _input.OverrideLHPolicyForTestSolutions, " not found"))
+		}
 	}
 
 	referencekeys := make([]string, 0)
@@ -155,22 +165,33 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 		referencekeys = append(referencekeys, key)
 	}
 
+	// calculate target volumes from concentrations
+	var TestSolVolumes = make([]wunit.Volume, len(_input.TestSolConcs))
+
 	for l := 0; l < len(_input.TestSolConcs); l++ {
+
 		for k := 0; k < len(_input.TestSols); k++ {
 
-			// calculate target volumes from concentrations
-			var TestSolVolumes []wunit.Volume
+			stockConc, found := _input.OverrideStockConcentrations[_input.TestSols[k].CName]
 
-			for _, targetconc := range _input.TestSolConcs {
-				vol, err := wunit.VolumeForTargetConcentration(targetconc, _input.StockConcentrations[k], _input.TotalVolume)
-				if err != nil {
-					execute.Errorf(_ctx, err.Error())
-				}
-				TestSolVolumes = append(TestSolVolumes, vol)
+			if !found && _input.TestSols[k].HasConcentration() {
+				stockConc = _input.TestSols[k].Concentration()
+			} else {
+				execute.Errorf(_ctx, "No Stock concentration found for %s. Please choose a component with a concentration or override the concentration in OverrideStockConcentrations", _input.TestSols[k].CName)
 			}
 
+			vol, err := wunit.VolumeForTargetConcentration(_input.TestSolConcs[l], stockConc, _input.TotalVolume)
+
+			if err != nil {
+				execute.Errorf(_ctx, err.Error())
+			}
+
+			TestSolVolumes[l] = vol
+
 			for j := 0; j < _input.NumberofReplicates; j++ {
+
 				for i := 0; i < len(runs); i++ {
+
 					var diluted bool
 					var run doe.Run
 
@@ -191,8 +212,8 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// diluent first
 
 					// change lhpolicy if desired
-					if _input.UseLHPolicyforDiluent {
-						_input.Diluent.Type, err = wtype.LiquidTypeFromString(_input.LHPolicy)
+					if _input.OverrideLHPolicyforDiluent != "" {
+						_input.Diluent.Type, err = wtype.LiquidTypeFromString(_input.OverrideLHPolicyforDiluent)
 						if err != nil {
 							_output.Errors = append(_output.Errors, err)
 						}
@@ -203,19 +224,23 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 					if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
 
-						_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
-						_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+						if _input.SpecifyDilutionFactor == 0.0 {
+							DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+							DilutionFactor, err = wutil.Roundto(DilutionFactor, 2)
 
-						if err != nil {
-							execute.Errorf(_ctx, err.Error())
+							if err != nil {
+								execute.Errorf(_ctx, err.Error())
+							}
+						} else {
+							DilutionFactor = _input.SpecifyDilutionFactor
 						}
 
 						// add diluent to dilution plate ready for dilution
-						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor)}))
+						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.DivideVolume(_input.TotalVolume, DilutionFactor)}))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutedSampleBuffer)
 
 						// add same volume to destination plate ready for dilutedsolution
-						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor)}))
+						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(TestSolVolumes[l], DilutionFactor)}))
 
 					} else {
 
@@ -232,8 +257,8 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					// now test sample
 
 					// change liquid class
-					if _input.UseLiquidPolicyForTestSolutions && _input.LHPolicy != "" {
-						_input.TestSols[k].Type, err = wtype.LiquidTypeFromString(_input.LHPolicy)
+					if _input.OverrideLHPolicyForTestSolutions != "" {
+						_input.TestSols[k].Type, err = wtype.LiquidTypeFromString(_input.OverrideLHPolicyForTestSolutions)
 						if err != nil {
 							_output.Errors = append(_output.Errors, err)
 						}
@@ -255,18 +280,18 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					} else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
 						diluted = true
 
-						_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
-						_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+						DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+						DilutionFactor, err = wutil.Roundto(DilutionFactor, 2)
 
 						if err != nil {
 							execute.Errorf(_ctx, err.Error())
 						}
 
 						//sample
-						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor))
+						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.DivideVolume(_input.TotalVolume, DilutionFactor))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutionSample)
 
-						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor))
+						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(TestSolVolumes[l], DilutionFactor))
 
 						if _input.PipetteOnebyOne {
 							eachreaction = append(eachreaction, testSample)
@@ -281,13 +306,13 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					}
 
 					// get annotation info
-					doerun := wtype.LiquidTypeName(_input.TestSols[k].Type)
+					lhpolicy := wtype.LiquidTypeName(_input.TestSols[k].Type)
 
 					volume := TestSolVolumes[l].ToString()
 					conc := _input.TestSolConcs[l].ToString()
 
 					solutionname := _input.TestSols[k].CName
-					stockconc := _input.StockConcentrations[k].ToString()
+					stockconc := stockConc.ToString()
 
 					// add Solution Name
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Solution", solutionname)
@@ -300,13 +325,13 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 					// if diluted
 					if diluted {
-						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", _input.DilutionFactor)
+						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", DilutionFactor)
 					} else {
 						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", 0)
 					}
 
 					// add Concentration
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Concentration", conc)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Concentration Set Point", conc)
 
 					// add Replicate
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Replicate", strconv.Itoa(j+1))
@@ -315,7 +340,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					description := volume + "_" + solutionname + "_replicate" + strconv.Itoa(j+1) + "_platenum" + strconv.Itoa(platenum)
 
 					// add run to well position lookup table
-					_output.Runtowelllocationmap[doerun.String()+"_"+description] = wellpositionarray[counter]
+					_output.Runtowelllocationmap[lhpolicy.String()+"_"+description] = wellpositionarray[counter]
 
 					// add additional info for each run
 					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
@@ -324,7 +349,7 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Location", wellpositionarray[counter])
 
 					// add setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
+					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", lhpolicy)
 
 					// add plate info:
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate Type", _input.OutPlate.Type)
@@ -344,14 +369,11 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 					run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellYStart", _input.OutPlate.WellYStart)
 
-					// add LHPolicy setpoint printout to double check correct match up:
-					run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", doerun)
-
 					// print out LHPolicy info
-					policy, found := liquidhandling.GetPolicyByName(doerun)
+					policy, found := liquidhandling.GetPolicyByName(lhpolicy)
 					if !found {
-						execute.Errorf(_ctx, "policy %s not found", doerun.String())
-						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", doerun, " not found"))
+						execute.Errorf(_ctx, "policy %s not found", lhpolicy.String())
+						_output.Errors = append(_output.Errors, fmt.Errorf("policy ", lhpolicy, " not found"))
 					}
 
 					for _, key := range referencekeys {
@@ -369,8 +391,104 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 		}
 	}
 
+	// add blanks after
+
+	for n := 0; n < platenum; n++ {
+
+		for m := 0; m < _input.NumberofBlanks; m++ {
+
+			var run doe.Run
+			// use default policy for blank
+
+			bufferSample := mixer.Sample(_input.Diluent, _input.TotalVolume)
+
+			// add blanks to last column of plate
+			well := wutil.NumToAlpha(_input.OutPlate.WlsY-m) + strconv.Itoa(_input.OutPlate.WlsX)
+
+			reaction := execute.MixTo(_ctx, _input.OutPlate.Type, well, n+1, bufferSample)
+
+			_output.Blankwells = append(_output.Blankwells, well)
+
+			// get annotation info
+			lhpolicy := wtype.LiquidTypeName(_input.Diluent.Type)
+
+			volume := _input.TotalVolume.ToString()
+			conc := "N/A"
+
+			solutionname := _input.Diluent.CName
+			stockconc := _input.Diluent.Concentration().ToString()
+
+			// add Solution Name
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Solution", solutionname)
+
+			// add Solution Name
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Stock Conc", stockconc)
+
+			// add Volume
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Volume", volume)
+
+			// if diluted
+
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", 0)
+
+			// add Concentration
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Concentration Set Point", conc)
+
+			// add Replicate
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Replicate", strconv.Itoa(m+1))
+
+			// add run to well position lookup table
+			_output.Runtowelllocationmap["Blank"+strconv.Itoa(m+1)+" platenum"+strconv.Itoa(n+1)] = well
+
+			// add additional info for each run
+			fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
+
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "PlateNumber", strconv.Itoa(platenum))
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Location", wellpositionarray[counter])
+
+			// add setpoint printout to double check correct match up:
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy", lhpolicy)
+
+			// add plate info:
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate Type", _input.OutPlate.Type)
+
+			// add plate ZStart:
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellZStart", _input.OutPlate.WellZStart)
+
+			// add plate Height:
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate Height", _input.OutPlate.Height)
+
+			// other plate offsets:
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellXOffset", _input.OutPlate.WellXOffset)
+
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellYOffset", _input.OutPlate.WellYOffset)
+
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellXStart", _input.OutPlate.WellXStart)
+
+			run = doe.AddAdditionalHeaderandValue(run, "Additional", "Plate WellYStart", _input.OutPlate.WellYStart)
+
+			// print out LHPolicy info
+			policy, found := liquidhandling.GetPolicyByName(lhpolicy)
+			if !found {
+				execute.Errorf(_ctx, "policy %s not found", lhpolicy.String())
+				_output.Errors = append(_output.Errors, fmt.Errorf("policy ", lhpolicy, " not found"))
+			}
+
+			for _, key := range referencekeys {
+				run = doe.AddAdditionalHeaderandValue(run, "Additional", "LHPolicy"+"_"+key, policy[key])
+			}
+
+			reactions = append(reactions, reaction)
+			newruns = append(newruns, run)
+
+			counter++
+
+		}
+
+	}
+
 	// export overall DOE design file showing all well locations for all conditions
-	xlsxfile := doe.XLSXFileFromRuns(newruns, _input.OutputFilename, _input.DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns, _input.OutputFilename, "JMP")
 
 	var out bytes.Buffer
 
@@ -382,32 +500,6 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 	_output.ExportedFile.Name = _input.OutputFilename
 	_output.ExportedFile.WriteAll(out.Bytes())
-
-	// add blanks after
-
-	for n := 0; n < platenum; n++ {
-		for m := 0; m < _input.NumberofBlanks; m++ {
-
-			// use defualt policy for blank
-
-			bufferSample := mixer.Sample(_input.Diluent, _input.TotalVolume)
-			//eachreaction = append(eachreaction,bufferSample)
-
-			// add blanks to last column of plate
-			well := wutil.NumToAlpha(_input.OutPlate.WlsY-m) + strconv.Itoa(_input.OutPlate.WlsX)
-
-			reaction := execute.MixTo(_ctx, _input.OutPlate.Type, well, n+1, bufferSample)
-
-			_output.Runtowelllocationmap["Blank"+strconv.Itoa(m+1)+" platenum"+strconv.Itoa(n+1)] = well
-
-			_output.Blankwells = append(_output.Blankwells, well)
-
-			reactions = append(reactions, reaction)
-			counter = counter + 1
-
-		}
-
-	}
 
 	_output.Reactions = reactions
 	_output.Runcount = len(_output.Reactions)
@@ -475,28 +567,23 @@ type AccuracyTest_ConcentrationElement struct {
 }
 
 type AccuracyTest_ConcentrationInput struct {
-	DXORJMP                         string
-	Diluent                         *wtype.LHComponent
-	DilutionFactor                  float64
-	Imagefilename                   string
-	InputFile                       wtype.File
-	LHPolicy                        wtype.PolicyName
-	MinVolume                       wunit.Volume
-	NumberofBlanks                  int
-	NumberofReplicates              int
-	OutPlate                        *wtype.LHPlate
-	OutputFilename                  string
-	PipetteOnebyOne                 bool
-	Printasimage                    bool
-	StockConcentrations             []wunit.Concentration
-	TestSolConcs                    []wunit.Concentration
-	TestSols                        []*wtype.LHComponent
-	TotalVolume                     wunit.Volume
-	URL                             string
-	UseLHPolicyforDiluent           bool
-	UseLiquidPolicyForTestSolutions bool
-	UseURL                          bool
-	WellsUsed                       int
+	Diluent                          *wtype.LHComponent
+	ImageFile                        wtype.File
+	MinVolume                        wunit.Volume
+	NumberofBlanks                   int
+	NumberofReplicates               int
+	OutPlate                         *wtype.LHPlate
+	OutputFilename                   string
+	OverrideLHPolicyForTestSolutions wtype.PolicyName
+	OverrideLHPolicyforDiluent       wtype.PolicyName
+	OverrideStockConcentrations      map[string]wunit.Concentration
+	PipetteOnebyOne                  bool
+	Printasimage                     bool
+	SpecifyDilutionFactor            float64
+	TestSolConcs                     []wunit.Concentration
+	TestSols                         []*wtype.LHComponent
+	TotalVolume                      wunit.Volume
+	WellsUsed                        int
 }
 
 type AccuracyTest_ConcentrationOutput struct {
@@ -534,27 +621,22 @@ func init() {
 			Desc: "Perform accuracy test protocol using a series of concentrations as set points\n",
 			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AccuracyTest_Conc.an",
 			Params: []component.ParamDesc{
-				{Name: "DXORJMP", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
-				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
-				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
-				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
-				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},
-				{Name: "NumberofReplicates", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "ImageFile to use if printing as an image\n", Kind: "Parameters"},
+				{Name: "MinVolume", Desc: "Specify a minimum volume below which a dilution will need to be made.\nThe default value is 0.5ul\n", Kind: "Parameters"},
+				{Name: "NumberofBlanks", Desc: "Number of blanks to be added to end of run.\n", Kind: "Parameters"},
+				{Name: "NumberofReplicates", Desc: "Number of replicates of all runs (apart from blanks which is specified separately.\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "OutputFilename", Desc: "", Kind: "Parameters"},
-				{Name: "PipetteOnebyOne", Desc: "", Kind: "Parameters"},
-				{Name: "Printasimage", Desc: "", Kind: "Parameters"},
-				{Name: "StockConcentrations", Desc: "corresponds to order of solutions\n", Kind: "Parameters"},
-				{Name: "TestSolConcs", Desc: "", Kind: "Parameters"},
+				{Name: "OutputFilename", Desc: "Name of the output file\n", Kind: "Parameters"},
+				{Name: "OverrideLHPolicyForTestSolutions", Desc: "Option to override the LHPolicy of the test solution with the LHPolicy specified here.\n", Kind: "Parameters"},
+				{Name: "OverrideLHPolicyforDiluent", Desc: "Option to override the LHPolicy of the test solution with the LHPolicy specified here.\n", Kind: "Parameters"},
+				{Name: "OverrideStockConcentrations", Desc: "Option to over ride the stock concentrations of the solutions being tested.\n", Kind: "Parameters"},
+				{Name: "PipetteOnebyOne", Desc: "If selected, for each well, all contents will be added to a well before moving on to the next well.\nIf not selected, diluent will be added to all wells followed by each solution.\n", Kind: "Parameters"},
+				{Name: "Printasimage", Desc: "Select if printing as image\n", Kind: "Parameters"},
+				{Name: "SpecifyDilutionFactor", Desc: "Specify the dilution factor to use when an intermediate dilution needs to be made to achieve a target concentration.\nIf left blank the dilution factor will be calculated based upon the dilution necessary.\n", Kind: "Parameters"},
+				{Name: "TestSolConcs", Desc: "Concentration Set points to make in the accuracy test for each solution.\n", Kind: "Parameters"},
 				{Name: "TestSols", Desc: "", Kind: "Inputs"},
-				{Name: "TotalVolume", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseLHPolicyforDiluent", Desc: "", Kind: "Parameters"},
-				{Name: "UseLiquidPolicyForTestSolutions", Desc: "", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
+				{Name: "TotalVolume", Desc: "Total volunme per well\n", Kind: "Parameters"},
 				{Name: "WellsUsed", Desc: "optional parameter allowing pipetting to resume on partially filled plate\n", Kind: "Parameters"},
 				{Name: "Blankwells", Desc: "", Kind: "Data"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
@@ -563,7 +645,7 @@ func init() {
 				{Name: "Reactions", Desc: "", Kind: "Outputs"},
 				{Name: "Runcount", Desc: "", Kind: "Data"},
 				{Name: "Runs", Desc: "", Kind: "Data"},
-				{Name: "Runtowelllocationmap", Desc: "[]string //map[string]string\n", Kind: "Data"},
+				{Name: "Runtowelllocationmap", Desc: "", Kind: "Data"},
 				{Name: "Wellpositionarray", Desc: "", Kind: "Data"},
 			},
 		},

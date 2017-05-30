@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"fmt"
 	"strconv"
@@ -18,30 +17,56 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
+	
+	// Total volunme per well
 	TotalVolume Volume
-	StockConcentrations []Concentration // corresponds to order of solutions
+	
+	// Option to over ride the stock concentrations of the solutions being tested.
+	OverrideStockConcentrations map[string]Concentration 
+	
+	// Concentration Set points to make in the accuracy test for each solution.
 	TestSolConcs []Concentration
+	
+	// Number of replicates of all runs (apart from blanks which is specified separately.
 	NumberofReplicates int
+	
+	// Select if printing as image
 	Printasimage bool
-	UseURL bool // select this if getting the image from a URL
-	Imagefilename	string
-	InputFile File
-	URL string // enter URL link to the image file here if applicable
+	
+	// ImageFile to use if printing as an image
+	ImageFile File
+	
+	// Number of blanks to be added to end of run.
 	NumberofBlanks int
-	UseLiquidPolicyForTestSolutions bool
-	LHPolicy PolicyName
-	DXORJMP string
+	
+	// Option to override the LHPolicy of the test solution with the LHPolicy specified here. 
+	OverrideLHPolicyForTestSolutions PolicyName
+	
+	// Option to override the LHPolicy of the test solution with the LHPolicy specified here.
+	OverrideLHPolicyforDiluent PolicyName
+	
+	// Name of the output file
 	OutputFilename string
+	
+	// If selected, for each well, all contents will be added to a well before moving on to the next well.
+	// If not selected, diluent will be added to all wells followed by each solution.
 	PipetteOnebyOne bool
-	UseLHPolicyforDiluent bool
-	DilutionFactor float64
-	WellsUsed int // optional parameter allowing pipetting to resume on partially filled plate
+	
+	// Specify the dilution factor to use when an intermediate dilution needs to be made to achieve a target concentration.
+	// If left blank the dilution factor will be calculated based upon the dilution necessary.
+	SpecifyDilutionFactor float64 
+	
+	// optional parameter allowing pipetting to resume on partially filled plate
+	WellsUsed int 
+	
+	// Specify a minimum volume below which a dilution will need to be made.
+	// The default value is 0.5ul
 	MinVolume Volume
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	Runtowelllocationmap map[string]string //[]string //map[string]string
+	Runtowelllocationmap map[string]string 
 	Runcount int
 	Pixelcount int
 	Errors []error
@@ -86,6 +111,7 @@ Steps {
 	Runtowelllocationmap = make(map[string]string)
 	Blankwells = make([]string,0)
 	counter := WellsUsed 
+	var DilutionFactor float64
 	
 	var minVolume Volume
 	
@@ -101,351 +127,418 @@ Steps {
 	
 	var err error
 	Errors = make([]error,0)
-	// work out plate layout based on picture or just in order
 	
+	// work out plate layout based on picture or just in order	
 	if Printasimage {
 		
-	// image placeholder variables
-	var imgFile File
-	var imgBase *goimage.NRGBA
-
-	//--------------------------------------------------------------------
-	//Fetching image
-	//--------------------------------------------------------------------
-
-	//Downloading from URL if requested
-	if UseURL {
-		imgFile , err = download.File(URL, Imagefilename)
+		// image placeholder variables
+		var imgBase *goimage.NRGBA
+	
+		//--------------------------------------------------------------------
+		//Fetching image
+		//--------------------------------------------------------------------
+	
+		//open Image file
+		imgBase, err = image.OpenFile(ImageFile)
 		if err != nil{
 			Errorf(err.Error())
 		}
-		//opening file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
+		
+		//--------------------------------------------------------------------
+		//Determine which palette to use
+		//--------------------------------------------------------------------
+	
+		chosencolourpalette := image.AvailablePalettes()["Palette1"]
+		positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, rotate,autorotate)
+				
+		for location, colour := range positiontocolourmap {
+			R,G,B,A := colour.RGBA()
+		
+			if uint8(R) == 242 && uint8(G) ==243 && uint8(B) == 242 && uint8(A) == 255 {
+				continue
+				}else {wellpositionarray = append(wellpositionarray,location)
+			}
 		}
-	}
-
-	//Opening from File if requested
-	_, err := InputFile.ReadAll()
-	if err == nil {
-		//opening file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
-	}else{
-		Errorf("no input File Provided")
-	}
-
-
-	//--------------------------------------------------------------------
-	//Determine which palette to use
-	//--------------------------------------------------------------------
-
-
-	chosencolourpalette := image.AvailablePalettes()["Palette1"]
-	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, rotate,autorotate)
-	
-	//Runtowelllocationmap = make([]string,0)
-	
-	for location, colour := range positiontocolourmap {
-		R,G,B,A := colour.RGBA()
-	
-		if uint8(R) == 242 && uint8(G) ==243 && uint8(B) == 242 && uint8(A) == 255 {
-			continue
-			}else {wellpositionarray = append(wellpositionarray,location)
-		}
-	}
-	
+		
 	}else{
 			
-	wellpositionarray = OutPlate.AllWellPositions(wtype.BYCOLUMN)
+		wellpositionarray = OutPlate.AllWellPositions(wtype.BYCOLUMN)
 	
 	}
+	
 	reactions := make([]*LHComponent,0)
 	
 	// use first policy as reference to ensure consistent range through map values
 	
 	// if none is specified, use lhpolicy of first solution
-	if LHPolicy == ""{
-		LHPolicy = wtype.PolicyName(TestSols[0].TypeName())
-	}
+	var referencepolicy wtype.LHPolicy
+	var found bool
 	
-	referencepolicy,found := liquidhandling.GetPolicyByName(LHPolicy)
-	if found == false {
-		Errorf("policy %s not found",LHPolicy.String())
-		Errors = append(Errors,fmt.Errorf("policy ",LHPolicy," not found"))
+	if OverrideLHPolicyForTestSolutions == ""{
+		lhPolicy := wtype.PolicyName(TestSols[0].TypeName())
+		referencepolicy,found = liquidhandling.GetPolicyByName(lhPolicy)
+		
+		if found == false {
+			Errorf("policy %s not found",lhPolicy.String())
+			Errors = append(Errors,fmt.Errorf("policy ",lhPolicy," not found"))
+		}
+	}else{
+		referencepolicy,found = liquidhandling.GetPolicyByName(OverrideLHPolicyForTestSolutions)
+		
+		if found == false {
+			Errorf("policy %s not found",OverrideLHPolicyForTestSolutions.String())
+			Errors = append(Errors,fmt.Errorf("policy ",OverrideLHPolicyForTestSolutions," not found"))
+		}
 	}
-	
+		
 	referencekeys := make([]string,0)
 	for key,_:= range referencepolicy {
 		referencekeys = append(referencekeys,key)
 	}
 		
-	for l := 0; l < len(TestSolConcs); l++ {
-	for k := 0; k< len(TestSols);k++{
-	
 	// calculate target volumes from concentrations
-	var TestSolVolumes []Volume
-	
-	for _, targetconc := range TestSolConcs {
-		vol,err := wunit.VolumeForTargetConcentration(targetconc,StockConcentrations[k],TotalVolume)
-			if err!=nil{
-				Errorf(err.Error())
-			}
-			TestSolVolumes = append(TestSolVolumes,vol)
-	}
-	
-	for j:= 0; j< NumberofReplicates;j++{
-	for i := 0; i < len(runs); i++ {
-		var diluted bool
-		var run doe.Run
+	var TestSolVolumes = make([]Volume,len(TestSolConcs))
 		
-		if counter==((OutPlate.WlsX*OutPlate.WlsY)+NumberofBlanks){
-			fmt.Println("plate full, counter = ", counter)
-			platenum++
-			counter = 0
-		}
+	for l := 0; l < len(TestSolConcs); l++ {
 		
-		var eachreaction []*LHComponent
-		var solution *LHComponent
+		for k := 0; k< len(TestSols);k++{
 		
-		if PipetteOnebyOne {
-		eachreaction = make([]*LHComponent, 0)
-		}
-		// keep default policy for diluent
+		stockConc, found := OverrideStockConcentrations[TestSols[k].CName]
 		
-		// diluent first
-		
-		// change lhpolicy if desired
-		if UseLHPolicyforDiluent {
-				Diluent.Type, err = wtype.LiquidTypeFromString(LHPolicy)
-				if err != nil {
-					Errors = append(Errors,err)
-				}
-			}
-		
-		var bufferSample *LHComponent
-		var Dilution *LHComponent
-		
-		if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
-			
-			
-			DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
-			DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
-		
-			if err !=nil {
-				Errorf(err.Error())
-			}
-			
-			// add diluent to dilution plate ready for dilution
-			dilutedSampleBuffer := mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.DivideVolume(TotalVolume,DilutionFactor)}))
-			Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutedSampleBuffer)
-			
-			// add same volume to destination plate ready for dilutedsolution
-			bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor)}))		
-			
-			
-			
+		if !found && TestSols[k].HasConcentration(){
+			stockConc = TestSols[k].Concentration()
 		}else{
-		
-		bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
-		
+			Errorf("No Stock concentration found for %s. Please choose a component with a concentration or override the concentration in OverrideStockConcentrations",TestSols[k].CName)
 		}
 		
-		if PipetteOnebyOne {
-		eachreaction = append(eachreaction,bufferSample)
-		}else {
-			
-			
-		solution = MixTo(OutPlate.Type, wellpositionarray[counter],platenum,bufferSample)
-		}
-		// now test sample
+		vol, err := wunit.VolumeForTargetConcentration(TestSolConcs[l],stockConc,TotalVolume)
 		
-		
-		// change liquid class
-		if UseLiquidPolicyForTestSolutions && LHPolicy != ""{
-		TestSols[k].Type,err = wtype.LiquidTypeFromString(LHPolicy)
-			if err != nil {
-					Errors = append(Errors,err)
-				}
-		}
-		
-		if TestSolVolumes[l].GreaterThan(minVolume){
-		
-		//sample
-		testSample := mixer.Sample(TestSols[k], TestSolVolumes[l])
-		
-		if PipetteOnebyOne {
-		eachreaction = append(eachreaction,testSample)
-		solution = MixTo(OutPlate.Type,wellpositionarray[counter],platenum,eachreaction...)
-		} else {
-		// pipette out
-		solution = Mix(solution,testSample)
-		}
-		
-		
-		}else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
-		diluted = true
-		
-		DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
-		DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
-		
-		if err !=nil {
+		if err!=nil{
 			Errorf(err.Error())
 		}
+			
+		TestSolVolumes[l] =vol
 		
-		//sample
-		dilutionSample := mixer.Sample(TestSols[k], wunit.DivideVolume(TotalVolume,DilutionFactor))
-		Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutionSample)
+			for j:= 0; j< NumberofReplicates;j++{
+				
+				for i := 0; i < len(runs); i++ {
+					
+					var diluted bool
+					var run doe.Run
+					
+					if counter==((OutPlate.WlsX*OutPlate.WlsY)+NumberofBlanks){
+						fmt.Println("plate full, counter = ", counter)
+						platenum++
+						counter = 0
+					}
+					
+					var eachreaction []*LHComponent
+					var solution *LHComponent
+					
+					if PipetteOnebyOne {
+					eachreaction = make([]*LHComponent, 0)
+					}
+					// keep default policy for diluent
+					
+					// diluent first
+					
+					// change lhpolicy if desired
+					if OverrideLHPolicyforDiluent != "" {
+							Diluent.Type, err = wtype.LiquidTypeFromString(OverrideLHPolicyforDiluent)
+							if err != nil {
+								Errors = append(Errors,err)
+							}
+					}
+					
+					var bufferSample *LHComponent
+					var Dilution *LHComponent
+					
+					if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
+						
+						if SpecifyDilutionFactor == 0.0 {
+							DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
+							DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
+						
+							if err !=nil {
+								Errorf(err.Error())
+							}
+						}else{
+							DilutionFactor = SpecifyDilutionFactor
+						}
+						
+						// add diluent to dilution plate ready for dilution
+						dilutedSampleBuffer := mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.DivideVolume(TotalVolume,DilutionFactor)}))
+						Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutedSampleBuffer)
+						
+						// add same volume to destination plate ready for dilutedsolution
+						bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor)}))		
+						
+						
+						
+					}else{
+					
+						bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
+					
+					}
+					
+					if PipetteOnebyOne {
+						eachreaction = append(eachreaction,bufferSample)
+					}else {
+						
+						solution = MixTo(OutPlate.Type, wellpositionarray[counter],platenum,bufferSample)
+					}
+					// now test sample
+					
+					
+					// change liquid class
+					if OverrideLHPolicyForTestSolutions != ""{
+						TestSols[k].Type,err = wtype.LiquidTypeFromString(OverrideLHPolicyForTestSolutions)
+							if err != nil {
+									Errors = append(Errors,err)
+								}
+					}
+					
+					if TestSolVolumes[l].GreaterThan(minVolume){
+					
+						//sample
+						testSample := mixer.Sample(TestSols[k], TestSolVolumes[l])
+						
+						if PipetteOnebyOne {
+							eachreaction = append(eachreaction,testSample)
+							solution = MixTo(OutPlate.Type,wellpositionarray[counter],platenum,eachreaction...)
+						} else {
+							// pipette out
+							solution = Mix(solution,testSample)
+						}
+						
+					
+					}else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
+						diluted = true
+						
+						DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
+						DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
+						
+						if err !=nil {
+							Errorf(err.Error())
+						}
+						
+						//sample
+						dilutionSample := mixer.Sample(TestSols[k], wunit.DivideVolume(TotalVolume,DilutionFactor))
+						Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutionSample)
+						
+						testSample := mixer.Sample(Dilution,wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor))
+						
+						if PipetteOnebyOne {
+							eachreaction = append(eachreaction,testSample)
+							solution = MixTo(OutPlate.Type,wellpositionarray[counter],platenum,eachreaction...)
+							
+						} else {
+							// pipette out
+						
+							solution = Mix(solution,testSample)
+						}
+						
+					}
+					
+					// get annotation info
+					lhpolicy :=  wtype.LiquidTypeName(TestSols[k].Type)
+					
+					volume := TestSolVolumes[l].ToString()
+					conc := TestSolConcs[l].ToString()
+					
+					solutionname := TestSols[k].CName
+					stockconc := stockConc.ToString()
+					
+					// add Solution Name
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Solution", solutionname)
+					
+					// add Solution Name
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Stock Conc", stockconc)
+					
+					// add Volume
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Volume", volume)
+					
+					// if diluted
+					if diluted {
+						run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", DilutionFactor)
+					}else {
+						run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", 0)
+					}
+					
+					// add Concentration
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Concentration Set Point", conc)
+					
+					// add Replicate
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Replicate", strconv.Itoa(j+1))
+					
+					// full description
+					description := volume+"_"+solutionname+"_replicate"+strconv.Itoa(j+1)+"_platenum"+strconv.Itoa(platenum)
+					
+					// add run to well position lookup table 
+					Runtowelllocationmap[lhpolicy.String()+"_"+description]= wellpositionarray[counter]
+				
+					// add additional info for each run
+					fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
+					
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","PlateNumber", strconv.Itoa(platenum))
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Location", wellpositionarray[counter])
+						
+					// add setpoint printout to double check correct match up:
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", lhpolicy)
+				
+					// add plate info:
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Type", OutPlate.Type)
+					
+					// add plate ZStart:
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellZStart", OutPlate.WellZStart)
+					
+					// add plate Height:
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Height", OutPlate.Height)
+					
+					// other plate offsets:
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXOffset", OutPlate.WellXOffset)
+					
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYOffset", OutPlate.WellYOffset)
+					
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXStart", OutPlate.WellXStart)
+					
+					run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYStart", OutPlate.WellYStart)
+					
+					// print out LHPolicy info
+					policy, found := liquidhandling.GetPolicyByName(lhpolicy)
+					if  !found {
+						Errorf("policy %s not found",lhpolicy.String())
+						Errors = append(Errors,fmt.Errorf("policy ",lhpolicy," not found"))
+					}
+					
+					for _,key := range referencekeys {
+						run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy"+"_"+key, policy[key])
+					}
+					
+					reactions = append(reactions,solution)
+					newruns = append(newruns,run)
+					
+					
+					counter = counter + 1
+				
+				}
 		
-		testSample := mixer.Sample(Dilution,wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor))
-		
-		if PipetteOnebyOne {
-		eachreaction = append(eachreaction,testSample)
-		solution = MixTo(OutPlate.Type,wellpositionarray[counter],platenum,eachreaction...)
-		
-		} else {
-		// pipette out
+			}
+		}
+	}
 	
-		solution = Mix(solution,testSample)
-		}
+
+	// add blanks after
+	
+	for n := 0; n <platenum; n++ {
 		
+		for m := 0; m< NumberofBlanks; m++ {
 		
-		}
+			var run doe.Run
+			// use default policy for blank
+			
+			bufferSample := mixer.Sample(Diluent, TotalVolume)
+			
+			// add blanks to last column of plate
+			well := wutil.NumToAlpha(OutPlate.WlsY-m)+strconv.Itoa(OutPlate.WlsX)
 		
-		// get annotation info
-		doerun :=  wtype.LiquidTypeName(TestSols[k].Type)
+			reaction := MixTo(OutPlate.Type,well, n+1,bufferSample)
+	
+			
+			Blankwells = append(Blankwells,well)
 		
-		
-		volume := TestSolVolumes[l].ToString()
-		conc := TestSolConcs[l].ToString()
-		
-		solutionname := TestSols[k].CName
-		stockconc := StockConcentrations[k].ToString()
-		
-		// add Solution Name
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","Solution", solutionname)
-		
-		// add Solution Name
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","Stock Conc", stockconc)
-		
-		// add Volume
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","Volume", volume)
-		
-		// if diluted
-		if diluted {
-			run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", DilutionFactor)
-		}else {
+			// get annotation info
+			lhpolicy :=  wtype.LiquidTypeName(Diluent.Type)
+			
+			volume := TotalVolume.ToString()
+			conc := "N/A"
+			
+			solutionname := Diluent.CName
+			stockconc := Diluent.Concentration().ToString()
+			
+			// add Solution Name
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Solution", solutionname)
+			
+			// add Solution Name
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Stock Conc", stockconc)
+			
+			// add Volume
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Volume", volume)
+			
+			// if diluted
+			
 			run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", 0)
+			
+			// add Concentration
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Concentration Set Point", conc)
+			
+			// add Replicate
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Replicate", strconv.Itoa(m+1))
+		
+			// add run to well position lookup table 
+			Runtowelllocationmap["Blank"+ strconv.Itoa(m+1)+" platenum"+strconv.Itoa(n+1)] = well
+		
+			// add additional info for each run
+			fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
+			
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","PlateNumber", strconv.Itoa(platenum))
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Location", wellpositionarray[counter])
+				
+			// add setpoint printout to double check correct match up:
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", lhpolicy)
+		
+			// add plate info:
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Type", OutPlate.Type)
+			
+			// add plate ZStart:
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellZStart", OutPlate.WellZStart)
+			
+			// add plate Height:
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Height", OutPlate.Height)
+			
+			// other plate offsets:
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXOffset", OutPlate.WellXOffset)
+			
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYOffset", OutPlate.WellYOffset)
+			
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXStart", OutPlate.WellXStart)
+			
+			run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYStart", OutPlate.WellYStart)
+			
+			// print out LHPolicy info
+			policy, found := liquidhandling.GetPolicyByName(lhpolicy)
+			if  !found {
+				Errorf("policy %s not found",lhpolicy.String())
+				Errors = append(Errors,fmt.Errorf("policy ",lhpolicy," not found"))
+			}
+			
+			for _,key := range referencekeys {
+				run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy"+"_"+key, policy[key])
+			}
+			
+			reactions = append(reactions,reaction)
+			newruns = append(newruns,run)
+
+			counter++
+		
 		}
-		
-		// add Concentration
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","Concentration", conc)
-		
-		// add Replicate
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","Replicate", strconv.Itoa(j+1))
-		
-		// full description
-		description := volume+"_"+solutionname+"_replicate"+strconv.Itoa(j+1)+"_platenum"+strconv.Itoa(platenum)
-		
-		
-		// add run to well position lookup table 
-		Runtowelllocationmap[doerun.String()+"_"+description]= wellpositionarray[counter]
 	
-	// add additional info for each run
-	fmt.Println("len(runs)", len(runs), "counter", counter, "len(wellpositionarray)", len(wellpositionarray))
-	
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","PlateNumber", strconv.Itoa(platenum))
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Location", wellpositionarray[counter])
-		
-	// add setpoint printout to double check correct match up:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun)
-
-	// add plate info:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Type", OutPlate.Type)
-	
-	// add plate ZStart:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellZStart", OutPlate.WellZStart)
-	
-	// add plate Height:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate Height", OutPlate.Height)
-	
-	// other plate offsets:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXOffset", OutPlate.WellXOffset)
-	
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYOffset", OutPlate.WellYOffset)
-	
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellXStart", OutPlate.WellXStart)
-	
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","Plate WellYStart", OutPlate.WellYStart)
-	
-	// add LHPolicy setpoint printout to double check correct match up:
-	run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy", doerun)
-	
-	// print out LHPolicy info
-	policy, found := liquidhandling.GetPolicyByName(doerun)
-	if  !found {
-		Errorf("policy %s not found",doerun.String())
-		Errors = append(Errors,fmt.Errorf("policy ",doerun," not found"))
-	}
-	
-	for _,key := range referencekeys {
-		run = doe.AddAdditionalHeaderandValue(run,"Additional","LHPolicy"+"_"+key, policy[key])
-	}
-	
-	reactions = append(reactions,solution)
-	newruns = append(newruns,run)
-	
-	
-	counter = counter + 1
-	
-	}
-
-	}
-	}
 	}
 	
 	// export overall DOE design file showing all well locations for all conditions
-	xlsxfile := doe.XLSXFileFromRuns(newruns,OutputFilename,DXORJMP)
+	xlsxfile := doe.XLSXFileFromRuns(newruns,OutputFilename,"JMP")
 			
-		var out bytes.Buffer
-		
-		err = xlsxfile.Write(&out)
-		
-		if err != nil {
-			Errorf(err.Error())
-		}
+	var out bytes.Buffer
+	
+	err = xlsxfile.Write(&out)
+	
+	if err != nil {
+		Errorf(err.Error())
+	}
 		
 	ExportedFile.Name = OutputFilename
 	ExportedFile.WriteAll(out.Bytes())
 	
-	// add blanks after
-	
-	for n := 0; n <platenum; n++ {
-	for m := 0; m< NumberofBlanks; m++ {
-	
-		// use defualt policy for blank
-		
-		bufferSample := mixer.Sample(Diluent, TotalVolume)
-		//eachreaction = append(eachreaction,bufferSample)
-		
-		// add blanks to last column of plate
-		well := wutil.NumToAlpha(OutPlate.WlsY-m)+strconv.Itoa(OutPlate.WlsX)
-	
-		reaction := MixTo(OutPlate.Type,well, n+1,bufferSample)
-
-		Runtowelllocationmap["Blank"+ strconv.Itoa(m+1)+" platenum"+strconv.Itoa(n+1)] = well
-		
-		Blankwells = append(Blankwells,well)
-	
-		reactions = append(reactions,reaction)
-		counter = counter + 1
-	
-	}
-	
-	}
 	
 	Reactions = reactions
 	Runcount = len(Reactions)
