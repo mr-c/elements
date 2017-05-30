@@ -76,7 +76,7 @@ import (
 // validation requirements
 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
 
-// Option to override moecular weight value of a mpolecule
+// Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.
 
 // Data which is returned from this protocol, and data types
 
@@ -983,7 +983,7 @@ func init() {
 				{Name: "MarsResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars.\n", Kind: "Parameters"},
 				{Name: "Molecule", Desc: "The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.\nCurrently only one solution name can be run at a time.\n", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
-				{Name: "OverrideMolecularWeight", Desc: "Option to override moecular weight value of a mpolecule\n", Kind: "Parameters"},
+				{Name: "OverrideMolecularWeight", Desc: "Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
 				{Name: "R2threshold", Desc: "validation requirements\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},
