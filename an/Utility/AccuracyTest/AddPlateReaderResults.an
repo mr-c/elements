@@ -10,7 +10,7 @@
 // Additional optional features will return 
 // (1) the wavelength with optimal signal to noise for an aborbance spectrum
 // (2) Comparision with manual pipetting steps
-protocol AddPlateReaderresults_2
+protocol AddPlateReader_Results
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"

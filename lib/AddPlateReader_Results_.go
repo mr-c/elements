@@ -73,16 +73,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AddPlateReaderresults_2Requirements() {
+func _AddPlateReader_ResultsRequirements() {
 }
 
 // Conditions to run on startup
-func _AddPlateReaderresults_2Setup(_ctx context.Context, _input *AddPlateReaderresults_2Input) {
+func _AddPlateReader_ResultsSetup(_ctx context.Context, _input *AddPlateReader_ResultsInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	if _input.OutputFilename == "" {
 
@@ -349,7 +349,7 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	_output.Errors = make([]string, 0)
 
@@ -785,7 +785,7 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AddPlateReaderresults_2Validation(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsValidation(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	_output.CVpass = true
 
@@ -813,18 +813,18 @@ type Dataset struct {
 	CV     float64
 }
 
-func _AddPlateReaderresults_2Run(_ctx context.Context, input *AddPlateReaderresults_2Input) *AddPlateReaderresults_2Output {
-	output := &AddPlateReaderresults_2Output{}
-	_AddPlateReaderresults_2Setup(_ctx, input)
-	_AddPlateReaderresults_2Steps(_ctx, input, output)
-	_AddPlateReaderresults_2Analysis(_ctx, input, output)
-	_AddPlateReaderresults_2Validation(_ctx, input, output)
+func _AddPlateReader_ResultsRun(_ctx context.Context, input *AddPlateReader_ResultsInput) *AddPlateReader_ResultsOutput {
+	output := &AddPlateReader_ResultsOutput{}
+	_AddPlateReader_ResultsSetup(_ctx, input)
+	_AddPlateReader_ResultsSteps(_ctx, input, output)
+	_AddPlateReader_ResultsAnalysis(_ctx, input, output)
+	_AddPlateReader_ResultsValidation(_ctx, input, output)
 	return output
 }
 
-func AddPlateReaderresults_2RunSteps(_ctx context.Context, input *AddPlateReaderresults_2Input) *AddPlateReaderresults_2SOutput {
-	soutput := &AddPlateReaderresults_2SOutput{}
-	output := _AddPlateReaderresults_2Run(_ctx, input)
+func AddPlateReader_ResultsRunSteps(_ctx context.Context, input *AddPlateReader_ResultsInput) *AddPlateReader_ResultsSOutput {
+	soutput := &AddPlateReader_ResultsSOutput{}
+	output := _AddPlateReader_ResultsRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -834,19 +834,19 @@ func AddPlateReaderresults_2RunSteps(_ctx context.Context, input *AddPlateReader
 	return soutput
 }
 
-func AddPlateReaderresults_2New() interface{} {
-	return &AddPlateReaderresults_2Element{
+func AddPlateReader_ResultsNew() interface{} {
+	return &AddPlateReader_ResultsElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AddPlateReaderresults_2Input{}
+				input := &AddPlateReader_ResultsInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AddPlateReaderresults_2Run(_ctx, input)
+				output := _AddPlateReader_ResultsRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AddPlateReaderresults_2Input{},
-			Out: &AddPlateReaderresults_2Output{},
+			In:  &AddPlateReader_ResultsInput{},
+			Out: &AddPlateReader_ResultsOutput{},
 		},
 	}
 }
@@ -857,11 +857,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AddPlateReaderresults_2Element struct {
+type AddPlateReader_ResultsElement struct {
 	inject.CheckedRunner
 }
 
-type AddPlateReaderresults_2Input struct {
+type AddPlateReader_ResultsInput struct {
 	Blanks                     []string
 	CVthreshold                float64
 	DesignFile                 wtype.File
@@ -886,7 +886,7 @@ type AddPlateReaderresults_2Input struct {
 	WellForScanAnalysis        string
 }
 
-type AddPlateReaderresults_2Output struct {
+type AddPlateReader_ResultsOutput struct {
 	ActualVsExpectedPlot      wtype.File
 	BlankValues               []float64
 	CV                        float64
@@ -906,7 +906,7 @@ type AddPlateReaderresults_2Output struct {
 	VolumeToCorrectnessFactor map[string]Dataset
 }
 
-type AddPlateReaderresults_2SOutput struct {
+type AddPlateReader_ResultsSOutput struct {
 	Data struct {
 		ActualVsExpectedPlot      wtype.File
 		BlankValues               []float64
@@ -931,11 +931,11 @@ type AddPlateReaderresults_2SOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AddPlateReaderresults_2",
-		Constructor: AddPlateReaderresults_2New,
+	if err := addComponent(component.Component{Name: "AddPlateReader_Results",
+		Constructor: AddPlateReader_ResultsNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to parse plate reader results and match up with a plate set up by the accuracy test.\nSome processing is carried out to:\nA: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)\nB: Plot volume by correctness factor (Actual conc / Expected conc)\nC: Plot Actual conc vs correctness factor\nD: Plot run order vs correctness factor\nE: Calculate R2\nF: Calculate Coefficent of variance for each pipetting volume\nG: Validate results against success thresholds for R2 and %CV\nAdditional optional features will return\n(1) the wavelength with optimal signal to noise for an aborbance spectrum\n(2) Comparision with manual pipetting steps\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults_2.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults.an",
 			Params: []component.ParamDesc{
 				{Name: "Blanks", Desc: "/ wells of the blank sample locations on the plate\n", Kind: "Parameters"},
 				{Name: "CVthreshold", Desc: "set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
