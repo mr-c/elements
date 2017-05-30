@@ -32,7 +32,10 @@ Inputs (
 )
 
 Outputs (
+	
 	ResuspendedDNAMap map[string]*LHComponent
+	
+	ResuspendedDNAArray []*LHComponent
 )
 
 Requirements {
@@ -106,6 +109,9 @@ Steps {
 	
 	// add to output maps
 	ResuspendedDNAMap[part]= resuspendedDNA
+	
+	// add to output array
+	ResuspendedDNAArray = append(ResuspendedDNAArray,resuspendedDNA)
 	
 	PartConcentrations[part]= conc
 	

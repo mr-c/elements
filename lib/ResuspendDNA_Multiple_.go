@@ -84,6 +84,9 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 		// add to output maps
 		_output.ResuspendedDNAMap[part] = resuspendedDNA
 
+		// add to output array
+		_output.ResuspendedDNAArray = append(_output.ResuspendedDNAArray, resuspendedDNA)
+
 		_output.PartConcentrations[part] = conc
 
 		// add to slices to export as csv later
@@ -164,10 +167,11 @@ type ResuspendDNA_MultipleInput struct {
 }
 
 type ResuspendDNA_MultipleOutput struct {
-	Errors             []error
-	PartConcentrations map[string]wunit.Concentration
-	PlateContents      wtype.File
-	ResuspendedDNAMap  map[string]*wtype.LHComponent
+	Errors              []error
+	PartConcentrations  map[string]wunit.Concentration
+	PlateContents       wtype.File
+	ResuspendedDNAArray []*wtype.LHComponent
+	ResuspendedDNAMap   map[string]*wtype.LHComponent
 }
 
 type ResuspendDNA_MultipleSOutput struct {
@@ -177,7 +181,8 @@ type ResuspendDNA_MultipleSOutput struct {
 		PlateContents      wtype.File
 	}
 	Outputs struct {
-		ResuspendedDNAMap map[string]*wtype.LHComponent
+		ResuspendedDNAArray []*wtype.LHComponent
+		ResuspendedDNAMap   map[string]*wtype.LHComponent
 	}
 }
 
@@ -200,6 +205,7 @@ func init() {
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "PartConcentrations", Desc: "", Kind: "Data"},
 				{Name: "PlateContents", Desc: "", Kind: "Data"},
+				{Name: "ResuspendedDNAArray", Desc: "", Kind: "Outputs"},
 				{Name: "ResuspendedDNAMap", Desc: "", Kind: "Outputs"},
 			},
 		},
