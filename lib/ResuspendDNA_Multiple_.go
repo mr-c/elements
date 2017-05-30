@@ -1,4 +1,7 @@
 // Protocol for resuspending freeze dried DNA with a diluent
+// The inputs of this are designed to be wired in from the ParseDNAPlate element which Parses a DNA plate file from Thermo.
+// The protocol can also be used as a stand-alone element by specifying all the necessary paramters manually.
+// Defaults can also be specified for most parameters to make the process easier.
 package lib
 
 import
@@ -16,7 +19,26 @@ import
 
 // Input parameters for this protocol (data)
 
+// Target concentration to resuspend the DNA to.
+
+// A list of part names
+
+// A map of the mass of each part.
+// A default can be specified which will apply to any part which does not have a value explicitely set.
+
+// A map of the molecular weight of each part.
+// A default can be specified which will apply to any part which does not have a value explicitely set.
+
+// If selected then for any part that no well location is specified for in PartLocationsMap, the system will autoallocate a position for it on the input plate.
+
+// A map of part name to well location (i.e. A1, B12). If a part is mssing an error will occur unless AutoAllocateMissingParts is selected.
+
+// A map of which plate each part is located on.
+// A default can be specified which will apply to any part which does not have a plate name explicitely set.
+
 // If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+
+// This can be wired directly into AutoAssembly_Conc_Multi to use some or all of the parts directly after resuspension.
 
 func _ResuspendDNA_MultipleRequirements() {
 }
@@ -43,25 +65,42 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 		mass, found := _input.PartMassMap[part]
 
 		if !found {
-			execute.Errorf(_ctx, "Part %s not found in PartMassMap", part)
+			mass, found = _input.PartMassMap["default"]
+
+			if !found {
+				execute.Errorf(_ctx, "Part %s not found in PartMassMap and no default set.", part)
+			}
 		}
 
 		mw, found := _input.PartMolecularWeightMap[part]
 
 		if !found {
-			execute.Errorf(_ctx, "Part %s not found in PartMolecularWeightMap", part)
+			mw, found = _input.PartMolecularWeightMap["default"]
+
+			if !found {
+				execute.Errorf(_ctx, "Part %s not found in PartMolecularWeightMap and no default set.", part)
+			}
 		}
 
 		well, found := _input.PartLocationsMap[part]
 
 		if !found {
-			execute.Errorf(_ctx, "Part %s not found in PartLocationsMap", part)
+
+			if _input.AutoAllocateMissingParts {
+				well = ""
+			} else {
+				execute.Errorf(_ctx, "Part %s not found in PartLocationsMap", part)
+			}
 		}
 
 		plate, found := _input.PartPlateMap[part]
 
 		if !found {
-			execute.Errorf(_ctx, "Part %s not found in PartPlateMap", part)
+			plate, found = _input.PartPlateMap["default"]
+
+			if !found {
+				execute.Errorf(_ctx, "Part %s not found in PartPlateMap and no default set.", part)
+			}
 		}
 
 		result := ResuspendDNARunSteps(_ctx, &ResuspendDNAInput{DNAMass: mass,
@@ -158,16 +197,17 @@ type ResuspendDNA_MultipleElement struct {
 }
 
 type ResuspendDNA_MultipleInput struct {
-	DNAPlate               *wtype.LHPlate
-	Diluent                *wtype.LHComponent
-	OverRideLiquidPolicy   wtype.PolicyName
-	PartLocationsMap       map[string]string
-	PartMassMap            map[string]wunit.Mass
-	PartMolecularWeightMap map[string]float64
-	PartPlateMap           map[string]string
-	Parts                  []string
-	Projectname            string
-	TargetConc             wunit.Concentration
+	AutoAllocateMissingParts bool
+	DNAPlate                 *wtype.LHPlate
+	Diluent                  *wtype.LHComponent
+	OverRideLiquidPolicy     wtype.PolicyName
+	PartLocationsMap         map[string]string
+	PartMassMap              map[string]wunit.Mass
+	PartMolecularWeightMap   map[string]float64
+	PartPlateMap             map[string]string
+	Parts                    []string
+	Projectname              string
+	TargetConc               wunit.Concentration
 }
 
 type ResuspendDNA_MultipleOutput struct {
@@ -194,23 +234,24 @@ func init() {
 	if err := addComponent(component.Component{Name: "ResuspendDNA_Multiple",
 		Constructor: ResuspendDNA_MultipleNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol for resuspending freeze dried DNA with a diluent\n",
+			Desc: "Protocol for resuspending freeze dried DNA with a diluent\nThe inputs of this are designed to be wired in from the ParseDNAPlate element which Parses a DNA plate file from Thermo.\nThe protocol can also be used as a stand-alone element by specifying all the necessary paramters manually.\nDefaults can also be specified for most parameters to make the process easier.\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/ResuspendDNA/ResuspendDNAFromPlate.an",
 			Params: []component.ParamDesc{
+				{Name: "AutoAllocateMissingParts", Desc: "If selected then for any part that no well location is specified for in PartLocationsMap, the system will autoallocate a position for it on the input plate.\n", Kind: "Parameters"},
 				{Name: "DNAPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "OverRideLiquidPolicy", Desc: "If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.\n", Kind: "Parameters"},
-				{Name: "PartLocationsMap", Desc: "", Kind: "Parameters"},
-				{Name: "PartMassMap", Desc: "", Kind: "Parameters"},
-				{Name: "PartMolecularWeightMap", Desc: "", Kind: "Parameters"},
-				{Name: "PartPlateMap", Desc: "", Kind: "Parameters"},
-				{Name: "Parts", Desc: "", Kind: "Parameters"},
+				{Name: "PartLocationsMap", Desc: "A map of part name to well location (i.e. A1, B12). If a part is mssing an error will occur unless AutoAllocateMissingParts is selected.\n", Kind: "Parameters"},
+				{Name: "PartMassMap", Desc: "A map of the mass of each part.\nA default can be specified which will apply to any part which does not have a value explicitely set.\n", Kind: "Parameters"},
+				{Name: "PartMolecularWeightMap", Desc: "A map of the molecular weight of each part.\nA default can be specified which will apply to any part which does not have a value explicitely set.\n", Kind: "Parameters"},
+				{Name: "PartPlateMap", Desc: "A map of which plate each part is located on.\nA default can be specified which will apply to any part which does not have a plate name explicitely set.\n", Kind: "Parameters"},
+				{Name: "Parts", Desc: "A list of part names\n", Kind: "Parameters"},
 				{Name: "Projectname", Desc: "", Kind: "Parameters"},
-				{Name: "TargetConc", Desc: "", Kind: "Parameters"},
+				{Name: "TargetConc", Desc: "Target concentration to resuspend the DNA to.\n", Kind: "Parameters"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "PartConcentrations", Desc: "", Kind: "Data"},
 				{Name: "PlateContents", Desc: "", Kind: "Data"},
-				{Name: "ResuspendedDNAArray", Desc: "", Kind: "Outputs"},
+				{Name: "ResuspendedDNAArray", Desc: "This can be wired directly into AutoAssembly_Conc_Multi to use some or all of the parts directly after resuspension.\n", Kind: "Outputs"},
 				{Name: "ResuspendedDNAMap", Desc: "", Kind: "Outputs"},
 			},
 		},
