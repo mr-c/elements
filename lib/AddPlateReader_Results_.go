@@ -38,32 +38,42 @@ import (
 
 // Input parameters for this protocol (data)
 
-// input file containing the Plate reader results exported from Mars
-// Design file for the executed experiment containing the corresponding plate and well locations
+// Input file containing the Plate reader results exported from Mars.
+
+// Design file for the executed experiment containing the corresponding plate and well locations.
 
 // i.e. the sheet position in the plate reader results excel file; starting from 0
+
 // current supported formats are "JMP" and "DX"
+
 // set the desired name for the output file, if this is blank it will append the design file name with _output
 
 //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest
+
 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
 
 // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
 
-/// wells of the blank sample locations on the plate
+// wells of the blank sample locations on the plate
 
 // whether the scan should be used to return the wavelength with maximum signal to noise found
+
 // well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false
 
 // name your response
 
 //  Option to compare to manual pipetting
+
 // if comparing to manual pipetting set the wells to use for each concentration here
+
 // volume of diluent per well
+
 // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
 
 // validation requirements
 // set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
+
+// validation requirements
 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
 
 // Option to override moecular weight value of a mpolecule
@@ -962,20 +972,20 @@ func init() {
 			Desc: "Protocol to parse plate reader results and match up with a plate set up by the accuracy test.\nSome processing is carried out to:\nA: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)\nB: Plot volume by correctness factor (Actual conc / Expected conc)\nC: Plot Actual conc vs correctness factor\nD: Plot run order vs correctness factor\nE: Calculate R2\nF: Calculate Coefficent of variance for each pipetting volume\nG: Validate results against success thresholds for R2 and %CV\nAdditional optional features will return\n(1) the wavelength with optimal signal to noise for an aborbance spectrum\n(2) Comparision with manual pipetting steps\n",
 			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults.an",
 			Params: []component.ParamDesc{
-				{Name: "Blanks", Desc: "/ wells of the blank sample locations on the plate\n", Kind: "Parameters"},
-				{Name: "CVthreshold", Desc: "set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
-				{Name: "DesignFile", Desc: "Design file for the executed experiment containing the corresponding plate and well locations\n", Kind: "Parameters"},
+				{Name: "Blanks", Desc: "wells of the blank sample locations on the plate\n", Kind: "Parameters"},
+				{Name: "CVthreshold", Desc: "validation requirements\nset a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
+				{Name: "DesignFile", Desc: "Design file for the executed experiment containing the corresponding plate and well locations.\n", Kind: "Parameters"},
 				{Name: "DesignFiletype", Desc: "current supported formats are \"JMP\" and \"DX\"\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Extinctioncoefficient", Desc: "extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm\n", Kind: "Parameters"},
 				{Name: "FindOptWavelength", Desc: "whether the scan should be used to return the wavelength with maximum signal to noise found\n", Kind: "Parameters"},
 				{Name: "ManualComparison", Desc: " Option to compare to manual pipetting\n", Kind: "Parameters"},
-				{Name: "MarsResultsFileXLSX", Desc: "input file containing the Plate reader results exported from Mars\n", Kind: "Parameters"},
+				{Name: "MarsResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars.\n", Kind: "Parameters"},
 				{Name: "Molecule", Desc: "The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.\nCurrently only one solution name can be run at a time.\n", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
 				{Name: "OverrideMolecularWeight", Desc: "Option to override moecular weight value of a mpolecule\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
-				{Name: "R2threshold", Desc: "validation requirements\n\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
+				{Name: "R2threshold", Desc: "validation requirements\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},
 				{Name: "Responsecolumntofill", Desc: "name your response\n", Kind: "Parameters"},
 				{Name: "SheetNumber", Desc: "i.e. the sheet position in the plate reader results excel file; starting from 0\n", Kind: "Parameters"},

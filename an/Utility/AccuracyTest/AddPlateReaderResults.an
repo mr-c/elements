@@ -34,34 +34,63 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	MarsResultsFileXLSX File // input file containing the Plate reader results exported from Mars
-	DesignFile File // Design file for the executed experiment containing the corresponding plate and well locations
+	// Input file containing the Plate reader results exported from Mars.
+	MarsResultsFileXLSX File
+	
+	// Design file for the executed experiment containing the corresponding plate and well locations.
+	DesignFile File 
 
-	SheetNumber         int    // i.e. the sheet position in the plate reader results excel file; starting from 0                                      
-	DesignFiletype      string // current supported formats are "JMP" and "DX"
-	OutputFilename      string // set the desired name for the output file, if this is blank it will append the design file name with _output
+	// i.e. the sheet position in the plate reader results excel file; starting from 0 
+	SheetNumber         int                                         
+	
+	// current supported formats are "JMP" and "DX"
+	DesignFiletype      string 
+	
+	// set the desired name for the output file, if this is blank it will append the design file name with _output
+	OutputFilename      string 
 
-	Wavelength          int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
-	Extinctioncoefficient float64 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
+	//  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
+	Wavelength          int   
+	
+	// extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
+	Extinctioncoefficient float64 
+	
 	StockconcinMperL Concentration 
 	
-	ReadingTypeinMarsFile string // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
+	// This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
+	ReadingTypeinMarsFile string 
 
-	Blanks []string /// wells of the blank sample locations on the plate
+	// wells of the blank sample locations on the plate
+	Blanks []string 
+	
+	// whether the scan should be used to return the wavelength with maximum signal to noise found
+	FindOptWavelength   bool    
+	
+	// well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false
+	WellForScanAnalysis string 
 
-	FindOptWavelength   bool    // whether the scan should be used to return the wavelength with maximum signal to noise found
-	WellForScanAnalysis string // well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false
+ 	// name your response
+	Responsecolumntofill string
 
-	Responsecolumntofill string // name your response
-
-	ManualComparison      bool  //  Option to compare to manual pipetting
-	VolumeToManualwells map[string][]string // if comparing to manual pipetting set the wells to use for each concentration here
-	Stockvol Volume // volume of diluent per well
-	StockEqualsTotalVolPerWell bool // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
+	//  Option to compare to manual pipetting
+	ManualComparison      bool  
+	
+	// if comparing to manual pipetting set the wells to use for each concentration here
+	VolumeToManualwells map[string][]string 
+	
+	// volume of diluent per well
+	Stockvol Volume 
+	
+	 // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
+	StockEqualsTotalVolPerWell bool
 	
 	// validation requirements
-	R2threshold float64 // set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
-	CVthreshold float64 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
+	// set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
+	R2threshold float64 
+	
+	// validation requirements
+	// set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
+	CVthreshold float64 
 	
 	// Option to override moecular weight value of a mpolecule
 	OverrideMolecularWeight map[string]float64
