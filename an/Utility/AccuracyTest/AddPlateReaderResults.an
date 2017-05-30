@@ -43,7 +43,7 @@ Parameters (
 
 	Wavelength          int   //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest 
 	Extinctioncoefficient float64 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
-	StockconcinMperL Concentration //= 0.0002878191305957933
+	StockconcinMperL Concentration 
 	
 	ReadingTypeinMarsFile string // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
 
@@ -62,6 +62,9 @@ Parameters (
 	// validation requirements
 	R2threshold float64 // set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
 	CVthreshold float64 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
+	
+	// Option to override moecular weight value of a mpolecule
+	OverrideMolecularWeight map[string]float64
 )
 
 // Data which is returned from this protocol, and data types
@@ -88,6 +91,9 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
+	
+	// The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.
+	// Currently only one solution name can be run at a time.
 	Molecule *LHComponent
 	Diluent *LHComponent
 	PlateType *LHPlate
@@ -109,279 +115,300 @@ Setup {
 // for every input
 Steps {
 	
-	if OutputFilename == "" {
-		
-		_, filename := filepath.Split(DesignFile.Name)
-		
-		OutputFilename = strings.Split(filename,".")[0] + "_output" +fmt.Sprint(time.Now().Format("20060102150405")) +".xlsx"
-	}
 	
-	var actualconcentrations = make(map[string]Concentration)
-	ResponsetoManualValuesmap = make(map[string][]float64)
-
-	molecule, err := pubchem.MakeMolecule(Molecule.CName)
-	if err != nil {
-		Errorf(err.Error())
-	}
-	
-	Molecularweight := molecule.MolecularWeight
-		
-	data, err := MarsResultsFileXLSX.ReadAll()
-
-	if err != nil {
-		Errorf("Error reading Mars file %s", err.Error())
-	}
-
-	marsdata, err := parser.ParseMarsXLSXBinary(data,SheetNumber)
-	if err != nil {
-		Errors = append(Errors,err.Error())
-		Errorf(err.Error())
-	}
-
-	// range through pairing up wells from mars output and doe design
-	
-	var runs []doe.Run
-	
-	// find out int factors from liquidhandling policies
-	policyitemmap := wtype.MakePolicyItems()
-	intfactors := make([]string, 0)
-
-	for key, val := range policyitemmap {
-
-		if val.Type.Name() == "int" {
-			intfactors = append(intfactors, key)
+		if OutputFilename == "" {
+			
+			_, filename := filepath.Split(DesignFile.Name)
+			
+			OutputFilename = strings.Split(filename,".")[0] + "_output" + "_"+Molecule.CName+fmt.Sprint(time.Now().Format("20060102150405")) +".xlsx"
+		}else{
+			OutputFilename = strings.Split(OutputFilename,".")[0] + "_"+Molecule.CName+".xlsx"
 		}
-	}
-
-	designFileData, err := DesignFile.ReadAll()
-
-	if err != nil {
-		Errorf("Error reading Design file %s", err.Error())
-	}
-
-	if DesignFiletype == "DX" {
-		runs, err = doe.RunsFromDXDesignContents(designFileData, intfactors)
-		if err != nil {
-			panic(err)
-		}
-	} else if DesignFiletype == "JMP" {
-		runs, err = doe.RunsFromJMPDesignContents(designFileData, []int{}, []int{}, intfactors)
-		if err != nil {
-			panic(err)
-		}
-	}
-	BlankValues = make([]float64,0)
+		
+		var actualconcentrations = make(map[string]Concentration)
+		ResponsetoManualValuesmap = make(map[string][]float64)
 	
+		var Molecularweight float64
 	
-	for i := range Blanks {
-	blankValue, err := marsdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
-	if err != nil {
-		Errorf(fmt.Sprint("blank sample not found. ", err.Error()))
-	}
-	BlankValues = append(BlankValues,blankValue)
-	}
-
-	runswithresponses := make([]doe.Run, 0)
-
-
-	for k, run := range runs {
-
-		// values for r2 to reset each run
-
-		//xvalues := make([]float64, 0)
-		//yvalues := make([]float64, 0)
-
-		// add origin
-		//xvalues = append(xvalues, 0.0)
-		//yvalues = append(yvalues, 0.0)
-
-			var samples []string
-			var manualsamples []string
-			var ManualValues = make([]float64,0)
-			var manual float64
-			var absorbance wtype.Absorbance
-			var manualabsorbance wtype.Absorbance
-			//var actualconcreplicates = make([]float64, 0)
-			var manualCorrectnessFactorValues = make([]float64,0)
-			var correctnessFactorValues = make([]float64,0)
-
-			experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume") 
-			
-			experimentalvolumestr :=  experimentalvolumeinterface.(string)
-			
-			//experimentalvolumestr = strings.TrimSpace(experimentalvolumestr)
-			
-			var volandunit []string
-			
-			if strings.Count(experimentalvolumestr," ")==1{
-			volandunit = strings.Split(experimentalvolumestr, " ")
-			}else if strings.Count(experimentalvolumestr,"ul")==1 && strings.HasSuffix(experimentalvolumestr,"ul"){
-				volandunit = []string{strings.Trim(experimentalvolumestr,"ul"),"ul"}
-			}
-			
-			vol,err := strconv.ParseFloat(strings.TrimSpace(volandunit[0]), 64)
+		if molecularWeight, found :=  OverrideMolecularWeight[Molecule.CName]; found{
+			Molecularweight = molecularWeight
+		}else if molecularWeight, found :=  OverrideMolecularWeight["default"]; found{
+			Molecularweight = molecularWeight
+		}else{
+			molecule, err := pubchem.MakeMolecule(Molecule.CName)
 			
 			if err != nil {
+				Errorf(err.Error())
+			}
+
+			Molecularweight = molecule.MolecularWeight
+		}
+		
+		data, err := MarsResultsFileXLSX.ReadAll()
+	
+		if err != nil {
+			Errorf("Error reading Mars file %s", err.Error())
+		}
+	
+		marsdata, err := parser.ParseMarsXLSXBinary(data,SheetNumber)
+		if err != nil {
+			Errors = append(Errors,err.Error())
 			Errorf(err.Error())
-			}
+		}
 	
-			experimentalvolume := wunit.NewVolume(vol,strings.TrimSpace(volandunit[1]))
-			
-			
-			actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, StockconcinMperL, experimentalvolume, Diluent.CName, wunit.SubtractVolumes(Stockvol, []Volume{experimentalvolume}))
+		// range through pairing up wells from mars output and doe design
+		
+		var runs []doe.Run
+		
+		// find out int factors from liquidhandling policies
+		policyitemmap := wtype.MakePolicyItems()
+		intfactors := make([]string, 0)
 	
-
-			//locationHeaders := ResponsetoLocationMap[response]
-
-			//  manual pipetting well
-			if wellsmap, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok {
-
-				
-				manualwell := wellsmap[0] // 1st well of array only
-
-				manual, err = marsdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
-
-				if err !=nil {
-					Errorf(err.Error())
-				}
-
-				
-
-				manualsamples = VolumeToManualwells[experimentalvolumestr]
-				
-				for i:= range manualsamples {
-				manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
-				
-				if err !=nil {
-					Errorf(err.Error())
-				}
-				
-				ManualValues = append(ManualValues,manualvalue)
-				}
-				
-				ResponsetoManualValuesmap[experimentalvolumestr] = ManualValues
-				
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), manual)
-				
-			} else if ManualComparison {
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), 0.0)
+		for key, val := range policyitemmap {
+	
+			if val.Type.Name() == "int" {
+				intfactors = append(intfactors, key)
+			}
+		}
+	
+		designFileData, err := DesignFile.ReadAll()
+	
+		if err != nil {
+			Errorf("Error reading Design file %s", err.Error())
+		}
+	
+		if DesignFiletype == "DX" {
+			runs, err = doe.RunsFromDXDesignContents(designFileData, intfactors)
+			if err != nil {
+				panic(err)
+			}
+		} else if DesignFiletype == "JMP" {
+			runs, err = doe.RunsFromJMPDesignContents(designFileData, []int{}, []int{}, intfactors)
+			if err != nil {
+				panic(err)
+			}
+		}
+		BlankValues = make([]float64,0)
+		
+		
+		for i := range Blanks {
+		
+			blankValue, err := marsdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
+			
+			if err != nil {
+				Errorf(fmt.Sprint("blank sample not found. ", err.Error()))
 			}
 			
-
-			// then per replicate ...
-
-			//for i, locationheader := range locationHeaders {
-				well, err := runs[k].GetAdditionalInfo("Location")
-				if err != nil {
-					panic(err)
-				}
-
-				// check optimal difference for each well
-				if FindOptWavelength {
-					MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(WellForScanAnalysis, Blanks[0], "Raw Data")
+			BlankValues = append(BlankValues,blankValue)
+		}
+	
+		runswithresponses := make([]doe.Run, 0)
+	
+		for k, run := range runs {
+	
+			// values for r2 to reset each run
+	
+			//xvalues := make([]float64, 0)
+			//yvalues := make([]float64, 0)
+	
+			// add origin
+			//xvalues = append(xvalues, 0.0)
+			//yvalues = append(yvalues, 0.0)
+			
+			// Only get infor for the solution in question
+			if runSolution, err := run.GetAdditionalInfo("Solution"); err == nil && runSolution == Molecule.CName{
+				
+					var samples []string
+					var manualsamples []string
+					var ManualValues = make([]float64,0)
+					var manual float64
+					var absorbance wtype.Absorbance
+					var manualabsorbance wtype.Absorbance
+					//var actualconcreplicates = make([]float64, 0)
+					var manualCorrectnessFactorValues = make([]float64,0)
+					var correctnessFactorValues = make([]float64,0)
+		
+					experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume") 
 					
-					if err!= nil {
-						Errorf(fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
+					experimentalvolumestr :=  experimentalvolumeinterface.(string)
+					
+					//experimentalvolumestr = strings.TrimSpace(experimentalvolumestr)
+					
+					var volandunit []string
+					
+					if strings.Count(experimentalvolumestr," ")==1{
+						volandunit = strings.Split(experimentalvolumestr, " ")
+					}else if strings.Count(experimentalvolumestr,"ul")==1 && strings.HasSuffix(experimentalvolumestr,"ul"){
+						volandunit = []string{strings.Trim(experimentalvolumestr,"ul"),"ul"}
 					}
-				}
-
-				
-				rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, Wavelength, ReadingTypeinMarsFile)
-
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Raw average "+strconv.Itoa(Wavelength), rawaverage)
-
-				// blank correct
-
-				samples = []string{well.(string)}
-
-				blankcorrected, err := marsdata.BlankCorrect(samples, Blanks, Wavelength, ReadingTypeinMarsFile)
-				
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" BlankCorrected "+strconv.Itoa(Wavelength), blankcorrected)
-
-				// path length correct
-				var volused Volume
-				if StockEqualsTotalVolPerWell {
-					volused = Stockvol 
-				}else{
-					volused = wunit.AddVolumes([]Volume{Stockvol, experimentalvolume})
-				}
-				pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(PlateType.Type), volused)
-
-				if err != nil {
-					panic(err)
-				}
-			
-				
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" pathlength "+strconv.Itoa(Wavelength), pathlength.ToString())
-
-				absorbance.Reading = blankcorrected
-
-				pathlengthcorrect := platereader.PathlengthCorrect(pathlength, absorbance)
-				
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Pathlength corrected "+strconv.Itoa(Wavelength), pathlengthcorrect.Reading)
-
-				// molar absorbtivity of tartazine at 472nm is 20330
-				// http://www.biochrom.co.uk/faq/8/119/what-is-the-limit-of-detection-of-the-zenyth-200.html
-
-				actualconc := platereader.Concentration(pathlengthcorrect, Extinctioncoefficient)
-
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ActualConc", actualconc.SIValue())
-
-				// calculate correctness factor based on expected conc
-
-				expectedconc := actualconcentrations[experimentalvolume.ToString()]
-				correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
-
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ExpectedConc "+strconv.Itoa(Wavelength), expectedconc.SIValue())
-				
-				// if Infinity or Not a number set to 0
-				if math.IsInf(correctnessfactor,0) || math.IsNaN(correctnessfactor){
-					correctnessfactor = 0.0
-				}
-				
-				run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(Wavelength), correctnessfactor)
-
-				
-				correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
-							
-				// add comparison to manually pipetted wells
-				if _, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok  {
-					manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
+					
+					vol,err := strconv.ParseFloat(strings.TrimSpace(volandunit[0]), 64)
+					
 					if err != nil {
-						Errorf(err.Error())
+					Errorf(err.Error())
 					}
-					manualabsorbance.Reading = manualblankcorrected
-					manualpathlengthcorrect := platereader.PathlengthCorrect(pathlength, manualabsorbance)
-					manualactualconc := platereader.Concentration(manualpathlengthcorrect, Extinctioncoefficient)
-					manualcorrectnessfactor := actualconc.SIValue() / manualactualconc.SIValue()
-					manualCorrectnessFactorValues = append(manualCorrectnessFactorValues,manualcorrectnessfactor)
-				
-					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
-					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength), manualcorrectnessfactor)
-				} else if ManualComparison {
-					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", 0.0)
-					run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength),  0.0)
+			
+					experimentalvolume := wunit.NewVolume(vol,strings.TrimSpace(volandunit[1]))
 					
-				}
-
-
-		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-
-
-		runswithresponses = append(runswithresponses, run)
-	}
+					
+					actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, StockconcinMperL, experimentalvolume, Diluent.CName, wunit.SubtractVolumes(Stockvol, []Volume{experimentalvolume}))
+			
+		
+					//locationHeaders := ResponsetoLocationMap[response]
+		
+					//  manual pipetting well
+					if wellsmap, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok {
+		
+						
+						manualwell := wellsmap[0] // 1st well of array only
+		
+						manual, err = marsdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
+		
+						if err !=nil {
+							Errorf(err.Error())
+						}
+		
+						
+		
+						manualsamples = VolumeToManualwells[experimentalvolumestr]
+						
+						for i:= range manualsamples {
+						manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
+						
+						if err !=nil {
+							Errorf(err.Error())
+						}
+						
+						ManualValues = append(ManualValues,manualvalue)
+						}
+						
+						ResponsetoManualValuesmap[experimentalvolumestr] = ManualValues
+						
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), manual)
+						
+					} else if ManualComparison {
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Manual Raw average "+strconv.Itoa(Wavelength), 0.0)
+					}
+					
+		
+					// then per replicate ...
+		
+					//for i, locationheader := range locationHeaders {
+						well, err := runs[k].GetAdditionalInfo("Location")
+						if err != nil {
+							panic(err)
+						}
+		
+						// check optimal difference for each well
+						if FindOptWavelength {
+							MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(WellForScanAnalysis, Blanks[0], "Raw Data")
+							
+							if err!= nil {
+								Errorf(fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
+							}
+						}
+		
+						
+						rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, Wavelength, ReadingTypeinMarsFile)
+		
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Raw average "+strconv.Itoa(Wavelength), rawaverage)
+		
+						// blank correct
+		
+						samples = []string{well.(string)}
+		
+						blankcorrected, err := marsdata.BlankCorrect(samples, Blanks, Wavelength, ReadingTypeinMarsFile)
+						
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" BlankCorrected "+strconv.Itoa(Wavelength), blankcorrected)
+		
+						// path length correct
+						var volused Volume
+						if StockEqualsTotalVolPerWell {
+							volused = Stockvol 
+						}else{
+							volused = wunit.AddVolumes([]Volume{Stockvol, experimentalvolume})
+						}
+						pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(PlateType.Type), volused)
+		
+						if err != nil {
+							panic(err)
+						}
+					
+						
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" pathlength "+strconv.Itoa(Wavelength), pathlength.ToString())
+		
+						absorbance.Reading = blankcorrected
+		
+						pathlengthcorrect := platereader.PathlengthCorrect(pathlength, absorbance)
+						
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Pathlength corrected "+strconv.Itoa(Wavelength), pathlengthcorrect.Reading)
+		
+						// molar absorbtivity of tartazine at 472nm is 20330
+						// http://www.biochrom.co.uk/faq/8/119/what-is-the-limit-of-detection-of-the-zenyth-200.html
+		
+						actualconc := platereader.Concentration(pathlengthcorrect, Extinctioncoefficient)
+		
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ActualConc", actualconc.SIValue())
+		
+						// calculate correctness factor based on expected conc
+		
+						expectedconc := actualconcentrations[experimentalvolume.ToString()]
+						correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
+		
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ExpectedConc "+strconv.Itoa(Wavelength), expectedconc.SIValue())
+						
+						// if Infinity or Not a number set to 0
+						if math.IsInf(correctnessfactor,0) || math.IsNaN(correctnessfactor){
+							correctnessfactor = 0.0
+						}
+						
+						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(Wavelength), correctnessfactor)
+		
+						
+						correctnessFactorValues = append(correctnessFactorValues,correctnessfactor)
+									
+						// add comparison to manually pipetted wells
+						if _, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok  {
+							manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
+							if err != nil {
+								Errorf(err.Error())
+							}
+							manualabsorbance.Reading = manualblankcorrected
+							manualpathlengthcorrect := platereader.PathlengthCorrect(pathlength, manualabsorbance)
+							manualactualconc := platereader.Concentration(manualpathlengthcorrect, Extinctioncoefficient)
+							manualcorrectnessfactor := actualconc.SIValue() / manualactualconc.SIValue()
+							manualCorrectnessFactorValues = append(manualCorrectnessFactorValues,manualcorrectnessfactor)
+						
+							run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
+							run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength), manualcorrectnessfactor)
+						} else if ManualComparison {
+							run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+"ManualActualConc", 0.0)
+							run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(Wavelength),  0.0)
+							
+						}
+		
+		
+				run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
+		
+		
+				runswithresponses = append(runswithresponses, run)
+			
+			}
+		
+		}
+		
+		xlsxfile := doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
+		
+		Runs = runswithresponses
 	
-	xlsxfile := doe.XLSXFileFromRuns(runswithresponses,OutputFilename,DesignFiletype)
+		var buffer bytes.Buffer
+		
+		xlsxfile.Write(&buffer)
 	
-	Runs = runswithresponses
-
-	var buffer bytes.Buffer
+		OutPutDesignFile.Name = OutputFilename
 	
-	xlsxfile.Write(&buffer)
+		OutPutDesignFile.WriteAll(buffer.Bytes())
 
-	OutPutDesignFile.Name = OutputFilename
-
-	OutPutDesignFile.WriteAll(buffer.Bytes())
 	
 }
 
@@ -405,40 +432,40 @@ Analysis {
 	}
 	// 1. now calculate r2 and plot results
 	for i,runwithresponses := range Runs {
-		// values for r2 to reset each run
-
-	// get response value and check if it's a float64 type
-	expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+			// values for r2 to reset each run
 	
-	if err != nil{
-		Errors = append(Errors,err.Error())
-	}
-	
-	expectedconcfloat,floattrue := expectedconc.(float64)
-	// if float64 is true 
-	if floattrue {
-		xvalues = append(xvalues, expectedconcfloat)
-	}else {
-		Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
-	}
-
-	// get response value and check if it's a float64 type
-	actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	actualconcfloat,floattrue := actualconc.(float64)
-	
-	if floattrue {
-		yvalues = append(yvalues,actualconcfloat )
-	}else {
-		fmt.Println(err.Error())
-		Errorf(" ActualConc:"+fmt.Sprint(actualconcfloat))
-	}
+		// get response value and check if it's a float64 type
+		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
 		
+		if err != nil{
+			Errors = append(Errors,err.Error())
+		}
+		
+		expectedconcfloat,floattrue := expectedconc.(float64)
+		// if float64 is true 
+		if floattrue {
+			xvalues = append(xvalues, expectedconcfloat)
+		}else {
+			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+		}
+	
+		// get response value and check if it's a float64 type
+		actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		actualconcfloat,floattrue := actualconc.(float64)
+		
+		if floattrue {
+			yvalues = append(yvalues,actualconcfloat )
+		}else {
+			fmt.Println(err.Error())
+			Errorf(" ActualConc:"+fmt.Sprint(actualconcfloat))
+		}
+			
 	}
 		
 		
@@ -473,40 +500,40 @@ Analysis {
 	
 	// 2. now plot correctnessfactor
 	for i,runwithresponses := range Runs {
-		// values for r2 to reset each run
-
-	// get response value and check if it's a float64 type
-	expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+			// values for r2 to reset each run
 	
-	if err != nil{
-		Errors = append(Errors,err.Error())
-	}
-	
-	expectedconcfloat,floattrue := expectedconc.(float64)
-	// if float64 is true 
-	if floattrue {
-		xvalues = append(xvalues, expectedconcfloat)
-	}else {
-		Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
-	}
-
-	// get response value and check if it's a float64 type
-	correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	correctnessfloat,floattrue := correctness.(float64)
-	
-	if floattrue {
-		yvalues = append(yvalues,correctnessfloat )
-	}else {
-		fmt.Println(err.Error())
-		Errorf(" Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
-	}
+		// get response value and check if it's a float64 type
+		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
 		
+		if err != nil{
+			Errors = append(Errors,err.Error())
+		}
+		
+		expectedconcfloat,floattrue := expectedconc.(float64)
+		// if float64 is true 
+		if floattrue {
+			xvalues = append(xvalues, expectedconcfloat)
+		}else {
+			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+		}
+	
+		// get response value and check if it's a float64 type
+		correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		correctnessfloat,floattrue := correctness.(float64)
+		
+		if floattrue {
+			yvalues = append(yvalues,correctnessfloat )
+		}else {
+			fmt.Println(err.Error())
+			Errorf(" Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
+		}
+			
 	}
 		
 		
@@ -543,40 +570,40 @@ Analysis {
 	
 	// 3. now look for systematic errors
 	for i,runwithresponses := range Runs {
-		// values for r2 to reset each run
-
-	// get response value and check if it's a float64 type
-	runorder, err := runwithresponses.GetResponseValue("Runorder")
+			// values for r2 to reset each run
 	
-	if err != nil{
-		Errors = append(Errors,err.Error())
-	}
+		// get response value and check if it's a float64 type
+		runorder, err := runwithresponses.GetResponseValue("Runorder")
+		
+		if err != nil{
+			Errors = append(Errors,err.Error())
+		}
+		
+		runorderint,inttrue := runorder.(int)
+		// if int is true 
+		if inttrue {
+			xvalues = append(xvalues, float64(runorderint))
+		}else {
+			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" Run Order:"+fmt.Sprint(runorderint), " not an int")
+		}
 	
-	runorderint,inttrue := runorder.(int)
-	// if int is true 
-	if inttrue {
-		xvalues = append(xvalues, float64(runorderint))
-	}else {
-		Errorf("Run"+fmt.Sprint(i,runwithresponses)+" Run Order:"+fmt.Sprint(runorderint), " not an int")
-	}
-
-	
-	// get response value and check if it's a float64 type
-	actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	actualconcfloat,floattrue := actualconc.(float64)
-	
-	if floattrue {
-		yvalues = append(yvalues,actualconcfloat )
-	}else {
-		fmt.Println(err.Error())
-		Errorf(" ActualConc:"+fmt.Sprint(actualconcfloat))
-	}
+		
+		// get response value and check if it's a float64 type
+		actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		actualconcfloat,floattrue := actualconc.(float64)
+		
+		if floattrue {
+			yvalues = append(yvalues,actualconcfloat )
+		}else {
+			fmt.Println(err.Error())
+			Errorf(" ActualConc:"+fmt.Sprint(actualconcfloat))
+		}
 	}
 
 	runorderconcgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
@@ -597,39 +624,39 @@ Analysis {
 		
 	// 4.  now look for systematic errors with correctness factor
 	for i,runwithresponses := range Runs {
-		// values for r2 to reset each run
-
-	// get response value and check if it's a float64 type
-	runorder, err := runwithresponses.GetResponseValue("Runorder")
+			// values for r2 to reset each run
 	
-	if err != nil{
-		Errors = append(Errors,err.Error())
-	}
+		// get response value and check if it's a float64 type
+		runorder, err := runwithresponses.GetResponseValue("Runorder")
+		
+		if err != nil{
+			Errors = append(Errors,err.Error())
+		}
+		
+		runorderint,inttrue := runorder.(int)
+		// if int is true 
+		if inttrue {
+			xvalues = append(xvalues, float64(runorderint))
+		}else {
+			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" Run Order:"+fmt.Sprint(runorderint), " not an int")
+		}
 	
-	runorderint,inttrue := runorder.(int)
-	// if int is true 
-	if inttrue {
-		xvalues = append(xvalues, float64(runorderint))
-	}else {
-		Errorf("Run"+fmt.Sprint(i,runwithresponses)+" Run Order:"+fmt.Sprint(runorderint), " not an int")
-	}
-
-	// get response value and check if it's a float64 type
-	correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	correctnessfloat,floattrue := correctness.(float64)
-	
-	if floattrue {
-		yvalues = append(yvalues,correctnessfloat )
-	}else {
-		fmt.Println(err.Error())
-		Errorf(" Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
-	}
+		// get response value and check if it's a float64 type
+		correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		correctnessfloat,floattrue := correctness.(float64)
+		
+		if floattrue {
+			yvalues = append(yvalues,correctnessfloat )
+		}else {
+			fmt.Println(err.Error())
+			Errorf(" Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
+		}
 		
 	}
 		
@@ -655,119 +682,113 @@ Analysis {
 	// make map of replicate values for Actual Conc
 	for _,runwithresponses := range Runs {
 	
-	volstr, err := runwithresponses.GetAdditionalInfo("Volume")
-
-	if err != nil {
-		Errorf(err.Error())
-	}
+		volstr, err := runwithresponses.GetAdditionalInfo("Volume")
 	
-	/*
-	repstr, err := runwithresponses.GetAdditionalInfo("Replicate")
-	
-	if err != nil {
-		Errorf(err.Error())
-	}
-	*/
-	actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
-	
-	if err != nil {
-		Errorf(err.Error())
-	}
-	
-	/*rep, err := strconv.Atoi(repstr.(string))
-	
-	if err != nil {
-		Errorf(err.Error())
-	}
-	*/
-	
-	// Actual Conc map
-	if _,found := replicateactualconcmap[volstr.(string)];found /*&& rep == counter*/{
-		replicatevalues =replicateactualconcmap[volstr.(string)] 
-		replicatevalues = append(replicatevalues,actualconc.(float64))
-		replicateactualconcmap[volstr.(string)]= replicatevalues 
-		replicatevalues = make([]float64,0)
-		//counter++
-	} else if _,found := replicateactualconcmap[volstr.(string)];!found{
-		replicatevalues =append(replicatevalues,actualconc.(float64))
-		replicateactualconcmap[volstr.(string)]=replicatevalues 
-		replicatevalues = make([]float64,0)
-		//counter++
-	} 
-	
-	
-	// get response value and check if it's a float64 type
-	correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	correctnessfloat,floattrue := correctness.(float64)
-	
-	if !floattrue {
-		fmt.Println(err.Error())
-		Errorf(" Correctnessfloat not float but:"+fmt.Sprint(correctnessfloat))
-	}
-	
-	// correctness factor map
-	if _,found := replicatecorrectnessmap[volstr.(string)];found /*&& rep == counter*/{
-		correctnessvalues =replicatecorrectnessmap[volstr.(string)] 
-		correctnessvalues = append(correctnessvalues,correctnessfloat)
-		replicatecorrectnessmap[volstr.(string)]= correctnessvalues 
-		correctnessvalues = make([]float64,0)
-		//counter++
-	} else if _,found := replicatecorrectnessmap[volstr.(string)];!found{
-		correctnessvalues =append(correctnessvalues,correctnessfloat)
-		replicatecorrectnessmap[volstr.(string)]=correctnessvalues 
-		correctnessvalues = make([]float64,0)
-		//counter++
-	} 
-	
-	
-	
-	
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+		/*
+		repstr, err := runwithresponses.GetAdditionalInfo("Replicate")
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		*/
+		actualconc, err := runwithresponses.GetResponseValue("AbsorbanceActualConc")
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		
+		/*rep, err := strconv.Atoi(repstr.(string))
+		
+		if err != nil {
+			Errorf(err.Error())
+		}
+		*/
+		
+		// Actual Conc map
+		if _,found := replicateactualconcmap[volstr.(string)];found /*&& rep == counter*/{
+			replicatevalues =replicateactualconcmap[volstr.(string)] 
+			replicatevalues = append(replicatevalues,actualconc.(float64))
+			replicateactualconcmap[volstr.(string)]= replicatevalues 
+			replicatevalues = make([]float64,0)
+			//counter++
+		} else if _,found := replicateactualconcmap[volstr.(string)];!found{
+			replicatevalues =append(replicatevalues,actualconc.(float64))
+			replicateactualconcmap[volstr.(string)]=replicatevalues 
+			replicatevalues = make([]float64,0)
+			//counter++
+		} 
+		
+		
+		// get response value and check if it's a float64 type
+		correctness, err := runwithresponses.GetResponseValue("Absorbance CorrectnessFactor "+strconv.Itoa(Wavelength))
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		correctnessfloat,floattrue := correctness.(float64)
+		
+		if !floattrue {
+			fmt.Println(err.Error())
+			Errorf(" Correctnessfloat not float but:"+fmt.Sprint(correctnessfloat))
+		}
+		
+		// correctness factor map
+		if _,found := replicatecorrectnessmap[volstr.(string)];found /*&& rep == counter*/{
+			correctnessvalues =replicatecorrectnessmap[volstr.(string)] 
+			correctnessvalues = append(correctnessvalues,correctnessfloat)
+			replicatecorrectnessmap[volstr.(string)]= correctnessvalues 
+			correctnessvalues = make([]float64,0)
+			//counter++
+		} else if _,found := replicatecorrectnessmap[volstr.(string)];!found{
+			correctnessvalues =append(correctnessvalues,correctnessfloat)
+			replicatecorrectnessmap[volstr.(string)]=correctnessvalues 
+			correctnessvalues = make([]float64,0)
+			//counter++
+		} 	
 	
 	}
 	
 	// process into datasets
 	for key,values := range replicateactualconcmap {
 	
+		var dataset Dataset
+			// process replicates into mean and cv
+		dataset.Name = key + "_AbsorbanceActualConc"
+		dataset.Mean,_ = stats.Mean(values)
+		dataset.StdDev,_ = stats.StdDevS(values)
+		dataset.Values = values
 	
-	var dataset Dataset
-		// process replicates into mean and cv
-	dataset.Name = key + "_AbsorbanceActualConc"
-	dataset.Mean,_ = stats.Mean(values)
-	dataset.StdDev,_ = stats.StdDevS(values)
-	dataset.Values = values
-
-	dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
-	VolumeToActualConc[key] = dataset
-	
-	
+		dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
+		VolumeToActualConc[key] = dataset
+		
 	}
 
 	// process into datasets
 	for key,values := range replicatecorrectnessmap {
 	
+		
+		var dataset Dataset
+			// process replicates into mean and cv
+		dataset.Name = key + "_CorrectnessFactor"
+		dataset.Mean,_ = stats.Mean(values)
+		dataset.StdDev,_ = stats.StdDevS(values)
+		dataset.Values = values
 	
-	var dataset Dataset
-		// process replicates into mean and cv
-	dataset.Name = key + "_CorrectnessFactor"
-	dataset.Mean,_ = stats.Mean(values)
-	dataset.StdDev,_ = stats.StdDevS(values)
-	dataset.Values = values
-
-	dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
-	
-	// if CV == Infinity or Not a number set to -1.0
-	if math.IsInf(dataset.CV,0)|| math.IsNaN(dataset.CV){
-		dataset.CV = -1.0
-	}
-	
-	VolumeToCorrectnessFactor[key] = dataset
-	
+		dataset.CV = dataset.StdDev / dataset.Mean * float64(100)
+		
+		// if CV == Infinity or Not a number set to -1.0
+		if math.IsInf(dataset.CV,0)|| math.IsNaN(dataset.CV){
+			dataset.CV = -1.0
+		}
+		
+		VolumeToCorrectnessFactor[key] = dataset
+		
 	
 	}
 
@@ -785,39 +806,39 @@ if ManualComparison {
 	
 	// 2. now plot correctnessfactor
 	for i,runwithresponses := range Runs {
-		// values for r2 to reset each run
-
-	// get response value and check if it's a float64 type
-	expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+			// values for r2 to reset each run
 	
-	if err != nil{
-		Errors = append(Errors,err.Error())
-	}
+		// get response value and check if it's a float64 type
+		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+		
+		if err != nil{
+			Errors = append(Errors,err.Error())
+		}
+		
+		expectedconcfloat,floattrue := expectedconc.(float64)
+		// if float64 is true 
+		if floattrue {
+			xvalues = append(xvalues, expectedconcfloat)
+		}else {
+			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+		}
 	
-	expectedconcfloat,floattrue := expectedconc.(float64)
-	// if float64 is true 
-	if floattrue {
-		xvalues = append(xvalues, expectedconcfloat)
-	}else {
-		Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
-	}
-
-	// get response value and check if it's a float64 type
-	correctness, err := runwithresponses.GetResponseValue("Absorbance ManualCorrectnessFactor "+strconv.Itoa(Wavelength))
-	
-	if err != nil{
-		fmt.Println(err.Error())
-		Errors = append(Errors,err.Error())
-	}
-	
-	correctnessfloat,floattrue := correctness.(float64)
-	
-	if floattrue {
-		yvalues = append(yvalues,correctnessfloat )
-	}else {
-		fmt.Println(err.Error())
-		Errorf("Manual Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
-	}
+		// get response value and check if it's a float64 type
+		correctness, err := runwithresponses.GetResponseValue("Absorbance ManualCorrectnessFactor "+strconv.Itoa(Wavelength))
+		
+		if err != nil{
+			fmt.Println(err.Error())
+			Errors = append(Errors,err.Error())
+		}
+		
+		correctnessfloat,floattrue := correctness.(float64)
+		
+		if floattrue {
+			yvalues = append(yvalues,correctnessfloat )
+		}else {
+			fmt.Println(err.Error())
+			Errorf("Manual Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
+		}
 		
 	}
 		
