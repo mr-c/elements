@@ -38,68 +38,93 @@ import (
 
 // Input parameters for this protocol (data)
 
-// input file containing the Plate reader results exported from Mars
-// Design file for the executed experiment containing the corresponding plate and well locations
+// Input file containing the Plate reader results exported from Mars.
+
+// Design file for the executed experiment containing the corresponding plate and well locations.
 
 // i.e. the sheet position in the plate reader results excel file; starting from 0
+
 // current supported formats are "JMP" and "DX"
+
 // set the desired name for the output file, if this is blank it will append the design file name with _output
 
 //  Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest
+
 // extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm
-//= 0.0002878191305957933
 
 // This should match the label in the header for each column in the plate reader result file, e.g. "Abs Spectrum"
 
-/// wells of the blank sample locations on the plate
+// wells of the blank sample locations on the plate
 
 // whether the scan should be used to return the wavelength with maximum signal to noise found
+
 // well used for finding wavelength with optimal signal to noise. This is ignored if FindOptWavelength is set to false
 
 // name your response
 
 //  Option to compare to manual pipetting
+
 // if comparing to manual pipetting set the wells to use for each concentration here
+
 // volume of diluent per well
+
 // if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to
 
 // validation requirements
 // set a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%
+
+// validation requirements
 // set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%
+
+// Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.
 
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
 
+// The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.
+// Currently only one solution name can be run at a time.
+
 // Physical outputs from this protocol with types
 
-func _AddPlateReaderresults_2Requirements() {
+func _AddPlateReader_ResultsRequirements() {
 }
 
 // Conditions to run on startup
-func _AddPlateReaderresults_2Setup(_ctx context.Context, _input *AddPlateReaderresults_2Input) {
+func _AddPlateReader_ResultsSetup(_ctx context.Context, _input *AddPlateReader_ResultsInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	if _input.OutputFilename == "" {
 
 		_, filename := filepath.Split(_input.DesignFile.Name)
 
-		_input.OutputFilename = strings.Split(filename, ".")[0] + "_output" + fmt.Sprint(time.Now().Format("20060102150405")) + ".xlsx"
+		_input.OutputFilename = strings.Split(filename, ".")[0] + "_output" + "_" + _input.Molecule.CName + fmt.Sprint(time.Now().Format("20060102150405")) + ".xlsx"
+	} else {
+		_input.OutputFilename = strings.Split(_input.OutputFilename, ".")[0] + "_" + _input.Molecule.CName + ".xlsx"
 	}
 
 	var actualconcentrations = make(map[string]wunit.Concentration)
 	_output.ResponsetoManualValuesmap = make(map[string][]float64)
 
-	molecule, err := pubchem.MakeMolecule(_input.Molecule.CName)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
+	var Molecularweight float64
 
-	Molecularweight := molecule.MolecularWeight
+	if molecularWeight, found := _input.OverrideMolecularWeight[_input.Molecule.CName]; found {
+		Molecularweight = molecularWeight
+	} else if molecularWeight, found := _input.OverrideMolecularWeight["default"]; found {
+		Molecularweight = molecularWeight
+	} else {
+		molecule, err := pubchem.MakeMolecule(_input.Molecule.CName)
+
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		Molecularweight = molecule.MolecularWeight
+	}
 
 	data, err := _input.MarsResultsFileXLSX.ReadAll()
 
@@ -148,10 +173,13 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 	_output.BlankValues = make([]float64, 0)
 
 	for i := range _input.Blanks {
+
 		blankValue, err := marsdata.ReadingsAsAverage(_input.Blanks[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+
 		if err != nil {
 			execute.Errorf(_ctx, fmt.Sprint("blank sample not found. ", err.Error()))
 		}
+
 		_output.BlankValues = append(_output.BlankValues, blankValue)
 	}
 
@@ -168,169 +196,175 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 		//xvalues = append(xvalues, 0.0)
 		//yvalues = append(yvalues, 0.0)
 
-		var samples []string
-		var manualsamples []string
-		var ManualValues = make([]float64, 0)
-		var manual float64
-		var absorbance wtype.Absorbance
-		var manualabsorbance wtype.Absorbance
-		//var actualconcreplicates = make([]float64, 0)
-		var manualCorrectnessFactorValues = make([]float64, 0)
-		var correctnessFactorValues = make([]float64, 0)
+		// Only get infor for the solution in question
+		if runSolution, err := run.GetAdditionalInfo("Solution"); err == nil && runSolution == _input.Molecule.CName {
 
-		experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume")
+			var samples []string
+			var manualsamples []string
+			var ManualValues = make([]float64, 0)
+			var manual float64
+			var absorbance wtype.Absorbance
+			var manualabsorbance wtype.Absorbance
+			//var actualconcreplicates = make([]float64, 0)
+			var manualCorrectnessFactorValues = make([]float64, 0)
+			var correctnessFactorValues = make([]float64, 0)
 
-		experimentalvolumestr := experimentalvolumeinterface.(string)
+			experimentalvolumeinterface, err := runs[k].GetAdditionalInfo("Volume")
 
-		//experimentalvolumestr = strings.TrimSpace(experimentalvolumestr)
+			experimentalvolumestr := experimentalvolumeinterface.(string)
 
-		var volandunit []string
+			//experimentalvolumestr = strings.TrimSpace(experimentalvolumestr)
 
-		if strings.Count(experimentalvolumestr, " ") == 1 {
-			volandunit = strings.Split(experimentalvolumestr, " ")
-		} else if strings.Count(experimentalvolumestr, "ul") == 1 && strings.HasSuffix(experimentalvolumestr, "ul") {
-			volandunit = []string{strings.Trim(experimentalvolumestr, "ul"), "ul"}
-		}
+			var volandunit []string
 
-		vol, err := strconv.ParseFloat(strings.TrimSpace(volandunit[0]), 64)
+			if strings.Count(experimentalvolumestr, " ") == 1 {
+				volandunit = strings.Split(experimentalvolumestr, " ")
+			} else if strings.Count(experimentalvolumestr, "ul") == 1 && strings.HasSuffix(experimentalvolumestr, "ul") {
+				volandunit = []string{strings.Trim(experimentalvolumestr, "ul"), "ul"}
+			}
 
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		experimentalvolume := wunit.NewVolume(vol, strings.TrimSpace(volandunit[1]))
-
-		actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, _input.StockconcinMperL, experimentalvolume, _input.Diluent.CName, wunit.SubtractVolumes(_input.Stockvol, []wunit.Volume{experimentalvolume}))
-
-		//locationHeaders := ResponsetoLocationMap[response]
-
-		//  manual pipetting well
-		if wellsmap, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
-
-			manualwell := wellsmap[0] // 1st well of array only
-
-			manual, err = marsdata.ReadingsAsAverage(manualwell, 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			vol, err := strconv.ParseFloat(strings.TrimSpace(volandunit[0]), 64)
 
 			if err != nil {
 				execute.Errorf(_ctx, err.Error())
 			}
 
-			manualsamples = _input.VolumeToManualwells[experimentalvolumestr]
+			experimentalvolume := wunit.NewVolume(vol, strings.TrimSpace(volandunit[1]))
 
-			for i := range manualsamples {
-				manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			actualconcentrations[experimentalvolume.ToString()] = buffers.DiluteBasedonMolecularWeight(Molecularweight, _input.StockconcinMperL, experimentalvolume, _input.Diluent.CName, wunit.SubtractVolumes(_input.Stockvol, []wunit.Volume{experimentalvolume}))
+
+			//locationHeaders := ResponsetoLocationMap[response]
+
+			//  manual pipetting well
+			if wellsmap, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
+
+				manualwell := wellsmap[0] // 1st well of array only
+
+				manual, err = marsdata.ReadingsAsAverage(manualwell, 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 				if err != nil {
 					execute.Errorf(_ctx, err.Error())
 				}
 
-				ManualValues = append(ManualValues, manualvalue)
+				manualsamples = _input.VolumeToManualwells[experimentalvolumestr]
+
+				for i := range manualsamples {
+					manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+
+					if err != nil {
+						execute.Errorf(_ctx, err.Error())
+					}
+
+					ManualValues = append(ManualValues, manualvalue)
+				}
+
+				_output.ResponsetoManualValuesmap[experimentalvolumestr] = ManualValues
+
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Manual Raw average "+strconv.Itoa(_input.Wavelength), manual)
+
+			} else if _input.ManualComparison {
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Manual Raw average "+strconv.Itoa(_input.Wavelength), 0.0)
 			}
 
-			_output.ResponsetoManualValuesmap[experimentalvolumestr] = ManualValues
+			// then per replicate ...
 
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Manual Raw average "+strconv.Itoa(_input.Wavelength), manual)
+			//for i, locationheader := range locationHeaders {
+			well, err := runs[k].GetAdditionalInfo("Location")
+			if err != nil {
+				panic(err)
+			}
 
-		} else if _input.ManualComparison {
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Manual Raw average "+strconv.Itoa(_input.Wavelength), 0.0)
-		}
+			// check optimal difference for each well
+			if _input.FindOptWavelength {
+				_output.MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
 
-		// then per replicate ...
+				if err != nil {
+					execute.Errorf(_ctx, fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
+				}
+			}
 
-		//for i, locationheader := range locationHeaders {
-		well, err := runs[k].GetAdditionalInfo("Location")
-		if err != nil {
-			panic(err)
-		}
+			rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
-		// check optimal difference for each well
-		if _input.FindOptWavelength {
-			_output.MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Raw average "+strconv.Itoa(_input.Wavelength), rawaverage)
+
+			// blank correct
+
+			samples = []string{well.(string)}
+
+			blankcorrected, err := marsdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" BlankCorrected "+strconv.Itoa(_input.Wavelength), blankcorrected)
+
+			// path length correct
+			var volused wunit.Volume
+			if _input.StockEqualsTotalVolPerWell {
+				volused = _input.Stockvol
+			} else {
+				volused = wunit.AddVolumes([]wunit.Volume{_input.Stockvol, experimentalvolume})
+			}
+			pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(_input.PlateType.Type), volused)
 
 			if err != nil {
-				execute.Errorf(_ctx, fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
+				panic(err)
 			}
-		}
 
-		rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" pathlength "+strconv.Itoa(_input.Wavelength), pathlength.ToString())
 
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Raw average "+strconv.Itoa(_input.Wavelength), rawaverage)
+			absorbance.Reading = blankcorrected
 
-		// blank correct
+			pathlengthcorrect := platereader.PathlengthCorrect(pathlength, absorbance)
 
-		samples = []string{well.(string)}
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Pathlength corrected "+strconv.Itoa(_input.Wavelength), pathlengthcorrect.Reading)
 
-		blankcorrected, err := marsdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			// molar absorbtivity of tartazine at 472nm is 20330
+			// http://www.biochrom.co.uk/faq/8/119/what-is-the-limit-of-detection-of-the-zenyth-200.html
 
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" BlankCorrected "+strconv.Itoa(_input.Wavelength), blankcorrected)
+			actualconc := platereader.Concentration(pathlengthcorrect, _input.Extinctioncoefficient)
 
-		// path length correct
-		var volused wunit.Volume
-		if _input.StockEqualsTotalVolPerWell {
-			volused = _input.Stockvol
-		} else {
-			volused = wunit.AddVolumes([]wunit.Volume{_input.Stockvol, experimentalvolume})
-		}
-		pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(_input.PlateType.Type), volused)
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ActualConc", actualconc.SIValue())
 
-		if err != nil {
-			panic(err)
-		}
+			// calculate correctness factor based on expected conc
 
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" pathlength "+strconv.Itoa(_input.Wavelength), pathlength.ToString())
+			expectedconc := actualconcentrations[experimentalvolume.ToString()]
+			correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
 
-		absorbance.Reading = blankcorrected
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ExpectedConc "+strconv.Itoa(_input.Wavelength), expectedconc.SIValue())
 
-		pathlengthcorrect := platereader.PathlengthCorrect(pathlength, absorbance)
-
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Pathlength corrected "+strconv.Itoa(_input.Wavelength), pathlengthcorrect.Reading)
-
-		// molar absorbtivity of tartazine at 472nm is 20330
-		// http://www.biochrom.co.uk/faq/8/119/what-is-the-limit-of-detection-of-the-zenyth-200.html
-
-		actualconc := platereader.Concentration(pathlengthcorrect, _input.Extinctioncoefficient)
-
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ActualConc", actualconc.SIValue())
-
-		// calculate correctness factor based on expected conc
-
-		expectedconc := actualconcentrations[experimentalvolume.ToString()]
-		correctnessfactor := actualconc.SIValue() / expectedconc.SIValue()
-
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ExpectedConc "+strconv.Itoa(_input.Wavelength), expectedconc.SIValue())
-
-		// if Infinity or Not a number set to 0
-		if math.IsInf(correctnessfactor, 0) || math.IsNaN(correctnessfactor) {
-			correctnessfactor = 0.0
-		}
-
-		run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(_input.Wavelength), correctnessfactor)
-
-		correctnessFactorValues = append(correctnessFactorValues, correctnessfactor)
-
-		// add comparison to manually pipetted wells
-		if _, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
-			manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
+			// if Infinity or Not a number set to 0
+			if math.IsInf(correctnessfactor, 0) || math.IsNaN(correctnessfactor) {
+				correctnessfactor = 0.0
 			}
-			manualabsorbance.Reading = manualblankcorrected
-			manualpathlengthcorrect := platereader.PathlengthCorrect(pathlength, manualabsorbance)
-			manualactualconc := platereader.Concentration(manualpathlengthcorrect, _input.Extinctioncoefficient)
-			manualcorrectnessfactor := actualconc.SIValue() / manualactualconc.SIValue()
-			manualCorrectnessFactorValues = append(manualCorrectnessFactorValues, manualcorrectnessfactor)
 
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(_input.Wavelength), manualcorrectnessfactor)
-		} else if _input.ManualComparison {
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ManualActualConc", 0.0)
-			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(_input.Wavelength), 0.0)
+			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" CorrectnessFactor "+strconv.Itoa(_input.Wavelength), correctnessfactor)
+
+			correctnessFactorValues = append(correctnessFactorValues, correctnessfactor)
+
+			// add comparison to manually pipetted wells
+			if _, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
+				manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+				if err != nil {
+					execute.Errorf(_ctx, err.Error())
+				}
+				manualabsorbance.Reading = manualblankcorrected
+				manualpathlengthcorrect := platereader.PathlengthCorrect(pathlength, manualabsorbance)
+				manualactualconc := platereader.Concentration(manualpathlengthcorrect, _input.Extinctioncoefficient)
+				manualcorrectnessfactor := actualconc.SIValue() / manualactualconc.SIValue()
+				manualCorrectnessFactorValues = append(manualCorrectnessFactorValues, manualcorrectnessfactor)
+
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ManualActualConc", manualactualconc.SIValue())
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(_input.Wavelength), manualcorrectnessfactor)
+			} else if _input.ManualComparison {
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+"ManualActualConc", 0.0)
+				run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" ManualCorrectnessFactor "+strconv.Itoa(_input.Wavelength), 0.0)
+
+			}
+
+			run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
+
+			runswithresponses = append(runswithresponses, run)
 
 		}
 
-		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-
-		runswithresponses = append(runswithresponses, run)
 	}
 
 	xlsxfile := doe.XLSXFileFromRuns(runswithresponses, _input.OutputFilename, _input.DesignFiletype)
@@ -349,7 +383,7 @@ func _AddPlateReaderresults_2Steps(_ctx context.Context, _input *AddPlateReaderr
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	_output.Errors = make([]string, 0)
 
@@ -785,7 +819,7 @@ func _AddPlateReaderresults_2Analysis(_ctx context.Context, _input *AddPlateRead
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AddPlateReaderresults_2Validation(_ctx context.Context, _input *AddPlateReaderresults_2Input, _output *AddPlateReaderresults_2Output) {
+func _AddPlateReader_ResultsValidation(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
 	_output.CVpass = true
 
@@ -813,18 +847,18 @@ type Dataset struct {
 	CV     float64
 }
 
-func _AddPlateReaderresults_2Run(_ctx context.Context, input *AddPlateReaderresults_2Input) *AddPlateReaderresults_2Output {
-	output := &AddPlateReaderresults_2Output{}
-	_AddPlateReaderresults_2Setup(_ctx, input)
-	_AddPlateReaderresults_2Steps(_ctx, input, output)
-	_AddPlateReaderresults_2Analysis(_ctx, input, output)
-	_AddPlateReaderresults_2Validation(_ctx, input, output)
+func _AddPlateReader_ResultsRun(_ctx context.Context, input *AddPlateReader_ResultsInput) *AddPlateReader_ResultsOutput {
+	output := &AddPlateReader_ResultsOutput{}
+	_AddPlateReader_ResultsSetup(_ctx, input)
+	_AddPlateReader_ResultsSteps(_ctx, input, output)
+	_AddPlateReader_ResultsAnalysis(_ctx, input, output)
+	_AddPlateReader_ResultsValidation(_ctx, input, output)
 	return output
 }
 
-func AddPlateReaderresults_2RunSteps(_ctx context.Context, input *AddPlateReaderresults_2Input) *AddPlateReaderresults_2SOutput {
-	soutput := &AddPlateReaderresults_2SOutput{}
-	output := _AddPlateReaderresults_2Run(_ctx, input)
+func AddPlateReader_ResultsRunSteps(_ctx context.Context, input *AddPlateReader_ResultsInput) *AddPlateReader_ResultsSOutput {
+	soutput := &AddPlateReader_ResultsSOutput{}
+	output := _AddPlateReader_ResultsRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -834,19 +868,19 @@ func AddPlateReaderresults_2RunSteps(_ctx context.Context, input *AddPlateReader
 	return soutput
 }
 
-func AddPlateReaderresults_2New() interface{} {
-	return &AddPlateReaderresults_2Element{
+func AddPlateReader_ResultsNew() interface{} {
+	return &AddPlateReader_ResultsElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AddPlateReaderresults_2Input{}
+				input := &AddPlateReader_ResultsInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AddPlateReaderresults_2Run(_ctx, input)
+				output := _AddPlateReader_ResultsRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AddPlateReaderresults_2Input{},
-			Out: &AddPlateReaderresults_2Output{},
+			In:  &AddPlateReader_ResultsInput{},
+			Out: &AddPlateReader_ResultsOutput{},
 		},
 	}
 }
@@ -857,11 +891,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AddPlateReaderresults_2Element struct {
+type AddPlateReader_ResultsElement struct {
 	inject.CheckedRunner
 }
 
-type AddPlateReaderresults_2Input struct {
+type AddPlateReader_ResultsInput struct {
 	Blanks                     []string
 	CVthreshold                float64
 	DesignFile                 wtype.File
@@ -873,6 +907,7 @@ type AddPlateReaderresults_2Input struct {
 	MarsResultsFileXLSX        wtype.File
 	Molecule                   *wtype.LHComponent
 	OutputFilename             string
+	OverrideMolecularWeight    map[string]float64
 	PlateType                  *wtype.LHPlate
 	R2threshold                float64
 	ReadingTypeinMarsFile      string
@@ -886,7 +921,7 @@ type AddPlateReaderresults_2Input struct {
 	WellForScanAnalysis        string
 }
 
-type AddPlateReaderresults_2Output struct {
+type AddPlateReader_ResultsOutput struct {
 	ActualVsExpectedPlot      wtype.File
 	BlankValues               []float64
 	CV                        float64
@@ -906,7 +941,7 @@ type AddPlateReaderresults_2Output struct {
 	VolumeToCorrectnessFactor map[string]Dataset
 }
 
-type AddPlateReaderresults_2SOutput struct {
+type AddPlateReader_ResultsSOutput struct {
 	Data struct {
 		ActualVsExpectedPlot      wtype.File
 		BlankValues               []float64
@@ -931,30 +966,31 @@ type AddPlateReaderresults_2SOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AddPlateReaderresults_2",
-		Constructor: AddPlateReaderresults_2New,
+	if err := addComponent(component.Component{Name: "AddPlateReader_Results",
+		Constructor: AddPlateReader_ResultsNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol to parse plate reader results and match up with a plate set up by the accuracy test.\nSome processing is carried out to:\nA: Plot expected results (based on mathematically diluting the stock concentration) vs actual (measured concentrations from beer-lambert law, A = εcl)\nB: Plot volume by correctness factor (Actual conc / Expected conc)\nC: Plot Actual conc vs correctness factor\nD: Plot run order vs correctness factor\nE: Calculate R2\nF: Calculate Coefficent of variance for each pipetting volume\nG: Validate results against success thresholds for R2 and %CV\nAdditional optional features will return\n(1) the wavelength with optimal signal to noise for an aborbance spectrum\n(2) Comparision with manual pipetting steps\n",
-			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults_2.an",
+			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AddPlateReaderResults.an",
 			Params: []component.ParamDesc{
-				{Name: "Blanks", Desc: "/ wells of the blank sample locations on the plate\n", Kind: "Parameters"},
-				{Name: "CVthreshold", Desc: "set a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
-				{Name: "DesignFile", Desc: "Design file for the executed experiment containing the corresponding plate and well locations\n", Kind: "Parameters"},
+				{Name: "Blanks", Desc: "wells of the blank sample locations on the plate\n", Kind: "Parameters"},
+				{Name: "CVthreshold", Desc: "validation requirements\nset a threshold below which CV will pass; 0 = 0%, 1 = 100%; e.g. 0.2 = 20%\n", Kind: "Parameters"},
+				{Name: "DesignFile", Desc: "Design file for the executed experiment containing the corresponding plate and well locations.\n", Kind: "Parameters"},
 				{Name: "DesignFiletype", Desc: "current supported formats are \"JMP\" and \"DX\"\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "Extinctioncoefficient", Desc: "extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm\n", Kind: "Parameters"},
 				{Name: "FindOptWavelength", Desc: "whether the scan should be used to return the wavelength with maximum signal to noise found\n", Kind: "Parameters"},
 				{Name: "ManualComparison", Desc: " Option to compare to manual pipetting\n", Kind: "Parameters"},
-				{Name: "MarsResultsFileXLSX", Desc: "input file containing the Plate reader results exported from Mars\n", Kind: "Parameters"},
-				{Name: "Molecule", Desc: "", Kind: "Inputs"},
+				{Name: "MarsResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars.\n", Kind: "Parameters"},
+				{Name: "Molecule", Desc: "The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.\nCurrently only one solution name can be run at a time.\n", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
+				{Name: "OverrideMolecularWeight", Desc: "Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
-				{Name: "R2threshold", Desc: "validation requirements\n\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
+				{Name: "R2threshold", Desc: "validation requirements\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},
 				{Name: "Responsecolumntofill", Desc: "name your response\n", Kind: "Parameters"},
 				{Name: "SheetNumber", Desc: "i.e. the sheet position in the plate reader results excel file; starting from 0\n", Kind: "Parameters"},
 				{Name: "StockEqualsTotalVolPerWell", Desc: "if true the StockVol represents the total volume per well instead of a fixed volume which the test solution was added to\n", Kind: "Parameters"},
-				{Name: "StockconcinMperL", Desc: "= 0.0002878191305957933\n", Kind: "Parameters"},
+				{Name: "StockconcinMperL", Desc: "", Kind: "Parameters"},
 				{Name: "Stockvol", Desc: "volume of diluent per well\n", Kind: "Parameters"},
 				{Name: "VolumeToManualwells", Desc: "if comparing to manual pipetting set the wells to use for each concentration here\n", Kind: "Parameters"},
 				{Name: "Wavelength", Desc: " Wavelength to use for calculations, should match up with extinction coefficient for molecule of interest\n", Kind: "Parameters"},

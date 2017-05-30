@@ -1,8 +1,0 @@
-{
-  "connections": [],
-  "processes": {
-    "AddResponses": {
-      "component": "AddPlateReaderresults_2"
-    }
-  }
-}

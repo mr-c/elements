@@ -42,7 +42,7 @@
   "connections": [],
   "processes": {
     "AddResponses": {
-      "component": "AddPlateReaderresults_2"
+      "component": "AddPlateReader_Results"
     }
   }
 }

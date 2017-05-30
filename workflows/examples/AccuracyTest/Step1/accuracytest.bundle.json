@@ -1,20 +1,23 @@
 {
   "Parameters": {
     "AccuracyTest": {
-      "DXORJMP": "JMP",
       "Diluent": "water",
       "DilutionFactor": 10,
-      "Imagefilename": "star.png",
-      "LHPolicy": "PostMix",
+      "ImageFile": {
+        "host_file": {
+          "filename": "star.png"
+        }
+      },
       "MinVolume": "1ul",
       "NumberofBlanks": 0,
       "NumberofReplicates": 4,
-      "OutPlate": "greiner384_riser40",
-      "OutputFilename": "180117AccuracytestPostMixConcOutput_Arnold.xlsx",
+      "OutPlate": "greiner384_riser20",
+      "OutputFilename": "AccuracytestLocations.xlsx",
+      "OverrideLHPolicyForTestSolutions": "PostMix",
+      "OverrideStockConcentrations": {
+        "tartrazine": "0.2878191305957933mM"
+      },
       "Printasimage": false,
-      "StockConcentrations": [
-        "0.2878191305957933mM"
-      ],
       "TestSolConcs": [
         "0.0uM",
         "0.5uM",
@@ -27,8 +30,13 @@
         "tartrazine"
       ],
       "TotalVolume": "100ul",
-      "UseLiquidPolicyForTestSolutions": true,
       "WellsUsed": 39
+    }
+  },
+  "connections": [],
+  "processes": {
+    "AccuracyTest": {
+      "component": "AccuracyTest"
     }
   }
 }
