@@ -86,18 +86,6 @@ func _AccuracyTest_3Steps(_ctx context.Context, _input *AccuracyTest_3Input, _ou
 		}
 	}
 
-	//Opening from File if one is present
-	_, err = _input.InputFile.ReadAll()
-	if err == nil {
-		//opening file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	} else {
-		execute.Errorf(_ctx, "no input File Provided")
-	}
-
 	//--------------------------------------------------------------------
 	//Dilution calculations
 	//--------------------------------------------------------------------
@@ -431,7 +419,6 @@ type AccuracyTest_3Input struct {
 	Diluent                         *wtype.LHComponent
 	DilutionFactor                  float64
 	Imagefilename                   string
-	InputFile                       wtype.File
 	LHPolicy                        wtype.PolicyName
 	MinVolume                       wunit.Volume
 	NumberofBlanks                  int
@@ -487,7 +474,6 @@ func init() {
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "", Kind: "Parameters"},
 				{Name: "Imagefilename", Desc: "", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "LHPolicy", Desc: "", Kind: "Parameters"},
 				{Name: "MinVolume", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "", Kind: "Parameters"},

@@ -21,7 +21,6 @@ Parameters (
 	NumberofReplicates int
 	Printasimage bool
 	Imagefilename string
-	InputFile	File
 	UseURL bool // select this if getting the image from a URL
 	URL string // enter URL link to the image file here if applicable
 	NumberofBlanks int
@@ -112,19 +111,6 @@ Steps {
 			Errorf(err.Error())
 		}
 	}
-
-	//Opening from File if one is present
-	_, err = InputFile.ReadAll()
-	if err == nil {
-		//opening file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
-	}else{
-		Errorf("no input File Provided")
-	}
-
 
 	//--------------------------------------------------------------------
 	//Dilution calculations
@@ -235,16 +221,16 @@ Steps {
 			
 		}else{
 		
-		bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
+			bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{TestSolVolumes[l]})) //SampleForTotalVolume(Diluent, TotalVolume)
 		
 		}
 		
 		if PipetteOnebyOne {
-		eachreaction = append(eachreaction,bufferSample)
+			eachreaction = append(eachreaction,bufferSample)
 		}else {
 			
 			
-		solution = MixTo(OutPlate.Type, wellpositionarray[counter],platenum,bufferSample)
+			solution = MixTo(OutPlate.Type, wellpositionarray[counter],platenum,bufferSample)
 		}
 		// now test sample
 		
