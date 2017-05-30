@@ -1,5 +1,5 @@
 // Perform accuracy test protocol using a series of concentrations as set points
-protocol AccuracyTest_Concentration
+protocol AccuracyTest
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"

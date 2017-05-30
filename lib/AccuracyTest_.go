@@ -58,16 +58,16 @@ import (
 
 // Physical outputs from this protocol with types
 
-func _AccuracyTest_ConcentrationRequirements() {
+func _AccuracyTestRequirements() {
 }
 
 // Conditions to run on startup
-func _AccuracyTest_ConcentrationSetup(_ctx context.Context, _input *AccuracyTest_ConcentrationInput) {
+func _AccuracyTestSetup(_ctx context.Context, _input *AccuracyTestInput) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
+func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output *AccuracyTestOutput) {
 
 	//--------------------------------------------------------------------
 	// Global variables declarations
@@ -510,26 +510,26 @@ func _AccuracyTest_ConcentrationSteps(_ctx context.Context, _input *AccuracyTest
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _AccuracyTest_ConcentrationAnalysis(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
+func _AccuracyTestAnalysis(_ctx context.Context, _input *AccuracyTestInput, _output *AccuracyTestOutput) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _AccuracyTest_ConcentrationValidation(_ctx context.Context, _input *AccuracyTest_ConcentrationInput, _output *AccuracyTest_ConcentrationOutput) {
+func _AccuracyTestValidation(_ctx context.Context, _input *AccuracyTestInput, _output *AccuracyTestOutput) {
 }
-func _AccuracyTest_ConcentrationRun(_ctx context.Context, input *AccuracyTest_ConcentrationInput) *AccuracyTest_ConcentrationOutput {
-	output := &AccuracyTest_ConcentrationOutput{}
-	_AccuracyTest_ConcentrationSetup(_ctx, input)
-	_AccuracyTest_ConcentrationSteps(_ctx, input, output)
-	_AccuracyTest_ConcentrationAnalysis(_ctx, input, output)
-	_AccuracyTest_ConcentrationValidation(_ctx, input, output)
+func _AccuracyTestRun(_ctx context.Context, input *AccuracyTestInput) *AccuracyTestOutput {
+	output := &AccuracyTestOutput{}
+	_AccuracyTestSetup(_ctx, input)
+	_AccuracyTestSteps(_ctx, input, output)
+	_AccuracyTestAnalysis(_ctx, input, output)
+	_AccuracyTestValidation(_ctx, input, output)
 	return output
 }
 
-func AccuracyTest_ConcentrationRunSteps(_ctx context.Context, input *AccuracyTest_ConcentrationInput) *AccuracyTest_ConcentrationSOutput {
-	soutput := &AccuracyTest_ConcentrationSOutput{}
-	output := _AccuracyTest_ConcentrationRun(_ctx, input)
+func AccuracyTestRunSteps(_ctx context.Context, input *AccuracyTestInput) *AccuracyTestSOutput {
+	soutput := &AccuracyTestSOutput{}
+	output := _AccuracyTestRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -539,19 +539,19 @@ func AccuracyTest_ConcentrationRunSteps(_ctx context.Context, input *AccuracyTes
 	return soutput
 }
 
-func AccuracyTest_ConcentrationNew() interface{} {
-	return &AccuracyTest_ConcentrationElement{
+func AccuracyTestNew() interface{} {
+	return &AccuracyTestElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AccuracyTest_ConcentrationInput{}
+				input := &AccuracyTestInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AccuracyTest_ConcentrationRun(_ctx, input)
+				output := _AccuracyTestRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AccuracyTest_ConcentrationInput{},
-			Out: &AccuracyTest_ConcentrationOutput{},
+			In:  &AccuracyTestInput{},
+			Out: &AccuracyTestOutput{},
 		},
 	}
 }
@@ -562,11 +562,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AccuracyTest_ConcentrationElement struct {
+type AccuracyTestElement struct {
 	inject.CheckedRunner
 }
 
-type AccuracyTest_ConcentrationInput struct {
+type AccuracyTestInput struct {
 	Diluent                          *wtype.LHComponent
 	ImageFile                        wtype.File
 	MinVolume                        wunit.Volume
@@ -586,7 +586,7 @@ type AccuracyTest_ConcentrationInput struct {
 	WellsUsed                        int
 }
 
-type AccuracyTest_ConcentrationOutput struct {
+type AccuracyTestOutput struct {
 	Blankwells           []string
 	Errors               []error
 	ExportedFile         wtype.File
@@ -598,7 +598,7 @@ type AccuracyTest_ConcentrationOutput struct {
 	Wellpositionarray    []string
 }
 
-type AccuracyTest_ConcentrationSOutput struct {
+type AccuracyTestSOutput struct {
 	Data struct {
 		Blankwells           []string
 		Errors               []error
@@ -615,8 +615,8 @@ type AccuracyTest_ConcentrationSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AccuracyTest_Concentration",
-		Constructor: AccuracyTest_ConcentrationNew,
+	if err := addComponent(component.Component{Name: "AccuracyTest",
+		Constructor: AccuracyTestNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform accuracy test protocol using a series of concentrations as set points\n",
 			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AccuracyTest_Conc.an",
