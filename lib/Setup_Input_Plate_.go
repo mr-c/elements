@@ -16,11 +16,14 @@ import
 
 // Parameters to this protocol
 
-// optional parameter to specify the well positions for a particular solution
-// This will conflict with ByRow if both are used together so an error will be returned in that situation.
+// optional parameter to specify the well positions for a particular solution.
+// e.g. "water": ["A1","B2"], will add water to wells A1 and B2.
+// This will conflict with Replicates if both are used together and the number of replicates conflicts with the number of wells specified.
+// An error will be returned in that situation.
 
 // If selected the solutions will be added by row (A1, A2, A3 ...), the default is by column (A1, B1, C1 ...).
-// This will conflict with the SpecifyWellPositions if both are used together so an error will be returned in that situation.
+// This will potentially conflict with the SpecifyWellPositions if both are used together.
+// In that case the SpecifyWellPositions will take precedence.
 
 // Specify whether replicate samples are to be set up
 
@@ -84,26 +87,28 @@ func _Setup_Input_PlateSteps(_ctx context.Context, _input *Setup_Input_PlateInpu
 		if !found {
 			replicates, found = _input.Replicates["default"]
 			if !found {
-				replicates = 1
+				replicates = len(wells)
 			}
 		}
 
-		for i := 0; i < replicates; i++ {
-
-			// get all plate components and return into both a slice and a map
-			for _, wellcontents := range wells {
-
-				if _output.PlateWithSolutions.WellMap()[wellcontents].Empty() {
-
-					_output.PlateWithSolutions.WellMap()[wellcontents].WContents = solution
-					_output.SolutionsOnPlate = append(_output.SolutionsOnPlate, _output.PlateWithSolutions.WellMap()[wellcontents].WContents)
-					break
-				} else {
-					execute.Errorf(_ctx, "Solution %s specified to add to location %s but a sample %s is already present at that position.", solution.Name(), wellcontents, _output.PlateWithSolutions.WellMap()[wellcontents].WContents.Name())
-				}
-			}
-			solution = solution.Dup()
+		if replicates != len(wells) {
+			execute.Errorf(_ctx, "Wells %+v specified for %s and also %d replicates. The number of replicates must match number of wells or number of replicates will be set by number of wells if this is replicates not specified for this solution.", wells, solutionName, replicates)
 		}
+
+		// get all plate components and return into both a slice and a map
+		for _, wellcontents := range wells {
+
+			if _output.PlateWithSolutions.WellMap()[wellcontents].Empty() {
+
+				_output.PlateWithSolutions.WellMap()[wellcontents].WContents = solution
+				_output.SolutionsOnPlate = append(_output.SolutionsOnPlate, _output.PlateWithSolutions.WellMap()[wellcontents].WContents)
+				break
+			} else {
+				execute.Errorf(_ctx, "Solution %s specified to add to location %s but a sample %s is already present at that position.", solution.Name(), wellcontents, _output.PlateWithSolutions.WellMap()[wellcontents].WContents.Name())
+			}
+		}
+		solution = solution.Dup()
+
 		newlistofsolutions, err = removeSolutionFromList(newlistofsolutions, solution.Name())
 
 		if err != nil {
@@ -280,11 +285,11 @@ func init() {
 			Desc: "This protocol allows an input plate to be set up with a series of solutions on it according to the user's specification.\n",
 			Path: "src/github.com/antha-lang/elements/an/Utility/Setup_Input_Plate/Setup_Input_Plate.an",
 			Params: []component.ParamDesc{
-				{Name: "ByRow", Desc: "If selected the solutions will be added by row (A1, A2, A3 ...), the default is by column (A1, B1, C1 ...).\nThis will conflict with the SpecifyWellPositions if both are used together so an error will be returned in that situation.\n", Kind: "Parameters"},
+				{Name: "ByRow", Desc: "If selected the solutions will be added by row (A1, A2, A3 ...), the default is by column (A1, B1, C1 ...).\nThis will potentially conflict with the SpecifyWellPositions if both are used together.\nIn that case the SpecifyWellPositions will take precedence.\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "type of plate to add solutions to.\n", Kind: "Inputs"},
 				{Name: "Replicates", Desc: "Specify whether replicate samples are to be set up\n", Kind: "Parameters"},
 				{Name: "Solutions", Desc: "input solutions to add to the plate.\n", Kind: "Inputs"},
-				{Name: "SpecifyWellPositions", Desc: "optional parameter to specify the well positions for a particular solution\nThis will conflict with ByRow if both are used together so an error will be returned in that situation.\n", Kind: "Parameters"},
+				{Name: "SpecifyWellPositions", Desc: "optional parameter to specify the well positions for a particular solution.\ne.g. \"water\": [\"A1\",\"B2\"], will add water to wells A1 and B2.\nThis will conflict with Replicates if both are used together and the number of replicates conflicts with the number of wells specified.\nAn error will be returned in that situation.\n", Kind: "Parameters"},
 				{Name: "Volumes", Desc: "Specify the volumes per sample. If left blank the components must have a volume otherwise an error will occur.\nIf the component has a volume and a volume is specified here the specified volume takes precedent.\n", Kind: "Parameters"},
 				{Name: "PlateWithSolutions", Desc: "", Kind: "Outputs"},
 				{Name: "SolutionsOnPlate", Desc: "", Kind: "Outputs"},

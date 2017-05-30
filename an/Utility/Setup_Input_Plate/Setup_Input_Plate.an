@@ -9,12 +9,15 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	// optional parameter to specify the well positions for a particular solution
-	// This will conflict with ByRow if both are used together so an error will be returned in that situation.
+	// optional parameter to specify the well positions for a particular solution.
+	// e.g. "water": ["A1","B2"], will add water to wells A1 and B2.
+	// This will conflict with Replicates if both are used together and the number of replicates conflicts with the number of wells specified. 
+	// An error will be returned in that situation.
 	SpecifyWellPositions map[string][]string
 	
 	// If selected the solutions will be added by row (A1, A2, A3 ...), the default is by column (A1, B1, C1 ...).
-	// This will conflict with the SpecifyWellPositions if both are used together so an error will be returned in that situation.
+	// This will potentially conflict with the SpecifyWellPositions if both are used together. 
+	// In that case the SpecifyWellPositions will take precedence. 
 	ByRow bool
 	
 	// Specify whether replicate samples are to be set up
@@ -94,26 +97,29 @@ Steps {
 		if !found {
 			replicates, found = Replicates["default"]
 			if !found {
-				replicates = 1
+				replicates = len(wells)
 			}
 		}
 		
-		for i := 0; i < replicates ; i++ {
+		if replicates != len(wells){
+			Errorf("Wells %+v specified for %s and also %d replicates. The number of replicates must match number of wells or number of replicates will be set by number of wells if this is replicates not specified for this solution.",wells, solutionName,replicates)
+		}
 		
-			// get all plate components and return into both a slice and a map
-			for _, wellcontents := range wells{
+		
+		// get all plate components and return into both a slice and a map
+		for _, wellcontents := range wells{
+		
+			if PlateWithSolutions.WellMap()[wellcontents].Empty() {
 			
-				if PlateWithSolutions.WellMap()[wellcontents].Empty() {
-				
-					PlateWithSolutions.WellMap()[wellcontents].WContents = solution 
-					SolutionsOnPlate = append(SolutionsOnPlate,PlateWithSolutions.WellMap()[wellcontents].WContents)
-					break
-				}else{
-					Errorf("Solution %s specified to add to location %s but a sample %s is already present at that position.",solution.Name(), wellcontents,PlateWithSolutions.WellMap()[wellcontents].WContents.Name())
-				}
+				PlateWithSolutions.WellMap()[wellcontents].WContents = solution 
+				SolutionsOnPlate = append(SolutionsOnPlate,PlateWithSolutions.WellMap()[wellcontents].WContents)
+				break
+			}else{
+				Errorf("Solution %s specified to add to location %s but a sample %s is already present at that position.",solution.Name(), wellcontents,PlateWithSolutions.WellMap()[wellcontents].WContents.Name())
 			}
-			solution = solution.Dup()
 		}
+		solution = solution.Dup()
+		
 		newlistofsolutions, err  = removeSolutionFromList(newlistofsolutions,solution.Name())
 		
 		if err != nil {
