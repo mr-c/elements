@@ -18,6 +18,9 @@ Parameters (
 	PartMolecularWeightMap map[string]float64
 	PartLocationsMap map[string]string
 	PartPlateMap map[string]string
+	
+	// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+	OverRideLiquidPolicy PolicyName
 )
 
 Data (
@@ -32,7 +35,10 @@ Inputs (
 )
 
 Outputs (
+	
 	ResuspendedDNAMap map[string]*LHComponent
+	
+	ResuspendedDNAArray []*LHComponent
 )
 
 Requirements {
@@ -59,60 +65,64 @@ Steps {
 
 	for _, part := range Parts {
 		
-	mass, found := PartMassMap[part]
+		mass, found := PartMassMap[part]
+		
+		if !found{
+			Errorf("Part %s not found in PartMassMap", part)
+		}
+		
+		mw, found := PartMolecularWeightMap[part]
+		
+		if !found{
+			Errorf("Part %s not found in PartMolecularWeightMap", part)
+		}
+		
+		well, found := PartLocationsMap[part]
+		
+		if !found{
+			Errorf("Part %s not found in PartLocationsMap", part)
+		}
+		
+		plate, found := PartPlateMap[part]
+		
+		if !found{
+			Errorf("Part %s not found in PartPlateMap", part)
+		}
+		
 	
-	if !found{
-		Errorf("Part %s not found in PartMassMap", part)
-	}
-	
-	mw, found := PartMolecularWeightMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartMolecularWeightMap", part)
-	}
-	
-	well, found := PartLocationsMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartLocationsMap", part)
-	}
-	
-	plate, found := PartPlateMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartPlateMap", part)
-	}
-	
-
-	result := RunSteps(ResuspendDNA,
-	Parameters{	DNAMass: mass,
-			  	TargetConc: TargetConc,
-				MolecularWeight: mw,
-				Well: well,
-				PlateName: plate,
-	},Inputs{
-				Diluent: Diluent,
-				DNAPlate: DNAPlate,
-	})
-	
-	result.Outputs.ResuspendedDNA.CName = part
-	
-	resuspendedDNA := result.Outputs.ResuspendedDNA
-	
-	// convert concentration to g/l
-	conc := TargetConc.GramPerL(mw)
-	
-	resuspendedDNA.SetConcentration(conc)
-	
-	// add to output maps
-	ResuspendedDNAMap[part]= resuspendedDNA
-	
-	PartConcentrations[part]= conc
-	
-	// add to slices to export as csv later
-	Reactions = append(Reactions,resuspendedDNA)
-	volumes = append(volumes,resuspendedDNA.Volume())
-	welllocations = append(welllocations,well)
+		result := RunSteps(ResuspendDNA,
+		Parameters{	DNAMass: mass,
+				  	TargetConc: TargetConc,
+					MolecularWeight: mw,
+					Well: well,
+					PlateName: plate,
+					OverRideLiquidPolicy: OverRideLiquidPolicy,
+		},Inputs{
+					Diluent: Diluent,
+					DNAPlate: DNAPlate,
+		})
+		
+		result.Outputs.ResuspendedDNA.CName = part
+		
+		resuspendedDNA := result.Outputs.ResuspendedDNA
+		
+		// convert concentration to g/l
+		conc := TargetConc.GramPerL(mw)
+		
+		resuspendedDNA.SetConcentration(conc)
+		
+		// add to output maps
+		ResuspendedDNAMap[part]= resuspendedDNA
+		
+		// add to output array
+		ResuspendedDNAArray = append(ResuspendedDNAArray,resuspendedDNA)
+		
+		PartConcentrations[part]= conc
+		
+		// add to slices to export as csv later
+		Reactions = append(Reactions,resuspendedDNA)
+		volumes = append(volumes,resuspendedDNA.Volume())
+		welllocations = append(welllocations,well)
 	}
 	
 	// once all values of loop have been completed, export the plate contents as a csv file, Not visible in UI at present! refactor exportCSV func.

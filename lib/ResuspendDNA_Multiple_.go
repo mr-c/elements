@@ -16,6 +16,8 @@ import
 
 // Input parameters for this protocol (data)
 
+// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+
 func _ResuspendDNA_MultipleRequirements() {
 }
 
@@ -63,10 +65,11 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 		}
 
 		result := ResuspendDNARunSteps(_ctx, &ResuspendDNAInput{DNAMass: mass,
-			TargetConc:      _input.TargetConc,
-			MolecularWeight: mw,
-			Well:            well,
-			PlateName:       plate,
+			TargetConc:           _input.TargetConc,
+			MolecularWeight:      mw,
+			Well:                 well,
+			PlateName:            plate,
+			OverRideLiquidPolicy: _input.OverRideLiquidPolicy,
 
 			Diluent:  _input.Diluent,
 			DNAPlate: _input.DNAPlate},
@@ -83,6 +86,9 @@ func _ResuspendDNA_MultipleSteps(_ctx context.Context, _input *ResuspendDNA_Mult
 
 		// add to output maps
 		_output.ResuspendedDNAMap[part] = resuspendedDNA
+
+		// add to output array
+		_output.ResuspendedDNAArray = append(_output.ResuspendedDNAArray, resuspendedDNA)
 
 		_output.PartConcentrations[part] = conc
 
@@ -154,6 +160,7 @@ type ResuspendDNA_MultipleElement struct {
 type ResuspendDNA_MultipleInput struct {
 	DNAPlate               *wtype.LHPlate
 	Diluent                *wtype.LHComponent
+	OverRideLiquidPolicy   wtype.PolicyName
 	PartLocationsMap       map[string]string
 	PartMassMap            map[string]wunit.Mass
 	PartMolecularWeightMap map[string]float64
@@ -164,10 +171,11 @@ type ResuspendDNA_MultipleInput struct {
 }
 
 type ResuspendDNA_MultipleOutput struct {
-	Errors             []error
-	PartConcentrations map[string]wunit.Concentration
-	PlateContents      wtype.File
-	ResuspendedDNAMap  map[string]*wtype.LHComponent
+	Errors              []error
+	PartConcentrations  map[string]wunit.Concentration
+	PlateContents       wtype.File
+	ResuspendedDNAArray []*wtype.LHComponent
+	ResuspendedDNAMap   map[string]*wtype.LHComponent
 }
 
 type ResuspendDNA_MultipleSOutput struct {
@@ -177,7 +185,8 @@ type ResuspendDNA_MultipleSOutput struct {
 		PlateContents      wtype.File
 	}
 	Outputs struct {
-		ResuspendedDNAMap map[string]*wtype.LHComponent
+		ResuspendedDNAArray []*wtype.LHComponent
+		ResuspendedDNAMap   map[string]*wtype.LHComponent
 	}
 }
 
@@ -190,6 +199,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "DNAPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
+				{Name: "OverRideLiquidPolicy", Desc: "If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.\n", Kind: "Parameters"},
 				{Name: "PartLocationsMap", Desc: "", Kind: "Parameters"},
 				{Name: "PartMassMap", Desc: "", Kind: "Parameters"},
 				{Name: "PartMolecularWeightMap", Desc: "", Kind: "Parameters"},
@@ -200,6 +210,7 @@ func init() {
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "PartConcentrations", Desc: "", Kind: "Data"},
 				{Name: "PlateContents", Desc: "", Kind: "Data"},
+				{Name: "ResuspendedDNAArray", Desc: "", Kind: "Outputs"},
 				{Name: "ResuspendedDNAMap", Desc: "", Kind: "Outputs"},
 			},
 		},
