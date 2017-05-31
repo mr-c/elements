@@ -13,10 +13,11 @@ Parameters (
 	LadderVolume Volume //specify the volume of DNA ladder to add
 	LoadingDyeInSample bool //select true if DNA samples already contain Loading Dye. If this is selected, the step to add loading dye will be skipped
 	LoadingDyeMixingPolicy PolicyName //default is NeedToMix but can be overriden by specifying here (i.e. for hard to mix reaction samples)
-	LoadingDyeVolume Volume //specify the volume of loading dye to add to each sample
+	LoadingDyeVolume map[string]Volume //specify the volume of loading dye to add to each sample
 	OptimisePlateUsage bool //If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)
 	Replicates int //define number of technical replicates
-	SampleVolume Volume //specify the volume of the DNA sample
+	SampleVolume map[string]Volume //specify the volume for each DNA sample or specify a "default" to apply to all samples with no volume explicitely specified. 
+	WellsAlreadyUsed int // Number of wells used in gel already. Use this if you need to finish off loading a semi loaded gel.
 )
 
 // Data which is returned from this protocol, and data types
@@ -81,7 +82,7 @@ Steps {
 	var loadedSample *LHComponent
 
 	//begin counter at first well position as E-GEL must be run upside down
-	var counter int = len(wells)-1
+	var counter int = len(wells)-1-WellsAlreadyUsed
 
 	//assign water to specific liquid handling load type
 	Water.Type = wtype.LTloadwater
@@ -94,7 +95,31 @@ Steps {
 
 				//range through the reactions input array and perform specified actions
 				for i := range Reactions {
-
+					
+					if counter < 0 {
+						Errorf("No more space left on gel for sample %s. Please decrease number of samples.",Reactions[i].Name())
+					}
+					
+					var sampleVolume Volume
+					
+					if vol, found := SampleVolume[Reactions[i].Name()]; found {
+						sampleVolume = vol
+					}else if vol, found := SampleVolume["default"]; found{
+						sampleVolume = vol
+					}else{
+						Errorf("No gel loading volume specified for %s. Please specify this or a default value.",Reactions[i].Name())
+					}
+					
+					var loadingDyeVolume Volume
+					
+					if vol, found := LoadingDyeVolume[Reactions[i].Name()]; found {
+						loadingDyeVolume = vol
+					}else if vol, found := LoadingDyeVolume["default"]; found{
+						loadingDyeVolume = vol
+					}else{
+						Errorf("No loading dye volume specified for %s. Please specify this or a default value.",Reactions[i].Name())
+					}
+					
 						//update position to correspond to counter
 						position := wells[counter]
 
@@ -149,10 +174,10 @@ Steps {
 
 									// determine if OptimisePlateUsage selected and if so, perform mix on input plate, else perform mix on seperate plate
 									if OptimisePlateUsage ==true {
-												loadingMixSolution = Mix(mixer.Sample(sampletotest, SampleVolume))
-												loadingMixSolution = Mix(loadingMixSolution,mixer.Sample(LoadingDye,LoadingDyeVolume))
+												loadingMixSolution = Mix(mixer.Sample(sampletotest, sampleVolume))
+												loadingMixSolution = Mix(loadingMixSolution,mixer.Sample(LoadingDye,loadingDyeVolume))
 									} else {
-												loadingMixSolution = MixInto(MixPlate,"", mixer.Sample(sampletotest,SampleVolume),mixer.Sample(LoadingDye,LoadingDyeVolume))
+												loadingMixSolution = MixInto(MixPlate,"", mixer.Sample(sampletotest,sampleVolume),mixer.Sample(LoadingDye,loadingDyeVolume))
 												}
 
 									loadingMix = loadingMixSolution
@@ -167,7 +192,7 @@ Steps {
 						}
 
 						//get total volume per well including sample and loadingdye
-						sampleAndLoadingDyeVolume := wunit.AddVolumes([]Volume{SampleVolume, LoadingDyeVolume})
+						sampleAndLoadingDyeVolume := wunit.AddVolumes([]Volume{sampleVolume, loadingDyeVolume})
 
 						//work out how much water to add
 						waterVolume := wunit.SubtractVolumes(totalWellVolume,[]Volume{sampleAndLoadingDyeVolume})
