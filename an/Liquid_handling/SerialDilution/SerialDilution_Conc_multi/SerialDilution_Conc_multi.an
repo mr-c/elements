@@ -52,7 +52,16 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
+	
+	
+	
+	// All solutions, original solutions + all dilutions made.
+	InputsandDilutions []*LHComponent
+	
+	// All dilutions made only.
 	AllDilutions []*LHComponent
+	
+	// All dilutions made only exported as a map using the solution name as key.
 	DilutionsByComponent map[string][]*LHComponent
 )
 
@@ -121,11 +130,17 @@ Steps {
 		// update wells used to carry on next set of dilutions to next available position
 		wellsused = result.Data.WellsUsedPostRun
 	
-		// add all dilutions to output
+		// add all dilutions (original solution + dilutions) as output
 		for _, dilution := range result.Outputs.AllDilutions{
+			InputsandDilutions = append(AllDilutions,dilution)
+		}
+		
+		// add dilutions to output
+		for _, dilution := range result.Outputs.Dilutions{
 			AllDilutions = append(AllDilutions,dilution)
 		}
-		DilutionsByComponent[solution.CName] = result.Outputs.AllDilutions
+		
+		DilutionsByComponent[solution.CName] = result.Outputs.Dilutions
 	}
 	
 	WellsUsedPostRun = wellsused
