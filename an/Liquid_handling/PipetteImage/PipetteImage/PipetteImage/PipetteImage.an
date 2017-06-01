@@ -19,38 +19,36 @@ Parameters (
 	VolumePerWell  Volume 	//
 	ImageFileName	string 	//Desired name for the output image file
 	InputFile File 			// Image File
-	URL	string 				//The URL from which to download the image
-	UseURL	bool 			//Boolean to signal that you want to use an image from a URL, not a file
 	Palettename string 		//Name of the palette set you want to use (look at the map in the source code)
-	OnlythisColour string
-	Notthiscolour string
-	UVimage bool
-	Rotate bool
-	AutoRotate bool
-	Subset bool
-	UseLiquidClass PolicyName
-	Subsetnames []string
-	CheckResizeAlgorithms bool
+	OnlythisColour string	//use this key to select only one color
+	Notthiscolour string	//use this key to remove this color
+	UVimage bool			//use this key to use fluorescent proteins
+	Rotate bool				//set to true to rotate the image to fit the plate.
+	AutoRotate bool			//set to true to rotate the image to fit the plate.
+	Subset bool				//set to true to use a few colors from the selected palette
+	UseLiquidClass PolicyName//key to set which liquidPolicy to use
+	Subsetnames []string	//name of the subset of colors to use
+	CheckResizeAlgorithms bool//iterate through potential resizeAlgorithm to resize the image
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	ResizedImage File
-	ResizedImages []*goimage.NRGBA
-	Numberofpixels int
-	UniqueComponents []string
+	ResizedImage File				//the image resized to fit the plate
+	ResizedImages []*goimage.NRGBA	//the images for each resize algorithms
+	Numberofpixels int				//the number of pixels in the final image
+	UniqueComponents []string		//the keys of the IDs of the LHcomponents for every color
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	ComponentType *LHComponent
-	OutPlate *LHPlate
+	ComponentType *LHComponent		//Component type for the paint LHComponents. Set to "paint" if none given.
+	OutPlate *LHPlate				//the type of plate to which the image is printed
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	 Pixels[]*LHComponent
+	 Pixels[]*LHComponent			//The LHComponent for each pixel.
 )
 
 Requirements {
@@ -73,6 +71,14 @@ Steps {
 
 	var imgBase *goimage.NRGBA
 	var err error
+
+	solutions := make([]*LHComponent, 0)
+
+	counter := 0
+	UniqueComponents = make([]string,0)
+
+	// get components from factory
+	componentmap := make(map[string]*LHComponent, 0)
 
 	//--------------------------------------------------------------
 	//Opening image
@@ -119,30 +125,28 @@ Steps {
 	if CheckResizeAlgorithms {
 		ResizedImages =  image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 	}
+
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
 	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette,Rotate,AutoRotate)
-
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
-	
-	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light 
-	
+
+	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light
+
 	if UVimage {
 		uvmap := image.AvailableComponentmaps()[Palettename]
 		visiblemap := image.Visibleequivalentmaps()[Palettename]
 		
 		if Subset {
-		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
-		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+			uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+			visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
+
 		image.PrintFPImagePreview(imgBase,OutPlate, Rotate, visiblemap, uvmap)
 	}
-
-	// get components from factory
-	componentmap := make(map[string]*LHComponent, 0)
 	
 	if Subset {
-	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 	}
 
 	for colourname, _ := range colourtostringmap {
@@ -157,16 +161,11 @@ Steps {
 		} else { 
 			componenttopick = factory.GetComponentByType("Paint")
 		}
-		componenttopick.CName = componentname
 
+		componenttopick.CName = componentname
 		componentmap[componentname] = componenttopick
 
 	}
-
-	solutions := make([]*LHComponent, 0)
-
-	counter := 0
-	UniqueComponents = make([]string,0)
 
 	//---------------------------------------------------------------------
 	//Pipetting
@@ -176,38 +175,38 @@ Steps {
 	for locationkey, colour := range positiontocolourmap {
 		
 		component := componentmap[colourtostringmap[colour]]
-
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
 		
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if OnlythisColour !="" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
+		if OnlythisColour !="" {
 	
 			if image.Colourcomponentmap[colour] == OnlythisColour{
 
-					UniqueComponents = append(UniqueComponents,component.CName)
-
-					counter = counter + 1
-
-					pixelSample := mixer.Sample(component, VolumePerWell)
-
-					solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
-
-					solutions = append(solutions, solution)
-			}
-			}else{
-				if component.CName !=Notthiscolour && component.CName != "transparent"{
-
 				UniqueComponents = append(UniqueComponents,component.CName)
 
-				counter = counter + 1
-
-				component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
 				pixelSample := mixer.Sample(component, VolumePerWell)
-
-				solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+				solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
 
 				solutions = append(solutions, solution)
+
+				counter = counter + 1
+			}
+
+		}else{
+
+			if component.CName !=Notthiscolour && component.CName != "transparent"{
+
+			UniqueComponents = append(UniqueComponents,component.CName)
+
+			counter = counter + 1
+
+			component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
+			pixelSample := mixer.Sample(component, VolumePerWell)
+
+			solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+
+			solutions = append(solutions, solution)
 			}
 		}
 	}

@@ -83,7 +83,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		PlateWithCompetentCells *wtype.LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
 	)
 
-	colourtoComponentMap := make(map[string]*wtype.LHComponent)
+	colourtoComponentMap := make(map[string]string)
 
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
@@ -304,8 +304,11 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 
 				execute.Incubate(_ctx, solution, RecoveryTemp, RecoveryTime, true)
 
+				originalname := solution.CName
+				solution.CName = originalname + "_colour_" + strconv.Itoa(colourindex)
+
 				solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
-				colourtoComponentMap[strconv.Itoa(colourindex)] = solution
+				colourtoComponentMap[strconv.Itoa(colourindex)] = solution.Name()
 			}
 		}
 	}
@@ -400,7 +403,7 @@ type TransformLivingPaletteInput struct {
 }
 
 type TransformLivingPaletteOutput struct {
-	ColourtoComponentMap map[string]*wtype.LHComponent
+	ColourtoComponentMap map[string]string
 	Numberofpixels       int
 	Palette              color.Palette
 	Pixels               []*wtype.LHComponent
@@ -409,7 +412,7 @@ type TransformLivingPaletteOutput struct {
 
 type TransformLivingPaletteSOutput struct {
 	Data struct {
-		ColourtoComponentMap map[string]*wtype.LHComponent
+		ColourtoComponentMap map[string]string
 		Numberofpixels       int
 		Palette              color.Palette
 		UniqueComponents     []string

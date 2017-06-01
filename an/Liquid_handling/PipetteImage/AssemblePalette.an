@@ -16,9 +16,7 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForeachColourPlasmid  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	Imagefilename string 				// name of image file or if using URL use this field to set the desired filename
 	PosterizeImage bool
 	PosterizeLevels int
 	Rotate bool
@@ -110,24 +108,13 @@ Steps {
 	var imgBase *goimage.NRGBA
 	var err error
 
-	//----------------------------------------------------------------------------
-	//Fetch image
-	//----------------------------------------------------------------------------
+	//--------------------------------------------------------------
+	//Opening the image file
+	//--------------------------------------------------------------
 
-	// if image is from url, download
-	if UseURL {
-
-		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
-			Errorf(err.Error())
-		}
+	imgBase, err = image.OpenFile(imgFile)
+	if err != nil{
+		Errorf(err.Error())
 	}
 
 	//----------------------------------------------------------------------------

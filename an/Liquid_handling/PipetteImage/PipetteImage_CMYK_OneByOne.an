@@ -13,10 +13,9 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	VolumeForFullcolour  Volume
-	Imagefilename string // name of the desired output file name
-	URL string // enter URL link to the image file here if applicable
 	Rotate bool
 	AutoRotate bool
+	ImageFile File				//Input image as a file
 )
 
 // Data which is returned from this protocol, and data types

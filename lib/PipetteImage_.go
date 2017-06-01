@@ -20,14 +20,37 @@ import (
 
 // Input parameters for this protocol (data)
 
+//
 //Desired name for the output image file
 // Image File
+//The URL from which to download the image
+//Boolean to signal that you want to use an image from a URL, not a file
+//Name of the palette set you want to use (look at the map in the source code)
+//use this key to select only one color
+//use this key to remove this color
+//use this key to use fluorescent proteins
+//set to true to rotate the image to fit the plate.
+//set to true to rotate the image to fit the plate.
+//set to true to use a few colors from the selected palette
+//key to set which liquidPolicy to use
+//name of the subset of colors to use
+//iterate through potential resizeAlgorithm to resize the image
 
 // Data which is returned from this protocol, and data types
 
+//the image resized to fit the plate
+//the images for each resize algorithms
+//the number of pixels in the final image
+//the keys of the IDs of the LHcomponents for every color
+
 // Physical Inputs to this protocol with types
 
+//Component type for the paint LHComponents. Set to "paint" if none given.
+//the type of plate to which the image is printed
+
 // Physical outputs from this protocol with types
+
+//The LHComponent for each pixel.
 
 func _PipetteImageRequirements() {
 
@@ -48,6 +71,14 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 
 	var imgBase *goimage.NRGBA
 	var err error
+
+	solutions := make([]*wtype.LHComponent, 0)
+
+	counter := 0
+	_output.UniqueComponents = make([]string, 0)
+
+	// get components from factory
+	componentmap := make(map[string]*wtype.LHComponent, 0)
 
 	//--------------------------------------------------------------
 	//Opening image
@@ -94,10 +125,10 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	if _input.CheckResizeAlgorithms {
 		_output.ResizedImages = image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
+
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
 	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
-
 	colourtostringmap := image.AvailableComponentmaps()[_input.Palettename]
 
 	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light
@@ -110,11 +141,9 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 			uvmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 			visiblemap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 		}
+
 		image.PrintFPImagePreview(imgBase, _input.OutPlate, _input.Rotate, visiblemap, uvmap)
 	}
-
-	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
 
 	if _input.Subset {
 		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
@@ -132,47 +161,41 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		} else {
 			componenttopick = factory.GetComponentByType("Paint")
 		}
-		componenttopick.CName = componentname
 
+		componenttopick.CName = componentname
 		componentmap[componentname] = componenttopick
 
 	}
-
-	solutions := make([]*wtype.LHComponent, 0)
-
-	counter := 0
-	_output.UniqueComponents = make([]string, 0)
 
 	//---------------------------------------------------------------------
 	//Pipetting
 	//---------------------------------------------------------------------
 
-	// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipetting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
 
 		component := componentmap[colourtostringmap[colour]]
-
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
 		component.Type, _ = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
 
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if _input.OnlythisColour != "" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
+		if _input.OnlythisColour != "" {
 
 			if image.Colourcomponentmap[colour] == _input.OnlythisColour {
 
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
-				counter = counter + 1
-
 				pixelSample := mixer.Sample(component, _input.VolumePerWell)
-
 				solution := execute.MixTo(_ctx, _input.OutPlate.Type, locationkey, 1, pixelSample)
 
 				solutions = append(solutions, solution)
+
+				counter = counter + 1
 			}
 
 		} else {
-			if component.CName != _input.Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
+
+			if component.CName != _input.Notthiscolour && component.CName != "transparent" {
 
 				_output.UniqueComponents = append(_output.UniqueComponents, component.CName)
 
@@ -310,28 +333,28 @@ func init() {
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of coloured bacteria\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/PipetteImage/PipetteImage.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
+				{Name: "AutoRotate", Desc: "set to true to rotate the image to fit the plate.\n", Kind: "Parameters"},
+				{Name: "CheckResizeAlgorithms", Desc: "iterate through potential resizeAlgorithm to resize the image\n", Kind: "Parameters"},
+				{Name: "ComponentType", Desc: "Component type for the paint LHComponents. Set to \"paint\" if none given.\n", Kind: "Inputs"},
 				{Name: "ImageFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
 				{Name: "InputFile", Desc: "Image File\n", Kind: "Parameters"},
-				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
-				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Palettename", Desc: "", Kind: "Parameters"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "Subset", Desc: "", Kind: "Parameters"},
-				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "", Kind: "Parameters"},
-				{Name: "UVimage", Desc: "", Kind: "Parameters"},
-				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "", Kind: "Parameters"},
+				{Name: "Notthiscolour", Desc: "use this key to remove this color\n", Kind: "Parameters"},
+				{Name: "OnlythisColour", Desc: "use this key to select only one color\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "the type of plate to which the image is printed\n", Kind: "Inputs"},
+				{Name: "Palettename", Desc: "Name of the palette set you want to use (look at the map in the source code)\n", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "set to true to rotate the image to fit the plate.\n", Kind: "Parameters"},
+				{Name: "Subset", Desc: "set to true to use a few colors from the selected palette\n", Kind: "Parameters"},
+				{Name: "Subsetnames", Desc: "name of the subset of colors to use\n", Kind: "Parameters"},
+				{Name: "URL", Desc: "The URL from which to download the image\n", Kind: "Parameters"},
+				{Name: "UVimage", Desc: "use this key to use fluorescent proteins\n", Kind: "Parameters"},
+				{Name: "UseLiquidClass", Desc: "key to set which liquidPolicy to use\n", Kind: "Parameters"},
+				{Name: "UseURL", Desc: "Boolean to signal that you want to use an image from a URL, not a file\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
-				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
-				{Name: "Pixels", Desc: "", Kind: "Outputs"},
-				{Name: "ResizedImage", Desc: "", Kind: "Data"},
-				{Name: "ResizedImages", Desc: "", Kind: "Data"},
-				{Name: "UniqueComponents", Desc: "", Kind: "Data"},
+				{Name: "Numberofpixels", Desc: "the number of pixels in the final image\n", Kind: "Data"},
+				{Name: "Pixels", Desc: "The LHComponent for each pixel.\n", Kind: "Outputs"},
+				{Name: "ResizedImage", Desc: "the image resized to fit the plate\n", Kind: "Data"},
+				{Name: "ResizedImages", Desc: "the images for each resize algorithms\n", Kind: "Data"},
+				{Name: "UniqueComponents", Desc: "the keys of the IDs of the LHcomponents for every color\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {
