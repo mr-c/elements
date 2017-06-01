@@ -16,12 +16,12 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	VolumePerWell  Volume
-	ImageFileName	string //Desired name for the output image file
-	InputFile File // Image File
-	URL	string
-	UseURL	bool
-	Palettename string
+	VolumePerWell  Volume 	//
+	ImageFileName	string 	//Desired name for the output image file
+	InputFile File 			// Image File
+	URL	string 				//The URL from which to download the image
+	UseURL	bool 			//Boolean to signal that you want to use an image from a URL, not a file
+	Palettename string 		//Name of the palette set you want to use (look at the map in the source code)
 	OnlythisColour string
 	Notthiscolour string
 	UVimage bool
@@ -153,9 +153,9 @@ Steps {
 		var componenttopick *LHComponent
 		
 		if ComponentType != nil{
-		componenttopick = ComponentType
+			componenttopick = ComponentType
 		} else { 
-		componenttopick = factory.GetComponentByType("Paint")
+			componenttopick = factory.GetComponentByType("Paint")
 		}
 		componenttopick.CName = componentname
 
@@ -168,12 +168,11 @@ Steps {
 	counter := 0
 	UniqueComponents = make([]string,0)
 
-
 	//---------------------------------------------------------------------
 	//Pipetting
 	//---------------------------------------------------------------------
 
-	// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipetting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
 		
 		component := componentmap[colourtostringmap[colour]]
@@ -184,33 +183,32 @@ Steps {
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if OnlythisColour !="" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
 	
-		if image.Colourcomponentmap[colour] == OnlythisColour{
-			
-			UniqueComponents = append(UniqueComponents,component.CName)
-			
-			counter = counter + 1
-	
-		pixelSample := mixer.Sample(component, VolumePerWell)
-	
-		solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
-		
-		solutions = append(solutions, solution)
+			if image.Colourcomponentmap[colour] == OnlythisColour{
+
+					UniqueComponents = append(UniqueComponents,component.CName)
+
+					counter = counter + 1
+
+					pixelSample := mixer.Sample(component, VolumePerWell)
+
+					solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
+
+					solutions = append(solutions, solution)
 			}
-			
-		}else{
-			if component.CName !=Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
-				
-			UniqueComponents = append(UniqueComponents,component.CName)
-			
-			counter = counter + 1
-	
-		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
-		pixelSample := mixer.Sample(component, VolumePerWell)
-	
-		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
-		
-		solutions = append(solutions, solution)
-		}
+			}else{
+				if component.CName !=Notthiscolour && component.CName != "transparent"{
+
+				UniqueComponents = append(UniqueComponents,component.CName)
+
+				counter = counter + 1
+
+				component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
+				pixelSample := mixer.Sample(component, VolumePerWell)
+
+				solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+
+				solutions = append(solutions, solution)
+			}
 		}
 	}
 
