@@ -173,7 +173,7 @@ func init() {
 		Constructor: BlastSearch_wtypeNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/BlastSearch/BlastSearch_wtype.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/BlastSearch/BlastSearch.an",
 			Params: []component.ParamDesc{
 				{Name: "DNA", Desc: "", Kind: "Parameters"},
 				{Name: "AnthaSeq", Desc: "", Kind: "Data"},

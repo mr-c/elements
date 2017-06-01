@@ -1,4 +1,7 @@
 // Protocol for resuspending freeze dried DNA with a diluent
+// The inputs of this are designed to be wired in from the ParseDNAPlate element which Parses a DNA plate file from Thermo.
+// The protocol can also be used as a stand-alone element by specifying all the necessary paramters manually.
+// Defaults can also be specified for most parameters to make the process easier.
 protocol ResuspendDNA_Multiple
 
 // we need to import the wtype package to use the LHComponent type
@@ -12,12 +15,33 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Projectname string
+	
+	// Target concentration to resuspend the DNA to.
   	TargetConc Concentration
+	
+	// A list of part names
 	Parts[]string
+	
+	// A map of the mass of each part. 
+	// A default can be specified which will apply to any part which does not have a value explicitely set.
 	PartMassMap map[string]Mass
+	
+	// A map of the molecular weight of each part. 
+	// A default can be specified which will apply to any part which does not have a value explicitely set.
 	PartMolecularWeightMap map[string]float64
+	
+	// If selected then for any part that no well location is specified for in PartLocationsMap, the system will autoallocate a position for it on the input plate.
+	AutoAllocateMissingParts bool
+	
+	// A map of part name to well location (i.e. A1, B12). If a part is mssing an error will occur unless AutoAllocateMissingParts is selected.
 	PartLocationsMap map[string]string
+	
+	// A map of which plate each part is located on. 
+	// A default can be specified which will apply to any part which does not have a plate name explicitely set.
 	PartPlateMap map[string]string
+	
+	// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+	OverRideLiquidPolicy PolicyName
 )
 
 Data (
@@ -32,7 +56,11 @@ Inputs (
 )
 
 Outputs (
+	
 	ResuspendedDNAMap map[string]*LHComponent
+	
+	// This can be wired directly into AutoAssembly_Conc_Multi to use some or all of the parts directly after resuspension.
+	ResuspendedDNAArray []*LHComponent
 )
 
 Requirements {
@@ -59,60 +87,81 @@ Steps {
 
 	for _, part := range Parts {
 		
-	mass, found := PartMassMap[part]
+		mass, found := PartMassMap[part]
+		
+		if !found{
+			mass, found = PartMassMap["default"]
+			
+			if !found{
+				Errorf("Part %s not found in PartMassMap and no default set.", part)
+			}
+		}
+		
+		mw, found := PartMolecularWeightMap[part]
+		
+		if !found{
+			mw, found = PartMolecularWeightMap["default"]
+			
+			if !found{
+				Errorf("Part %s not found in PartMolecularWeightMap and no default set.", part)
+			}
+		}
+		
+		well, found := PartLocationsMap[part]
+		
+		if !found{
+			
+			if AutoAllocateMissingParts {
+				well = ""
+			}else{
+				Errorf("Part %s not found in PartLocationsMap", part)
+			}
+		}
+		
+		plate, found := PartPlateMap[part]
+		
+		if !found{
+			plate, found = PartPlateMap["default"]
+			
+			if !found {
+				Errorf("Part %s not found in PartPlateMap and no default set.", part)
+			}
+		}
+		
 	
-	if !found{
-		Errorf("Part %s not found in PartMassMap", part)
-	}
-	
-	mw, found := PartMolecularWeightMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartMolecularWeightMap", part)
-	}
-	
-	well, found := PartLocationsMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartLocationsMap", part)
-	}
-	
-	plate, found := PartPlateMap[part]
-	
-	if !found{
-		Errorf("Part %s not found in PartPlateMap", part)
-	}
-	
-
-	result := RunSteps(ResuspendDNA,
-	Parameters{	DNAMass: mass,
-			  	TargetConc: TargetConc,
-				MolecularWeight: mw,
-				Well: well,
-				PlateName: plate,
-	},Inputs{
-				Diluent: Diluent,
-				DNAPlate: DNAPlate,
-	})
-	
-	result.Outputs.ResuspendedDNA.CName = part
-	
-	resuspendedDNA := result.Outputs.ResuspendedDNA
-	
-	// convert concentration to g/l
-	conc := TargetConc.GramPerL(mw)
-	
-	resuspendedDNA.SetConcentration(conc)
-	
-	// add to output maps
-	ResuspendedDNAMap[part]= resuspendedDNA
-	
-	PartConcentrations[part]= conc
-	
-	// add to slices to export as csv later
-	Reactions = append(Reactions,resuspendedDNA)
-	volumes = append(volumes,resuspendedDNA.Volume())
-	welllocations = append(welllocations,well)
+		result := RunSteps(ResuspendDNA,
+		Parameters{	DNAMass: mass,
+				  	TargetConc: TargetConc,
+					MolecularWeight: mw,
+					Well: well,
+					PlateName: plate,
+					OverRideLiquidPolicy: OverRideLiquidPolicy,
+		},Inputs{
+					Diluent: Diluent,
+					DNAPlate: DNAPlate,
+		})
+		
+		result.Outputs.ResuspendedDNA.CName = part
+		
+		resuspendedDNA := result.Outputs.ResuspendedDNA
+		
+		// convert concentration to g/l
+		conc := TargetConc.GramPerL(mw)
+		
+		resuspendedDNA.SetConcentration(conc)
+		
+		// add to output maps
+		ResuspendedDNAMap[part]= resuspendedDNA
+		
+		// add to output array
+		ResuspendedDNAArray = append(ResuspendedDNAArray,resuspendedDNA)
+		
+		PartConcentrations[part]= conc
+		
+		// add to slices to export as csv later
+		Reactions = append(Reactions,resuspendedDNA)
+		volumes = append(volumes,resuspendedDNA.Volume())
+		welllocations = append(welllocations,well)
 	}
 	
 	// once all values of loop have been completed, export the plate contents as a csv file, Not visible in UI at present! refactor exportCSV func.

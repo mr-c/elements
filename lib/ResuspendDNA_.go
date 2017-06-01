@@ -18,6 +18,22 @@ import
 
 // Input parameters for this protocol (data)
 
+// Mass of DNA to Resuspend
+
+// Target concentration to resuspend to
+
+// Molecular weight of the DNA
+
+// Well location of DNA
+
+// Plate location of DNA
+
+// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+
+// Diluent to use to resuspend the DNA
+
+// Type of plate DNA sample is on.
+
 func _ResuspendDNARequirements() {
 }
 
@@ -39,7 +55,17 @@ func _ResuspendDNASteps(_ctx context.Context, _input *ResuspendDNAInput, _output
 
 	diluentSample := mixer.Sample(_input.Diluent, volumetoadd)
 
-	diluentSample.Type = wtype.LTDNAMIX
+	if _input.OverRideLiquidPolicy == "" {
+		_input.OverRideLiquidPolicy = "MegaMix"
+	}
+
+	var err error
+
+	diluentSample.Type, err = wtype.LiquidTypeFromString(_input.OverRideLiquidPolicy)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	_output.ResuspendedDNA = execute.MixNamed(_ctx, _input.DNAPlate.Type, _input.Well, _input.PlateName, diluentSample)
 
@@ -99,13 +125,14 @@ type ResuspendDNAElement struct {
 }
 
 type ResuspendDNAInput struct {
-	DNAMass         wunit.Mass
-	DNAPlate        *wtype.LHPlate
-	Diluent         *wtype.LHComponent
-	MolecularWeight float64
-	PlateName       string
-	TargetConc      wunit.Concentration
-	Well            string
+	DNAMass              wunit.Mass
+	DNAPlate             *wtype.LHPlate
+	Diluent              *wtype.LHComponent
+	MolecularWeight      float64
+	OverRideLiquidPolicy wtype.PolicyName
+	PlateName            string
+	TargetConc           wunit.Concentration
+	Well                 string
 }
 
 type ResuspendDNAOutput struct {
@@ -129,13 +156,14 @@ func init() {
 			Desc: "Protocol for resuspending freeze dried DNA with a diluent\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/ResuspendDNA/ResuspendDNA.an",
 			Params: []component.ParamDesc{
-				{Name: "DNAMass", Desc: "", Kind: "Parameters"},
-				{Name: "DNAPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Diluent", Desc: "", Kind: "Inputs"},
-				{Name: "MolecularWeight", Desc: "", Kind: "Parameters"},
-				{Name: "PlateName", Desc: "", Kind: "Parameters"},
-				{Name: "TargetConc", Desc: "", Kind: "Parameters"},
-				{Name: "Well", Desc: "", Kind: "Parameters"},
+				{Name: "DNAMass", Desc: "Mass of DNA to Resuspend\n", Kind: "Parameters"},
+				{Name: "DNAPlate", Desc: "Type of plate DNA sample is on.\n", Kind: "Inputs"},
+				{Name: "Diluent", Desc: "Diluent to use to resuspend the DNA\n", Kind: "Inputs"},
+				{Name: "MolecularWeight", Desc: "Molecular weight of the DNA\n", Kind: "Parameters"},
+				{Name: "OverRideLiquidPolicy", Desc: "If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.\n", Kind: "Parameters"},
+				{Name: "PlateName", Desc: "Plate location of DNA\n", Kind: "Parameters"},
+				{Name: "TargetConc", Desc: "Target concentration to resuspend to\n", Kind: "Parameters"},
+				{Name: "Well", Desc: "Well location of DNA\n", Kind: "Parameters"},
 				{Name: "ResuspendedDNA", Desc: "", Kind: "Outputs"},
 				{Name: "Warnings", Desc: "", Kind: "Data"},
 			},

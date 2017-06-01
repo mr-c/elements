@@ -1,6 +1,6 @@
 // Example element demonstrating how to perform a BLAST search using the megablast algorithm
 
-protocol BlastSearch
+protocol BlastSearch_wtype
 
 import (
 	"fmt"
@@ -12,8 +12,7 @@ import (
 )
 // Input parameters for this protocol
 Parameters (
-	DNA string
-	Name string
+	DNA DNASequence
 )
 
 // Data which is returned from this protocol; output data
@@ -49,7 +48,6 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 	
-	
 	var err error
 	var hits []biogo.Hit
 	var hitsummary string	
@@ -57,9 +55,7 @@ Steps {
 	var coverage float64
 	var besthitsummary string
 	
-	
-	// Convert the sequence to an anthatype
-	AnthaSeq = wtype.MakeLinearDNASequence(Name, DNA)
+	AnthaSeq = DNA
 	
 	// look for orfs
 	orf, orftrue := sequences.FindORF(AnthaSeq.Seq)
