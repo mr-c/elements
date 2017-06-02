@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
@@ -15,9 +14,13 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
+//image to use for his element
+//rotating image to fit plate
+//rotating image to fit plate
+//Posterize the image (espress it with fewer colors)
+//Posterizing value (number of colors to express the image with)
+//Palette name with which to resize the image
+//Iterate over every type of resizing algorithm to see the different image they output
 
 // Data which is returned from this protocol, and data types
 
@@ -42,41 +45,15 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile wtype.File
-	var imgBase *goimage.NRGBA
+	//Placeholders for image and errors
+	imgBase := _input.InputImage
 	var err error
-
-	//-------------------------------------------------------------------------------------
-	//Fetching image
-	//-------------------------------------------------------------------------------------
-
-	// if image is from url, download
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.ImageFileName)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	}
-
-	//opening the image file
-	imgBase, err = image.OpenFile(_input.InputFile)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
 
 	//--------------------------------------------------------------
 	//Image Processing
 	//--------------------------------------------------------------
 
 	if _input.PosterizeImage {
-
 		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -98,10 +75,9 @@ func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _
 	//--------------------------------------------------------------
 	_, imgBase = image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
 
-	_output.ProcessedImage, err = image.Export(imgBase, _input.ImageFileName)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
+	//--------------------------------------------------------------
+	//Returning image
+	//--------------------------------------------------------------
 
 }
 
@@ -167,16 +143,12 @@ type PreProcessImageElement struct {
 type PreProcessImageInput struct {
 	AutoRotate               bool
 	CheckAllResizeAlgorithms bool
-	ImageFileName            string
-	InputFile                wtype.File
-	Negative                 bool
+	InputImage               *goimage.NRGBA
 	OutPlate                 *wtype.LHPlate
 	Palette                  string
 	PosterizeImage           bool
 	PosterizeLevels          int
 	Rotate                   bool
-	URL                      string
-	UseURL                   bool
 }
 
 type PreProcessImageOutput struct {
@@ -196,20 +168,16 @@ func init() {
 		Constructor: PreProcessImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PreProcessImage.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/LowLevel/PreProcessImage.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "CheckAllResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "ImageFileName", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
-				{Name: "Negative", Desc: "", Kind: "Parameters"},
+				{Name: "AutoRotate", Desc: "rotating image to fit plate\n", Kind: "Parameters"},
+				{Name: "CheckAllResizeAlgorithms", Desc: "Iterate over every type of resizing algorithm to see the different image they output\n", Kind: "Parameters"},
+				{Name: "InputImage", Desc: "image to use for his element\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Palette", Desc: "", Kind: "Parameters"},
-				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
-				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
+				{Name: "Palette", Desc: "Palette name with which to resize the image\n", Kind: "Parameters"},
+				{Name: "PosterizeImage", Desc: "Posterize the image (espress it with fewer colors)\n", Kind: "Parameters"},
+				{Name: "PosterizeLevels", Desc: "Posterizing value (number of colors to express the image with)\n", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "rotating image to fit plate\n", Kind: "Parameters"},
 				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},

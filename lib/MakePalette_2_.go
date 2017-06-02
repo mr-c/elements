@@ -18,8 +18,6 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-
 // Data which is returned from this protocol, and data types
 
 // map of colour name (as index) to component name
@@ -47,19 +45,8 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 	//image and error placeholders
 
-	var imgBase *goimage.NRGBA
+	imgBase := _input.InputImage
 	var err error
-
-	//-------------------------------------------------------------------------------------
-	//Open image
-	//-------------------------------------------------------------------------------------
-
-	//opening the image file
-	imgBase, err = image.OpenFile(_input.ImageFile)
-
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
 
 	//-------------------------------------------------------------------------------------
 	//Image processing
@@ -322,7 +309,7 @@ type MakePalette_2Input struct {
 	AutoRotate          bool
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
-	ImageFile           wtype.File
+	InputImage          *goimage.NRGBA
 	LowerThreshold      uint8
 	Magenta             *wtype.LHComponent
 	NotThisColour       string
@@ -361,12 +348,12 @@ func init() {
 		Constructor: MakePalette_2New,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to make a pallette of all colours in an image\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/MakePalette_2.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/LowLevel/MakePalette_2.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "ImageFile", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputImage", Desc: "", Kind: "Parameters"},
 				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "NotThisColour", Desc: "", Kind: "Parameters"},

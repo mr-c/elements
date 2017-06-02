@@ -20,11 +20,8 @@ import (
 
 // Input parameters for this protocol (data)
 
-//
-//Desired name for the output image file
 // Image File
-//The URL from which to download the image
-//Boolean to signal that you want to use an image from a URL, not a file
+//
 //Name of the palette set you want to use (look at the map in the source code)
 //use this key to select only one color
 //use this key to remove this color
@@ -35,6 +32,7 @@ import (
 //key to set which liquidPolicy to use
 //name of the subset of colors to use
 //iterate through potential resizeAlgorithm to resize the image
+//name of the output image file
 
 // Data which is returned from this protocol, and data types
 
@@ -85,7 +83,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//--------------------------------------------------------------
 
 	//opening the image file
-	imgBase, err = image.OpenFile(_input.InputFile)
+	imgBase, err = image.OpenFile(_input.ImageFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -220,7 +218,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 	//Exporting resulting images
 	//--------------------------------------------------------------
 
-	_output.ResizedImage, err = image.Export(imgBase, _input.ImageFileName)
+	_output.ResizedImage, err = image.Export(imgBase, _input.OutputImageFileName)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -290,19 +288,17 @@ type PipetteImageInput struct {
 	AutoRotate            bool
 	CheckResizeAlgorithms bool
 	ComponentType         *wtype.LHComponent
-	ImageFileName         string
-	InputFile             wtype.File
+	ImageFile             wtype.File
 	Notthiscolour         string
 	OnlythisColour        string
 	OutPlate              *wtype.LHPlate
+	OutputImageFileName   string
 	Palettename           string
 	Rotate                bool
 	Subset                bool
 	Subsetnames           []string
-	URL                   string
 	UVimage               bool
 	UseLiquidClass        wtype.PolicyName
-	UseURL                bool
 	VolumePerWell         wunit.Volume
 }
 
@@ -331,24 +327,22 @@ func init() {
 		Constructor: PipetteImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of coloured bacteria\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/PipetteImage/PipetteImage.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/HighLevel/PipetteImage.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "set to true to rotate the image to fit the plate.\n", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "iterate through potential resizeAlgorithm to resize the image\n", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "Component type for the paint LHComponents. Set to \"paint\" if none given.\n", Kind: "Inputs"},
-				{Name: "ImageFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "Image File\n", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "Image File\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "use this key to remove this color\n", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "use this key to select only one color\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "the type of plate to which the image is printed\n", Kind: "Inputs"},
+				{Name: "OutputImageFileName", Desc: "name of the output image file\n", Kind: "Parameters"},
 				{Name: "Palettename", Desc: "Name of the palette set you want to use (look at the map in the source code)\n", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "set to true to rotate the image to fit the plate.\n", Kind: "Parameters"},
 				{Name: "Subset", Desc: "set to true to use a few colors from the selected palette\n", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "name of the subset of colors to use\n", Kind: "Parameters"},
-				{Name: "URL", Desc: "The URL from which to download the image\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "use this key to use fluorescent proteins\n", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "key to set which liquidPolicy to use\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "Boolean to signal that you want to use an image from a URL, not a file\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "the number of pixels in the final image\n", Kind: "Data"},
 				{Name: "Pixels", Desc: "The LHComponent for each pixel.\n", Kind: "Outputs"},

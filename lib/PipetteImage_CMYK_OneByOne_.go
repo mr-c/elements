@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -16,10 +15,14 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of the desired output file name
-// enter URL link to the image file here if applicable
+//image to use for this protocol
+//
+//rotating image to fit plate
+//rotating image to fit plate
 
 // Data which is returned from this protocol, and data types
+
+//Number of LHComponents in this protocol
 
 // Physical Inputs to this protocol with types
 
@@ -44,25 +47,7 @@ func _PipetteImage_CMYK_OneByOneSteps(_ctx context.Context, _input *PipetteImage
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile wtype.File
-	var imgBase *goimage.NRGBA
-	var err error
-
-	//-------------------------------------------------------------------------------------
-	//Fetching image
-	//-------------------------------------------------------------------------------------
-
-	//downloading image
-	imgFile, err = download.File(_input.URL, _input.Imagefilename)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
-
-	//opening the image file
-	imgBase, err = image.OpenFile(imgFile)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
-	}
+	imgBase := _input.InputImage
 
 	//----------------------------------------------------------------------------------------------
 	//Palette Processing
@@ -194,11 +179,10 @@ type PipetteImage_CMYK_OneByOneInput struct {
 	AutoRotate          bool
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
-	Imagefilename       string
+	InputImage          *goimage.NRGBA
 	Magenta             *wtype.LHComponent
 	OutPlate            *wtype.LHPlate
 	Rotate              bool
-	URL                 string
 	VolumeForFullcolour wunit.Volume
 	Yellow              *wtype.LHComponent
 }
@@ -222,19 +206,18 @@ func init() {
 		Constructor: PipetteImage_CMYK_OneByOneNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate by blending cyan magenta yellow and black dyes\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage_CMYK_OneByOne.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/LowLevel/PipetteImage_CMYK_OneByOne.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
+				{Name: "AutoRotate", Desc: "rotating image to fit plate\n", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of the desired output file name\n", Kind: "Parameters"},
+				{Name: "InputImage", Desc: "image to use for this protocol\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "rotating image to fit plate\n", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
-				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
+				{Name: "Numberofpixels", Desc: "Number of LHComponents in this protocol\n", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},
 			},
 		},

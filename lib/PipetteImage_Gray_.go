@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -17,9 +16,7 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-
-// enter URL link to the image file here if applicable
+//input image file
 
 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
 // above this value pure black will be dispensed
@@ -55,29 +52,14 @@ func _PipetteImage_GraySteps(_ctx context.Context, _input *PipetteImage_GrayInpu
 	var fullblackuint8 uint8
 	_output.ShadesofGrey = make([]int, 0)
 
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
 	//-------------------------------------------------------------------------------------
-	//Fetching image
-	//-------------------------------------------------------------------------------------
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	}
-
 	//opening the image file
-	imgBase, err = image.OpenFile(_input.InputFile)
+	//-------------------------------------------------------------------------------------
+
+	imgBase, err = image.OpenFile(_input.ImageFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -271,8 +253,7 @@ type PipetteImage_GrayInput struct {
 	CheckResizeAlgorithms           bool
 	Diluent                         *wtype.LHComponent
 	DontMix                         bool
-	Imagefilename                   string
-	InputFile                       wtype.File
+	ImageFile                       wtype.File
 	MaxBlackPercentagethreshold     float64
 	MinimumBlackpercentagethreshold float64
 	MixingLiquidClass               wtype.PolicyName
@@ -284,8 +265,6 @@ type PipetteImage_GrayInput struct {
 	PosterizeLevels                 int
 	Rotate                          bool
 	SkipWhite                       bool
-	URL                             string
-	UseURL                          bool
 	VolumeForFullcolour             wunit.Volume
 }
 
@@ -316,15 +295,14 @@ func init() {
 		Constructor: PipetteImage_GrayNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate by blending cyan magenta yellow and black dyes\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/grascale/PipetteImage_Gray.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/HighLevel/PipetteImage_Gray.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DontMix", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "input image file\n", Kind: "Parameters"},
 				{Name: "MaxBlackPercentagethreshold", Desc: "above this value pure black will be dispensed\n", Kind: "Parameters"},
 				{Name: "MinimumBlackpercentagethreshold", Desc: "as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white\n", Kind: "Parameters"},
 				{Name: "MixingLiquidClass", Desc: "", Kind: "Parameters"},
@@ -336,8 +314,6 @@ func init() {
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "SkipWhite", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "", Kind: "Parameters"},
 				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
 				{Name: "Fullblack", Desc: "", Kind: "Data"},
 				{Name: "NumberofShadesofGrey", Desc: "", Kind: "Data"},

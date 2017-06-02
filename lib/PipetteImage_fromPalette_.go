@@ -19,6 +19,19 @@ import (
 
 // Input parameters for this protocol (data)
 
+//input image file
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
@@ -42,19 +55,15 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 	//Globals
 	//-------------------------------------------------------------------------------------
 
+	//image and error placeholders
 	var imgBase *goimage.NRGBA
-
 	var err error
 
 	//-------------------------------------------------------------------------------------
-	//Fetching image
+	//opening the image file
 	//-------------------------------------------------------------------------------------
 
-	// if image is from url, download
-
-	//opening the image file
 	imgBase, err = image.OpenFile(_input.ImageFile)
-
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -276,12 +285,12 @@ func init() {
 		Constructor: PipetteImage_fromPaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of colours\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/PipetteImage_fromPalette.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/HighLevel/PipetteImage_fromPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ColourIndextoComponentMap", Desc: "", Kind: "Parameters"},
 				{Name: "Colourcomponents", Desc: "", Kind: "Inputs"},
-				{Name: "ImageFile", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "input image file\n", Kind: "Parameters"},
 				{Name: "LiquidType", Desc: "", Kind: "Parameters"},
 				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
 				{Name: "NotthisColour", Desc: "", Kind: "Parameters"},

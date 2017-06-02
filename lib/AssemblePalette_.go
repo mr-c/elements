@@ -4,7 +4,6 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
@@ -19,9 +18,7 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
+//Input image to use for this element
 
 // Data which is returned from this protocol, and data types
 
@@ -89,30 +86,8 @@ func _AssemblePaletteSteps(_ctx context.Context, _input *AssemblePaletteInput, _
 	fmt.Println(rbsstrengthdata)
 
 	//image and error placeholders
-
-	var imgFile wtype.File
-	var imgBase *goimage.NRGBA
 	var err error
-
-	//----------------------------------------------------------------------------
-	//Fetch image
-	//----------------------------------------------------------------------------
-
-	// if image is from url, download
-	if _input.UseURL {
-
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.Imagefilename)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	}
+	imgBase := _input.InputImage
 
 	//----------------------------------------------------------------------------
 	//Processing image
@@ -276,15 +251,13 @@ type AssemblePaletteInput struct {
 	AutoRotate                 bool
 	Blue                       *wtype.LHComponent
 	Green                      *wtype.LHComponent
-	Imagefilename              string
+	InputImage                 *goimage.NRGBA
 	PalettePlate               *wtype.LHPlate
 	PlateWithMasterMix         *wtype.LHPlate
 	PosterizeImage             bool
 	PosterizeLevels            int
 	Red                        *wtype.LHComponent
 	Rotate                     bool
-	URL                        string
-	UseURL                     bool
 	VolumeForeachColourPlasmid wunit.Volume
 }
 
@@ -311,20 +284,18 @@ func init() {
 		Constructor: AssemblePaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to make a pallette of all colours in an image\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/AssemblePalette.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/LowLevel/AssemblePalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "Blue", Desc: "", Kind: "Inputs"},
 				{Name: "Green", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputImage", Desc: "Input image to use for this element\n", Kind: "Parameters"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PlateWithMasterMix", Desc: "InPlate *LHPlate\n", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
 				{Name: "Red", Desc: "", Kind: "Inputs"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumeForeachColourPlasmid", Desc: "", Kind: "Parameters"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},

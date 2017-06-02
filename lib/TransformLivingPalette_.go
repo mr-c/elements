@@ -4,7 +4,6 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -25,10 +24,7 @@ import (
 /*AntibioticVolume Volume
 InducerVolume Volume
 RepressorVolume Volume*/
-// name of image file or if using URL use this field to set the desired filename
-
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
+//image to use for this element
 
 //IncTemp Temperature
 //IncTime Time
@@ -84,12 +80,10 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	)
 
 	colourtoComponentMap := make(map[string]string)
-
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
 	// img and error placeholders
-	var imgFile wtype.File
-	var imgBase *goimage.NRGBA
+	imgBase := _input.InputImage
 	var err error
 
 	//---------------------------------------------------------------------
@@ -103,31 +97,6 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		chosencolourpalette = image.MakeSubPallette(_input.Palettename, _input.Subsetnames)
 	} else {
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
-	}
-
-	//--------------------------------------------------------------
-	//Fetching image
-	//--------------------------------------------------------------
-
-	// if image is from url, download
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.ImageFileName)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	}
-
-	//opening the image file
-	imgBase, err = image.OpenFile(_input.InputFile)
-	if err != nil {
-		execute.Errorf(_ctx, err.Error())
 	}
 
 	//---------------------------------------------------------------------
@@ -176,8 +145,8 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		} else {
 			componenttopick = factory.GetComponentByType("water")
 		}
-		componenttopick.CName = componentname
 
+		componenttopick.CName = componentname
 		componentmap[componentname] = componenttopick
 
 	}
@@ -222,7 +191,8 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 				RecoveryPlateWell = CompetentCellPlateWell
 
 				counter = counter + 1
-				//		fmt.Println("wells",OnlythisColour, counter)
+
+				//fmt.Println("wells",OnlythisColour, counter)
 				//mediaSample := mixer.SampleForTotalVolume(Media, VolumePerWell)
 				//components = append(components,mediaSample)
 				/*antibioticSample := mixer.Sample(Antibiotic, AntibioticVolume)
@@ -234,13 +204,10 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 				//pixelSample := mixer.Sample(component, VolumePerWell)
 
 				dnaSample := mixer.Sample(component, TransformationVolume)
-
 				dnaSample.Type = wtype.LTCulture
-
 				execute.Incubate(_ctx, dnaSample, ReactionTemp, ReactionTime, false)
 
 				transformation := execute.MixTo(_ctx, PlateWithCompetentCells.Type, CompetentCellPlateWell, 1, dnaSample)
-
 				transformation.Type = wtype.LTCulture
 
 				execute.Incubate(_ctx, transformation, PostPlasmidTemp, PostPlasmidTime, false)
@@ -386,8 +353,7 @@ type TransformLivingPaletteElement struct {
 type TransformLivingPaletteInput struct {
 	AutoRotate     bool
 	ComponentType  *wtype.LHComponent
-	ImageFileName  string
-	InputFile      wtype.File
+	InputImage     *goimage.NRGBA
 	Notthiscolour  string
 	OnlythisColour string
 	OutPlate       *wtype.LHPlate
@@ -395,10 +361,8 @@ type TransformLivingPaletteInput struct {
 	Rotate         bool
 	Subset         bool
 	Subsetnames    []string
-	URL            string
 	UVimage        bool
 	UseLiquidClass wtype.PolicyName
-	UseURL         bool
 	VolumePerWell  wunit.Volume
 }
 
@@ -427,12 +391,11 @@ func init() {
 		Constructor: TransformLivingPaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of coloured bacteria\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/TransformLivingPalette.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/LowLevel/TransformLivingPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
-				{Name: "ImageFileName", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
+				{Name: "InputImage", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nimage to use for this element\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -440,10 +403,8 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
