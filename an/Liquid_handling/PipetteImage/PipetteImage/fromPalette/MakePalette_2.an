@@ -14,13 +14,13 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	VolumeForFullcolour  Volume
-	ImageFile File // name of image file or if using URL use this field to set the desired filename
-	PosterizeImage bool
-	PosterizeLevels int
-	Rotate bool
-	AutoRotate bool
-	LowerThreshold uint8
+	VolumeForFullcolour  Volume // of each colour
+	ImageFile File 
+	PosterizeImage bool 
+	PosterizeLevels int 
+	Rotate bool // option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+	AutoRotate bool // Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+	LowerThreshold int // The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 	NotThisColour string
 )
 
@@ -71,6 +71,8 @@ Steps {
 
 	var imgBase *goimage.NRGBA
 	var err error
+	lowerThreshold := uint8(LowerThreshold)
+	
 
 	//-------------------------------------------------------------------------------------
 	//Open image
@@ -97,16 +99,6 @@ Steps {
 	}
 	
 	//-------------------------------------------------------------------------------------
-	//Export processed image
-	//-------------------------------------------------------------------------------------
-
-	ProcessedImage, err = image.Export(imgBase,ImageFile.Name)
-	
-	if err != nil{
-			Errorf(err.Error())
-	}
-	
-	//-------------------------------------------------------------------------------------
 	//Palettes selection
 	//-------------------------------------------------------------------------------------
 
@@ -114,7 +106,19 @@ Steps {
 	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, OutPlate,Rotate)
 	
 	// make a map of colour to well coordinates
-	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+	
+	
+	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	ProcessedImage, err = image.Export(plateImage,ImageFile.Name)
+	
+	if err != nil{
+			Errorf(err.Error())
+	}
+	
 	
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -136,7 +140,7 @@ Steps {
 		
 		var maxuint8 uint8 = 255		
 		
-		if cmyk.C <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
+		if cmyk.C <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
 		
 		continue
 			
@@ -147,7 +151,7 @@ Steps {
 	
 			counter++
 			
-			if cmyk.C > LowerThreshold{
+			if cmyk.C > lowerThreshold{
 				
 				coloursused  = append(coloursused,"cyan")
 				
@@ -171,7 +175,7 @@ Steps {
 	
 			}
 			
-			if cmyk.Y > LowerThreshold{
+			if cmyk.Y > lowerThreshold{
 				
 				coloursused  = append(coloursused,"yellow")
 
@@ -202,7 +206,7 @@ Steps {
 					
 			}
 			
-			if cmyk.M > LowerThreshold{
+			if cmyk.M > lowerThreshold{
 				
 				coloursused  = append(coloursused,"magenta")
 
@@ -232,7 +236,7 @@ Steps {
 					
 			}
 			
-			if cmyk.K > LowerThreshold{
+			if cmyk.K > lowerThreshold{
 				
 				coloursused  = append(coloursused,"black")
 
@@ -278,13 +282,13 @@ Steps {
 				
 				whiteSample := mixer.Sample(White, whitevol)
 				
-						if solution != nil {
-								solution = Mix(solution,whiteSample)
-						}else if NotThisColour == "white"{
-								// skip
-						}else {
-								solution = MixNamed(PalettePlate.Type, "","Palette", whiteSample)
-						}
+				if solution != nil {
+						solution = Mix(solution,whiteSample)
+				}else if NotThisColour == "white"{
+						// skip
+				}else {
+						solution = MixNamed(PalettePlate.Type, "","Palette", whiteSample)
+				}
 						
 			}
 			// change name of component
@@ -294,9 +298,7 @@ Steps {
 			// add solution to be exported later
 			solutions = append(solutions, solution)
 			colourtoComponentMap[strconv.Itoa(colourindex)] = solution.CName
-			
-			
-			
+		
 			}
 		
 		}

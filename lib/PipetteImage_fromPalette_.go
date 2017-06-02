@@ -19,6 +19,10 @@ import (
 
 // Input parameters for this protocol (data)
 
+// option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+// Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+// The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
+
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
@@ -46,6 +50,8 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 	var err error
 
+	lowerThreshold := uint8(_input.LowerThreshold)
+
 	//-------------------------------------------------------------------------------------
 	//Fetching image
 	//-------------------------------------------------------------------------------------
@@ -71,7 +77,17 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 		}
 	}
 
-	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &_input.Palette, _input.Rotate, _input.AutoRotate)
+
+	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	_output.ProcessedImage, err = image.Export(plateImage, _input.ImageFile.Name)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 
@@ -94,7 +110,7 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 		// temp skip of wells with x, e.g. x1,x2,x12
 
-		if cmyk.C <= _input.LowerThreshold && cmyk.Y <= _input.LowerThreshold && cmyk.M <= _input.LowerThreshold && cmyk.K <= _input.LowerThreshold {
+		if cmyk.C <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
 			// skip pixel
 		} else if strings.Contains(locationkey, "x") || strings.Contains(locationkey, "X") {
 			// skip pixel
@@ -246,7 +262,7 @@ type PipetteImage_fromPaletteInput struct {
 	Colourcomponents          []*wtype.LHComponent
 	ImageFile                 wtype.File
 	LiquidType                wtype.PolicyName
-	LowerThreshold            uint8
+	LowerThreshold            int
 	NotthisColour             string
 	OnlythisColour            string
 	OutPlate                  *wtype.LHPlate
@@ -260,11 +276,13 @@ type PipetteImage_fromPaletteInput struct {
 type PipetteImage_fromPaletteOutput struct {
 	Numberofpixels int
 	Pixels         []*wtype.LHComponent
+	ProcessedImage wtype.File
 }
 
 type PipetteImage_fromPaletteSOutput struct {
 	Data struct {
 		Numberofpixels int
+		ProcessedImage wtype.File
 	}
 	Outputs struct {
 		Pixels []*wtype.LHComponent
@@ -278,22 +296,23 @@ func init() {
 			Desc: "Generates instructions to pipette out a defined image onto a defined plate using a defined palette of colours\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/PipetteImage_fromPalette.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
+				{Name: "AutoRotate", Desc: "Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.\n", Kind: "Parameters"},
 				{Name: "ColourIndextoComponentMap", Desc: "", Kind: "Parameters"},
 				{Name: "Colourcomponents", Desc: "", Kind: "Inputs"},
 				{Name: "ImageFile", Desc: "", Kind: "Parameters"},
 				{Name: "LiquidType", Desc: "", Kind: "Parameters"},
-				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.\n", Kind: "Parameters"},
 				{Name: "NotthisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Palette", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},
 				{Name: "Pixels", Desc: "", Kind: "Outputs"},
+				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
