@@ -73,6 +73,16 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 	}
 
 	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	_output.ProcessedImage, err = image.Export(imgBase, _input.ImageFile.Name)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//-------------------------------------------------------------------------------------
 	//Palettes selection
 	//-------------------------------------------------------------------------------------
 
@@ -92,6 +102,8 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 	for _, colour := range positiontocolourmap {
 
+		var coloursused []string
+
 		colourindex := chosencolourpalette.Index(colour)
 
 		if colour != nil {
@@ -109,9 +121,11 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				var solution *wtype.LHComponent
 				var componentVols []wunit.Volume
 
-				counter = counter + 1
+				counter++
 
 				if cmyk.C > _input.LowerThreshold {
+
+					coloursused = append(coloursused, "cyan")
 
 					cyanvol := wunit.NewVolume(((float64(cmyk.C) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -134,6 +148,8 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				}
 
 				if cmyk.Y > _input.LowerThreshold {
+
+					coloursused = append(coloursused, "yellow")
 
 					yellowvol := wunit.NewVolume(((float64(cmyk.Y) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -162,6 +178,9 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				}
 
 				if cmyk.M > _input.LowerThreshold {
+
+					coloursused = append(coloursused, "magenta")
+
 					magentavol := wunit.NewVolume(((float64(cmyk.M) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul" {
@@ -189,6 +208,8 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				}
 
 				if cmyk.K > _input.LowerThreshold {
+
+					coloursused = append(coloursused, "black")
 
 					blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -219,19 +240,26 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				// top up colour to 4 x volumeforfullcolour with white to make the correct shade
 
 				// calculate volume of white to add
-				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4), componentVols)
 
-				// mix with white sample
-				_input.White.Type = wtype.LTMegaMix
+				multiplier := len(coloursused)
 
-				whiteSample := mixer.Sample(_input.White, whitevol)
+				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, float64(multiplier)), componentVols)
 
-				if solution != nil {
-					solution = execute.Mix(_ctx, solution, whiteSample)
-				} else if _input.NotThisColour == "white" {
-					// skip
-				} else {
-					solution = execute.MixNamed(_ctx, _input.PalettePlate.Type, "", "Palette", whiteSample)
+				if whitevol.GreaterThanRounded(wunit.NewVolume(0.0, "ul"), 1) {
+
+					// mix with white sample
+					_input.White.Type = wtype.LTMegaMix
+
+					whiteSample := mixer.Sample(_input.White, whitevol)
+
+					if solution != nil {
+						solution = execute.Mix(_ctx, solution, whiteSample)
+					} else if _input.NotThisColour == "white" {
+						// skip
+					} else {
+						solution = execute.MixNamed(_ctx, _input.PalettePlate.Type, "", "Palette", whiteSample)
+					}
+
 				}
 				// change name of component
 				originalname := solution.CName
@@ -342,6 +370,7 @@ type MakePalette_2Output struct {
 	Numberofcolours      int
 	Palette              color.Palette
 	PaletteFile          wtype.File
+	ProcessedImage       wtype.File
 }
 
 type MakePalette_2SOutput struct {
@@ -350,6 +379,7 @@ type MakePalette_2SOutput struct {
 		Numberofcolours      int
 		Palette              color.Palette
 		PaletteFile          wtype.File
+		ProcessedImage       wtype.File
 	}
 	Outputs struct {
 		Colours []*wtype.LHComponent
@@ -383,6 +413,7 @@ func init() {
 				{Name: "Numberofcolours", Desc: "", Kind: "Data"},
 				{Name: "Palette", Desc: "", Kind: "Data"},
 				{Name: "PaletteFile", Desc: "", Kind: "Data"},
+				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

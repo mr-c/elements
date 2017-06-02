@@ -30,6 +30,7 @@ Data (
 	Palette color.Palette
 	ColourtoComponentMap map[string]string // map of colour name (as index) to component name
 	PaletteFile File
+	ProcessedImage File
 )
 
 
@@ -96,6 +97,16 @@ Steps {
 	}
 	
 	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	ProcessedImage, err = image.Export(imgBase,ImageFile.Name)
+	
+	if err != nil{
+			Errorf(err.Error())
+	}
+	
+	//-------------------------------------------------------------------------------------
 	//Palettes selection
 	//-------------------------------------------------------------------------------------
 
@@ -115,6 +126,8 @@ Steps {
 
 	for _, colour := range positiontocolourmap {
 		
+		var coloursused []string
+		
 		colourindex := chosencolourpalette.Index(colour)
 		
 		if colour != nil {
@@ -132,9 +145,11 @@ Steps {
 			var solution *LHComponent
 			var componentVols []Volume
 	
-			counter = counter + 1
+			counter++
 			
 			if cmyk.C > LowerThreshold{
+				
+				coloursused  = append(coloursused,"cyan")
 				
 				cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 				
@@ -157,6 +172,9 @@ Steps {
 			}
 			
 			if cmyk.Y > LowerThreshold{
+				
+				coloursused  = append(coloursused,"yellow")
+
 				
 				yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 			
@@ -185,6 +203,9 @@ Steps {
 			}
 			
 			if cmyk.M > LowerThreshold{
+				
+				coloursused  = append(coloursused,"magenta")
+
 				magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 				
 				if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul"{
@@ -212,7 +233,9 @@ Steps {
 			}
 			
 			if cmyk.K > LowerThreshold{
-					
+				
+				coloursused  = append(coloursused,"black")
+
 				blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
 				
 				if blackvol.RawValue() < 0.5 && blackvol.Unit().PrefixedSymbol() == "ul"{
@@ -243,20 +266,27 @@ Steps {
 			// top up colour to 4 x volumeforfullcolour with white to make the correct shade
 			
 			// calculate volume of white to add
-			whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,4),componentVols)
 			
-			// mix with white sample
-			White.Type = wtype.LTMegaMix
+			multiplier := len(coloursused)
 			
-			whiteSample := mixer.Sample(White, whitevol)
+			whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(VolumeForFullcolour,float64(multiplier)),componentVols)
 			
-					if solution != nil {
-							solution = Mix(solution,whiteSample)
-					}else if NotThisColour == "white"{
-							// skip
-					}else {
-							solution = MixNamed(PalettePlate.Type, "","Palette", whiteSample)
-					}
+			if whitevol.GreaterThanRounded(wunit.NewVolume(0.0,"ul"),1){
+			
+				// mix with white sample
+				White.Type = wtype.LTMegaMix
+				
+				whiteSample := mixer.Sample(White, whitevol)
+				
+						if solution != nil {
+								solution = Mix(solution,whiteSample)
+						}else if NotThisColour == "white"{
+								// skip
+						}else {
+								solution = MixNamed(PalettePlate.Type, "","Palette", whiteSample)
+						}
+						
+			}
 			// change name of component
 			originalname := solution.CName
 			solution.CName = originalname + "_colour_"+strconv.Itoa(colourindex)
