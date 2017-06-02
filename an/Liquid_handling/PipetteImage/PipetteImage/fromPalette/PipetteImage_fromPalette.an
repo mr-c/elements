@@ -21,17 +21,18 @@ Parameters (
 	ColourIndextoComponentMap map[string]string
 	OnlythisColour string
 	NotthisColour string
-	Rotate bool
-	AutoRotate bool
+	Rotate bool // option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+	AutoRotate bool // Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+	LowerThreshold int // The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 	PosterizeImage bool
 	PosterizeLevels int
 	LiquidType wtype.PolicyName
-	LowerThreshold uint8
 )
 
 // Data which is returned from this protocol, and data types
 Data (
 	Numberofpixels int
+	ProcessedImage File
 )
 
 
@@ -67,6 +68,8 @@ Steps {
 	var imgBase *goimage.NRGBA
 
 	var err error
+	
+	lowerThreshold := uint8(LowerThreshold)
 
 	//-------------------------------------------------------------------------------------
 	//Fetching image
@@ -93,8 +96,17 @@ Steps {
 		}
 	}
 	
-	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &Palette, Rotate,AutoRotate)
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, OutPlate, &Palette, Rotate,AutoRotate)
 	
+	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	ProcessedImage, err = image.Export(plateImage,ImageFile.Name)
+	
+	if err != nil{
+			Errorf(err.Error())
+	}
 	
 	image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
 
@@ -118,7 +130,7 @@ Steps {
 				
 		// temp skip of wells with x, e.g. x1,x2,x12
 		
-		if cmyk.C  <= LowerThreshold && cmyk.Y <= LowerThreshold && cmyk.M <= LowerThreshold && cmyk.K <= LowerThreshold {
+		if cmyk.C  <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
 			// skip pixel
 		}else if strings.Contains(locationkey,"x") || strings.Contains(locationkey,"X")  {
 			// skip pixel
