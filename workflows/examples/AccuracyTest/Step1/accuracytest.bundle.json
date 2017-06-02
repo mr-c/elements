@@ -2,7 +2,7 @@
   "Parameters": {
     "AccuracyTest": {
       "Diluent": "water",
-      "DilutionFactor": 10,
+      "SpecifyDilutionFactor": 10,
       "ImageFile": {
         "host_file": {
           "filename": "star.png"

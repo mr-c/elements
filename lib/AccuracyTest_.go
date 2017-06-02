@@ -52,8 +52,6 @@ import (
 // Specify a minimum volume below which a dilution will need to be made.
 // The default value is 0.5ul
 
-// Option to specify the specific dilution to be used if the volume of a solution needed to achieve a target concentration is below the  MinVolume.
-
 // Data which is returned from this protocol, and data types
 
 // Physical Inputs to this protocol with types
@@ -81,7 +79,7 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 	_output.Runtowelllocationmap = make(map[string]string)
 	_output.Blankwells = make([]string, 0)
 	counter := _input.WellsUsed
-
+	var dilutionFactor float64
 	var minVolume wunit.Volume
 
 	if _input.MinVolume.EqualTo(wunit.NewVolume(0.0, "ul")) {
@@ -226,22 +224,22 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 					if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
 
 						if _input.SpecifyDilutionFactor == 0.0 {
-							_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
-							_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+							dilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+							dilutionFactor, err = wutil.Roundto(dilutionFactor, 2)
 
 							if err != nil {
 								execute.Errorf(_ctx, err.Error())
 							}
 						} else {
-							_input.DilutionFactor = _input.SpecifyDilutionFactor
+							dilutionFactor = _input.SpecifyDilutionFactor
 						}
 
 						// add diluent to dilution plate ready for dilution
-						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor)}))
+						dilutedSampleBuffer := mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.DivideVolume(_input.TotalVolume, dilutionFactor)}))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutedSampleBuffer)
 
 						// add same volume to destination plate ready for dilutedsolution
-						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor)}))
+						bufferSample = mixer.Sample(_input.Diluent, wunit.SubtractVolumes(_input.TotalVolume, []wunit.Volume{wunit.MultiplyVolume(TestSolVolumes[l], dilutionFactor)}))
 
 					} else {
 
@@ -281,18 +279,18 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 					} else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0, "ul")) && TestSolVolumes[l].LessThan(minVolume) {
 						diluted = true
 
-						_input.DilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
-						_input.DilutionFactor, err = wutil.Roundto(_input.DilutionFactor, 2)
+						dilutionFactor = 4.0 * minVolume.RawValue() / TestSolVolumes[l].RawValue()
+						dilutionFactor, err = wutil.Roundto(dilutionFactor, 2)
 
 						if err != nil {
 							execute.Errorf(_ctx, err.Error())
 						}
 
 						//sample
-						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.DivideVolume(_input.TotalVolume, _input.DilutionFactor))
+						dilutionSample := mixer.Sample(_input.TestSols[k], wunit.DivideVolume(_input.TotalVolume, dilutionFactor))
 						Dilution = execute.MixNamed(_ctx, _input.OutPlate.Type, wellpositionarray[counter], fmt.Sprint("DilutionPlate", platenum), dilutionSample)
 
-						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(TestSolVolumes[l], _input.DilutionFactor))
+						testSample := mixer.Sample(Dilution, wunit.MultiplyVolume(TestSolVolumes[l], dilutionFactor))
 
 						if _input.PipetteOnebyOne {
 							eachreaction = append(eachreaction, testSample)
@@ -326,7 +324,7 @@ func _AccuracyTestSteps(_ctx context.Context, _input *AccuracyTestInput, _output
 
 					// if diluted
 					if diluted {
-						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", _input.DilutionFactor)
+						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", dilutionFactor)
 					} else {
 						run = doe.AddAdditionalHeaderandValue(run, "Additional", "PreDilutionFactor", 0)
 					}
@@ -567,7 +565,6 @@ type AccuracyTestElement struct {
 
 type AccuracyTestInput struct {
 	Diluent                          *wtype.LHComponent
-	DilutionFactor                   float64
 	ImageFile                        wtype.File
 	MinVolume                        wunit.Volume
 	NumberofBlanks                   int
@@ -618,7 +615,6 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Utility/AccuracyTest/AccuracyTest.an",
 			Params: []component.ParamDesc{
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
-				{Name: "DilutionFactor", Desc: "Option to specify the specific dilution to be used if the volume of a solution needed to achieve a target concentration is below the  MinVolume.\n", Kind: "Parameters"},
 				{Name: "ImageFile", Desc: "ImageFile to use if printing as an image\n", Kind: "Parameters"},
 				{Name: "MinVolume", Desc: "Specify a minimum volume below which a dilution will need to be made.\nThe default value is 0.5ul\n", Kind: "Parameters"},
 				{Name: "NumberofBlanks", Desc: "Number of blanks to be added to end of run.\n", Kind: "Parameters"},
