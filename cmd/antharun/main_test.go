@@ -81,7 +81,6 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 	}
 
 	if err == nil {
-	} else if _, ok := err.(*execute.Error); ok {
 	} else {
 		t.Errorf("error running %s: %s", inputLabel(input), err)
 	}
