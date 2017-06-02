@@ -46,7 +46,7 @@ Data (
 	
 	// for making a palette of colours in advance
 	Palette color.Palette
-	ColourtoComponentMap map[string]*LHComponent
+	ColourtoComponentMap map[string]string
 )
 
 
@@ -101,7 +101,7 @@ Steps {
 	PlateWithCompetentCells		*LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
 	)
 	
-	colourtoComponentMap := make(map[string]*LHComponent)
+	colourtoComponentMap := make(map[string]string)
 	
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
@@ -198,7 +198,7 @@ Steps {
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick
-
+		
 	}
 
 	//---------------------------------------------------------------------
@@ -330,7 +330,7 @@ Steps {
 		Incubate(solution, RecoveryTemp, RecoveryTime, true)
 		
 		solutions = append(solutions, solution /*Incubate(solution,IncTemp,IncTime,true)*/)
-		colourtoComponentMap[strconv.Itoa(colourindex)] = solution
+		colourtoComponentMap[strconv.Itoa(colourindex)] = solution.Name()
 		}
 		}
 	}
