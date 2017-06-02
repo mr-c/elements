@@ -14,13 +14,13 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	VolumeForFullcolour  Volume
-	ImageFile File // name of image file or if using URL use this field to set the desired filename
-	PosterizeImage bool
-	PosterizeLevels int
-	Rotate bool
-	AutoRotate bool
-	LowerThreshold int
+	VolumeForFullcolour  Volume // of each colour
+	ImageFile File 
+	PosterizeImage bool 
+	PosterizeLevels int 
+	Rotate bool // option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+	AutoRotate bool // Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+	LowerThreshold int // The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 	NotThisColour string
 )
 

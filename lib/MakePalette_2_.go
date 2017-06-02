@@ -18,7 +18,11 @@ import (
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
+// of each colour
+
+// option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+// Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+// The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 
 // Data which is returned from this protocol, and data types
 
@@ -394,19 +398,19 @@ func init() {
 			Desc: "Generates instructions to make a pallette of all colours in an image\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/MakePalette_2.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
+				{Name: "AutoRotate", Desc: "Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.\n", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "ImageFile", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "NotThisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.\n", Kind: "Parameters"},
+				{Name: "VolumeForFullcolour", Desc: "of each colour\n", Kind: "Parameters"},
 				{Name: "White", Desc: "", Kind: "Inputs"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
