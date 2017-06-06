@@ -1,0 +1,109 @@
+//Aggregation of image manipulation functions.
+protocol ProcessImage
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+
+	goimage "image"
+
+	)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	InputImage	*goimage.NRGBA		//Image to use for his element
+	Rotate bool						//Rotating image to fit plate
+	AutoRotate bool					//Rotating image to fit plate
+	PosterizeImage bool				//Posterize the image (espress it with fewer colors)
+	PosterizeLevels int				//Posterizing value (number of colors to express the image with)
+	Palette string					//Palette name with which to the image will be changed
+	CheckAllResizeAlgorithms bool	//Iterate over every type of resizing algorithm to see the different image they output
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	ProcessedImage *goimage.NRGBA	//Resulting image
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+	OutPlate *LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+
+)
+
+Requirements {
+	
+}
+
+// Conditions to run on startup
+Setup {
+	
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	//Placeholders for image and errors
+	imgBase := InputImage
+	var err error
+
+	//--------------------------------------------------------------
+	//Posterize image
+	//--------------------------------------------------------------
+
+	if PosterizeImage{
+		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
+		if err != nil{
+			Errorf(err.Error())
+		}
+	}
+
+	//--------------------------------------------------------------
+	//Iterate over resizing Algorithms types
+	//--------------------------------------------------------------
+
+	if CheckAllResizeAlgorithms {
+			image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+	}
+
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
+	chosencolourpalette := image.AvailablePalettes()[Palette]
+
+	//--------------------------------------------------------------
+	//Fitting image to plate
+	//--------------------------------------------------------------
+	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+
+	//--------------------------------------------------------------
+	//Returning image
+	//--------------------------------------------------------------
+
+	ProcessedImage = imgBase
+
+}
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+	
+}
+

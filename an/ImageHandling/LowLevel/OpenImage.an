@@ -1,0 +1,67 @@
+// Opens an image file, returning an image object
+protocol OpenImage
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	goimage "image"
+)
+
+
+// Input parameters for this protocol (data)
+Parameters (
+	ImgFile File			//File object
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	Image *goimage.NRGBA		//Opened image
+	Error	error				//error message
+)
+
+
+// Physical Inputs to this protocol with types
+Inputs (
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+)
+
+Requirements {
+}
+
+// Conditions to run on startup
+Setup {
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+
+	//-------------------------------------------------------------------------------------
+	//opening the image file
+	//-------------------------------------------------------------------------------------
+
+	Image, Error = image.OpenFile(ImgFile)
+	if Error != nil{
+		Errorf(Error.Error())
+	}
+
+}
+
+
+
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+
+}
+
