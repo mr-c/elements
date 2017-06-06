@@ -4,19 +4,19 @@ protocol ChoosePalette
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	goimage "image"
+	"image/color"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
 	PaletteID string					//Name of the Palette to use. The names are in the pixelToPlate package in the standard library.
-	AvailableColors	[]string			//ID of the available colors. Leave blank if the whole palette is available
+	AvailableColors	[]string			//ID of the available colors. Leave blank if you want to use the palette
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	Palette								//
+	Palette	color.Palette				//Selected palette
 	Error	error						//error message
 )
 
@@ -40,13 +40,30 @@ Setup {
 // for every input
 Steps {
 
+	//-----------------------------------------------------------
+	//Globals
+	//-----------------------------------------------------------
+
+	var palette 	color.Palette
+	var tempColor	color.Color
+
+	//-----------------------------------------------------------
+	//Creating palette
+	//-----------------------------------------------------------
+
 	//Loading Palette library
-	paletteLib = AvailablePalettes()
-	Palette = paletteLib[PaletteID]
+	image.SelectLibrary(PaletteID)
 
-	if len(paletteLib) > 0 {
-
+	//If only some colors are available
+	if AvailableColors != nil {
+		for i := range AvailableColors {
+			tempColor = image.SelectColor(AvailableColors[i])
+			palette = append(palette, tempColor)
+		}
 	}
+
+
+
 }
 
 
