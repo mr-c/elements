@@ -7,9 +7,12 @@
       "AgarPlateNumber": 1,
       "IncubationTemp": "37C",
       "IncubationTime": "57600s",
-      "NumberofReplicates": 2,
+      "NumberofReplicates": 1,
       "PlateOutLiquidPolicy": "plateout",
-      "PlateOutVolume": "100ul",
+      "PlateOutVolume": [
+        "50ul",
+        "100ul"
+        ],
       "TransformedCells": [
         "neb5compcells",
         "protoplasts",
