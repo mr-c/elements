@@ -14,7 +14,8 @@ Parameters (
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
 	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-	PlateOutVolumes []Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+	PlateOutVolumes map[string][]Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+  SpecifyReactionOrder []string
 	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
 
@@ -46,29 +47,42 @@ Steps {
 
 	//range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range TransformedCells {
-		for _, plateoutvols := range PlateOutVolumes {
 
-	// Run PlateOut element
-	result := RunSteps(PlateOutTest,
-			Parameters{
-				AgarPlateNumber: platecounter,
-				IncubationTemp: IncubationTemp,
-				IncubationTime: IncubationTime,
-        NumberofReplicates: NumberofReplicates,
-				PlateOutVolume: plateoutvols,
-        PlateOutLiquidPolicy: PlateOutLiquidPolicy,
-				WellsAlreadyUsed: counter,
-							},Inputs {
-				TransformedCells: plateout,
-				AgarPlate: AgarPlate,
-							})
-		for _, plateoutorder := range result.Outputs.PlatedCultures{
-			PlatedCultures = append(PlatedCultures, plateoutorder)
+		var reactionname string = plateout.CName
+
+		var volumes []Volume
+
+		if value, found := PlateOutVolumes[reactionname]; found {
+			volumes = value
+		} else if value, found := PlateOutVolumes["default"]; found {
+			volumes = value
+		} else {
+			Errorf("No plate out volumes set for %s. Please set these", reactionname)
 		}
 
-		//increase counter
-		counter = result.Outputs.WellsUsed
-		platecounter = result.Outputs.TransformedPlateNumber
+		for _, plateoutvols := range volumes {
+
+				// Run PlateOut element
+				result := RunSteps(PlateOutTest,
+						Parameters{
+							AgarPlateNumber: platecounter,
+							IncubationTemp: IncubationTemp,
+							IncubationTime: IncubationTime,
+			        NumberofReplicates: NumberofReplicates,
+							PlateOutVolume: plateoutvols,
+			        PlateOutLiquidPolicy: PlateOutLiquidPolicy,
+							WellsAlreadyUsed: counter,
+										},Inputs {
+							TransformedCells: plateout,
+							AgarPlate: AgarPlate,
+										})
+					for _, plateoutorder := range result.Outputs.PlatedCultures{
+						PlatedCultures = append(PlatedCultures, plateoutorder)
+					}
+
+					//increase counter
+					counter = result.Outputs.WellsUsed
+					platecounter = result.Outputs.TransformedPlateNumber
 		}
 	}
 }
