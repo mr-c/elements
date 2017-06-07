@@ -9,7 +9,7 @@
       "IncubationTime": "57600s",
       "NumberofReplicates": 1,
       "PlateOutLiquidPolicy": "plateout",
-      "PlateOutVolume": [
+      "PlateOutVolumes": [
         "50ul",
         "100ul"
         ],
