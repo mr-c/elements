@@ -1,53 +1,55 @@
-//This element will couple the given LHComponents with the Palette. It merges the arrays by index, so the first LHComponent
-//will be the first color and so on. The resulting information is held in the AnthaPalette Object
-protocol MakeAnthaPalette
+//This will take an AnthaImg object and generate the instructions for the robot to print it on a plate.
+protocol PrintAnthaImage
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"image/color"
+
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
-	Palette		color.Palette			//Palette to couple with LHComponents
-	LHComponents []*wtype.LHComponent	//LHComponents to couple with the colors in the palette
+	AnthaImg	*image.AnthaImg	//AnthaImage to print on a plate
+	PixVolume	Volume			//Volume of LHComponent needed to make a pixel
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	AnthaPalette	image.AnthaPalette		//Resulting AnthaPalette object, the LHComponents are coupled with the colors.
+
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
+
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+
 )
 
 Requirements {
+	
 }
 
 // Conditions to run on startup
 Setup {
+	//-----------------------------------------------------------------
+	//Globals
+	//-----------------------------------------------------------------
+	
+	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
 
-	//converting the palette to an AnthaPalette
-	AnthaPalette = image.MakeAnthaPalette (Palette, LHComponents)
 
 }
-
-
-
-
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -57,6 +59,6 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-
+	
 }
 
