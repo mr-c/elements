@@ -4,7 +4,7 @@ protocol PrintAnthaImage
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
 )
 
 
@@ -36,17 +36,38 @@ Requirements {
 
 // Conditions to run on startup
 Setup {
-	//-----------------------------------------------------------------
-	//Globals
-	//-----------------------------------------------------------------
-	
-	
 
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+	//------------------------------------------------------------------
+	//Globals
+	//------------------------------------------------------------------
+
+	//placeholders
+	var pixelSolution *LHComponent
+	var wellLocation  string
+
+	//------------------------------------------------------------------
+	//Iterating through each pixels in the image and pipetting them
+	//------------------------------------------------------------------
+
+	for _, pix := range AnthaImg.Pix {
+
+		//Getting the LHComponent of this pixel
+		pixelSolution = pix.Color.Component
+
+		//formatting the well coordinates to A1 format
+		wellLocation = pix.Location.FormatA1()
+
+		//initiating the LHComponent with the volume
+		pixelSolution = mixer.Sample(pixelSolution, PixVolume)
+
+		//Executing the liquidHandling action
+		MixNamed(AnthaImg.Plate.ID, wellLocation, AnthaImg.Plate.ID, pixelSolution)
+	}
 
 
 }
