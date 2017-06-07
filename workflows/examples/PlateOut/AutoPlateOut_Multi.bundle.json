@@ -9,10 +9,12 @@
       "IncubationTime": "57600s",
       "NumberofReplicates": 1,
       "PlateOutLiquidPolicy": "plateout",
-      "PlateOutVolumes": [
+      "PlateOutVolumes": {
+        "default": [
         "50ul",
         "100ul"
-        ],
+        ]
+      },
       "TransformedCells": [
         "neb5compcells",
         "protoplasts",
