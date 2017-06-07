@@ -14,7 +14,7 @@ Parameters (
 	IncubationTime wunit.Time //set Incubation time
 	NumberofReplicates int //specify number of technical replicates to plate out
 	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-	PlateOutVolume Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
+	PlateOutVolumes []Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
 	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
 
@@ -46,6 +46,7 @@ Steps {
 
 	//range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range TransformedCells {
+		for _, plateoutvols := range PlateOutVolumes {
 
 	// Run PlateOut element
 	result := RunSteps(PlateOutTest,
@@ -54,7 +55,7 @@ Steps {
 				IncubationTemp: IncubationTemp,
 				IncubationTime: IncubationTime,
         NumberofReplicates: NumberofReplicates,
-				PlateOutVolume: PlateOutVolume,
+				PlateOutVolume: plateoutvols,
         PlateOutLiquidPolicy: PlateOutLiquidPolicy,
 				WellsAlreadyUsed: counter,
 							},Inputs {
@@ -68,7 +69,8 @@ Steps {
 		//increase counter
 		counter = result.Outputs.WellsUsed
 		platecounter = result.Outputs.TransformedPlateNumber
-}
+		}
+	}
 }
 
 // Run after controls and a steps block are completed to post process any data
