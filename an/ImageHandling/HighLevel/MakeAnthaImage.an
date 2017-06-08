@@ -11,9 +11,9 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	InputImage	*goimage.NRGBA		//Image to use for this element
-	AnthaPalette image.AnthaPalette		//Palette to use for this element
-	AnthaImgPlate *wtype.LHPlate	//Destination plate for the image
+	InputImage		*goimage.NRGBA		//Image to use for this element
+	AnthaPalette	image.AnthaPalette	//Palette to use for this element
+	AnthaImgPlate	*wtype.LHPlate		//Destination plate for the image
 )
 
 // Data which is returned from this protocol, and data types

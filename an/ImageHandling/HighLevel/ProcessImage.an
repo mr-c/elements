@@ -86,6 +86,7 @@ Steps {
 	//--------------------------------------------------------------
 	//Fitting image to plate
 	//--------------------------------------------------------------
+
 	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 
 	//--------------------------------------------------------------
