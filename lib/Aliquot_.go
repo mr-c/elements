@@ -8,6 +8,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -60,6 +61,12 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	if possiblenumberofAliquots < _input.NumberofAliquots {
 		execute.Errorf(_ctx, "Not enough solution for this many aliquots")
+	}
+
+	totalWellVolume := _input.OutPlate.Welltype.MaxVol
+	fmt.Println(totalWellVolume, _input.VolumePerAliquot.Mvalue)
+	if totalWellVolume < _input.VolumePerAliquot.Mvalue {
+		execute.Errorf(_ctx, "Aliquot volume specified too high for selected plate")
 	}
 
 	// if PreMix is selected change liquid type accordingly
