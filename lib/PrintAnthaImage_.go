@@ -43,11 +43,14 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 	var pixelSolution *wtype.LHComponent
 	var wellLocation string
 
+	//TODO: temporary fixed pixel volume for testing
+	pixelVolume := wunit.NewVolume(1, "ml")
+
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
 
-	for _, pix := range _input.AnthaImg.Pix {
+	for _, pix := range _input.AnthaImage.Pix {
 
 		//Getting the LHComponent of this pixel
 		pixelSolution = pix.Color.Component
@@ -56,10 +59,10 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 		wellLocation = pix.Location.FormatA1()
 
 		//initiating the LHComponent with the volume
-		pixelSolution = mixer.Sample(pixelSolution, _input.PixVolume)
+		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
 
 		//Executing the liquidHandling action
-		execute.MixNamed(_ctx, _input.AnthaImg.Plate.ID, wellLocation, _input.AnthaImg.Plate.ID, pixelSolution)
+		execute.MixNamed(_ctx, _input.AnthaImage.Plate.ID, wellLocation, _input.AnthaImage.Plate.ID, pixelSolution)
 	}
 
 }
@@ -124,8 +127,8 @@ type PrintAnthaImageElement struct {
 }
 
 type PrintAnthaImageInput struct {
-	AnthaImg  *image.AnthaImg
-	PixVolume wunit.Volume
+	AnthaImage *image.AnthaImg
+	PixVolume  wunit.Volume
 }
 
 type PrintAnthaImageOutput struct {
@@ -145,7 +148,7 @@ func init() {
 			Desc: "This will take an AnthaImg object and generate the instructions for the robot to print it on a plate.\n",
 			Path: "src/github.com/antha-lang/elements/an/ImageHandling/HighLevel/PrintAnthaImage.an",
 			Params: []component.ParamDesc{
-				{Name: "AnthaImg", Desc: "AnthaImage to print on a plate\n", Kind: "Parameters"},
+				{Name: "AnthaImage", Desc: "AnthaImage to print on a plate\n", Kind: "Parameters"},
 				{Name: "PixVolume", Desc: "Volume of LHComponent needed to make a pixel\n", Kind: "Parameters"},
 			},
 		},

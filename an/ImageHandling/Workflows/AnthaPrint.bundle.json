@@ -23,9 +23,72 @@
             "Metadata": {
                 "skin": "light"
             }
+        },
+        "MakeAnthaImage": {
+            "component" : "MakeAnthaImage",
+            "Metadata": {
+                "skin": "light"
+            }
+        },
+        "PrintAnthaImage": {
+            "component" : "PrintAnthaImage",
+            "Metadata": {
+                "skin": "light"
+            }
         }
     },
-    "connections": [],
+    "connections": [
+      {
+            "src": {
+                "process": "ChoosePalette",
+                "port": "Palette"
+            },
+            "tgt": {
+                "process": "MakeAnthaPalette",
+                "port": "Palette"
+            }
+      },
+      {
+            "src": {
+                "process": "NewLHComponents",
+                "port": "NewLHComponents"
+            },
+            "tgt": {
+                "process": "MakeAnthaPalette",
+                "port": "LHComponents"
+            }
+      },
+      {
+            "src": {
+                "process": "DownloadImage",
+                "port": "Image"
+            },
+            "tgt": {
+                "process": "MakeAnthaImage",
+                "port": "InputImage"
+            }
+      },
+      {
+            "src": {
+                "process": "MakeAnthaPalette",
+                "port": "AnthaPalette"
+            },
+            "tgt": {
+                "process": "MakeAnthaImage",
+                "port": "AnthaPalette"
+            }
+      },
+      {
+            "src": {
+                "process": "MakeAnthaImage",
+                "port": "AnthaImage"
+            },
+            "tgt": {
+                "process": "PrintAnthaImage",
+                "port": "AnthaImage"
+            }
+      }
+    ],
     "Properties": {
         "id": "---",
         "name": "AnthaPrint",
@@ -93,9 +156,8 @@
         "DownloadImage": {
           "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
         },
-        "MakeAnthaPalette": {
-          "Palette" : "",
-          "LHComponents" : []
+        "MakeAnthaImage" : {
+          "PlateName" : "greiner384"
         }
     }
 }

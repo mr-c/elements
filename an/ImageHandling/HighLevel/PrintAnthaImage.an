@@ -10,7 +10,7 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	AnthaImg	*image.AnthaImg	//AnthaImage to print on a plate
+	AnthaImage	*image.AnthaImg	//AnthaImage to print on a plate
 	PixVolume	Volume			//Volume of LHComponent needed to make a pixel
 )
 
@@ -50,11 +50,14 @@ Steps {
 	var pixelSolution *LHComponent
 	var wellLocation  string
 
+	//TODO: temporary fixed pixel volume for testing
+	pixelVolume := wunit.NewVolume(1,"ml")
+
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
 
-	for _, pix := range AnthaImg.Pix {
+	for _, pix := range AnthaImage.Pix {
 
 		//Getting the LHComponent of this pixel
 		pixelSolution = pix.Color.Component
@@ -63,10 +66,10 @@ Steps {
 		wellLocation = pix.Location.FormatA1()
 
 		//initiating the LHComponent with the volume
-		pixelSolution = mixer.Sample(pixelSolution, PixVolume)
+		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
 
 		//Executing the liquidHandling action
-		MixNamed(AnthaImg.Plate.ID, wellLocation, AnthaImg.Plate.ID, pixelSolution)
+		MixNamed(AnthaImage.Plate.ID, wellLocation, AnthaImage.Plate.ID, pixelSolution)
 	}
 
 

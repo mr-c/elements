@@ -44,8 +44,10 @@ func _MakeAnthaImageSteps(_ctx context.Context, _input *MakeAnthaImageInput, _ou
 	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
 	plate := factory.GetPlateByType(_input.PlateName)
 
+	//Checking if the image boundaries are the same as the
+
 	//This function will create an AnthaImage object from a digital image.
-	_output.OutputImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
+	_output.AnthaImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
 
 }
 
@@ -115,12 +117,12 @@ type MakeAnthaImageInput struct {
 }
 
 type MakeAnthaImageOutput struct {
-	OutputImage *image.AnthaImg
+	AnthaImage *image.AnthaImg
 }
 
 type MakeAnthaImageSOutput struct {
 	Data struct {
-		OutputImage *image.AnthaImg
+		AnthaImage *image.AnthaImg
 	}
 	Outputs struct {
 	}
@@ -136,7 +138,7 @@ func init() {
 				{Name: "AnthaPalette", Desc: "Palette to use for this element\n", Kind: "Parameters"},
 				{Name: "InputImage", Desc: "Image to use for this element\n", Kind: "Parameters"},
 				{Name: "PlateName", Desc: "Name of the plate type to use to print the image\n", Kind: "Parameters"},
-				{Name: "OutputImage", Desc: "converted image to anthaImage\n", Kind: "Data"},
+				{Name: "AnthaImage", Desc: "converted image to anthaImage\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

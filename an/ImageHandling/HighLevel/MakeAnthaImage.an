@@ -19,7 +19,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	OutputImage	*image.AnthaImg			//converted image to anthaImage
+	AnthaImage	*image.AnthaImg			//converted image to anthaImage
 )
 
 
@@ -50,8 +50,10 @@ Steps {
 	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
 	plate := factory.GetPlateByType(PlateName)
 
+	//Checking if the image boundaries are the same as the
+
 	//This function will create an AnthaImage object from a digital image.
-	OutputImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
+	AnthaImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
 
 }
 // Run after controls and a steps block are completed to
