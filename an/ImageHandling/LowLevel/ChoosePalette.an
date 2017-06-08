@@ -1,4 +1,5 @@
-// Select the palette of colors with which the image will be modified
+//Select the palette of colors with which the image will be modified. This element uses names defined
+//in the standard library.
 protocol ChoosePalette
 
 import (
@@ -52,7 +53,7 @@ Steps {
 	//-----------------------------------------------------------
 
 	//Loading Palette library
-	image.SelectLibrary(PaletteID)
+	palette = image.SelectLibrary(PaletteID)
 
 	//If only some colors are available
 	if AvailableColors != nil {
@@ -62,7 +63,11 @@ Steps {
 		}
 	}
 
+	//-----------------------------------------------------------
+	//Returning retrieved palette
+	//-----------------------------------------------------------
 
+	Palette = palette
 
 }
 

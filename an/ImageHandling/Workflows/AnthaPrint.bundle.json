@@ -1,0 +1,101 @@
+{
+    "Processes": {
+        "ChoosePalette": {
+            "component": "ChoosePalette",
+            "Metadata": {
+                "skin": "light"
+            }
+        },
+        "NewLHComponents": {
+            "component" : "NewLHComponents",
+            "Metadata": {
+                "skin": "light"
+            }
+        },
+        "DownloadImage": {
+            "component" : "DownloadImage",
+            "Metadata": {
+                "skin": "light"
+            }
+        },
+        "MakeAnthaPalette": {
+            "component" : "MakeAnthaPalette",
+            "Metadata": {
+                "skin": "light"
+            }
+        }
+    },
+    "connections": [],
+    "Properties": {
+        "id": "---",
+        "name": "AnthaPrint",
+        "description": "This is a workflow to print an Antha Image."
+    },
+    "Parameters": {
+        "ChoosePalette": {
+            "PaletteID": "UV",
+            "AvailableColors": []
+        },
+        "NewLHComponents" : {
+          "Names": [
+            "UVCupidPink",
+            "UVyellow",
+            "UVVixenPurple",
+            "UVIvyGFP",
+            "UVDasherGFP",
+            "UVPaprikaRFP",
+            "UVLeorOrange",
+            "UVTannenGFP",
+            "UVDonnerMagenta",
+            "UVTwinkleCFP",
+            "UVSerranoRFP",
+            "UVE.coli pUC19 on sgal",
+            "UVorange",
+            "UVCyan",
+            "UVMagenta",
+            "UVTinselPurple",
+            "UVpink",
+            "UVVirginiaViolet",
+            "UVCayenneRFP",
+            "UVgreen",
+            "UVFresnoRFP",
+            "UVKringleYFP",
+            "UVdarkblue",
+            "UVMarleyYFP",
+            "UVCometGFP",
+            "UVSeraphinaPink",
+            "UVGuajilloRFP",
+            "UVBlazeYFP",
+            "UVblack",
+            "UVblue",
+            "UVJuniperGFP",
+            "UVCindylouCFP",
+            "UVRudolphRFP",
+            "UVBlitzenBlue",
+            "UVpurple",
+            "UVred",
+            "UVCratchitYFP",
+            "UVgrey",
+            "UVverywhite",
+            "UVHollyGFP",
+            "UVwhite",
+            "UVMaccabeePurple",
+            "UVYukonOFP",
+            "UVE.coli",
+            "UVYetiYFP",
+            "UVScroogeOrange",
+            "UVFrostyCFP"
+          ],
+          "TemplateComponents": {
+            "default": "water"
+          }
+        },
+        "DownloadImage": {
+          "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
+        },
+        "MakeAnthaPalette": {
+          "Palette" : "",
+          "LHComponents" : []
+        }
+    }
+}

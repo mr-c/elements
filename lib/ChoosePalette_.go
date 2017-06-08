@@ -1,4 +1,5 @@
-// Select the palette of colors with which the image will be modified
+//Select the palette of colors with which the image will be modified. This element uses names defined
+//in the standard library.
 package lib
 
 import (
@@ -49,7 +50,7 @@ func _ChoosePaletteSteps(_ctx context.Context, _input *ChoosePaletteInput, _outp
 	//-----------------------------------------------------------
 
 	//Loading Palette library
-	image.SelectLibrary(_input.PaletteID)
+	palette = image.SelectLibrary(_input.PaletteID)
 
 	//If only some colors are available
 	if _input.AvailableColors != nil {
@@ -58,6 +59,12 @@ func _ChoosePaletteSteps(_ctx context.Context, _input *ChoosePaletteInput, _outp
 			palette = append(palette, tempColor)
 		}
 	}
+
+	//-----------------------------------------------------------
+	//Returning retrieved palette
+	//-----------------------------------------------------------
+
+	_output.Palette = palette
 
 }
 
@@ -143,7 +150,7 @@ func init() {
 	if err := addComponent(component.Component{Name: "ChoosePalette",
 		Constructor: ChoosePaletteNew,
 		Desc: component.ComponentDesc{
-			Desc: "Select the palette of colors with which the image will be modified\n",
+			Desc: "Select the palette of colors with which the image will be modified. This element uses names defined\nin the standard library.\n",
 			Path: "src/github.com/antha-lang/elements/an/ImageHandling/LowLevel/ChoosePalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AvailableColors", Desc: "ID of the available colors. Leave blank if you want to use the palette\n", Kind: "Parameters"},

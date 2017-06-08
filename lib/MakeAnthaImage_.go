@@ -4,6 +4,7 @@ package lib
 import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/microArch/factory"
 
 	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -17,7 +18,7 @@ import (
 
 //Image to use for this element
 //Palette to use for this element
-//Destination plate for the image
+//Name of the plate type to use to print the image
 
 // Data which is returned from this protocol, and data types
 
@@ -40,8 +41,11 @@ func _MakeAnthaImageSetup(_ctx context.Context, _input *MakeAnthaImageInput) {
 // for every input
 func _MakeAnthaImageSteps(_ctx context.Context, _input *MakeAnthaImageInput, _output *MakeAnthaImageOutput) {
 
+	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
+	plate := factory.GetPlateByType(_input.PlateName)
+
 	//This function will create an AnthaImage object from a digital image.
-	_output.OutputImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, _input.AnthaImgPlate)
+	_output.OutputImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
 
 }
 
@@ -105,9 +109,9 @@ type MakeAnthaImageElement struct {
 }
 
 type MakeAnthaImageInput struct {
-	AnthaImgPlate *wtype.LHPlate
-	AnthaPalette  image.AnthaPalette
-	InputImage    *goimage.NRGBA
+	AnthaPalette image.AnthaPalette
+	InputImage   *goimage.NRGBA
+	PlateName    string
 }
 
 type MakeAnthaImageOutput struct {
@@ -129,9 +133,9 @@ func init() {
 			Desc: "This element will convert a digital image to its physical representation, an AnthaImg object with well position information\n",
 			Path: "src/github.com/antha-lang/elements/an/ImageHandling/HighLevel/MakeAnthaImage.an",
 			Params: []component.ParamDesc{
-				{Name: "AnthaImgPlate", Desc: "Destination plate for the image\n", Kind: "Parameters"},
 				{Name: "AnthaPalette", Desc: "Palette to use for this element\n", Kind: "Parameters"},
 				{Name: "InputImage", Desc: "Image to use for this element\n", Kind: "Parameters"},
+				{Name: "PlateName", Desc: "Name of the plate type to use to print the image\n", Kind: "Parameters"},
 				{Name: "OutputImage", Desc: "converted image to anthaImage\n", Kind: "Data"},
 			},
 		},
