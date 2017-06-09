@@ -23,6 +23,7 @@ import (
 // Data which is returned from this protocol, and data types
 
 //converted image to anthaImage
+//Image resized to fit plate
 
 // Physical Inputs to this protocol with types
 
@@ -47,7 +48,7 @@ func _MakeAnthaImageSteps(_ctx context.Context, _input *MakeAnthaImageInput, _ou
 	//Checking if the image boundaries are the same as the
 
 	//This function will create an AnthaImage object from a digital image.
-	_output.AnthaImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
+	_output.AnthaImage, _output.ResizedImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
 
 }
 
@@ -117,12 +118,14 @@ type MakeAnthaImageInput struct {
 }
 
 type MakeAnthaImageOutput struct {
-	AnthaImage *image.AnthaImg
+	AnthaImage   *image.AnthaImg
+	ResizedImage *goimage.NRGBA
 }
 
 type MakeAnthaImageSOutput struct {
 	Data struct {
-		AnthaImage *image.AnthaImg
+		AnthaImage   *image.AnthaImg
+		ResizedImage *goimage.NRGBA
 	}
 	Outputs struct {
 	}
@@ -139,6 +142,7 @@ func init() {
 				{Name: "InputImage", Desc: "Image to use for this element\n", Kind: "Parameters"},
 				{Name: "PlateName", Desc: "Name of the plate type to use to print the image\n", Kind: "Parameters"},
 				{Name: "AnthaImage", Desc: "converted image to anthaImage\n", Kind: "Data"},
+				{Name: "ResizedImage", Desc: "Image resized to fit plate\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

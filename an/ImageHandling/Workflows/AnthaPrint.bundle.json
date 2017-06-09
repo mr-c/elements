@@ -35,6 +35,12 @@
             "Metadata": {
                 "skin": "light"
             }
+        },
+        "ExportResizedImage": {
+            "component" : "ExportImage",
+            "Metadata": {
+                "skin": "light"
+            }
         }
     },
     "connections": [
@@ -86,6 +92,16 @@
             "tgt": {
                 "process": "PrintAnthaImage",
                 "port": "AnthaImage"
+            }
+      },
+      {
+            "src": {
+                "process": "MakeAnthaImage",
+                "port": "ResizedImage"
+            },
+            "tgt": {
+                "process": "ExportResizedImage",
+                "port": "Image"
             }
       }
     ],
@@ -158,6 +174,9 @@
         },
         "MakeAnthaImage" : {
           "PlateName" : "greiner384"
+        },
+        "ExportResizedImage" : {
+          "OutputImageFileName" : "Resized"
         }
     }
 }

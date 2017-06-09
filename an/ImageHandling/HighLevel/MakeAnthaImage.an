@@ -20,6 +20,7 @@ Parameters (
 // Data which is returned from this protocol, and data types
 Data (
 	AnthaImage	*image.AnthaImg			//converted image to anthaImage
+	ResizedImage *goimage.NRGBA			//Image resized to fit plate
 )
 
 
@@ -53,7 +54,7 @@ Steps {
 	//Checking if the image boundaries are the same as the
 
 	//This function will create an AnthaImage object from a digital image.
-	AnthaImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
+	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
 
 }
 // Run after controls and a steps block are completed to
