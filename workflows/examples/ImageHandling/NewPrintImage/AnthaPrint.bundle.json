@@ -1,182 +1,182 @@
 {
-    "Processes": {
-        "ChoosePalette": {
-            "component": "ChoosePalette",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "NewLHComponents": {
-            "component" : "NewLHComponents",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "DownloadImage": {
-            "component" : "DownloadImage",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "MakeAnthaPalette": {
-            "component" : "MakeAnthaPalette",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "MakeAnthaImage": {
-            "component" : "MakeAnthaImage",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "PrintAnthaImage": {
-            "component" : "PrintAnthaImage",
-            "Metadata": {
-                "skin": "light"
-            }
-        },
-        "ExportResizedImage": {
-            "component" : "ExportImage",
-            "Metadata": {
-                "skin": "light"
-            }
-        }
+  "Parameters": {
+    "ChoosePalette": {
+      "AvailableColors": [],
+      "PaletteID": "UV"
     },
-    "connections": [
-      {
-            "src": {
-                "process": "ChoosePalette",
-                "port": "Palette"
-            },
-            "tgt": {
-                "process": "MakeAnthaPalette",
-                "port": "Palette"
-            }
-      },
-      {
-            "src": {
-                "process": "NewLHComponents",
-                "port": "NewLHComponents"
-            },
-            "tgt": {
-                "process": "MakeAnthaPalette",
-                "port": "LHComponents"
-            }
-      },
-      {
-            "src": {
-                "process": "DownloadImage",
-                "port": "Image"
-            },
-            "tgt": {
-                "process": "MakeAnthaImage",
-                "port": "InputImage"
-            }
-      },
-      {
-            "src": {
-                "process": "MakeAnthaPalette",
-                "port": "AnthaPalette"
-            },
-            "tgt": {
-                "process": "MakeAnthaImage",
-                "port": "AnthaPalette"
-            }
-      },
-      {
-            "src": {
-                "process": "MakeAnthaImage",
-                "port": "AnthaImage"
-            },
-            "tgt": {
-                "process": "PrintAnthaImage",
-                "port": "AnthaImage"
-            }
-      },
-      {
-            "src": {
-                "process": "MakeAnthaImage",
-                "port": "ResizedImage"
-            },
-            "tgt": {
-                "process": "ExportResizedImage",
-                "port": "Image"
-            }
+    "DownloadImage": {
+      "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
+    },
+    "ExportResizedImage": {
+      "OutputImageFileName": "Resized"
+    },
+    "MakeAnthaImage": {
+      "PlateName": "greiner384"
+    },
+    "NewLHComponents": {
+      "Names": [
+        "UVCupidPink",
+        "UVyellow",
+        "UVVixenPurple",
+        "UVIvyGFP",
+        "UVDasherGFP",
+        "UVPaprikaRFP",
+        "UVLeorOrange",
+        "UVTannenGFP",
+        "UVDonnerMagenta",
+        "UVTwinkleCFP",
+        "UVSerranoRFP",
+        "UVE.coli pUC19 on sgal",
+        "UVorange",
+        "UVCyan",
+        "UVMagenta",
+        "UVTinselPurple",
+        "UVpink",
+        "UVVirginiaViolet",
+        "UVCayenneRFP",
+        "UVgreen",
+        "UVFresnoRFP",
+        "UVKringleYFP",
+        "UVdarkblue",
+        "UVMarleyYFP",
+        "UVCometGFP",
+        "UVSeraphinaPink",
+        "UVGuajilloRFP",
+        "UVBlazeYFP",
+        "UVblack",
+        "UVblue",
+        "UVJuniperGFP",
+        "UVCindylouCFP",
+        "UVRudolphRFP",
+        "UVBlitzenBlue",
+        "UVpurple",
+        "UVred",
+        "UVCratchitYFP",
+        "UVgrey",
+        "UVverywhite",
+        "UVHollyGFP",
+        "UVwhite",
+        "UVMaccabeePurple",
+        "UVYukonOFP",
+        "UVE.coli",
+        "UVYetiYFP",
+        "UVScroogeOrange",
+        "UVFrostyCFP"
+      ],
+      "TemplateComponents": {
+        "default": "water"
       }
-    ],
-    "Properties": {
-        "id": "---",
-        "name": "AnthaPrint",
-        "description": "This is a workflow to print an Antha Image."
-    },
-    "Parameters": {
-        "ChoosePalette": {
-            "PaletteID": "UV",
-            "AvailableColors": []
-        },
-        "NewLHComponents" : {
-          "Names": [
-            "UVCupidPink",
-            "UVyellow",
-            "UVVixenPurple",
-            "UVIvyGFP",
-            "UVDasherGFP",
-            "UVPaprikaRFP",
-            "UVLeorOrange",
-            "UVTannenGFP",
-            "UVDonnerMagenta",
-            "UVTwinkleCFP",
-            "UVSerranoRFP",
-            "UVE.coli pUC19 on sgal",
-            "UVorange",
-            "UVCyan",
-            "UVMagenta",
-            "UVTinselPurple",
-            "UVpink",
-            "UVVirginiaViolet",
-            "UVCayenneRFP",
-            "UVgreen",
-            "UVFresnoRFP",
-            "UVKringleYFP",
-            "UVdarkblue",
-            "UVMarleyYFP",
-            "UVCometGFP",
-            "UVSeraphinaPink",
-            "UVGuajilloRFP",
-            "UVBlazeYFP",
-            "UVblack",
-            "UVblue",
-            "UVJuniperGFP",
-            "UVCindylouCFP",
-            "UVRudolphRFP",
-            "UVBlitzenBlue",
-            "UVpurple",
-            "UVred",
-            "UVCratchitYFP",
-            "UVgrey",
-            "UVverywhite",
-            "UVHollyGFP",
-            "UVwhite",
-            "UVMaccabeePurple",
-            "UVYukonOFP",
-            "UVE.coli",
-            "UVYetiYFP",
-            "UVScroogeOrange",
-            "UVFrostyCFP"
-          ],
-          "TemplateComponents": {
-            "default": "water"
-          }
-        },
-        "DownloadImage": {
-          "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
-        },
-        "MakeAnthaImage" : {
-          "PlateName" : "greiner384"
-        },
-        "ExportResizedImage" : {
-          "OutputImageFileName" : "Resized"
-        }
     }
+  },
+  "Processes": {
+    "ChoosePalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "ChoosePalette"
+    },
+    "DownloadImage": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "DownloadImage"
+    },
+    "ExportResizedImage": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "ExportImage"
+    },
+    "MakeAnthaImage": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "MakeAnthaImage"
+    },
+    "MakeAnthaPalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "MakeAnthaPalette"
+    },
+    "NewLHComponents": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "NewLHComponents"
+    },
+    "PrintAnthaImage": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "PrintAnthaImage"
+    }
+  },
+  "Properties": {
+    "description": "This is a workflow to print an Antha Image.",
+    "id": "---",
+    "name": "AnthaPrint"
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "Palette",
+        "process": "ChoosePalette"
+      },
+      "tgt": {
+        "port": "Palette",
+        "process": "MakeAnthaPalette"
+      }
+    },
+    {
+      "src": {
+        "port": "NewLHComponents",
+        "process": "NewLHComponents"
+      },
+      "tgt": {
+        "port": "LHComponents",
+        "process": "MakeAnthaPalette"
+      }
+    },
+    {
+      "src": {
+        "port": "Image",
+        "process": "DownloadImage"
+      },
+      "tgt": {
+        "port": "InputImage",
+        "process": "MakeAnthaImage"
+      }
+    },
+    {
+      "src": {
+        "port": "AnthaPalette",
+        "process": "MakeAnthaPalette"
+      },
+      "tgt": {
+        "port": "AnthaPalette",
+        "process": "MakeAnthaImage"
+      }
+    },
+    {
+      "src": {
+        "port": "AnthaImage",
+        "process": "MakeAnthaImage"
+      },
+      "tgt": {
+        "port": "AnthaImage",
+        "process": "PrintAnthaImage"
+      }
+    },
+    {
+      "src": {
+        "port": "ResizedImage",
+        "process": "MakeAnthaImage"
+      },
+      "tgt": {
+        "port": "Image",
+        "process": "ExportResizedImage"
+      }
+    }
+  ]
 }

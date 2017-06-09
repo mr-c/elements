@@ -145,7 +145,7 @@ func init() {
 		Constructor: DownloadImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Download and open an image file given a URL\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/LowLevel/DownloadImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/DownloadImage.an",
 			Params: []component.ParamDesc{
 				{Name: "URL", Desc: "URL from which the image will be downloaded\n", Kind: "Parameters"},
 				{Name: "Error", Desc: "error message\n", Kind: "Data"},

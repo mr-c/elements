@@ -151,7 +151,7 @@ func init() {
 		Constructor: ChoosePaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "Select the palette of colors with which the image will be modified. This element uses names defined\nin the standard library.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/LowLevel/ChoosePalette.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ChoosePalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AvailableColors", Desc: "ID of the available colors. Leave blank if you want to use the palette\n", Kind: "Parameters"},
 				{Name: "PaletteID", Desc: "Name of the Palette to use. The names are in the pixelToPlate package in the standard library.\n", Kind: "Parameters"},

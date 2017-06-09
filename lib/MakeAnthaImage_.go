@@ -136,7 +136,7 @@ func init() {
 		Constructor: MakeAnthaImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will convert a digital image to its physical representation, an AnthaImg object with well position information\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/HighLevel/MakeAnthaImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/MakeAnthaImage.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaPalette", Desc: "Palette to use for this element\n", Kind: "Parameters"},
 				{Name: "InputImage", Desc: "Image to use for this element\n", Kind: "Parameters"},

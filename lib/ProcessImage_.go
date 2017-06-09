@@ -178,7 +178,7 @@ func init() {
 		Constructor: ProcessImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Aggregation of image manipulation functions.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/HighLevel/ProcessImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ProcessImage.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "Rotating image to fit plate\n", Kind: "Parameters"},
 				{Name: "CheckAllResizeAlgorithms", Desc: "Iterate over every type of resizing algorithm to see the different image they output\n", Kind: "Parameters"},

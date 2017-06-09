@@ -130,7 +130,7 @@ func init() {
 		Constructor: ExportImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Exports an image object to a file.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/LowLevel/ExportImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ExportImage.an",
 			Params: []component.ParamDesc{
 				{Name: "Image", Desc: "image object to export to File\n", Kind: "Parameters"},
 				{Name: "OutputImageFileName", Desc: "desired name for the output file\n", Kind: "Parameters"},

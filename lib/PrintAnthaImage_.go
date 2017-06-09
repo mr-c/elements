@@ -146,7 +146,7 @@ func init() {
 		Constructor: PrintAnthaImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "This will take an AnthaImg object and generate the instructions for the robot to print it on a plate.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/HighLevel/PrintAnthaImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PrintAnthaImage.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaImage", Desc: "AnthaImage to print on a plate\n", Kind: "Parameters"},
 				{Name: "PixVolume", Desc: "Volume of LHComponent needed to make a pixel\n", Kind: "Parameters"},
