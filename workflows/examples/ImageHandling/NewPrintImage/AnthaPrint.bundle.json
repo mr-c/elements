@@ -4,6 +4,9 @@
       "AvailableColors": [],
       "PaletteID": "UV"
     },
+    "CreateAnthaPalette": {
+      "LowerThreshold": 0
+    },
     "DownloadImage": {
       "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
     },
@@ -74,6 +77,12 @@
         "skin": "light"
       },
       "component": "ChoosePalette"
+    },
+    "CreateAnthaPalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "CreateAnthaPalette"
     },
     "DownloadImage": {
       "Metadata": {
@@ -155,7 +164,7 @@
       },
       "tgt": {
         "port": "AnthaPalette",
-        "process": "MakeAnthaImage"
+        "process": "CreateAnthaPalette"
       }
     },
     {
@@ -176,6 +185,16 @@
       "tgt": {
         "port": "Image",
         "process": "ExportResizedImage"
+      }
+    },
+    {
+      "src": {
+        "port": "MixedAnthaPalette",
+        "process": "CreateAnthaPalette"
+      },
+      "tgt": {
+        "port": "AnthaPalette",
+        "process": "PrintAnthaImage"
       }
     }
   ]

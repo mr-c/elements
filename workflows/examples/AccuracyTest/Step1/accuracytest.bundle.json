@@ -2,7 +2,6 @@
   "Parameters": {
     "AccuracyTest": {
       "Diluent": "water",
-      "SpecifyDilutionFactor": 10,
       "ImageFile": {
         "host_file": {
           "filename": "star.png"
@@ -18,6 +17,7 @@
         "tartrazine": "0.2878191305957933mM"
       },
       "Printasimage": false,
+      "SpecifyDilutionFactor": 10,
       "TestSolConcs": [
         "0.0uM",
         "0.5uM",

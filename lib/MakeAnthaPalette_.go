@@ -4,6 +4,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -36,6 +37,15 @@ func _MakeAnthaPaletteSetup(_ctx context.Context, _input *MakeAnthaPaletteInput)
 // The core process for this protocol, with the steps to be performed
 // for every input
 func _MakeAnthaPaletteSteps(_ctx context.Context, _input *MakeAnthaPaletteInput, _output *MakeAnthaPaletteOutput) {
+
+	//checking if the recieved palette is empty
+	if len(_input.Palette) == 0 {
+		fmt.Println("Empty palette received")
+	}
+
+	if len(_input.Palette) != len(_input.LHComponents) {
+		fmt.Println("different number of LHComponents and palette colors given")
+	}
 
 	//converting the palette to an AnthaPalette
 	_output.AnthaPalette = image.MakeAnthaPalette(_input.Palette, _input.LHComponents)
@@ -107,12 +117,12 @@ type MakeAnthaPaletteInput struct {
 }
 
 type MakeAnthaPaletteOutput struct {
-	AnthaPalette image.AnthaPalette
+	AnthaPalette *image.AnthaPalette
 }
 
 type MakeAnthaPaletteSOutput struct {
 	Data struct {
-		AnthaPalette image.AnthaPalette
+		AnthaPalette *image.AnthaPalette
 	}
 	Outputs struct {
 	}

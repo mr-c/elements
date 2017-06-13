@@ -51,8 +51,6 @@ Steps {
 	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
 	plate := factory.GetPlateByType(PlateName)
 
-	//Checking if the image boundaries are the same as the
-
 	//This function will create an AnthaImage object from a digital image.
 	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
 

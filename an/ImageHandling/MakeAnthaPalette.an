@@ -6,6 +6,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"image/color"
+	"fmt"
 )
 
 
@@ -17,7 +18,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-	AnthaPalette	image.AnthaPalette		//Resulting AnthaPalette object, the LHComponents are coupled with the colors.
+	AnthaPalette	*image.AnthaPalette		//Resulting AnthaPalette object, the LHComponents are coupled with the colors.
 )
 
 
@@ -39,6 +40,15 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
+
+	//checking if the recieved palette is empty
+	if len(Palette) == 0 {
+		fmt.Println("Empty palette received")
+	}
+
+	if len(Palette) != len(LHComponents) {
+		fmt.Println("different number of LHComponents and palette colors given")
+	}
 
 	//converting the palette to an AnthaPalette
 	AnthaPalette = image.MakeAnthaPalette (Palette, LHComponents)
