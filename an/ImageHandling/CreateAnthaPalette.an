@@ -55,7 +55,6 @@ Steps {
 
 	//TODO Those globals are set up for testing
 	ColorVolume := wunit.NewVolume(10,"ul")
-
 	PalettePlate := factory.GetPlateByType("pcrplate_skirted")
 
 
@@ -64,94 +63,86 @@ Steps {
 	//----------------------------------------------------------------------------------
 
 	//iterate over each colors in the palette
-	for i := range AnthaPalette.Palette {
+	for i , AnthaColor := range AnthaPalette.AnthaColors {
 
-		//placeholder for the current color we are iterating over
-		var currentAnthaColor = AnthaPalette.AnthaColors[i]
 		//PlaceHolder for the LHComponent solution to be pipetted into the well
 		var solution *LHComponent
 		//PlaceHolder for the total well volume
 		var totalVolume []Volume
+		//TODO change to bool
+		solutionFinished := false
 
-		//extract RGBA values
-		r,g,b,a := currentAnthaColor.Color.RGBA()
+		//extract RGB values. We do not use the a (alpha) value
+		r,g,b,_ := AnthaColor.Color.RGBA()
 
-		//getting the volume of RGB needed
-		vr := wunit.NewVolume((float64(r)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol())
-		vg := wunit.NewVolume((float64(g)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol())
-		vb := wunit.NewVolume((float64(b)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol())
+		volumes := map[string]wunit.Volume{
+			"r": wunit.NewVolume((float64(r)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"g": wunit.NewVolume((float64(g)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"b": wunit.NewVolume((float64(b)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+		}
 
-		fmt.Println(vr,vg,vb,a)
-
-		//Check if the values for each colors is lower than the lowerThreshold defined
+		//Check if the values for each colors is lower than the lowerThreshold defined, if they are we do not produce this palette color
 		if r <= uint32(LowerThreshold) && g <= uint32(LowerThreshold) && b <= uint32(LowerThreshold) {
 			continue
 		}else{
-			//----------------------------------------------------------------------------------
-			//Pipetting red
-			//----------------------------------------------------------------------------------
 
-			//Initiating the LHComponents to pipette with volume information
-			rSample := mixer.Sample(currentAnthaColor.Component, vr)
+			//placeholders
+			var sample *LHComponent
 
-			// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
-			//TODO: why do you multiply by 4
-			if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
-				rSample.Type = wtype.LTMegaMix
-			}else{
-				rSample.Type = wtype.LTDISPENSEABOVE
+			//We range over the calculated RGB volumes and produce each of the desired colors.
+			for _ , volume := range volumes{
+				switch solutionFinished {
+					case false:
+						//First mixing command
+						fmt.Println("first component added")
+						//Initiating the LHComponents to pipette with volume information
+
+
+						if volume.GreaterThan(wunit.NewVolume(0.5,"ul"))
+						sample = mixer.Sample(AnthaColor.Component, volume)
+
+						// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
+						//TODO: why do you multiply by 4
+						if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
+							sample.Type = wtype.LTMegaMix
+						}else{
+							sample.Type = wtype.LTDISPENSEABOVE
+						}
+
+						//since this is the first color to be pipetted, we use MixNamed to instantiate the LHComponent
+						solution = MixNamed(PalettePlate.Type, "","Palette", sample)
+
+					default:
+						//second and third mixing command
+						fmt.Println("second/third component added")
+
+						//Initiating the LHComponents to pipette with volume information
+						sample := mixer.Sample(AnthaColor.Component, volume)
+
+						// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
+						//TODO: why do you multiply by 4
+						if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
+							sample.Type = wtype.LTMegaMix
+						}else{
+							sample.Type = wtype.LTDISPENSEABOVE
+						}
+
+						//if the solution is already instantiated, we add it with the Mix() command. Else we make a new one with MixNamed()
+						solution = Mix(solution, sample)
+
+						//resetting counter
+						solutionFinished = true
+				}
 			}
-
-			//since this is the first color to be pipetted, we use MixNamed to instantiate the LHComponent
-			solution = MixNamed(PalettePlate.Type, "","Palette", rSample)
-
-			//----------------------------------------------------------------------------------
-			//Pipetting green
-			//----------------------------------------------------------------------------------
-
-			//Initiating the LHComponents to pipette with volume information
-			gSample := mixer.Sample(currentAnthaColor.Component, vg)
-
-			// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
-			//TODO: why do you multiply by 4
-			if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
-				gSample.Type = wtype.LTMegaMix
-			}else{
-				gSample.Type = wtype.LTDISPENSEABOVE
-			}
-
-			//if the solution is already instantiated, we add it with the Mix() command. Else we make a new one with MixNamed()
-			if solution != nil {
-				solution = Mix(solution, gSample)
-			} else {
-				solution = MixNamed(PalettePlate.Type, "","Palette", gSample)
-			}
-
-			//----------------------------------------------------------------------------------
-			//Pipetting Blue
-			//----------------------------------------------------------------------------------
-			//Initiating the LHComponents to pipette with volume information
-			bSample := mixer.Sample(currentAnthaColor.Component, vb)
-
-			// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
-			//TODO: why do you multiply by 4
-			if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
-				bSample.Type = wtype.LTMegaMix
-			}else{
-				bSample.Type = wtype.LTDISPENSEABOVE
-			}
-
-			//if the solution is already instantiated, we add it with the Mix() command. Else we make a new one with MixNamed()
-			if solution != nil {
-				solution = Mix(solution, bSample)
-			} else {
-				solution = MixNamed(PalettePlate.Type, "","Palette", bSample)
-			}
-
-			//adding the final created LHComponent to the AnthaColor (since it has the added mixing information)
-			AnthaPalette.AnthaColors[i].Component = solution
-
 		}
+		//When all components are added
+		fmt.Println("solution finalized")
+
+		//adding the final created LHComponent to the AnthaColor (since it has the added mixing information)
+		AnthaPalette.AnthaColors[i].Component = solution
+
+		//resetting counter
+		solutionFinished = true
 	}
 
 	//returning the AnthaPalette with updated LHComponents

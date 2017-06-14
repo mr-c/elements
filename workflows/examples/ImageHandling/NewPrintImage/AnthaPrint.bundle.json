@@ -122,9 +122,9 @@
     }
   },
   "Properties": {
-    "description": "This is a workflow to print an Antha Image.",
+    "description": "This is a workflow to make an antha Palette",
     "id": "---",
-    "name": "AnthaPrint"
+    "name": "AnthaPalette"
   },
   "connections": [
     {
@@ -149,6 +149,16 @@
     },
     {
       "src": {
+        "port": "AnthaPalette",
+        "process": "MakeAnthaPalette"
+      },
+      "tgt": {
+        "port": "AnthaPalette",
+        "process": "CreateAnthaPalette"
+      }
+    },
+    {
+      "src": {
         "port": "Image",
         "process": "DownloadImage"
       },
@@ -159,12 +169,12 @@
     },
     {
       "src": {
-        "port": "AnthaPalette",
-        "process": "MakeAnthaPalette"
+        "port": "MixedAnthaPalette",
+        "process": "CreateAnthaPalette"
       },
       "tgt": {
         "port": "AnthaPalette",
-        "process": "CreateAnthaPalette"
+        "process": "MakeAnthaImage"
       }
     },
     {
@@ -185,16 +195,6 @@
       "tgt": {
         "port": "Image",
         "process": "ExportResizedImage"
-      }
-    },
-    {
-      "src": {
-        "port": "MixedAnthaPalette",
-        "process": "CreateAnthaPalette"
-      },
-      "tgt": {
-        "port": "AnthaPalette",
-        "process": "PrintAnthaImage"
       }
     }
   ]

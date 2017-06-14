@@ -110,7 +110,7 @@ type MakeAnthaImageElement struct {
 }
 
 type MakeAnthaImageInput struct {
-	AnthaPalette image.AnthaPalette
+	AnthaPalette *image.AnthaPalette
 	InputImage   *goimage.NRGBA
 	PlateName    string
 }
