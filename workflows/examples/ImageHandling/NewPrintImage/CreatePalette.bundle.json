@@ -1,0 +1,128 @@
+{
+  "Parameters": {
+    "ChoosePalette": {
+      "AvailableColors": [],
+      "PaletteID": "UV"
+    },
+    "CreateAnthaPalette": {
+      "LowerThreshold": 0
+    },
+    "NewLHComponents": {
+      "Names": [
+        "UVCupidPink",
+        "UVyellow",
+        "UVVixenPurple",
+        "UVIvyGFP",
+        "UVDasherGFP",
+        "UVPaprikaRFP",
+        "UVLeorOrange",
+        "UVTannenGFP",
+        "UVDonnerMagenta",
+        "UVTwinkleCFP",
+        "UVSerranoRFP",
+        "UVE.coli pUC19 on sgal",
+        "UVorange",
+        "UVCyan",
+        "UVMagenta",
+        "UVTinselPurple",
+        "UVpink",
+        "UVVirginiaViolet",
+        "UVCayenneRFP",
+        "UVgreen",
+        "UVFresnoRFP",
+        "UVKringleYFP",
+        "UVdarkblue",
+        "UVMarleyYFP",
+        "UVCometGFP",
+        "UVSeraphinaPink",
+        "UVGuajilloRFP",
+        "UVBlazeYFP",
+        "UVblack",
+        "UVblue",
+        "UVJuniperGFP",
+        "UVCindylouCFP",
+        "UVRudolphRFP",
+        "UVBlitzenBlue",
+        "UVpurple",
+        "UVred",
+        "UVCratchitYFP",
+        "UVgrey",
+        "UVverywhite",
+        "UVHollyGFP",
+        "UVwhite",
+        "UVMaccabeePurple",
+        "UVYukonOFP",
+        "UVE.coli",
+        "UVYetiYFP",
+        "UVScroogeOrange",
+        "UVFrostyCFP"
+      ],
+      "TemplateComponents": {
+        "default": "water"
+      }
+    }
+  },
+  "Processes": {
+    "ChoosePalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "ChoosePalette"
+    },
+    "CreateAnthaPalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "CreateAnthaPalette"
+    },
+    "MakeAnthaPalette": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "MakeAnthaPalette"
+    },
+    "NewLHComponents": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "NewLHComponents"
+    }
+  },
+  "Properties": {
+    "description": "This is a workflow to make an antha Palette",
+    "id": "---",
+    "name": "AnthaPalette"
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "Palette",
+        "process": "ChoosePalette"
+      },
+      "tgt": {
+        "port": "Palette",
+        "process": "MakeAnthaPalette"
+      }
+    },
+    {
+      "src": {
+        "port": "NewLHComponents",
+        "process": "NewLHComponents"
+      },
+      "tgt": {
+        "port": "LHComponents",
+        "process": "MakeAnthaPalette"
+      }
+    },
+    {
+      "src": {
+        "port": "AnthaPalette",
+        "process": "MakeAnthaPalette"
+      },
+      "tgt": {
+        "port": "AnthaPalette",
+        "process": "CreateAnthaPalette"
+      }
+    }
+  ]
+}

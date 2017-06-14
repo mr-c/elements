@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/microArch/factory"
-
+	"image/color"
 )
 
 
@@ -51,7 +51,13 @@ Steps {
 	//----------------------------------------------------------------------------------
 
 	//This is the maximum reached by summing RGB values. We use this as a reference to get percentages values for each channels
-	var maxRGB = 196605
+	var maxCMYK uint8 = 255
+
+	//This is the minimum volume below which the sample() functions would return nil.
+	var minVolume = wunit.NewVolume(0.5,"ul")
+
+	//Placeholder for the current number of colors added to a solution.
+	colorsAdded := 1
 
 	//TODO Those globals are set up for testing
 	ColorVolume := wunit.NewVolume(10,"ul")
@@ -67,18 +73,27 @@ Steps {
 
 		//PlaceHolder for the LHComponent solution to be pipetted into the well
 		var solution *LHComponent
+
+		//TODO use this variable to fill the rest of the well?
 		//PlaceHolder for the total well volume
-		var totalVolume []Volume
-		//TODO change to bool
-		solutionFinished := false
+		//var totalVolume []Volume
+		//Boolean checking if the solution being made for the current color is initialized
+		solutionInitialized := false
 
 		//extract RGB values. We do not use the a (alpha) value
 		r,g,b,_ := AnthaColor.Color.RGBA()
 
+		fmt.Println(uint8(r),uint8(g),uint8(b))
+
+		//convert to the CMYK model since that is what is used to generate colors from paint
+		c,m,y,k := color.RGBToCMYK(uint8(r),uint8(g),uint8(b))
+
+		//figure out the volumes needed for the color and adding them to a map for easier iteration
 		volumes := map[string]wunit.Volume{
-			"r": wunit.NewVolume((float64(r)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
-			"g": wunit.NewVolume((float64(g)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
-			"b": wunit.NewVolume((float64(b)/float64(maxRGB)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"c": wunit.NewVolume((float64(c)/float64(maxCMYK)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"m": wunit.NewVolume((float64(m)/float64(maxCMYK)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"y": wunit.NewVolume((float64(y)/float64(maxCMYK)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
+			"k": wunit.NewVolume((float64(k)/float64(maxCMYK)) * ColorVolume.RawValue(),ColorVolume.Unit().PrefixedSymbol()),
 		}
 
 		//Check if the values for each colors is lower than the lowerThreshold defined, if they are we do not produce this palette color
@@ -86,63 +101,73 @@ Steps {
 			continue
 		}else{
 
-			//placeholders
+			//placeholders for the CMYK indidual color samples
 			var sample *LHComponent
 
 			//We range over the calculated RGB volumes and produce each of the desired colors.
 			for _ , volume := range volumes{
-				switch solutionFinished {
+				switch solutionInitialized {
 					case false:
 						//First mixing command
 						fmt.Println("first component added")
 						//Initiating the LHComponents to pipette with volume information
 
-
-						if volume.GreaterThan(wunit.NewVolume(0.5,"ul"))
-						sample = mixer.Sample(AnthaColor.Component, volume)
-
-						// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
-						//TODO: why do you multiply by 4
-						if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
-							sample.Type = wtype.LTMegaMix
+						//Initiating the LHComponents to pipette with volume information
+						//we need to check if the volumes are lower than 0.05ul because otherwise the sample() function would return nil.
+						if minVolume.GreaterThan(volume){
+							sample = mixer.Sample(AnthaColor.Component, minVolume)
 						}else{
-							sample.Type = wtype.LTDISPENSEABOVE
+							sample = mixer.Sample(AnthaColor.Component, volume)
 						}
 
 						//since this is the first color to be pipetted, we use MixNamed to instantiate the LHComponent
 						solution = MixNamed(PalettePlate.Type, "","Palette", sample)
 
+						//change to pipette above to signal LHComponents are still to be added
+						sample.Type = wtype.LTDISPENSEABOVE
+						//adding to the added color counter
+						colorsAdded++
+
+						//signalling that the solution is intitialized
+						solutionInitialized = true
+
 					default:
-						//second and third mixing command
-						fmt.Println("second/third component added")
+						//consecutive mixing commands
+						fmt.Println("consecutive mixing commands")
 
 						//Initiating the LHComponents to pipette with volume information
-						sample := mixer.Sample(AnthaColor.Component, volume)
-
-						// if no other components are going to be added afterward, change the liquidtype to Mix else change to pipette above
-						//TODO: why do you multiply by 4
-						if wunit.AddVolumes(totalVolume).EqualTo(wunit.MultiplyVolume(ColorVolume,4)){
-							sample.Type = wtype.LTMegaMix
+						//we need to check if the volumes are lower than 0.05ul because otherwise the sample() function would return nil.
+						if minVolume.GreaterThan(volume){
+							sample = mixer.Sample(AnthaColor.Component, minVolume)
 						}else{
-							sample.Type = wtype.LTDISPENSEABOVE
+							sample = mixer.Sample(AnthaColor.Component, volume)
 						}
 
-						//if the solution is already instantiated, we add it with the Mix() command. Else we make a new one with MixNamed()
+						//adding the sample to the solution
 						solution = Mix(solution, sample)
 
-						//resetting counter
-						solutionFinished = true
+						//checking if no more colors need to be added, and changing the information appropriately. Since we use the CMYK model this is four.
+						if colorsAdded != 4{
+							//change to pipette above to signal LHComponents are still to be added
+							sample.Type = wtype.LTDISPENSEABOVE
+							//adding to the added color counter
+							colorsAdded++
+						}else{
+							sample.Type = wtype.LTMegaMix
+
+							//When all components are added
+							fmt.Println("solution finalized")
+
+							//adding the final created LHComponent to the AnthaColor (since it has the added mixing information)
+							AnthaPalette.AnthaColors[i].Component = solution
+
+							//resetting counters
+							colorsAdded = 1
+							solutionInitialized = false
+						}
 				}
 			}
 		}
-		//When all components are added
-		fmt.Println("solution finalized")
-
-		//adding the final created LHComponent to the AnthaColor (since it has the added mixing information)
-		AnthaPalette.AnthaColors[i].Component = solution
-
-		//resetting counter
-		solutionFinished = true
 	}
 
 	//returning the AnthaPalette with updated LHComponents
