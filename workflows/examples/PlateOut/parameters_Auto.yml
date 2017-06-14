@@ -6,7 +6,10 @@ Parameters:
     IncubationTime: 57600s
     NumberofReplicates: 2
     PlateOutLiquidPolicy: plateout
-    PlateOutVolume: 100ul
+    PlateOutVolumes:
+      default:
+      - 50ul
+      - 100ul
     TransformedCells:
     - neb5compcells
     - protoplasts
