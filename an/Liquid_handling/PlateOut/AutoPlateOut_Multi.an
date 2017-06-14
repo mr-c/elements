@@ -15,7 +15,6 @@ Parameters (
 	NumberofReplicates int //specify number of technical replicates to plate out
 	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 	PlateOutVolumes map[string][]Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-  SpecifyReactionOrder []string
 	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 )
 

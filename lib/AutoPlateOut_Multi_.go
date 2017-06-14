@@ -21,7 +21,6 @@ import
 //specify number of technical replicates to plate out
 //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
 //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-
 //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
 
 // Output data of this protocol
@@ -154,7 +153,6 @@ type AutoPlateOut_MultiInput struct {
 	NumberofReplicates   int
 	PlateOutLiquidPolicy wtype.PolicyName
 	PlateOutVolumes      map[string][]wunit.Volume
-	SpecifyReactionOrder []string
 	TransformedCells     []*wtype.LHComponent
 	WellsAlreadyUsed     int
 }
@@ -185,7 +183,6 @@ func init() {
 				{Name: "NumberofReplicates", Desc: "specify number of technical replicates to plate out\n", Kind: "Parameters"},
 				{Name: "PlateOutLiquidPolicy", Desc: "optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
 				{Name: "PlateOutVolumes", Desc: "specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent\n", Kind: "Parameters"},
-				{Name: "SpecifyReactionOrder", Desc: "", Kind: "Parameters"},
 				{Name: "TransformedCells", Desc: "the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)\n", Kind: "Inputs"},
 				{Name: "WellsAlreadyUsed", Desc: "optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)\n", Kind: "Parameters"},
 				{Name: "PlatedCultures", Desc: "the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow\n", Kind: "Outputs"},
