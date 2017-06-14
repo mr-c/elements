@@ -25,9 +25,8 @@ Parameters (
 	//Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
 	PlateOutLiquidPolicy PolicyName
 
-	//Specify the plate out volumes. This is a map of each reaction name to a series of volumes of which the reaction will be plated out.
-	//If a "default" volume is specified, this will be applied to all reactions which do not have specified volumes.
-	//If Dilution is required, this volume will be made up to with the transformed cells and the diluent.
+	//Specify one or more volumes to plate out for each cell solution. 
+	// A "default" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.
 	PlateOutVolumes map[string][]Volume
 
 	//Optionally specify if some wells have already been used in the Agar Plate
@@ -91,9 +90,9 @@ Steps {
 							AgarPlateNumber: platecounter,
 							IncubationTemp: IncubationTemp,
 							IncubationTime: IncubationTime,
-			        NumberofReplicates: NumberofReplicates,
+			        		NumberofReplicates: NumberofReplicates,
 							PlateOutVolume: plateoutvols,
-			        PlateOutLiquidPolicy: PlateOutLiquidPolicy,
+			        		PlateOutLiquidPolicy: PlateOutLiquidPolicy,
 							WellsAlreadyUsed: counter,
 										},Inputs {
 							TransformedCells: plateout,

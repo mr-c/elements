@@ -25,9 +25,8 @@ import
 
 //Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
 
-//Specify the plate out volumes. This is a map of each reaction name to a series of volumes of which the reaction will be plated out.
-//If a "default" volume is specified, this will be applied to all reactions which do not have specified volumes.
-//If Dilution is required, this volume will be made up to with the transformed cells and the diluent.
+//Specify one or more volumes to plate out for each cell solution.
+// A "default" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.
 
 //Optionally specify if some wells have already been used in the Agar Plate
 //(i.e. if a plate has been previously used for tranformations, or an overlay)
@@ -197,7 +196,7 @@ func init() {
 				{Name: "IncubationTime", Desc: "Set Incubation time if using an associated Incubator\n", Kind: "Parameters"},
 				{Name: "NumberofReplicates", Desc: "Specify number of technical replicates to plate out\n", Kind: "Parameters"},
 				{Name: "PlateOutLiquidPolicy", Desc: "Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)\n", Kind: "Parameters"},
-				{Name: "PlateOutVolumes", Desc: "Specify the plate out volumes. This is a map of each reaction name to a series of volumes of which the reaction will be plated out.\nIf a \"default\" volume is specified, this will be applied to all reactions which do not have specified volumes.\nIf Dilution is required, this volume will be made up to with the transformed cells and the diluent.\n", Kind: "Parameters"},
+				{Name: "PlateOutVolumes", Desc: "Specify one or more volumes to plate out for each cell solution.\nA \"default\" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.\n", Kind: "Parameters"},
 				{Name: "TransformedCells", Desc: "The transformed cells that can be inputed from another protocol (e.g. AutTransformation_multi)\n", Kind: "Inputs"},
 				{Name: "WellsAlreadyUsed", Desc: "Optionally specify if some wells have already been used in the Agar Plate\n(i.e. if a plate has been previously used for tranformations, or an overlay)\n", Kind: "Parameters"},
 				{Name: "PlatedCultures", Desc: "the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow\n", Kind: "Outputs"},
