@@ -38,7 +38,9 @@ import (
 
 // Input parameters for this protocol (data)
 
-// Input file containing the Plate reader results exported from Mars.
+// Input file containing the Plate reader results exported from Mars or SpectraMax.
+
+// PlateReaderFileType
 
 // Design file for the executed experiment containing the corresponding plate and well locations.
 
@@ -108,6 +110,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 	}
 
 	var actualconcentrations = make(map[string]wunit.Concentration)
+
 	_output.ResponsetoManualValuesmap = make(map[string][]float64)
 
 	var Molecularweight float64
@@ -126,19 +129,35 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 		Molecularweight = molecule.MolecularWeight
 	}
 
-	data, err := _input.MarsResultsFileXLSX.ReadAll()
+	data, err := _input.PlateReaderResultsFileXLSX.ReadAll()
 
 	if err != nil {
-		execute.Errorf(_ctx, "Error reading Mars file %s", err.Error())
+		execute.Errorf(_ctx, "Error reading Plate reader data file %s", err.Error())
 	}
 
-	marsdata, err := parser.ParseMarsXLSXBinary(data, _input.SheetNumber)
-	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
-		execute.Errorf(_ctx, err.Error())
+	// specify platereaderdata as interface
+	var platereaderdata parser.PlateReaderData
+
+	// If no plate reader file specified default to Mars
+	if _input.PlateReaderFileType == "" {
+		_input.PlateReaderFileType = "Mars"
 	}
 
-	// range through pairing up wells from mars output and doe design
+	if _input.PlateReaderFileType == "Mars" {
+		platereaderdata, err = parser.ParseMarsXLSXBinary(data, _input.SheetNumber)
+		if err != nil {
+			_output.Errors = append(_output.Errors, err.Error())
+			execute.Errorf(_ctx, err.Error())
+		}
+	} else if _input.PlateReaderFileType == "SpectraMax" {
+		platereaderdata, err = parser.ParseSpectraMaxData(data)
+		if err != nil {
+			_output.Errors = append(_output.Errors, err.Error())
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
+	// range through pairing up wells from platereader output and DOE design
 
 	var runs []doe.Run
 
@@ -174,7 +193,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 	for i := range _input.Blanks {
 
-		blankValue, err := marsdata.ReadingsAsAverage(_input.Blanks[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+		blankValue, err := platereaderdata.ReadingsAsAverage(_input.Blanks[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 		if err != nil {
 			execute.Errorf(_ctx, fmt.Sprint("blank sample not found. ", err.Error()))
@@ -240,7 +259,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 				manualwell := wellsmap[0] // 1st well of array only
 
-				manual, err = marsdata.ReadingsAsAverage(manualwell, 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+				manual, err = platereaderdata.ReadingsAsAverage(manualwell, 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 				if err != nil {
 					execute.Errorf(_ctx, err.Error())
@@ -249,7 +268,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 				manualsamples = _input.VolumeToManualwells[experimentalvolumestr]
 
 				for i := range manualsamples {
-					manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+					manualvalue, err := platereaderdata.ReadingsAsAverage(manualsamples[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 					if err != nil {
 						execute.Errorf(_ctx, err.Error())
@@ -276,14 +295,14 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			// check optimal difference for each well
 			if _input.FindOptWavelength {
-				_output.MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
+				_output.MeasuredOptimalWavelength, err = platereaderdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
 
 				if err != nil {
 					execute.Errorf(_ctx, fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
 				}
 			}
 
-			rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			rawaverage, err := platereaderdata.ReadingsAsAverage(well.(string), 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Raw average "+strconv.Itoa(_input.Wavelength), rawaverage)
 
@@ -291,7 +310,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			samples = []string{well.(string)}
 
-			blankcorrected, err := marsdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			blankcorrected, err := platereaderdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" BlankCorrected "+strconv.Itoa(_input.Wavelength), blankcorrected)
 
@@ -341,7 +360,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			// add comparison to manually pipetted wells
 			if _, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
-				manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+				manualblankcorrected, err := platereaderdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
 				if err != nil {
 					execute.Errorf(_ctx, err.Error())
 				}
@@ -904,10 +923,11 @@ type AddPlateReader_ResultsInput struct {
 	Extinctioncoefficient      float64
 	FindOptWavelength          bool
 	ManualComparison           bool
-	MarsResultsFileXLSX        wtype.File
 	Molecule                   *wtype.LHComponent
 	OutputFilename             string
 	OverrideMolecularWeight    map[string]float64
+	PlateReaderFileType        string
+	PlateReaderResultsFileXLSX wtype.File
 	PlateType                  *wtype.LHPlate
 	R2threshold                float64
 	ReadingTypeinMarsFile      string
@@ -980,10 +1000,11 @@ func init() {
 				{Name: "Extinctioncoefficient", Desc: "extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm\n", Kind: "Parameters"},
 				{Name: "FindOptWavelength", Desc: "whether the scan should be used to return the wavelength with maximum signal to noise found\n", Kind: "Parameters"},
 				{Name: "ManualComparison", Desc: " Option to compare to manual pipetting\n", Kind: "Parameters"},
-				{Name: "MarsResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars.\n", Kind: "Parameters"},
 				{Name: "Molecule", Desc: "The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.\nCurrently only one solution name can be run at a time.\n", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
 				{Name: "OverrideMolecularWeight", Desc: "Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.\n", Kind: "Parameters"},
+				{Name: "PlateReaderFileType", Desc: "PlateReaderFileType\n", Kind: "Parameters"},
+				{Name: "PlateReaderResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars or SpectraMax.\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
 				{Name: "R2threshold", Desc: "validation requirements\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},
