@@ -62,9 +62,9 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 		execute.Errorf(_ctx, "Not enough solution for this many aliquots")
 	}
 
-	totalWellVolume := _input.OutPlate.Welltype.MaxVol
-	if totalWellVolume < _input.VolumePerAliquot.Mvalue {
-		execute.Errorf(_ctx, "Aliquot volume specified too high for selected plate")
+	//check if maxvolume of outplate is higher than specified aliquot volume
+	if _input.OutPlate.Welltype.MaxVolume().LessThan(_input.VolumePerAliquot) {
+		execute.Errorf(_ctx, "Aliquot volume %s specified too high for selected plate %s", _input.VolumePerAliquot.ToString(), _input.OutPlate.Name())
 	}
 
 	// if PreMix is selected change liquid type accordingly

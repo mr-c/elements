@@ -69,10 +69,10 @@ Steps {
 		Errorf("Not enough solution for this many aliquots")
 	}
 
-	totalWellVolume := OutPlate.Welltype.MaxVol
-	if  totalWellVolume < VolumePerAliquot.Mvalue {
-		Errorf("Aliquot volume specified too high for selected plate")
-	}
+	//check if maxvolume of outplate is higher than specified aliquot volume
+	if OutPlate.Welltype.MaxVolume().LessThan(VolumePerAliquot){
+				Errorf("Aliquot volume %s specified too high for selected plate %s",VolumePerAliquot.ToString(),OutPlate.Name())
+			}
 
 	// if PreMix is selected change liquid type accordingly
 	if PreMix {
