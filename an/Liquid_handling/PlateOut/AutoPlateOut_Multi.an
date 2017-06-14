@@ -9,13 +9,30 @@ import (
 
 // Parameters to this protocol
 Parameters (
-	AgarPlateNumber int //optionally specify the number of agar plates to begin counting from (Default = 1)
-	IncubationTemp wunit.Temperature //set Incubation temperature
-	IncubationTime wunit.Time //set Incubation time
-	NumberofReplicates int //specify number of technical replicates to plate out
-	PlateOutLiquidPolicy PolicyName //optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-	PlateOutVolumes map[string][]Volume //specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-	WellsAlreadyUsed int //optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
+
+	//Optionally specify the number of agar plates to begin counting from (Default = 1)
+	AgarPlateNumber int
+
+	//Set Incubation temperature if using an associated Incubator
+	IncubationTemp wunit.Temperature
+
+	//Set Incubation time if using an associated Incubator
+	IncubationTime wunit.Time
+
+	//Specify number of technical replicates to plate out
+	NumberofReplicates int
+
+	//Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
+	PlateOutLiquidPolicy PolicyName
+
+	//Specify the plate out volumes. This is a map of each reaction name to a series of volumes of which the reaction will be plated out.
+	//If a "default" volume is specified, this will be applied to all reactions which do not have specified volumes.
+	//If Dilution is required, this volume will be made up to with the transformed cells and the diluent.
+	PlateOutVolumes map[string][]Volume
+
+	//Optionally specify if some wells have already been used in the Agar Plate
+	//(i.e. if a plate has been previously used for tranformations, or an overlay)
+	WellsAlreadyUsed int
 )
 
 // Output data of this protocol
@@ -24,8 +41,13 @@ Data (
 
 // Physical inputs to this protocol
 Inputs (
-	AgarPlate *LHPlate //the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-	TransformedCells []*LHComponent //the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
+
+	//The output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+	//An omniwell may be used for plating out up to 96 spots, but a 96 well plate image must be selected in Antha (e.g. pcrplate_skirted)
+	AgarPlate *LHPlate
+
+	//The transformed cells that can be inputed from another protocol (e.g. AutTransformation_multi)
+	TransformedCells []*LHComponent
 )
 
 // Physical outputs to this protocol
@@ -40,17 +62,18 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	//setup counter to track WellsAlreadyUsed
+	//Setup counter to track WellsAlreadyUsed
 	var counter int = WellsAlreadyUsed
 	var platecounter int = AgarPlateNumber
 
-	//range through the inputted array and perform the PlateOutTest protocol
+	//Range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range TransformedCells {
 
 		var reactionname string = plateout.CName
 
 		var volumes []Volume
 
+		//Check if volumes speicifed for each reaction and assign default if necessary
 		if value, found := PlateOutVolumes[reactionname]; found {
 			volumes = value
 		} else if value, found := PlateOutVolumes["default"]; found {
@@ -59,9 +82,10 @@ Steps {
 			Errorf("No plate out volumes set for %s. Please set these", reactionname)
 		}
 
+		//Range through the plate out volumes
 		for _, plateoutvols := range volumes {
 
-				// Run PlateOut element
+				//Run PlateOut element
 				result := RunSteps(PlateOutTest,
 						Parameters{
 							AgarPlateNumber: platecounter,
@@ -75,11 +99,13 @@ Steps {
 							TransformedCells: plateout,
 							AgarPlate: AgarPlate,
 										})
+
+					//Append outputted plated cultures
 					for _, plateoutorder := range result.Outputs.PlatedCultures{
 						PlatedCultures = append(PlatedCultures, plateoutorder)
 					}
 
-					//increase counter
+					//Increase counters
 					counter = result.Outputs.WellsUsed
 					platecounter = result.Outputs.TransformedPlateNumber
 		}
