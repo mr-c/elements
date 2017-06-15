@@ -15,20 +15,30 @@ import
 
 // Parameters to this protocol
 
-//optionally specify the number of agar plates to begin counting from (Default = 1)
-//set Incubation temperature
-//set Incubation time
-//specify number of technical replicates to plate out
-//optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change
-//specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent
-//optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)
+//Optionally specify the number of agar plates to begin counting from (Default = 1)
+
+//Set Incubation temperature if using an associated Incubator
+
+//Set Incubation time if using an associated Incubator
+
+//Specify number of technical replicates to plate out
+
+//Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
+
+//Specify one or more volumes to plate out for each cell solution.
+// A "default" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.
+
+//Optionally specify if some wells have already been used in the Agar Plate
+//(i.e. if a plate has been previously used for tranformations, or an overlay)
 
 // Output data of this protocol
 
 // Physical inputs to this protocol
 
-//the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
-//the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)
+//The output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)
+//An omniwell may be used for plating out up to 96 spots, but a 96 well plate image must be selected in Antha (e.g. pcrplate_skirted)
+
+//The transformed cells that can be inputed from another protocol (e.g. AutTransformation_multi)
 
 // Physical outputs to this protocol
 
@@ -41,32 +51,51 @@ func _AutoPlateOut_MultiSetup(_ctx context.Context, _input *AutoPlateOut_MultiIn
 
 // The core process for this protocol. These steps are executed for each input.
 func _AutoPlateOut_MultiSteps(_ctx context.Context, _input *AutoPlateOut_MultiInput, _output *AutoPlateOut_MultiOutput) {
-	//setup counter to track WellsAlreadyUsed
+	//Setup counter to track WellsAlreadyUsed
 	var counter int = _input.WellsAlreadyUsed
 	var platecounter int = _input.AgarPlateNumber
 
-	//range through the inputted array and perform the PlateOutTest protocol
+	//Range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range _input.TransformedCells {
 
-		// Run PlateOut element
-		result := PlateOutTestRunSteps(_ctx, &PlateOutTestInput{AgarPlateNumber: platecounter,
-			IncubationTemp:       _input.IncubationTemp,
-			IncubationTime:       _input.IncubationTime,
-			NumberofReplicates:   _input.NumberofReplicates,
-			PlateOutVolume:       _input.PlateOutVolume,
-			PlateOutLiquidPolicy: _input.PlateOutLiquidPolicy,
-			WellsAlreadyUsed:     counter,
+		var reactionname string = plateout.CName
 
-			TransformedCells: plateout,
-			AgarPlate:        _input.AgarPlate},
-		)
-		for _, plateoutorder := range result.Outputs.PlatedCultures {
-			_output.PlatedCultures = append(_output.PlatedCultures, plateoutorder)
+		var volumes []wunit.Volume
+
+		//Check if volumes speicifed for each reaction and assign default if necessary
+		if value, found := _input.PlateOutVolumes[reactionname]; found {
+			volumes = value
+		} else if value, found := _input.PlateOutVolumes["default"]; found {
+			volumes = value
+		} else {
+			execute.Errorf(_ctx, "No plate out volumes set for %s. Please set these", reactionname)
 		}
 
-		//increase counter
-		counter = result.Outputs.WellsUsed
-		platecounter = result.Outputs.TransformedPlateNumber
+		//Range through the plate out volumes
+		for _, plateoutvols := range volumes {
+
+			//Run PlateOut element
+			result := PlateOutTestRunSteps(_ctx, &PlateOutTestInput{AgarPlateNumber: platecounter,
+				IncubationTemp:       _input.IncubationTemp,
+				IncubationTime:       _input.IncubationTime,
+				NumberofReplicates:   _input.NumberofReplicates,
+				PlateOutVolume:       plateoutvols,
+				PlateOutLiquidPolicy: _input.PlateOutLiquidPolicy,
+				WellsAlreadyUsed:     counter,
+
+				TransformedCells: plateout,
+				AgarPlate:        _input.AgarPlate},
+			)
+
+			//Append outputted plated cultures
+			for _, plateoutorder := range result.Outputs.PlatedCultures {
+				_output.PlatedCultures = append(_output.PlatedCultures, plateoutorder)
+			}
+
+			//Increase counters
+			counter = result.Outputs.WellsUsed
+			platecounter = result.Outputs.TransformedPlateNumber
+		}
 	}
 }
 
@@ -137,7 +166,7 @@ type AutoPlateOut_MultiInput struct {
 	IncubationTime       wunit.Time
 	NumberofReplicates   int
 	PlateOutLiquidPolicy wtype.PolicyName
-	PlateOutVolume       wunit.Volume
+	PlateOutVolumes      map[string][]wunit.Volume
 	TransformedCells     []*wtype.LHComponent
 	WellsAlreadyUsed     int
 }
@@ -161,15 +190,15 @@ func init() {
 			Desc: "Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/AutoPlateOut_Multi.an",
 			Params: []component.ParamDesc{
-				{Name: "AgarPlate", Desc: "the output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\n", Kind: "Inputs"},
-				{Name: "AgarPlateNumber", Desc: "optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
-				{Name: "IncubationTemp", Desc: "set Incubation temperature\n", Kind: "Parameters"},
-				{Name: "IncubationTime", Desc: "set Incubation time\n", Kind: "Parameters"},
-				{Name: "NumberofReplicates", Desc: "specify number of technical replicates to plate out\n", Kind: "Parameters"},
-				{Name: "PlateOutLiquidPolicy", Desc: "optionally specify the liquid handling policy to use when plating out (Default = PlateOut). Can change\n", Kind: "Parameters"},
-				{Name: "PlateOutVolume", Desc: "specify the plate out volume. If Dilution is required, this volume will be made up to with the transformed cells and the diluent\n", Kind: "Parameters"},
-				{Name: "TransformedCells", Desc: "the transformed cells that can be inputted from another protocol (e.g.  AutTransformation_multi)\n", Kind: "Inputs"},
-				{Name: "WellsAlreadyUsed", Desc: "optionally specify if some wells have already been used in the Agar Plate (i.e. if a plate is being used for multiple tranformations, or an overlay)\n", Kind: "Parameters"},
+				{Name: "AgarPlate", Desc: "The output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\nAn omniwell may be used for plating out up to 96 spots, but a 96 well plate image must be selected in Antha (e.g. pcrplate_skirted)\n", Kind: "Inputs"},
+				{Name: "AgarPlateNumber", Desc: "Optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
+				{Name: "IncubationTemp", Desc: "Set Incubation temperature if using an associated Incubator\n", Kind: "Parameters"},
+				{Name: "IncubationTime", Desc: "Set Incubation time if using an associated Incubator\n", Kind: "Parameters"},
+				{Name: "NumberofReplicates", Desc: "Specify number of technical replicates to plate out\n", Kind: "Parameters"},
+				{Name: "PlateOutLiquidPolicy", Desc: "Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)\n", Kind: "Parameters"},
+				{Name: "PlateOutVolumes", Desc: "Specify one or more volumes to plate out for each cell solution.\nA \"default\" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.\n", Kind: "Parameters"},
+				{Name: "TransformedCells", Desc: "The transformed cells that can be inputed from another protocol (e.g. AutTransformation_multi)\n", Kind: "Inputs"},
+				{Name: "WellsAlreadyUsed", Desc: "Optionally specify if some wells have already been used in the Agar Plate\n(i.e. if a plate has been previously used for tranformations, or an overlay)\n", Kind: "Parameters"},
 				{Name: "PlatedCultures", Desc: "the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow\n", Kind: "Outputs"},
 			},
 		},
