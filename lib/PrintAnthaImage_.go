@@ -2,10 +2,12 @@
 package lib
 
 import (
-	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+
+	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -44,12 +46,13 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 	var wellLocation string
 
 	//TODO: temporary fixed pixel volume for testing
-	pixelVolume := wunit.NewVolume(1, "ml")
+	pixelVolume := wunit.NewVolume(50, "ul")
 
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
 
+	counter := 0
 	for _, pix := range _input.AnthaImage.Pix {
 
 		//Getting the LHComponent of this pixel
@@ -62,8 +65,15 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
 
 		//Executing the liquidHandling action
-		execute.MixNamed(_ctx, _input.AnthaImage.Plate.ID, wellLocation, _input.AnthaImage.Plate.ID, pixelSolution)
+		execute.MixNamed(_ctx, _input.AnthaImage.Plate.Type, wellLocation, _input.AnthaImage.Plate.ID, pixelSolution)
+
+		fmt.Println(counter)
+
+		counter++
 	}
+
+	fmt.Println("AnthaImage printed")
+	//getting the number of pipette actions
 
 }
 

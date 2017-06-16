@@ -5,6 +5,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+
+	"fmt"
 )
 
 
@@ -51,12 +53,14 @@ Steps {
 	var wellLocation  string
 
 	//TODO: temporary fixed pixel volume for testing
-	pixelVolume := wunit.NewVolume(1,"ml")
+	pixelVolume := wunit.NewVolume(50,"ul")
 
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
 
+
+	counter :=0
 	for _, pix := range AnthaImage.Pix {
 
 		//Getting the LHComponent of this pixel
@@ -69,8 +73,15 @@ Steps {
 		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
 
 		//Executing the liquidHandling action
-		MixNamed(AnthaImage.Plate.ID, wellLocation, AnthaImage.Plate.ID, pixelSolution)
+		MixNamed(AnthaImage.Plate.Type, wellLocation, AnthaImage.Plate.ID, pixelSolution)
+
+		fmt.Println(counter)
+
+		counter++
 	}
+
+	fmt.Println("AnthaImage printed")
+	//getting the number of pipette actions
 
 
 }

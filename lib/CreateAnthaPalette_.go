@@ -77,8 +77,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 		//extract RGB values. We do not use the a (alpha) value
 		r, g, b, _ := AnthaColor.Color.RGBA()
 
-		fmt.Println(uint8(r), uint8(g), uint8(b))
-
 		//convert to the CMYK model since that is what is used to generate colors from paint
 		c, m, y, k := color.RGBToCMYK(uint8(r), uint8(g), uint8(b))
 
@@ -102,10 +100,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 			for _, volume := range volumes {
 				switch solutionInitialized {
 				case false:
-					//First mixing command
-					fmt.Println("first component added")
-					//Initiating the LHComponents to pipette with volume information
-
 					//Initiating the LHComponents to pipette with volume information
 					//we need to check if the volumes are lower than 0.05ul because otherwise the sample() function would return nil.
 					if minVolume.GreaterThan(volume) {
@@ -126,9 +120,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 					solutionInitialized = true
 
 				default:
-					//consecutive mixing commands
-					fmt.Println("consecutive mixing commands")
-
 					//Initiating the LHComponents to pipette with volume information
 					//we need to check if the volumes are lower than 0.05ul because otherwise the sample() function would return nil.
 					if minVolume.GreaterThan(volume) {
@@ -149,9 +140,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 					} else {
 						sample.Type = wtype.LTMegaMix
 
-						//When all components are added
-						fmt.Println("solution finalized")
-
 						//adding the final created LHComponent to the AnthaColor (since it has the added mixing information)
 						_input.AnthaPalette.AnthaColors[i].Component = solution
 
@@ -167,6 +155,7 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 	//returning the AnthaPalette with updated LHComponents
 	_output.MixedAnthaPalette = _input.AnthaPalette
 
+	fmt.Println("Palette Made")
 }
 
 // Run after controls and a steps block are completed to

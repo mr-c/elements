@@ -5,6 +5,7 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/microArch/factory"
+	"fmt"
 
 	goimage "image"
 	)
@@ -53,6 +54,8 @@ Steps {
 
 	//This function will create an AnthaImage object from a digital image.
 	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
+
+	fmt.Println("AnthaImage made")
 
 }
 // Run after controls and a steps block are completed to

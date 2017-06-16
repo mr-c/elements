@@ -1,14 +1,17 @@
 {
+  "Config": {
+    "UseDriverTipTracking": true
+  },
   "Parameters": {
     "ChoosePalette": {
       "AvailableColors": [],
-      "PaletteID": "UV"
+      "PaletteID": "Paints"
     },
     "CreateAnthaPalette": {
-      "LowerThreshold": 0
+      "LowerThreshold": 50
     },
     "DownloadImage": {
-      "URL": "http://www.orghaber.com.tr/images/album/1_6.jpg"
+      "URL": "https://www.petfinder.com/wp-content/uploads/2012/11/bird-average-bird-lifespans-thinkstock-155253666-632x457.jpg"
     },
     "ExportResizedImage": {
       "OutputImageFileName": "Resized"
@@ -18,53 +21,13 @@
     },
     "NewLHComponents": {
       "Names": [
-        "UVCupidPink",
-        "UVyellow",
-        "UVVixenPurple",
-        "UVIvyGFP",
-        "UVDasherGFP",
-        "UVPaprikaRFP",
-        "UVLeorOrange",
-        "UVTannenGFP",
-        "UVDonnerMagenta",
-        "UVTwinkleCFP",
-        "UVSerranoRFP",
-        "UVE.coli pUC19 on sgal",
-        "UVorange",
-        "UVCyan",
-        "UVMagenta",
-        "UVTinselPurple",
-        "UVpink",
-        "UVVirginiaViolet",
-        "UVCayenneRFP",
-        "UVgreen",
-        "UVFresnoRFP",
-        "UVKringleYFP",
-        "UVdarkblue",
-        "UVMarleyYFP",
-        "UVCometGFP",
-        "UVSeraphinaPink",
-        "UVGuajilloRFP",
-        "UVBlazeYFP",
-        "UVblack",
-        "UVblue",
-        "UVJuniperGFP",
-        "UVCindylouCFP",
-        "UVRudolphRFP",
-        "UVBlitzenBlue",
-        "UVpurple",
-        "UVred",
-        "UVCratchitYFP",
-        "UVgrey",
-        "UVverywhite",
-        "UVHollyGFP",
-        "UVwhite",
-        "UVMaccabeePurple",
-        "UVYukonOFP",
-        "UVE.coli",
-        "UVYetiYFP",
-        "UVScroogeOrange",
-        "UVFrostyCFP"
+        "blue",
+        "yellow",
+        "green",
+        "red",
+        "black",
+        "transparent",
+        "white"
       ],
       "TemplateComponents": {
         "default": "water"
@@ -122,9 +85,9 @@
     }
   },
   "Properties": {
-    "description": "This is a workflow to make an antha Palette",
+    "description": "This is a workflow to print a digital image with paint",
     "id": "---",
-    "name": "AnthaPalette"
+    "name": "AnthaPrint"
   },
   "connections": [
     {

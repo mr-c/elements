@@ -2,6 +2,7 @@
 package lib
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/microArch/factory"
@@ -47,6 +48,8 @@ func _MakeAnthaImageSteps(_ctx context.Context, _input *MakeAnthaImageInput, _ou
 
 	//This function will create an AnthaImage object from a digital image.
 	_output.AnthaImage, _output.ResizedImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
+
+	fmt.Println("AnthaImage made")
 
 }
 
