@@ -20,7 +20,7 @@
       "PlateReaderFileType": "SpectraMax",
       "PlateReaderResultsFileXLSX": {
         "host_file": {
-          "filename": "spectramax.xml"
+          "filename": "spectramax2.xml"
         }
       },
       "PlateType": "greiner384",
