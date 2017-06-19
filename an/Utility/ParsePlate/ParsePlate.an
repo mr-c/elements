@@ -55,7 +55,7 @@ Steps {
 	reader := bytes.NewReader(filecontents)
 	
 	// Parse plate from reader
-	plateresult,err := inplate.ParsePlateCSV(reader) 
+	plateresult,err:=inplate.ParsePlateCSVWithValidationConfig(reader, inplate.PermissiveValidationConfig())
 	
 	if err != nil {
 		Error = err
