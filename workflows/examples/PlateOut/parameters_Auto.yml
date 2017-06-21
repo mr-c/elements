@@ -1,11 +1,9 @@
 Parameters:
   AutoPlateOut:
     AgarPlate: falcon6wellAgar
-    AgarPlateNumber: 1
     IncubationTemp: 37C
     IncubationTime: 57600s
     NumberofReplicates: 2
-    PlateOutLiquidPolicy: plateout
     PlateOutVolumes:
       default:
       - 50ul
