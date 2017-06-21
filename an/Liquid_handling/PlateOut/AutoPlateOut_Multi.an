@@ -10,9 +10,6 @@ import (
 // Parameters to this protocol
 Parameters (
 
-	//Optionally specify the number of agar plates to begin counting from (Default = 1)
-	AgarPlateNumber int
-
 	//Set Incubation temperature if using an associated Incubator
 	IncubationTemp wunit.Temperature
 
@@ -22,10 +19,7 @@ Parameters (
 	//Specify number of technical replicates to plate out
 	NumberofReplicates int
 
-	//Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
-	PlateOutLiquidPolicy PolicyName
-
-	//Specify one or more volumes to plate out for each cell solution. 
+	//Specify one or more volumes to plate out for each cell solution.
 	// A "default" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.
 	PlateOutVolumes map[string][]Volume
 
@@ -63,7 +57,8 @@ Setup {
 Steps {
 	//Setup counter to track WellsAlreadyUsed
 	var counter int = WellsAlreadyUsed
-	var platecounter int = AgarPlateNumber
+	var platecounter int = 1
+	var plateoutliquidpolicy PolicyName = "plateout"
 
 	//Range through the inputted array and perform the PlateOutTest protocol
 	for _, plateout := range TransformedCells {
@@ -92,7 +87,7 @@ Steps {
 							IncubationTime: IncubationTime,
 			        		NumberofReplicates: NumberofReplicates,
 							PlateOutVolume: plateoutvols,
-			        		PlateOutLiquidPolicy: PlateOutLiquidPolicy,
+			        		PlateOutLiquidPolicy: plateoutliquidpolicy,
 							WellsAlreadyUsed: counter,
 										},Inputs {
 							TransformedCells: plateout,
