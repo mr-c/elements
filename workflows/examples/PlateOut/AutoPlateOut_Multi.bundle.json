@@ -4,15 +4,13 @@
   "parameters": {
     "Process1": {
       "AgarPlate": "falcon6wellAgar",
-      "AgarPlateNumber": 1,
       "IncubationTemp": "37C",
       "IncubationTime": "57600s",
       "NumberofReplicates": 1,
-      "PlateOutLiquidPolicy": "plateout",
       "PlateOutVolumes": {
         "default": [
-        "50ul",
-        "100ul"
+          "50ul",
+          "100ul"
         ]
       },
       "TransformedCells": [
