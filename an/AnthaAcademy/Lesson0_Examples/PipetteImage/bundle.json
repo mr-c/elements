@@ -65,31 +65,31 @@
   },
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Palette",
         "process": "MakePalette1"
       },
-      "tgt": {
+      "target": {
         "port": "Palette",
         "process": "Pipette1"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "ColourtoComponentMap",
         "process": "MakePalette1"
       },
-      "tgt": {
+      "target": {
         "port": "ColourIndextoComponentMap",
         "process": "Pipette1"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "Colours",
         "process": "MakePalette1"
       },
-      "tgt": {
+      "target": {
         "port": "Colourcomponents",
         "process": "Pipette1"
       }

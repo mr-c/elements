@@ -1,21 +1,21 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Transformedcells",
         "process": "Transformation1"
       },
-      "tgt": {
+      "target": {
         "port": "Transformedcells",
         "process": "Recovery1"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "RecoveredCells",
         "process": "Recovery1"
       },
-      "tgt": {
+      "target": {
         "port": "RecoveredCells",
         "process": "PlateOut1"
       }

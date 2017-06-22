@@ -1,11 +1,11 @@
 {
     "connections": [
         {
-            "src": {
+            "source": {
                 "port": "MyVolume",
                 "process": "1stprocess"
             },
-            "tgt": {
+            "target": {
                 "port": "MyVolume",
                 "process": "2ndprocess"
             }

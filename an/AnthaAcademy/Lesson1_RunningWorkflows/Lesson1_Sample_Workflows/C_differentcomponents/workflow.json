@@ -1,11 +1,11 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Sample",
         "process": "sample"
       },
-      "tgt": {
+      "target": {
         "port": "Solution",
         "process": "sampleAll"
       }

@@ -1,31 +1,31 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Reaction",
         "process": "Upstream"
       },
-      "tgt": {
+      "target": {
         "port": "Part1",
         "process": "Ligation"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "Reaction",
         "process": "Downstream"
       },
-      "tgt": {
+      "target": {
         "port": "Part2",
         "process": "Ligation"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "Reaction",
         "process": "Vector"
       },
-      "tgt": {
+      "target": {
         "port": "Vector",
         "process": "Ligation"
       }

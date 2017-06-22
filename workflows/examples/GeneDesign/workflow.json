@@ -1,11 +1,11 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Components",
         "process": "Synthesis1"
       },
-      "tgt": {
+      "target": {
         "port": "Components",
         "process": "Mix1"
       }

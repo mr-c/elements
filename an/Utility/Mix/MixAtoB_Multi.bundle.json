@@ -9,11 +9,11 @@
   },
   "connections": [
 	{
-      "src": {
+      "source": {
         "port": "Aliquots",
         "process": "PreProcess"
       },
-      "tgt": {
+      "target": {
         "port": "SolutionBs",
         "process": "Process1"
       }

@@ -12,11 +12,11 @@
   },
   "connections": [
     {
-      "src": {
+      "source": {
         "process": "Process1",
         "port": "ComponentA"
       },
-      "tgt": {
+      "target": {
         "process": "Process2",
         "port": "InputSolution"
       }

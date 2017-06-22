@@ -1,11 +1,11 @@
 {
   "Connections": [
     {
-      "src": {
+      "source": {
         "port": "GrowthMedium",
         "process": "MediaPrep1"
       },
-      "tgt": {
+      "target": {
         "port": "Medium",
         "process": "InoculateOvernightGrowth1"
       }

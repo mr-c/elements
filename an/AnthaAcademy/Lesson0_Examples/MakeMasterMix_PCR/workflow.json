@@ -1,11 +1,11 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "Mastermix",
         "process": "MMX"
       },
-      "tgt": {
+      "target": {
         "port": "MasterMix",
         "process": "PCR"
       }

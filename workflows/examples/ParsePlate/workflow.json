@@ -1,11 +1,11 @@
 {
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "PlatewithComponents",
         "process": "addplate"
       },
-      "tgt": {
+      "target": {
         "port": "OutPlate",
         "process": "transfer"
       }

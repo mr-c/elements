@@ -1,31 +1,31 @@
 {
   "Connections": [
     {
-      "src": {
+      "source": {
         "port": "Culture",
         "process": "Growth1"
       },
-      "tgt": {
+      "target": {
         "port": "Inoculum",
         "process": "InoculateGrowth1"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "GrowthMedium",
         "process": "MediaPrep1"
       },
-      "tgt": {
+      "target": {
         "port": "Medium",
         "process": "InoculateGrowth1"
       }
     },
     {
-      "src": {
+      "source": {
         "port": "Culture",
         "process": "Growth1"
       },
-      "tgt": {
+      "target": {
         "port": "InputStream",
         "process": "Split1"
       }

@@ -9,11 +9,11 @@
   },
   "connections": [
     {
-            "src": {
+            "source": {
                 "process": "Process0",
                 "port": "NewLHComponents"
             },
-            "tgt": {
+            "target": {
                 "process": "Process1",
                 "port": "SolutionsWithConcentrations"
             }

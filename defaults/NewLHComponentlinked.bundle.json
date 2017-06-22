@@ -2,11 +2,11 @@
   "config": null,
   "connections": [
     {
-      "src": {
+      "source": {
         "port": "NewLHComponent",
         "process": "Process1"
       },
-      "tgt": {
+      "target": {
         "port": "TemplateComponent",
         "process": "Process2"
       }
