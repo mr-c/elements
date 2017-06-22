@@ -1,11 +1,11 @@
 {
   "connections": [
     {
-      "Src": {
+      "source": {
         "Port": "DNA",
         "Process": "makednaseq"
       },
-      "Tgt": {
+      "target": {
         "Port": "DNA",
         "Process": "blast"
       }
