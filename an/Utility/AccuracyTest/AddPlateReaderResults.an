@@ -18,10 +18,12 @@ import (
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+	
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset/parse"
 	"math"
 	"fmt"
 	"path/filepath"
@@ -184,7 +186,7 @@ Steps {
 		}
 		
 		// specify platereaderdata as interface
-		var platereaderdata parser.PlateReaderData
+		var platereaderdata dataset.PlateReaderData
 		
 		
 		// If no plate reader file specified default to Mars
@@ -193,13 +195,13 @@ Steps {
 		}
 		
 		if PlateReaderFileType == "Mars" {
-			platereaderdata, err = parser.ParseMarsXLSXBinary(data,SheetNumber)
+			platereaderdata, err = parse.ParseMarsXLSXBinary(data,SheetNumber)
 			if err != nil {
 				Errors = append(Errors,err.Error())
 				Errorf(err.Error())
 			}
 		}else if PlateReaderFileType == "SpectraMax" {
-			platereaderdata, err = parser.ParseSpectraMaxData(data)
+			platereaderdata, err = parse.ParseSpectraMaxData(data)
 			if err != nil {
 				Errors = append(Errors,err.Error())
 				Errorf(err.Error())

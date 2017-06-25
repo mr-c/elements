@@ -13,22 +13,24 @@
 package lib
 
 import (
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/montanaflynn/stats"
+
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
-	"github.com/montanaflynn/stats"
 	"math"
 	"path/filepath"
 	"strconv"
@@ -136,7 +138,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 	}
 
 	// specify platereaderdata as interface
-	var platereaderdata parser.PlateReaderData
+	var platereaderdata dataset.PlateReaderData
 
 	// If no plate reader file specified default to Mars
 	if _input.PlateReaderFileType == "" {
@@ -144,13 +146,13 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 	}
 
 	if _input.PlateReaderFileType == "Mars" {
-		platereaderdata, err = parser.ParseMarsXLSXBinary(data, _input.SheetNumber)
+		platereaderdata, err = parse.ParseMarsXLSXBinary(data, _input.SheetNumber)
 		if err != nil {
 			_output.Errors = append(_output.Errors, err.Error())
 			execute.Errorf(_ctx, err.Error())
 		}
 	} else if _input.PlateReaderFileType == "SpectraMax" {
-		platereaderdata, err = parser.ParseSpectraMaxData(data)
+		platereaderdata, err = parse.ParseSpectraMaxData(data)
 		if err != nil {
 			_output.Errors = append(_output.Errors, err.Error())
 			execute.Errorf(_ctx, err.Error())
