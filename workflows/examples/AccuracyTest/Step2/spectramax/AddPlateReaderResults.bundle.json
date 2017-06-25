@@ -2,7 +2,7 @@
   "Parameters": {
     "AddResponses": {
       "Blanks": [
-        "H3"
+        "A1"
       ],
       "CVthreshold": 0.2,
       "DesignFile": {
@@ -20,7 +20,7 @@
       "PlateReaderFileType": "SpectraMax",
       "PlateReaderResultsFileXLSX": {
         "host_file": {
-          "filename": "spectramax2.xml"
+          "filename": "spectramaxdata.xml"
         }
       },
       "PlateType": "greiner384",
