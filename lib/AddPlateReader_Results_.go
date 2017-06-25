@@ -196,7 +196,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 		blankValue, err := platereaderdata.ReadingsAsAverage(_input.Blanks[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 		if err != nil {
-			execute.Errorf(_ctx, fmt.Sprint("blank sample not found. ", err.Error()))
+			execute.Errorf(_ctx, fmt.Sprint("blank sample not found at position ", _input.Blanks[i], ": ", err.Error()))
 		}
 
 		_output.BlankValues = append(_output.BlankValues, blankValue)
@@ -419,22 +419,28 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		execute.Errorf(_ctx, "no runs")
 	}
 	// 1. now calculate r2 and plot results
-	for i, runwithresponses := range _output.Runs {
-		// values for r2 to reset each run
+	for _, runwithresponses := range _output.Runs {
 
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc " + strconv.Itoa(_input.Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 
 		if err != nil {
 			_output.Errors = append(_output.Errors, err.Error())
 		}
 
-		expectedconcfloat, floattrue := expectedconc.(float64)
-		// if float64 is true
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring, ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+
+			if err != nil {
+				_output.Errors = append(_output.Errors, err.Error())
+			}
+
+			volinul := volumeToul(volume)
+
+			xvalues = append(xvalues, volinul)
 		} else {
-			execute.Errorf(_ctx, "Run"+fmt.Sprint(i, runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			execute.Errorf(_ctx, "Expected volume %+v to be in string format but cannot cast in to string", vol)
 		}
 
 		// get response value and check if it's a float64 type
@@ -456,7 +462,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 	}
 
-	_output.R2, _output.Variance, _output.Formula = plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
+	_output.R2, _output.Variance, _output.Formula = plot.Rsquared("Volume", xvalues, "Actual Conc", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	xygraph, err := plot.Plot(xvalues, [][]float64{yvalues})
@@ -464,13 +470,13 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		_output.Errors = append(_output.Errors, err.Error())
 	}
 
-	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+	plot.AddAxesTitles(xygraph, "Volume (ul)", "Measured Conc (M/l)")
 
 	xygraph.Title.Text = _input.Molecule.CName + ": Expected vs Measured Concentration"
 
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
 
-	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "20cm", "20cm", filenameandextension[0]+"_plot"+".png")
+	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "15cm", "15cm", filenameandextension[0]+"_plot"+".png")
 
 	if err != nil {
 		_output.Errors = append(_output.Errors, err.Error())
@@ -486,22 +492,29 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 	yvalues = append(yvalues, 0.0)
 
 	// 2. now plot correctnessfactor
-	for i, runwithresponses := range _output.Runs {
+	for _, runwithresponses := range _output.Runs {
 		// values for r2 to reset each run
 
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc " + strconv.Itoa(_input.Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 
 		if err != nil {
 			_output.Errors = append(_output.Errors, err.Error())
 		}
 
-		expectedconcfloat, floattrue := expectedconc.(float64)
-		// if float64 is true
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring, ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+
+			if err != nil {
+				_output.Errors = append(_output.Errors, err.Error())
+			}
+
+			volinul := volumeToul(volume)
+
+			xvalues = append(xvalues, volinul)
 		} else {
-			execute.Errorf(_ctx, "Run"+fmt.Sprint(i, runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			execute.Errorf(_ctx, "Expected volume %+v to be in string format but cannot cast in to string", vol)
 		}
 
 		// get response value and check if it's a float64 type
@@ -523,7 +536,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 	}
 
-	_output.R2_CorrectnessFactor, _, _ = plot.Rsquared("Expected Conc", xvalues, "Correctness Factor", yvalues)
+	_output.R2_CorrectnessFactor, _, _ = plot.Rsquared("Volume", xvalues, "Correctness Factor", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	correctnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
@@ -532,11 +545,11 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		_output.Errors = append(_output.Errors, err.Error())
 	}
 
-	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+	plot.AddAxesTitles(correctnessgraph, "Volume (ul)", "Correctness Factor (Measured Conc / Expected Conc)")
 
-	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Target Concentration"
+	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Volume"
 
-	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm", "20cm", filenameandextension[0]+"_correctnessfactor"+".png")
+	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "15cm", "15cm", filenameandextension[0]+"_correctnessfactor"+".png")
 
 	if err != nil {
 		_output.Errors = append(_output.Errors, err.Error())
@@ -856,6 +869,10 @@ func _AddPlateReader_ResultsValidation(_ctx context.Context, _input *AddPlateRea
 		}
 	}
 
+}
+
+func volumeToul(volume wunit.Volume) float64 {
+	return volume.SIValue() * 1e6
 }
 
 type Dataset struct {
