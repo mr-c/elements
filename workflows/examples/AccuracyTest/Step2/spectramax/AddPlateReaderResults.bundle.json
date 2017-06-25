@@ -37,7 +37,7 @@
         ]
       },
       "Wavelength": 472,
-      "WellForScanAnalysis": "I4"
+      "WellForScanAnalysis": "C5"
     }
   },
   "connections": [],
