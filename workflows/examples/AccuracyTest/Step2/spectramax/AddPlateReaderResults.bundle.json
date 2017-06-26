@@ -2,7 +2,7 @@
   "Parameters": {
     "AddResponses": {
       "Blanks": [
-        "H3"
+        "A1"
       ],
       "CVthreshold": 0.2,
       "DesignFile": {
@@ -17,10 +17,10 @@
       "ManualComparison": false,
       "Molecule": "tartrazine",
       "OutputFilename": null,
-      "PlateReaderFileType": "Mars",
+      "PlateReaderFileType": "SpectraMax",
       "PlateReaderResultsFileXLSX": {
         "host_file": {
-          "filename": "180117platereaderresults.xlsx"
+          "filename": "spectramaxdata.xml"
         }
       },
       "PlateType": "greiner384",
@@ -37,7 +37,7 @@
         ]
       },
       "Wavelength": 472,
-      "WellForScanAnalysis": "I4"
+      "WellForScanAnalysis": "C5"
     }
   },
   "connections": [],
