@@ -117,7 +117,7 @@ Data (
 	R2Pass bool
 	CV float64
 	CVpass bool
-	Errors []string
+	Errors []Warning
 	VolumeToActualConc map[string]Dataset
 	VolumeToCorrectnessFactor map[string]Dataset
 )
@@ -186,7 +186,7 @@ Steps {
 		}
 		
 		// specify platereaderdata as interface
-		var platereaderdata dataset.PlateReaderData
+		var platereaderdata dataset.AbsorbanceData
 		
 		
 		// If no plate reader file specified default to Mars
@@ -197,13 +197,13 @@ Steps {
 		if PlateReaderFileType == "Mars" {
 			platereaderdata, err = parse.ParseMarsXLSXBinary(data,SheetNumber)
 			if err != nil {
-				Errors = append(Errors,err.Error())
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
 				Errorf(err.Error())
 			}
 		}else if PlateReaderFileType == "SpectraMax" {
 			platereaderdata, err = parse.ParseSpectraMaxData(data)
 			if err != nil {
-				Errors = append(Errors,err.Error())
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
 				Errorf(err.Error())
 			}
 		}
@@ -245,7 +245,7 @@ Steps {
 		
 		for i := range Blanks {
 		
-			blankValue, err := platereaderdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
+			blankValue, err := platereaderdata.AbsorbanceReading(Blanks[i], Wavelength, ReadingTypeinMarsFile)
 			
 			if err != nil {
 				Errorf(fmt.Sprint("blank sample not found at position ",Blanks[i],": ", err.Error()))
@@ -314,7 +314,7 @@ Steps {
 						
 						manualwell := wellsmap[0] // 1st well of array only
 		
-						manual, err = platereaderdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
+						manual, err = platereaderdata.AbsorbanceReading(manualwell, Wavelength, ReadingTypeinMarsFile)
 		
 						if err !=nil {
 							Errorf(err.Error())
@@ -323,7 +323,7 @@ Steps {
 						manualsamples = VolumeToManualwells[experimentalvolumestr]
 						
 						for i:= range manualsamples {
-						manualvalue, err := platereaderdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
+						manualvalue, err := platereaderdata.AbsorbanceReading(manualsamples[i], Wavelength, ReadingTypeinMarsFile)
 						
 						if err !=nil {
 							Errorf(err.Error())
@@ -359,7 +359,7 @@ Steps {
 						}
 		
 						
-						rawaverage, err := platereaderdata.ReadingsAsAverage(well.(string), 1, Wavelength, ReadingTypeinMarsFile)
+						rawaverage, err := platereaderdata.AbsorbanceReading(well.(string), Wavelength, ReadingTypeinMarsFile)
 		
 						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Raw average "+strconv.Itoa(Wavelength), rawaverage)
 		
@@ -466,7 +466,6 @@ Steps {
 // post process any data and provide downstream results
 Analysis {
 	
-	Errors = make([]string,0)
 	
 		xvalues := make([]float64, 0)
 		yvalues := make([]float64, 0)
@@ -487,7 +486,7 @@ Analysis {
 		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		volstring,ok := vol.(string)
@@ -495,7 +494,7 @@ Analysis {
 			volume, err := wunit.ParseVolume(volstring)
 			
 			if err != nil{
-				Errors = append(Errors,err.Error())
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
 			}
 			
 			volinul := volumeToul(volume)
@@ -510,7 +509,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		actualconcfloat,floattrue := actualconc.(float64)
@@ -530,7 +529,7 @@ Analysis {
 
 	xygraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.AddAxesTitles(xygraph, "Volume (ul)", "Measured Conc (M/l)")
@@ -542,7 +541,7 @@ Analysis {
 	ActualVsExpectedPlot, err =  plot.Export(xygraph, "15cm","15cm",filenameandextension[0]+"_plot"+".png")
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 		Errorf(err.Error())
 	}
 	
@@ -562,7 +561,7 @@ Analysis {
 		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		volstring,ok := vol.(string)
@@ -570,7 +569,7 @@ Analysis {
 			volume, err := wunit.ParseVolume(volstring)
 			
 			if err != nil{
-				Errors = append(Errors,err.Error())
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
 			}
 			
 			volinul := volumeToul(volume)
@@ -585,7 +584,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -606,7 +605,7 @@ Analysis {
 	correctnessgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.AddAxesTitles(correctnessgraph, "Volume (ul)", "Correctness Factor (Measured Conc / Expected Conc)")
@@ -618,7 +617,7 @@ Analysis {
 	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "15cm","15cm",filenameandextension[0]+"_correctnessfactor"+".png")
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 		Errorf(err.Error())
 
 	}
@@ -639,7 +638,7 @@ Analysis {
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		runorderint,inttrue := runorder.(int)
@@ -656,7 +655,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		actualconcfloat,floattrue := actualconc.(float64)
@@ -672,7 +671,7 @@ Analysis {
 	runorderconcgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(runorderconcgraph,"10cm","10cm", filenameandextension[0]+"_runorder"+".png")
@@ -693,7 +692,7 @@ Analysis {
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		runorderint,inttrue := runorder.(int)
@@ -709,7 +708,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -726,7 +725,7 @@ Analysis {
 	runordercorrectnessgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(runordercorrectnessgraph,"10cm","10cm", filenameandextension[0]+"_runorder_correctnessfactor"+".png")
@@ -791,7 +790,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -875,7 +874,7 @@ if ManualComparison {
 		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		expectedconcfloat,floattrue := expectedconc.(float64)
@@ -891,7 +890,7 @@ if ManualComparison {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -912,7 +911,7 @@ if ManualComparison {
 	correctnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(correctnessgraph,"10cm","10cm", filenameandextension[0]+"_Manualcorrectnessfactor"+".png")
@@ -935,14 +934,14 @@ Validation {
 	if R2 > R2threshold {
 		R2Pass = true
 	} else {
-		Errors = append(Errors, fmt.Sprint("R2 threshold of ", R2threshold ," not met; R2 value = ",R2))
+		Errors = append(Errors, wtype.NewWarning(fmt.Sprint("R2 threshold of ", R2threshold ," not met; R2 value = ",R2)))
 	}
 	
 	for key,dataset := range VolumeToActualConc {
 	
 	if dataset.CV > CVthreshold {
 		CVpass = false
-		Errors = append(Errors, fmt.Sprint(key," coefficient of variance above ", CVthreshold ," percent threshold; CV value = ",dataset.CV))
+		Errors = append(Errors, wtype.NewWarning(fmt.Sprint(key," coefficient of variance above ", CVthreshold ," percent threshold; CV value = ",dataset.CV)))
 	}
 	}
 	
