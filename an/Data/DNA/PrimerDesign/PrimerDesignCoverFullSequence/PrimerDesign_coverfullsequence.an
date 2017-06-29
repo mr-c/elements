@@ -51,7 +51,11 @@ Setup {
 Steps {
 	var plasmid DNASequence
 
-	plasmids, _ := parser.DNAFileToDNASequence(DNASeqfile)
+	plasmids, err := parser.DNAFileToDNASequence(DNASeqfile)
+	
+	if err != nil {
+		Errorf("The sequence file could not be imported. Please check if file format supported or if file empty: %s",err.Error())
+	}
 	
 	if len(plasmids)>0 {
 	plasmid = plasmids[0]

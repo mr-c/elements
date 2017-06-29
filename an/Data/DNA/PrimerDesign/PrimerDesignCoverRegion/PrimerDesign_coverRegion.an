@@ -3,10 +3,9 @@
 protocol PrimerDesign_coverRegion
 
 import (
-	
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"strings"
 	
@@ -61,11 +60,17 @@ Steps {
 	var allprimers []oligos.Primer
 
 	seqs, err := parser.DNAFileToDNASequence(DNASeqfile) 
+	
 	if err != nil {
-		Errorf("The sequence file could not be imported. Please check if file format supported or if file empty")
+		Errorf("The sequence file could not be imported. Please check if file format supported or if file empty: %s",err.Error())
 	}
 
-	plasmid = seqs[0]
+	if len(seqs)>0 {
+		plasmid = seqs[0]
+	}
+	if len(seqs)>1{
+		Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
+	}
 	
 	if strings.Contains(strings.ToUpper(Method),"POSITIONS"){
 			allprimers = oligos.DesignFWDPRimerstoCoverRegion(plasmid, RegionStart, RegionEnd,PrimereveryXnucleotides, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, Seqstoavoid,PermittednucleotideOverlapBetweenPrimers)

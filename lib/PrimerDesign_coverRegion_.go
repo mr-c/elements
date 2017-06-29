@@ -3,11 +3,11 @@
 package lib
 
 import (
+	"context"
+	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -47,11 +47,17 @@ func _PrimerDesign_coverRegionSteps(_ctx context.Context, _input *PrimerDesign_c
 	var allprimers []oligos.Primer
 
 	seqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
+
 	if err != nil {
-		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty")
+		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())
 	}
 
-	plasmid = seqs[0]
+	if len(seqs) > 0 {
+		plasmid = seqs[0]
+	}
+	if len(seqs) > 1 {
+		_output.Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
+	}
 
 	if strings.Contains(strings.ToUpper(_input.Method), "POSITIONS") {
 		allprimers = oligos.DesignFWDPRimerstoCoverRegion(plasmid, _input.RegionStart, _input.RegionEnd, _input.PrimereveryXnucleotides, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, _input.Seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)
