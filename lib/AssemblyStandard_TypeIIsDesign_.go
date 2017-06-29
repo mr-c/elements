@@ -28,7 +28,7 @@ import (
 
 // Input parameters for this protocol (data)
 
-//MoClo
+// e.g. MoClo
 // of assembly standard
 
 // labels e.g. pro = promoter
@@ -65,7 +65,7 @@ func _AssemblyStandard_TypeIIsDesignSetup(_ctx context.Context, _input *Assembly
 func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *AssemblyStandard_TypeIIsDesignInput, _output *AssemblyStandard_TypeIIsDesignOutput) {
 
 	// set warnings reported back to user to none initially
-	warnings := make([]string, 0)
+	var warnings []string
 
 	// declare some temporary variables to be used later
 	var warning string
@@ -80,14 +80,15 @@ func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *Assembly
 	// export this as data output
 	_output.OriginalParts = partsinorder
 	// check parts for restriction sites first and remove if the user has chosen to
-	enz, found := enzymes.Enzymelookup[_input.AssemblyStandard][_input.Level]
+	enz, err := _input.AssemblyStandard.Enzyme(_input.Level)
 
-	if !found {
-		execute.Errorf(_ctx, "AssemblyStandard ", _input.AssemblyStandard, " level ", _input.Level, " not found")
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
 
 	// get properties of other enzyme sites to remove
-	removetheseenzymes := make([]wtype.RestrictionEnzyme, 0)
+	var removetheseenzymes []wtype.RestrictionEnzyme
+
 	removetheseenzymes = append(removetheseenzymes, enz.RestrictionEnzyme)
 
 	for _, enzyme := range _input.OtherEnzymeSitesToRemove {
@@ -208,33 +209,6 @@ func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *Assembly
 
 	if _input.MakeLevel1Device != "" {
 
-		standard, found := enzymes.EndlinksString[_input.AssemblyStandard]
-
-		if !found {
-			execute.Errorf(_ctx, "No assembly standard %s found", _input.AssemblyStandard)
-		}
-
-		level1, found := standard["Level1"]
-
-		if !found {
-			execute.Errorf(_ctx, "No Level1 found for standard %s", _input.AssemblyStandard)
-		}
-
-		overhangs, found := level1[_input.MakeLevel1Device]
-
-		if !found {
-			execute.Errorf(_ctx, "No overhangs found for %s in standard %s", _input.MakeLevel1Device, _input.AssemblyStandard)
-		}
-
-		if len(overhangs) != 2 {
-			execute.Errorf(_ctx, "found %d overhangs for %s in standard %s, expecting %d", len(overhangs), _input.MakeLevel1Device, _input.AssemblyStandard, 2)
-
-		}
-
-		if overhangs[0] == "" {
-			execute.Errorf(_ctx, "blunt 5' overhang found for %s in standard %s, expecting %d", _input.MakeLevel1Device, _input.AssemblyStandard, 2)
-		}
-
 		_output.PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(_output.PartsWithSitesRemoved[0], _input.AssemblyStandard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
@@ -251,9 +225,6 @@ func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *Assembly
 	if err != nil {
 		warnings = append(warnings, text.Print("Error", err.Error()))
 	}
-
-	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 
 	if _input.EndsAlreadyadded {
 		_output.PartswithOverhangs = partsinorder
@@ -349,10 +320,10 @@ func _AssemblyStandard_TypeIIsDesignSteps(_ctx context.Context, _input *Assembly
 		}
 	}
 
-	if len(warnings) == 0 {
-		warnings = append(warnings, "none")
+	if len(warnings) > 0 {
+		_output.Warnings = wtype.NewWarning(strings.Join(warnings, ";"))
 	}
-	_output.Warnings = fmt.Errorf(strings.Join(warnings, ";"))
+
 	_output.Endreport = endreport
 	_output.PositionReport = multiple
 
@@ -470,7 +441,7 @@ type AssemblyStandard_TypeIIsDesignElement struct {
 }
 
 type AssemblyStandard_TypeIIsDesignInput struct {
-	AssemblyStandard              string
+	AssemblyStandard              enzymes.AssemblyStandard
 	BlastSeqswithNoName           bool
 	Constructname                 string
 	EndsAlreadyadded              bool
@@ -501,7 +472,7 @@ type AssemblyStandard_TypeIIsDesignOutput struct {
 	PositionReport        []string
 	Simulationpass        bool
 	Status                string
-	Warnings              error
+	Warnings              wtype.Warning
 }
 
 type AssemblyStandard_TypeIIsDesignSOutput struct {
@@ -519,7 +490,7 @@ type AssemblyStandard_TypeIIsDesignSOutput struct {
 		PositionReport        []string
 		Simulationpass        bool
 		Status                string
-		Warnings              error
+		Warnings              wtype.Warning
 	}
 	Outputs struct {
 	}
@@ -532,7 +503,7 @@ func init() {
 			Desc: "This protocol is intended to design assembly parts using a specified enzyme.\noverhangs are added to complement the adjacent parts and leave no scar.\nparts can be entered as genbank (.gb) files, sequences or biobrick IDs\nIf assembly simulation fails after overhangs are added. In order to help the user\ndiagnose the reason, a report of the part overhangs\nis returned to the user along with a list of cut sites in each part.\n",
 			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/MoClo/AssemblyStandard_TypeIIsDesign.an",
 			Params: []component.ParamDesc{
-				{Name: "AssemblyStandard", Desc: "MoClo\n", Kind: "Parameters"},
+				{Name: "AssemblyStandard", Desc: "e.g. MoClo\n", Kind: "Parameters"},
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "Constructname", Desc: "", Kind: "Parameters"},
 				{Name: "EndsAlreadyadded", Desc: "", Kind: "Parameters"},
