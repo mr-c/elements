@@ -46,11 +46,12 @@ func _PrimerDesign_coverRegionSteps(_ctx context.Context, _input *PrimerDesign_c
 	var plasmid wtype.DNASequence
 	var allprimers []oligos.Primer
 
-	plasmid, err := parser.GenbankToAnnotatedSeq(_input.DNASeqfile)
-
+	seqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
 	if err != nil {
-		execute.Errorf(_ctx, "antha ninja: %s", err.Error())
+		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty")
 	}
+
+	plasmid = seqs[0]
 
 	if strings.Contains(strings.ToUpper(_input.Method), "POSITIONS") {
 		allprimers = oligos.DesignFWDPRimerstoCoverRegion(plasmid, _input.RegionStart, _input.RegionEnd, _input.PrimereveryXnucleotides, _input.Maxgc, _input.Minlength, _input.Maxlength, _input.Mintemp, _input.Maxtemp, _input.Seqstoavoid, _input.PermittednucleotideOverlapBetweenPrimers)

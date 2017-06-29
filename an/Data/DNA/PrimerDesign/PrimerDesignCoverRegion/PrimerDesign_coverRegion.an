@@ -60,12 +60,13 @@ Steps {
 	var plasmid DNASequence
 	var allprimers []oligos.Primer
 
-	plasmid, err := parser.GenbankToAnnotatedSeq(DNASeqfile)
-	
+	seqs, err := parser.DNAFileToDNASequence(DNASeqfile) 
 	if err != nil {
-		Errorf("antha ninja: %s", err.Error())
+		Errorf("The sequence file could not be imported. Please check if file format supported or if file empty")
 	}
 
+	plasmid = seqs[0]
+	
 	if strings.Contains(strings.ToUpper(Method),"POSITIONS"){
 			allprimers = oligos.DesignFWDPRimerstoCoverRegion(plasmid, RegionStart, RegionEnd,PrimereveryXnucleotides, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, Seqstoavoid,PermittednucleotideOverlapBetweenPrimers)
 	}else if strings.Contains(strings.ToUpper(Method),"NAME"){
