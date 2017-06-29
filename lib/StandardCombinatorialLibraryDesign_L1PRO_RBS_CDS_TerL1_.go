@@ -21,8 +21,6 @@ import (
 
 // Input parameters for this protocol (data)
 
-// Custom design, may support MoClo, EcoFlex and GoldenBraid.
-
 // Option to add Level 1 adaptor sites to the Promoters and terminators to support hierarchical assembly
 // If Custom design the valid options currently supported are: "Device1","Device2", "Device3".
 // If left empty no adaptor sequence is added.
@@ -39,17 +37,17 @@ import (
 // desired sequence to end up with after assembly
 
 // Input Requirement specification
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Requirements() {
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Requirements() {
 	// e.g. are MoClo types valid?
 }
 
 // Conditions to run on startup
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) {
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx context.Context, _input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) {
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, _input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 	_output.StatusMap = make(map[string]string)
 	_output.PartswithOverhangsMap = make(map[string][]wtype.DNASequence) // parts to order
 	_output.Assemblies = make(map[string][]wtype.DNASequence)
@@ -66,53 +64,13 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, 
 
 	var counter int = 1
 
-	var StandardLevel string = "Level0"
+	Standard, err := enzymes.LookupAssemblyStandard("Custom")
 
-	// Add adaptors for Level1 step
-	if _input.MakeLevel1Device != "" {
-
-		standard, found := enzymes.EndlinksString[_input.Standard]
-
-		if !found {
-			execute.Errorf(_ctx, "No assembly standard %s found", _input.Standard)
-		}
-
-		level1, found := standard["Level1"]
-
-		if !found {
-			execute.Errorf(_ctx, "No Level1 found for standard %s", _input.Standard)
-		}
-
-		overhangs, found := level1[_input.MakeLevel1Device]
-
-		if !found {
-			execute.Errorf(_ctx, "No overhangs found for %s in standard %s", _input.MakeLevel1Device, _input.Standard)
-		}
-
-		if len(overhangs) != 2 {
-			execute.Errorf(_ctx, "found %d overhangs for %s in standard %s, expecting %d", len(overhangs), _input.MakeLevel1Device, _input.Standard, 2)
-
-		}
-
-		if overhangs[0] == "" {
-			execute.Errorf(_ctx, "blunt 5' overhang found for %s in standard %s, expecting %d", _input.MakeLevel1Device, _input.Standard, 2)
-		}
-
-		for a := range _input.PROs {
-			var err error
-			_input.PROs[a], err = enzymes.AddL1UAdaptor(_input.PROs[a], _input.Standard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-		}
-		for b := range _input.TERs {
-			var err error
-			_input.TERs[b], err = enzymes.AddL1DAdaptor(_input.TERs[b], _input.Standard, "Level1", _input.MakeLevel1Device, _input.ReverseLevel1Orientation)
-			if err != nil {
-				execute.Errorf(_ctx, err.Error())
-			}
-		}
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
 	}
+
+	var StandardLevel string = "Level0"
 
 	for j := range _input.Vectors {
 		for k := range _input.PROs {
@@ -122,7 +80,7 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, 
 						key := _input.ProjectName + _input.Vectors[j].Nm + "_" + _input.PROs[k].Nm + "_" + _input.RBSs[l].Nm + "_" + _input.CDSs[m].Nm
 						assembly := AssemblyStandard_TypeIIsDesignRunSteps(_ctx, &AssemblyStandard_TypeIIsDesignInput{Constructname: key,
 							Seqsinorder:                   []wtype.DNASequence{_input.PROs[k], _input.RBSs[l], _input.CDSs[m], _input.TERs[n]},
-							AssemblyStandard:              _input.Standard,
+							AssemblyStandard:              Standard,
 							Level:                         StandardLevel, // of assembly standard
 							Vector:                        _input.Vectors[j],
 							PartMoClotypesinorder:         []string{"L1Uadaptor + Pro", "5U + NT1", "CDS1", "3U + Ter + L1Dadaptor"},
@@ -132,8 +90,11 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, 
 							OnlyRemovesitesinORFs:         false,
 							EndsAlreadyadded:              false,
 							ExporttoFastaFile:             _input.FolderPerConstruct,
-							BlastSeqswithNoName:           _input.BlastSearchSeqs},
+							BlastSeqswithNoName:           _input.BlastSearchSeqs,
+							MakeLevel1Device:              _input.MakeLevel1Device,
+							ReverseLevel1Orientation:      _input.ReverseLevel1Orientation},
 						)
+
 						key = key                                                             //+ Vectors[j]
 						_output.PartswithOverhangsMap[key] = assembly.Data.PartswithOverhangs // parts to order
 						_output.Assemblies[key] = assembly.Data.PartsAndVector                // parts + vector to be fed into assembly element
@@ -175,7 +136,6 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, 
 
 	// export sequence to fasta
 
-	var err error
 	// export simulated sequences to file
 	_output.AssembledSequences, _, err = export.FastaSerial(export.LOCAL, filepath.Join(_input.ProjectName, "AssembledSequences"), _output.Sequences)
 
@@ -244,26 +204,26 @@ func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx context.Context, 
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx context.Context, _input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 }
 
 // A block of tests to perform to validate that the sample was processed correctly
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx context.Context, _input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx context.Context, _input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input, _output *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output) {
 }
-func _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output {
-	output := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{}
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx, input)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx, input, output)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx, input, output)
-	_CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx, input, output)
+func _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx context.Context, input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output {
+	output := &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{}
+	_StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Setup(_ctx, input)
+	_StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Steps(_ctx, input, output)
+	_StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Analysis(_ctx, input, output)
+	_StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Validation(_ctx, input, output)
 	return output
 }
 
-func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1RunSteps(_ctx context.Context, input *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput {
-	soutput := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput{}
-	output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
+func StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1RunSteps(_ctx context.Context, input *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input) *StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput {
+	soutput := &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput{}
+	output := _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -273,19 +233,19 @@ func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1RunSteps(_ctx context.Context
 	return soutput
 }
 
-func CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New() interface{} {
-	return &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element{
+func StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New() interface{} {
+	return &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{}
+				input := &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
+				output := _StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Run(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{},
-			Out: &CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{},
+			In:  &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input{},
+			Out: &StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output{},
 		},
 	}
 }
@@ -296,11 +256,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element struct {
+type StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Element struct {
 	inject.CheckedRunner
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input struct {
+type StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input struct {
 	BlastSearchSeqs          bool
 	CDSs                     []wtype.DNASequence
 	FolderPerConstruct       bool
@@ -311,12 +271,11 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Input struct {
 	RBSs                     []wtype.DNASequence
 	ReverseLevel1Orientation bool
 	SitesToRemove            []string
-	Standard                 string
 	TERs                     []wtype.DNASequence
 	Vectors                  []wtype.DNASequence
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output struct {
+type StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output struct {
 	AssembledSequences    wtype.File
 	Assemblies            map[string][]wtype.DNASequence
 	EndreportMap          map[string]string
@@ -333,7 +292,7 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1Output struct {
 	StatusMap             map[string]string
 }
 
-type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput struct {
+type StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput struct {
 	Data struct {
 		AssembledSequences    wtype.File
 		Assemblies            map[string][]wtype.DNASequence
@@ -355,11 +314,11 @@ type CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1SOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1",
-		Constructor: CombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New,
+	if err := addComponent(component.Component{Name: "StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1",
+		Constructor: StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1New,
 		Desc: component.ComponentDesc{
 			Desc: "This protocol is intended to design a combinatorial library of all combinations of a list of Vectors, Promoters,\nRBSs, CDSs and Terminators according to an assembly standard ensuring compatibility with level 1 design.\nLevel 1 adaptor sites (containing the correct restriction site are expected to be included in the promoter and terminator parts.\nThese level 1 sites can be designed such that a series of level 1 parts may be joined together in a second assembly reaction.\nA list of sequencing primers to order will also be returned.\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/MoClo/Hierarchical/PRO_RBS_CDS_TER.an",
+			Path: "src/github.com/antha-lang/elements/an/Data/DNA/TypeIISAssembly_design/CombinatorialDesign/MoClo/Hierarchical/StandardCombinatorialLibraryDesign_L1PRO_RBS_CDS_TerL1.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSearchSeqs", Desc: "", Kind: "Parameters"},
 				{Name: "CDSs", Desc: "", Kind: "Parameters"},
@@ -371,7 +330,6 @@ func init() {
 				{Name: "RBSs", Desc: "", Kind: "Parameters"},
 				{Name: "ReverseLevel1Orientation", Desc: "", Kind: "Parameters"},
 				{Name: "SitesToRemove", Desc: "", Kind: "Parameters"},
-				{Name: "Standard", Desc: "Custom design, may support MoClo, EcoFlex and GoldenBraid.\n", Kind: "Parameters"},
 				{Name: "TERs", Desc: "", Kind: "Parameters"},
 				{Name: "Vectors", Desc: "", Kind: "Parameters"},
 				{Name: "AssembledSequences", Desc: "", Kind: "Data"},

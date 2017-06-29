@@ -8,15 +8,17 @@ protocol CombinatorialLibraryDesign_From_Assembly_Standard_5Part
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
+	
 	"path/filepath"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
 	ProjectName			string
-	Standard				string // Custom design, may support MoClo, EcoFlex and GoldenBraid.
+	Standard				enzymes.AssemblyStandard // Custom design, may support MoClo, EcoFlex and GoldenBraid.
 	StandardLabels 		[4]string
 	StandardLevel		string // default is "level0"
 	Vectors				[]DNASequence

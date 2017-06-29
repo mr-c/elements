@@ -25,7 +25,7 @@ import (
 Parameters (
 	Constructname 					string
 	Seqsinorder						[]DNASequence
-	AssemblyStandard				string //MoClo
+	AssemblyStandard					enzymes.AssemblyStandard // e.g. MoClo
 	Level							string // of assembly standard
 	Vector							DNASequence
 	PartMoClotypesinorder			[]string // labels e.g. pro = promoter
@@ -56,7 +56,7 @@ Outputs (
 
 // Data which is returned from this protocol, and data types
 Data (
-	Warnings error
+	Warnings Warning
 	Status string
 	Simulationpass bool
 	OriginalParts []DNASequence 
@@ -85,7 +85,7 @@ Setup {}
 Steps {
 	
 	// set warnings reported back to user to none initially
-	warnings := make([]string, 0)
+	var warnings []string
 
 	// declare some temporary variables to be used later
 	var warning string
@@ -100,14 +100,15 @@ Steps {
 	// export this as data output
 	OriginalParts = partsinorder
 	// check parts for restriction sites first and remove if the user has chosen to
-	enz, found := enzymes.Enzymelookup[AssemblyStandard][Level]
+	enz, err := AssemblyStandard.Enzyme(Level)
 	
-	if !found {
-		Errorf("AssemblyStandard ",AssemblyStandard," level ",Level, " not found")
+	if err != nil {
+		Errorf(err.Error())
 	}
 
 	// get properties of other enzyme sites to remove
-	removetheseenzymes := make([]wtype.RestrictionEnzyme,0)
+	var removetheseenzymes []wtype.RestrictionEnzyme
+	
 	removetheseenzymes = append(removetheseenzymes,enz.RestrictionEnzyme)
 	
 	for _,enzyme := range OtherEnzymeSitesToRemove {
@@ -129,13 +130,13 @@ Steps {
 		info := enzymes.Restrictionsitefinder(part, removetheseenzymes)
 
 		for i := range info {
-		sitepositions := enzymes.SitepositionString(info[i])
-
-		if len(sitepositions)>0{
-			siteFound = true
-		}
-		sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
-		report = append(report, sitepositions)
+			sitepositions := enzymes.SitepositionString(info[i])
+	
+			if len(sitepositions)>0{
+				siteFound = true
+			}
+			sitepositions = fmt.Sprint(part.Nm+" "+info[i].Enzyme.Name+" positions:", sitepositions)
+			report = append(report, sitepositions)
 		}
 	}
 	if siteFound {
@@ -231,32 +232,6 @@ Steps {
 	
 	if MakeLevel1Device != ""{
 		
-		standard, found := enzymes.EndlinksString[AssemblyStandard]
-		
-		if !found {
-			Errorf("No assembly standard %s found",AssemblyStandard)
-		}
-		
-		level1, found := standard["Level1"]
-		
-		if !found {
-			Errorf("No Level1 found for standard %s",AssemblyStandard)
-		}
-		
-		overhangs,found := level1[MakeLevel1Device]
-		
-		if !found {
-			Errorf("No overhangs found for %s in standard %s",MakeLevel1Device,AssemblyStandard)
-		}
-		
-		if len(overhangs)!= 2 {
-			Errorf("found %d overhangs for %s in standard %s, expecting %d",len(overhangs), MakeLevel1Device,AssemblyStandard, 2)
-
-		}
-		
-		if overhangs[0] == "" {
-			Errorf("blunt 5' overhang found for %s in standard %s, expecting %d", MakeLevel1Device,AssemblyStandard, 2)
-		}
 		
 		PartsWithSitesRemoved[0], err = enzymes.AddL1UAdaptor(PartsWithSitesRemoved[0],AssemblyStandard,"Level1",MakeLevel1Device,ReverseLevel1Orientation)
 		if err != nil {
@@ -274,20 +249,17 @@ Steps {
 	if err != nil {
 		warnings = append(warnings, text.Print("Error", err.Error()))
 	}
-
-	//  Add overhangs for scarfree assembly based on part seqeunces only, i.e. no Assembly standard
-	fmt.Println("warnings:", warnings)
 	
 	if EndsAlreadyadded {
 		PartswithOverhangs = partsinorder
 	} else {
-	//  Add standard overhangs using chosen assembly standard
-	PartswithOverhangs, err = enzymes.MakeStandardTypeIIsassemblyParts(partsinorder, AssemblyStandard, Level, PartMoClotypesinorder)
-	
-	if err != nil{
-		warnings = append(warnings, text.Print("Error", err.Error()))
-		Errorf(err.Error())
-	}
+		//  Add standard overhangs using chosen assembly standard
+		PartswithOverhangs, err = enzymes.MakeStandardTypeIIsassemblyParts(partsinorder, AssemblyStandard, Level, PartMoClotypesinorder)
+		
+		if err != nil{
+			warnings = append(warnings, text.Print("Error", err.Error()))
+			Errorf(err.Error())
+		}
 	
 	}
 	
@@ -372,10 +344,10 @@ Steps {
 		}
 	}
 
-	if len(warnings) == 0 {
-		warnings = append(warnings, "none")
+	if len(warnings) > 0 {
+		Warnings = wtype.NewWarning(strings.Join(warnings, ";"))
 	}
-	Warnings = fmt.Errorf(strings.Join(warnings, ";"))
+	
 	Endreport = endreport
 	PositionReport = multiple
 
@@ -390,7 +362,8 @@ Steps {
 	// Print status
 	if Status != "all parts available"{
 		Status = fmt.Sprintln(Status)
-	} else {Status = fmt.Sprintln(
+	} else {
+		Status = fmt.Sprintln(
 		text.Print("simulator status: ", status),
 		text.Print("Endreport after digestion: ",endreport),
 		text.Print("Sites per part for " + enz.Name, sites),
@@ -403,8 +376,8 @@ Steps {
 		)
 		// export data to file
 		//anthapath.ExporttoFile("Report"+"_"+Constructname+".txt",[]byte(Status))
-	//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
-	fmt.Println(Status)
+		//anthapath.ExportTextFile("Report"+"_"+Constructname+".txt",Status)
+		fmt.Println(Status)
 	}
 	
 	// export sequence to fasta

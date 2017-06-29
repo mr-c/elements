@@ -7,6 +7,7 @@ package lib
 
 import (
 	"context"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
@@ -275,7 +276,7 @@ type CombinatorialLibraryDesign_From_Assembly_Standard_4PartInput struct {
 	ProjectName              string
 	ReverseLevel1Orientation bool
 	SitesToRemove            []string
-	Standard                 string
+	Standard                 enzymes.AssemblyStandard
 	StandardLabels           [3]string
 	StandardLevel            string
 	Vectors                  []wtype.DNASequence
