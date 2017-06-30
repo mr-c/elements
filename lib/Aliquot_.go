@@ -63,7 +63,7 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 	}
 
 	//check if maxvolume of outplate is higher than specified aliquot volume
-	if _input.OutPlate.Welltype.MaxVolume().LessThan(_input.VolumePerAliquot) {
+	if _input.OutPlate.Welltype.MaxVolume().LessThanRounded(_input.VolumePerAliquot, 5) {
 		execute.Errorf(_ctx, "Aliquot volume specified (%s) too high for well capacity (%s) of current plate (%s)", _input.VolumePerAliquot.ToString(), _input.OutPlate.Welltype.MaxVolume(), _input.OutPlate.Name())
 	}
 

@@ -70,7 +70,7 @@ Steps {
 	}
 
 	//check if maxvolume of outplate is higher than specified aliquot volume
-	if OutPlate.Welltype.MaxVolume().LessThan(VolumePerAliquot){
+	if OutPlate.Welltype.MaxVolume().LessThanRounded(VolumePerAliquot,5){
 				Errorf("Aliquot volume specified (%s) too high for well capacity (%s) of current plate (%s)",VolumePerAliquot.ToString(),OutPlate.Welltype.MaxVolume(),OutPlate.Name())
 			}
 
