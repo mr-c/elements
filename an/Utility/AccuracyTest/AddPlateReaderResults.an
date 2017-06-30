@@ -18,10 +18,12 @@ import (
 	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+	
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset/parse"
 	"math"
 	"fmt"
 	"path/filepath"
@@ -34,8 +36,11 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	// Input file containing the Plate reader results exported from Mars.
-	MarsResultsFileXLSX File
+	// Input file containing the Plate reader results exported from Mars or SpectraMax.
+	PlateReaderResultsFileXLSX File
+	
+	// PlateReaderFileType 
+	PlateReaderFileType string
 	
 	// Design file for the executed experiment containing the corresponding plate and well locations.
 	DesignFile File 
@@ -112,7 +117,7 @@ Data (
 	R2Pass bool
 	CV float64
 	CVpass bool
-	Errors []string
+	Errors []Warning
 	VolumeToActualConc map[string]Dataset
 	VolumeToCorrectnessFactor map[string]Dataset
 )
@@ -155,6 +160,7 @@ Steps {
 		}
 		
 		var actualconcentrations = make(map[string]Concentration)
+		
 		ResponsetoManualValuesmap = make(map[string][]float64)
 	
 		var Molecularweight float64
@@ -173,19 +179,36 @@ Steps {
 			Molecularweight = molecule.MolecularWeight
 		}
 		
-		data, err := MarsResultsFileXLSX.ReadAll()
+		data, err := PlateReaderResultsFileXLSX.ReadAll()
 	
 		if err != nil {
-			Errorf("Error reading Mars file %s", err.Error())
+			Errorf("Error reading Plate reader data file %s", err.Error())
+		}
+		
+		// specify platereaderdata as interface
+		var platereaderdata dataset.AbsorbanceData
+		
+		
+		// If no plate reader file specified default to Mars
+		if PlateReaderFileType == "" {
+			PlateReaderFileType = "Mars" 
+		}
+		
+		if PlateReaderFileType == "Mars" {
+			platereaderdata, err = parse.ParseMarsXLSXBinary(data,SheetNumber)
+			if err != nil {
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
+				Errorf(err.Error())
+			}
+		}else if PlateReaderFileType == "SpectraMax" {
+			platereaderdata, err = parse.ParseSpectraMaxData(data)
+			if err != nil {
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
+				Errorf(err.Error())
+			}
 		}
 	
-		marsdata, err := parser.ParseMarsXLSXBinary(data,SheetNumber)
-		if err != nil {
-			Errors = append(Errors,err.Error())
-			Errorf(err.Error())
-		}
-	
-		// range through pairing up wells from mars output and doe design
+		// range through pairing up wells from platereader output and DOE design
 		
 		var runs []doe.Run
 		
@@ -222,10 +245,10 @@ Steps {
 		
 		for i := range Blanks {
 		
-			blankValue, err := marsdata.ReadingsAsAverage(Blanks[i], 1, Wavelength, ReadingTypeinMarsFile)
+			blankValue, err := platereaderdata.AbsorbanceReading(Blanks[i], Wavelength, ReadingTypeinMarsFile)
 			
 			if err != nil {
-				Errorf(fmt.Sprint("blank sample not found. ", err.Error()))
+				Errorf(fmt.Sprint("blank sample not found at position ",Blanks[i],": ", err.Error()))
 			}
 			
 			BlankValues = append(BlankValues,blankValue)
@@ -274,7 +297,7 @@ Steps {
 					vol,err := strconv.ParseFloat(strings.TrimSpace(volandunit[0]), 64)
 					
 					if err != nil {
-					Errorf(err.Error())
+						Errorf(err.Error())
 					}
 			
 					experimentalvolume := wunit.NewVolume(vol,strings.TrimSpace(volandunit[1]))
@@ -291,7 +314,7 @@ Steps {
 						
 						manualwell := wellsmap[0] // 1st well of array only
 		
-						manual, err = marsdata.ReadingsAsAverage(manualwell, 1, Wavelength, ReadingTypeinMarsFile)
+						manual, err = platereaderdata.AbsorbanceReading(manualwell, Wavelength, ReadingTypeinMarsFile)
 		
 						if err !=nil {
 							Errorf(err.Error())
@@ -300,7 +323,7 @@ Steps {
 						manualsamples = VolumeToManualwells[experimentalvolumestr]
 						
 						for i:= range manualsamples {
-						manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, Wavelength, ReadingTypeinMarsFile)
+						manualvalue, err := platereaderdata.AbsorbanceReading(manualsamples[i], Wavelength, ReadingTypeinMarsFile)
 						
 						if err !=nil {
 							Errorf(err.Error())
@@ -328,7 +351,7 @@ Steps {
 		
 						// check optimal difference for each well
 						if FindOptWavelength {
-							MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(WellForScanAnalysis, Blanks[0], "Raw Data")
+							MeasuredOptimalWavelength, err = platereaderdata.FindOptimalWavelength(WellForScanAnalysis, Blanks[0], "Raw Data")
 							
 							if err!= nil {
 								Errorf(fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
@@ -336,7 +359,7 @@ Steps {
 						}
 		
 						
-						rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, Wavelength, ReadingTypeinMarsFile)
+						rawaverage, err := platereaderdata.AbsorbanceReading(well.(string), Wavelength, ReadingTypeinMarsFile)
 		
 						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" Raw average "+strconv.Itoa(Wavelength), rawaverage)
 		
@@ -344,7 +367,7 @@ Steps {
 		
 						samples = []string{well.(string)}
 		
-						blankcorrected, err := marsdata.BlankCorrect(samples, Blanks, Wavelength, ReadingTypeinMarsFile)
+						blankcorrected, err := platereaderdata.BlankCorrect(samples, Blanks, Wavelength, ReadingTypeinMarsFile)
 						
 						run = doe.AddNewResponseFieldandValue(run, Responsecolumntofill+" BlankCorrected "+strconv.Itoa(Wavelength), blankcorrected)
 		
@@ -396,7 +419,7 @@ Steps {
 									
 						// add comparison to manually pipetted wells
 						if _, ok := VolumeToManualwells[experimentalvolumestr]; ManualComparison && ok  {
-							manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
+							manualblankcorrected, err := platereaderdata.BlankCorrect(manualsamples, Blanks, Wavelength, ReadingTypeinMarsFile)
 							if err != nil {
 								Errorf(err.Error())
 							}
@@ -443,7 +466,6 @@ Steps {
 // post process any data and provide downstream results
 Analysis {
 	
-	Errors = make([]string,0)
 	
 		xvalues := make([]float64, 0)
 		yvalues := make([]float64, 0)
@@ -458,22 +480,28 @@ Analysis {
 		Errorf("no runs")
 	}
 	// 1. now calculate r2 and plot results
-	for i,runwithresponses := range Runs {
-			// values for r2 to reset each run
-	
+	for _,runwithresponses := range Runs {
+		
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
-		expectedconcfloat,floattrue := expectedconc.(float64)
-		// if float64 is true 
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring,ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+			
+			if err != nil{
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
+			}
+			
+			volinul := volumeToul(volume)
+			
+			xvalues = append(xvalues,volinul)
 		}else {
-			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			Errorf("Expected volume %+v to be in string format but cannot cast in to string",vol)
 		}
 	
 		// get response value and check if it's a float64 type
@@ -481,7 +509,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		actualconcfloat,floattrue := actualconc.(float64)
@@ -496,24 +524,24 @@ Analysis {
 	}
 		
 		
-	R2,Variance,Formula = plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
+	R2,Variance,Formula = plot.Rsquared("Volume", xvalues, "Actual Conc", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	xygraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
-	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+	plot.AddAxesTitles(xygraph, "Volume (ul)", "Measured Conc (M/l)")
 			
 	xygraph.Title.Text = Molecule.CName + ": Expected vs Measured Concentration"
 			
 	filenameandextension := strings.Split(OutputFilename, ".")
 	
-	ActualVsExpectedPlot, err =  plot.Export(xygraph, "20cm","20cm",filenameandextension[0]+"_plot"+".png")
+	ActualVsExpectedPlot, err =  plot.Export(xygraph, "15cm","15cm",filenameandextension[0]+"_plot"+".png")
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 		Errorf(err.Error())
 	}
 	
@@ -526,22 +554,29 @@ Analysis {
 		yvalues = append(yvalues, 0.0)
 	
 	// 2. now plot correctnessfactor
-	for i,runwithresponses := range Runs {
+	for _,runwithresponses := range Runs {
 			// values for r2 to reset each run
 	
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
-		expectedconcfloat,floattrue := expectedconc.(float64)
-		// if float64 is true 
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring,ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+			
+			if err != nil{
+				Errors = append(Errors,wtype.NewWarning(err.Error()))
+			}
+			
+			volinul := volumeToul(volume)
+			
+			xvalues = append(xvalues,volinul)
 		}else {
-			Errorf("Run"+fmt.Sprint(i,runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			Errorf("Expected volume %+v to be in string format but cannot cast in to string",vol)
 		}
 	
 		// get response value and check if it's a float64 type
@@ -549,13 +584,13 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
 		
 		if floattrue {
-			yvalues = append(yvalues,correctnessfloat )
+			yvalues = append(yvalues,correctnessfloat)
 		}else {
 			fmt.Println(err.Error())
 			Errorf(" Absorbance CorrectnessFactor:"+fmt.Sprint(correctnessfloat))
@@ -564,36 +599,36 @@ Analysis {
 	}
 		
 		
-	R2_CorrectnessFactor,_,_ = plot.Rsquared("Expected Conc", xvalues, "Correctness Factor", yvalues)
+	R2_CorrectnessFactor,_,_ = plot.Rsquared("Volume", xvalues, "Correctness Factor", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	correctnessgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
-	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+	plot.AddAxesTitles(correctnessgraph, "Volume (ul)", "Correctness Factor (Measured Conc / Expected Conc)")
 			
-	correctnessgraph.Title.Text = Molecule.CName + ": Correctness Factor vs Target Concentration"
+	correctnessgraph.Title.Text = Molecule.CName + ": Correctness Factor vs Volume"
 	
 	
 	
-	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm","20cm",filenameandextension[0]+"_correctnessfactor"+".png")
+	CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "15cm","15cm",filenameandextension[0]+"_correctnessfactor"+".png")
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 		Errorf(err.Error())
 
 	}
 	
 	// reset
-		xvalues = make([]float64, 0)
-		yvalues = make([]float64, 0)
+	xvalues = make([]float64, 0)
+	yvalues = make([]float64, 0)
 
-		// add origin
-		xvalues = append(xvalues, 0.0)
-		yvalues = append(yvalues, 0.0)
+	// add origin
+	xvalues = append(xvalues, 0.0)
+	yvalues = append(yvalues, 0.0)
 	
 	// 3. now look for systematic errors
 	for i,runwithresponses := range Runs {
@@ -603,7 +638,7 @@ Analysis {
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		runorderint,inttrue := runorder.(int)
@@ -620,7 +655,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		actualconcfloat,floattrue := actualconc.(float64)
@@ -636,7 +671,7 @@ Analysis {
 	runorderconcgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(runorderconcgraph,"10cm","10cm", filenameandextension[0]+"_runorder"+".png")
@@ -657,7 +692,7 @@ Analysis {
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		runorderint,inttrue := runorder.(int)
@@ -673,7 +708,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -690,7 +725,7 @@ Analysis {
 	runordercorrectnessgraph,err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(runordercorrectnessgraph,"10cm","10cm", filenameandextension[0]+"_runorder_correctnessfactor"+".png")
@@ -755,7 +790,7 @@ Analysis {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -839,7 +874,7 @@ if ManualComparison {
 		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc "+strconv.Itoa(Wavelength))
 		
 		if err != nil{
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		expectedconcfloat,floattrue := expectedconc.(float64)
@@ -855,7 +890,7 @@ if ManualComparison {
 		
 		if err != nil{
 			fmt.Println(err.Error())
-			Errors = append(Errors,err.Error())
+			Errors = append(Errors,wtype.NewWarning(err.Error()))
 		}
 		
 		correctnessfloat,floattrue := correctness.(float64)
@@ -876,7 +911,7 @@ if ManualComparison {
 	correctnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 	
 	if err != nil{
-		Errors = append(Errors,err.Error())
+		Errors = append(Errors,wtype.NewWarning(err.Error()))
 	}
 	
 	plot.Export(correctnessgraph,"10cm","10cm", filenameandextension[0]+"_Manualcorrectnessfactor"+".png")
@@ -899,17 +934,21 @@ Validation {
 	if R2 > R2threshold {
 		R2Pass = true
 	} else {
-		Errors = append(Errors, fmt.Sprint("R2 threshold of ", R2threshold ," not met; R2 value = ",R2))
+		Errors = append(Errors, wtype.NewWarning(fmt.Sprint("R2 threshold of ", R2threshold ," not met; R2 value = ",R2)))
 	}
 	
 	for key,dataset := range VolumeToActualConc {
 	
 	if dataset.CV > CVthreshold {
 		CVpass = false
-		Errors = append(Errors, fmt.Sprint(key," coefficient of variance above ", CVthreshold ," percent threshold; CV value = ",dataset.CV))
+		Errors = append(Errors, wtype.NewWarning(fmt.Sprint(key," coefficient of variance above ", CVthreshold ," percent threshold; CV value = ",dataset.CV)))
 	}
 	}
 	
+}
+
+func volumeToul(volume Volume)float64{
+	return volume.SIValue()*1e6
 }
 
 type Dataset struct {

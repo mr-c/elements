@@ -47,39 +47,40 @@ Steps {
 	seqs, err := parser.DNAFileToDNASequence(SequenceFile) 
 	if err != nil {
 		Errorf("The file could not be imported. Please check if file format supported or if file empty")
-		}	
+	}	
+	
 	if len(seqs) == 1 && err == nil {	
-	DNA = seqs[0]
+		DNA = seqs[0]
 	
-	if RenameSequence != ""{
-	DNA.Nm = RenameSequence
-	}
+		if RenameSequence != ""{
+			DNA.Nm = RenameSequence
+		}
 	
-	//Check if input "Plasmid, Linear, SingleStranded" matches reader file format. Outputs error to user.
-	if OverrideSequenceType == ""{
-			return
-	}else if OverrideSequenceType != "" {
-		if OverrideSequenceType == "Plasmid"{
-			if DNA.Plasmid == false{
-				fmt.Println("Warning: Sequence not specified as 'Plasmid' in file")
-				DNA.Plasmid = true
+		//Check if input "Plasmid, Linear, SingleStranded" matches reader file format. Outputs error to user.
+		if OverrideSequenceType == ""{
+				return
+		}else if OverrideSequenceType != "" {
+			if OverrideSequenceType == "Plasmid"{
+				if DNA.Plasmid == false{
+					fmt.Println("Warning: Sequence not specified as 'Plasmid' in file")
+					DNA.Plasmid = true
+					DNA.Singlestranded = false
+					}
+			}else if OverrideSequenceType == "SingleStranded"{
+				if DNA.Singlestranded == false{
+					fmt.Println("Warning: Sequence not specified as 'SingleStranded' in file")
+					DNA.Plasmid = false
+					DNA.Singlestranded = true
+					}
+			}else if OverrideSequenceType == "Linear"{	
+			if DNA.Singlestranded == true || DNA.Plasmid == true{
+				fmt.Println("Warning: Sequence not specified as 'Linear' in file")
+				DNA.Plasmid = false
 				DNA.Singlestranded = false
 				}
-		}else if OverrideSequenceType == "SingleStranded"{
-			if DNA.Singlestranded == false{
-				fmt.Println("Warning: Sequence not specified as 'SingleStranded' in file")
-				DNA.Plasmid = false
-				DNA.Singlestranded = true
-				}
-		}else if OverrideSequenceType == "Linear"{	
-		if DNA.Singlestranded == true || DNA.Plasmid == true{
-			fmt.Println("Warning: Sequence not specified as 'Linear' in file")
-			DNA.Plasmid = false
-			DNA.Singlestranded = false
+			}else{
+				Errorf("Unknown DNA type specification. Please use Plasmid, SingleStranded or Linear as SequenceType")
 			}
-		}else{
-			Errorf("Unknown DNA type specification. Please use Plasmid, SingleStranded or Linear as SequenceType")
-		}
 		}
 	
 	}else{
@@ -88,15 +89,15 @@ Steps {
 			
 	//Finds all ORFs in imported DNA sequence								
 	if CheckForORFs {
-	orfs := sequences.FindallORFs(DNA.Seq)
+		orfs := sequences.FindallORFs(DNA.Seq)
 	
-	if len(DNA.Features) == 0 {
-	features := sequences.ORFs2Features(orfs)
-	
-	DNA = wtype.Annotate(DNA,features)
-	Status = fmt.Sprintln(text.Print("ORFs: ", orfs))
-	
-	}
+		if len(DNA.Features) == 0 {
+			features := sequences.ORFs2Features(orfs)
+			
+			DNA = wtype.Annotate(DNA,features)
+			Status = fmt.Sprintln(text.Print("ORFs: ", orfs))
+		
+		}
 	}
 	Status = fmt.Sprintln(text.Print("DNA_Seq: ",DNA),) + Status
 	Warnings = err

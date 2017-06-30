@@ -62,9 +62,6 @@ Parameters (
 	// Specify a minimum volume below which a dilution will need to be made.
 	// The default value is 0.5ul
 	MinVolume Volume
-	
-	// Option to specify the specific dilution to be used if the volume of a solution needed to achieve a target concentration is below the  MinVolume.
-	DilutionFactor float64
 )
 
 // Data which is returned from this protocol, and data types
@@ -112,7 +109,7 @@ Steps {
 	Runtowelllocationmap = make(map[string]string)
 	Blankwells = make([]string,0)
 	counter := WellsUsed 
-	
+	var dilutionFactor float64
 	var minVolume Volume
 	
 	if MinVolume.EqualTo(wunit.NewVolume(0.0,"ul")){
@@ -256,22 +253,22 @@ Steps {
 					if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
 						
 						if SpecifyDilutionFactor == 0.0 {
-							DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
-							DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
+							dilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
+							dilutionFactor, err = wutil.Roundto(dilutionFactor,2)
 						
 							if err !=nil {
 								Errorf(err.Error())
 							}
 						}else{
-							DilutionFactor = SpecifyDilutionFactor
+							dilutionFactor = SpecifyDilutionFactor
 						}
 						
 						// add diluent to dilution plate ready for dilution
-						dilutedSampleBuffer := mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.DivideVolume(TotalVolume,DilutionFactor)}))
+						dilutedSampleBuffer := mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.DivideVolume(TotalVolume,dilutionFactor)}))
 						Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutedSampleBuffer)
 						
 						// add same volume to destination plate ready for dilutedsolution
-						bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor)}))		
+						bufferSample = mixer.Sample(Diluent, wunit.SubtractVolumes(TotalVolume,[]Volume{wunit.MultiplyVolume(TestSolVolumes[l],dilutionFactor)}))		
 						
 						
 						
@@ -315,18 +312,18 @@ Steps {
 					}else if TestSolVolumes[l].GreaterThan(wunit.NewVolume(0.0,"ul"))  && TestSolVolumes[l].LessThan(minVolume){
 						diluted = true
 						
-						DilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
-						DilutionFactor, err = wutil.Roundto(DilutionFactor,2)
+						dilutionFactor = 4.0 * minVolume.RawValue()/TestSolVolumes[l].RawValue()
+						dilutionFactor, err = wutil.Roundto(dilutionFactor,2)
 						
 						if err !=nil {
 							Errorf(err.Error())
 						}
 						
 						//sample
-						dilutionSample := mixer.Sample(TestSols[k], wunit.DivideVolume(TotalVolume,DilutionFactor))
+						dilutionSample := mixer.Sample(TestSols[k], wunit.DivideVolume(TotalVolume,dilutionFactor))
 						Dilution = MixNamed(OutPlate.Type, wellpositionarray[counter],fmt.Sprint("DilutionPlate",platenum),dilutionSample)
 						
-						testSample := mixer.Sample(Dilution,wunit.MultiplyVolume(TestSolVolumes[l],DilutionFactor))
+						testSample := mixer.Sample(Dilution,wunit.MultiplyVolume(TestSolVolumes[l],dilutionFactor))
 						
 						if PipetteOnebyOne {
 							eachreaction = append(eachreaction,testSample)
@@ -360,7 +357,7 @@ Steps {
 					
 					// if diluted
 					if diluted {
-						run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", DilutionFactor)
+						run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", dilutionFactor)
 					}else {
 						run = doe.AddAdditionalHeaderandValue(run,"Additional","PreDilutionFactor", 0)
 					}

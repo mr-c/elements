@@ -47,6 +47,7 @@ func _ImportDNASequenceSteps(_ctx context.Context, _input *ImportDNASequenceInpu
 	if err != nil {
 		execute.Errorf(_ctx, "The file could not be imported. Please check if file format supported or if file empty")
 	}
+
 	if len(seqs) == 1 && err == nil {
 		_output.DNA = seqs[0]
 

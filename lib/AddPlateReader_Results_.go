@@ -13,22 +13,24 @@
 package lib
 
 import (
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/montanaflynn/stats"
+
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
-	"github.com/montanaflynn/stats"
 	"math"
 	"path/filepath"
 	"strconv"
@@ -38,7 +40,9 @@ import (
 
 // Input parameters for this protocol (data)
 
-// Input file containing the Plate reader results exported from Mars.
+// Input file containing the Plate reader results exported from Mars or SpectraMax.
+
+// PlateReaderFileType
 
 // Design file for the executed experiment containing the corresponding plate and well locations.
 
@@ -108,6 +112,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 	}
 
 	var actualconcentrations = make(map[string]wunit.Concentration)
+
 	_output.ResponsetoManualValuesmap = make(map[string][]float64)
 
 	var Molecularweight float64
@@ -126,19 +131,35 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 		Molecularweight = molecule.MolecularWeight
 	}
 
-	data, err := _input.MarsResultsFileXLSX.ReadAll()
+	data, err := _input.PlateReaderResultsFileXLSX.ReadAll()
 
 	if err != nil {
-		execute.Errorf(_ctx, "Error reading Mars file %s", err.Error())
+		execute.Errorf(_ctx, "Error reading Plate reader data file %s", err.Error())
 	}
 
-	marsdata, err := parser.ParseMarsXLSXBinary(data, _input.SheetNumber)
-	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
-		execute.Errorf(_ctx, err.Error())
+	// specify platereaderdata as interface
+	var platereaderdata dataset.AbsorbanceData
+
+	// If no plate reader file specified default to Mars
+	if _input.PlateReaderFileType == "" {
+		_input.PlateReaderFileType = "Mars"
 	}
 
-	// range through pairing up wells from mars output and doe design
+	if _input.PlateReaderFileType == "Mars" {
+		platereaderdata, err = parse.ParseMarsXLSXBinary(data, _input.SheetNumber)
+		if err != nil {
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
+			execute.Errorf(_ctx, err.Error())
+		}
+	} else if _input.PlateReaderFileType == "SpectraMax" {
+		platereaderdata, err = parse.ParseSpectraMaxData(data)
+		if err != nil {
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
+
+	// range through pairing up wells from platereader output and DOE design
 
 	var runs []doe.Run
 
@@ -174,10 +195,10 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 	for i := range _input.Blanks {
 
-		blankValue, err := marsdata.ReadingsAsAverage(_input.Blanks[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+		blankValue, err := platereaderdata.AbsorbanceReading(_input.Blanks[i], _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 		if err != nil {
-			execute.Errorf(_ctx, fmt.Sprint("blank sample not found. ", err.Error()))
+			execute.Errorf(_ctx, fmt.Sprint("blank sample not found at position ", _input.Blanks[i], ": ", err.Error()))
 		}
 
 		_output.BlankValues = append(_output.BlankValues, blankValue)
@@ -240,7 +261,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 				manualwell := wellsmap[0] // 1st well of array only
 
-				manual, err = marsdata.ReadingsAsAverage(manualwell, 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+				manual, err = platereaderdata.AbsorbanceReading(manualwell, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 				if err != nil {
 					execute.Errorf(_ctx, err.Error())
@@ -249,7 +270,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 				manualsamples = _input.VolumeToManualwells[experimentalvolumestr]
 
 				for i := range manualsamples {
-					manualvalue, err := marsdata.ReadingsAsAverage(manualsamples[i], 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+					manualvalue, err := platereaderdata.AbsorbanceReading(manualsamples[i], _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 					if err != nil {
 						execute.Errorf(_ctx, err.Error())
@@ -276,14 +297,14 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			// check optimal difference for each well
 			if _input.FindOptWavelength {
-				_output.MeasuredOptimalWavelength, err = marsdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
+				_output.MeasuredOptimalWavelength, err = platereaderdata.FindOptimalWavelength(_input.WellForScanAnalysis, _input.Blanks[0], "Raw Data")
 
 				if err != nil {
 					execute.Errorf(_ctx, fmt.Sprint("Error found with well for scan analysis: ", err.Error()))
 				}
 			}
 
-			rawaverage, err := marsdata.ReadingsAsAverage(well.(string), 1, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			rawaverage, err := platereaderdata.AbsorbanceReading(well.(string), _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" Raw average "+strconv.Itoa(_input.Wavelength), rawaverage)
 
@@ -291,7 +312,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			samples = []string{well.(string)}
 
-			blankcorrected, err := marsdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+			blankcorrected, err := platereaderdata.BlankCorrect(samples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
 
 			run = doe.AddNewResponseFieldandValue(run, _input.Responsecolumntofill+" BlankCorrected "+strconv.Itoa(_input.Wavelength), blankcorrected)
 
@@ -341,7 +362,7 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 
 			// add comparison to manually pipetted wells
 			if _, ok := _input.VolumeToManualwells[experimentalvolumestr]; _input.ManualComparison && ok {
-				manualblankcorrected, err := marsdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
+				manualblankcorrected, err := platereaderdata.BlankCorrect(manualsamples, _input.Blanks, _input.Wavelength, _input.ReadingTypeinMarsFile)
 				if err != nil {
 					execute.Errorf(_ctx, err.Error())
 				}
@@ -385,8 +406,6 @@ func _AddPlateReader_ResultsSteps(_ctx context.Context, _input *AddPlateReader_R
 // post process any data and provide downstream results
 func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReader_ResultsInput, _output *AddPlateReader_ResultsOutput) {
 
-	_output.Errors = make([]string, 0)
-
 	xvalues := make([]float64, 0)
 	yvalues := make([]float64, 0)
 
@@ -400,22 +419,28 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		execute.Errorf(_ctx, "no runs")
 	}
 	// 1. now calculate r2 and plot results
-	for i, runwithresponses := range _output.Runs {
-		// values for r2 to reset each run
+	for _, runwithresponses := range _output.Runs {
 
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc " + strconv.Itoa(_input.Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 
 		if err != nil {
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
-		expectedconcfloat, floattrue := expectedconc.(float64)
-		// if float64 is true
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring, ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+
+			if err != nil {
+				_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
+			}
+
+			volinul := volumeToul(volume)
+
+			xvalues = append(xvalues, volinul)
 		} else {
-			execute.Errorf(_ctx, "Run"+fmt.Sprint(i, runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			execute.Errorf(_ctx, "Expected volume %+v to be in string format but cannot cast in to string", vol)
 		}
 
 		// get response value and check if it's a float64 type
@@ -423,7 +448,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 		if err != nil {
 			fmt.Println(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		actualconcfloat, floattrue := actualconc.(float64)
@@ -437,24 +462,24 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 	}
 
-	_output.R2, _output.Variance, _output.Formula = plot.Rsquared("Expected Conc", xvalues, "Actual Conc", yvalues)
+	_output.R2, _output.Variance, _output.Formula = plot.Rsquared("Volume", xvalues, "Actual Conc", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	xygraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 	}
 
-	plot.AddAxesTitles(xygraph, "Expected Conc M/l", "Measured Conc M/l")
+	plot.AddAxesTitles(xygraph, "Volume (ul)", "Measured Conc (M/l)")
 
 	xygraph.Title.Text = _input.Molecule.CName + ": Expected vs Measured Concentration"
 
 	filenameandextension := strings.Split(_input.OutputFilename, ".")
 
-	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "20cm", "20cm", filenameandextension[0]+"_plot"+".png")
+	_output.ActualVsExpectedPlot, err = plot.Export(xygraph, "15cm", "15cm", filenameandextension[0]+"_plot"+".png")
 
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		execute.Errorf(_ctx, err.Error())
 	}
 
@@ -467,22 +492,29 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 	yvalues = append(yvalues, 0.0)
 
 	// 2. now plot correctnessfactor
-	for i, runwithresponses := range _output.Runs {
+	for _, runwithresponses := range _output.Runs {
 		// values for r2 to reset each run
 
 		// get response value and check if it's a float64 type
-		expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc " + strconv.Itoa(_input.Wavelength))
+		vol, err := runwithresponses.GetAdditionalInfo("Volume")
 
 		if err != nil {
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
-		expectedconcfloat, floattrue := expectedconc.(float64)
-		// if float64 is true
-		if floattrue {
-			xvalues = append(xvalues, expectedconcfloat)
+		volstring, ok := vol.(string)
+		if ok {
+			volume, err := wunit.ParseVolume(volstring)
+
+			if err != nil {
+				_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
+			}
+
+			volinul := volumeToul(volume)
+
+			xvalues = append(xvalues, volinul)
 		} else {
-			execute.Errorf(_ctx, "Run"+fmt.Sprint(i, runwithresponses)+" ExpectedConc:"+fmt.Sprint(expectedconcfloat))
+			execute.Errorf(_ctx, "Expected volume %+v to be in string format but cannot cast in to string", vol)
 		}
 
 		// get response value and check if it's a float64 type
@@ -490,7 +522,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 		if err != nil {
 			fmt.Println(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		correctnessfloat, floattrue := correctness.(float64)
@@ -504,23 +536,23 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 	}
 
-	_output.R2_CorrectnessFactor, _, _ = plot.Rsquared("Expected Conc", xvalues, "Correctness Factor", yvalues)
+	_output.R2_CorrectnessFactor, _, _ = plot.Rsquared("Volume", xvalues, "Correctness Factor", yvalues)
 	//run.AddResponseValue("R2", rsquared)
 
 	correctnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 	}
 
-	plot.AddAxesTitles(correctnessgraph, "Target Conc M/l", "Correctness Factor (Measured Conc / Expected Conc)")
+	plot.AddAxesTitles(correctnessgraph, "Volume (ul)", "Correctness Factor (Measured Conc / Expected Conc)")
 
-	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Target Concentration"
+	correctnessgraph.Title.Text = _input.Molecule.CName + ": Correctness Factor vs Volume"
 
-	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "20cm", "20cm", filenameandextension[0]+"_correctnessfactor"+".png")
+	_output.CorrectnessFactorPlot, err = plot.Export(correctnessgraph, "15cm", "15cm", filenameandextension[0]+"_correctnessfactor"+".png")
 
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		execute.Errorf(_ctx, err.Error())
 
 	}
@@ -541,7 +573,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 
 		if err != nil {
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		runorderint, inttrue := runorder.(int)
@@ -557,7 +589,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 		if err != nil {
 			fmt.Println(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		actualconcfloat, floattrue := actualconc.(float64)
@@ -573,7 +605,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 	runorderconcgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 	}
 
 	plot.Export(runorderconcgraph, "10cm", "10cm", filenameandextension[0]+"_runorder"+".png")
@@ -594,7 +626,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		runorder, err := runwithresponses.GetResponseValue("Runorder")
 
 		if err != nil {
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		runorderint, inttrue := runorder.(int)
@@ -610,7 +642,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 		if err != nil {
 			fmt.Println(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		correctnessfloat, floattrue := correctness.(float64)
@@ -627,7 +659,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 	runordercorrectnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 
 	if err != nil {
-		_output.Errors = append(_output.Errors, err.Error())
+		_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 	}
 
 	plot.Export(runordercorrectnessgraph, "10cm", "10cm", filenameandextension[0]+"_runorder_correctnessfactor"+".png")
@@ -691,7 +723,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 		if err != nil {
 			fmt.Println(err.Error())
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		correctnessfloat, floattrue := correctness.(float64)
@@ -771,7 +803,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 			expectedconc, err := runwithresponses.GetResponseValue("Absorbance ExpectedConc " + strconv.Itoa(_input.Wavelength))
 
 			if err != nil {
-				_output.Errors = append(_output.Errors, err.Error())
+				_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 			}
 
 			expectedconcfloat, floattrue := expectedconc.(float64)
@@ -787,7 +819,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 
 			if err != nil {
 				fmt.Println(err.Error())
-				_output.Errors = append(_output.Errors, err.Error())
+				_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 			}
 
 			correctnessfloat, floattrue := correctness.(float64)
@@ -807,7 +839,7 @@ func _AddPlateReader_ResultsAnalysis(_ctx context.Context, _input *AddPlateReade
 		correctnessgraph, err := plot.Plot(xvalues, [][]float64{yvalues})
 
 		if err != nil {
-			_output.Errors = append(_output.Errors, err.Error())
+			_output.Errors = append(_output.Errors, wtype.NewWarning(err.Error()))
 		}
 
 		plot.Export(correctnessgraph, "10cm", "10cm", filenameandextension[0]+"_Manualcorrectnessfactor"+".png")
@@ -826,17 +858,21 @@ func _AddPlateReader_ResultsValidation(_ctx context.Context, _input *AddPlateRea
 	if _output.R2 > _input.R2threshold {
 		_output.R2Pass = true
 	} else {
-		_output.Errors = append(_output.Errors, fmt.Sprint("R2 threshold of ", _input.R2threshold, " not met; R2 value = ", _output.R2))
+		_output.Errors = append(_output.Errors, wtype.NewWarning(fmt.Sprint("R2 threshold of ", _input.R2threshold, " not met; R2 value = ", _output.R2)))
 	}
 
 	for key, dataset := range _output.VolumeToActualConc {
 
 		if dataset.CV > _input.CVthreshold {
 			_output.CVpass = false
-			_output.Errors = append(_output.Errors, fmt.Sprint(key, " coefficient of variance above ", _input.CVthreshold, " percent threshold; CV value = ", dataset.CV))
+			_output.Errors = append(_output.Errors, wtype.NewWarning(fmt.Sprint(key, " coefficient of variance above ", _input.CVthreshold, " percent threshold; CV value = ", dataset.CV)))
 		}
 	}
 
+}
+
+func volumeToul(volume wunit.Volume) float64 {
+	return volume.SIValue() * 1e6
 }
 
 type Dataset struct {
@@ -904,10 +940,11 @@ type AddPlateReader_ResultsInput struct {
 	Extinctioncoefficient      float64
 	FindOptWavelength          bool
 	ManualComparison           bool
-	MarsResultsFileXLSX        wtype.File
 	Molecule                   *wtype.LHComponent
 	OutputFilename             string
 	OverrideMolecularWeight    map[string]float64
+	PlateReaderFileType        string
+	PlateReaderResultsFileXLSX wtype.File
 	PlateType                  *wtype.LHPlate
 	R2threshold                float64
 	ReadingTypeinMarsFile      string
@@ -927,7 +964,7 @@ type AddPlateReader_ResultsOutput struct {
 	CV                        float64
 	CVpass                    bool
 	CorrectnessFactorPlot     wtype.File
-	Errors                    []string
+	Errors                    []wtype.Warning
 	Formula                   string
 	MeasuredOptimalWavelength int
 	OutPutDesignFile          wtype.File
@@ -948,7 +985,7 @@ type AddPlateReader_ResultsSOutput struct {
 		CV                        float64
 		CVpass                    bool
 		CorrectnessFactorPlot     wtype.File
-		Errors                    []string
+		Errors                    []wtype.Warning
 		Formula                   string
 		MeasuredOptimalWavelength int
 		OutPutDesignFile          wtype.File
@@ -980,10 +1017,11 @@ func init() {
 				{Name: "Extinctioncoefficient", Desc: "extinction coefficient for target Molecule at the specified wavelength; e.g. 20330 for tartrazine at 472nm\n", Kind: "Parameters"},
 				{Name: "FindOptWavelength", Desc: "whether the scan should be used to return the wavelength with maximum signal to noise found\n", Kind: "Parameters"},
 				{Name: "ManualComparison", Desc: " Option to compare to manual pipetting\n", Kind: "Parameters"},
-				{Name: "MarsResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars.\n", Kind: "Parameters"},
 				{Name: "Molecule", Desc: "The name of the molecule to analyse. This will be used to find matching solutions in the design file and to look up the molecular weight.\nCurrently only one solution name can be run at a time.\n", Kind: "Inputs"},
 				{Name: "OutputFilename", Desc: "set the desired name for the output file, if this is blank it will append the design file name with _output\n", Kind: "Parameters"},
 				{Name: "OverrideMolecularWeight", Desc: "Option to override molecular weight value of a molecule. Otherwise the value from looking up the molecular weight in the pubchem database will be used.\n", Kind: "Parameters"},
+				{Name: "PlateReaderFileType", Desc: "PlateReaderFileType\n", Kind: "Parameters"},
+				{Name: "PlateReaderResultsFileXLSX", Desc: "Input file containing the Plate reader results exported from Mars or SpectraMax.\n", Kind: "Parameters"},
 				{Name: "PlateType", Desc: "", Kind: "Inputs"},
 				{Name: "R2threshold", Desc: "validation requirements\nset a threshold above which R2 will pass; 0 = 0%, 1 = 100%; e.g. 0.7 = 70%\n", Kind: "Parameters"},
 				{Name: "ReadingTypeinMarsFile", Desc: "This should match the label in the header for each column in the plate reader result file, e.g. \"Abs Spectrum\"\n", Kind: "Parameters"},

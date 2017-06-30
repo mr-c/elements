@@ -75,7 +75,7 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	var factor float64
 
 	if _input.MakeExtraPercentage == 0.0 {
-		factor = 0.1
+		_input.MakeExtraPercentage = 0.1
 	}
 
 	if _input.MakeExtraPercentage >= 0.0 && _input.MakeExtraPercentage < 1 {
