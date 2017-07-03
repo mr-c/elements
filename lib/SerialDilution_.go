@@ -37,7 +37,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
 
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
-	var counter int = _input.WellsUsed
+	var counter int = _input.WellsAlreadyUsed
 
 	dilutions := make([]*wtype.LHComponent, 0)
 
@@ -98,6 +98,9 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 
 	// export as Output
 	_output.Dilutions = dilutions
+
+	// Output the number of wells that have been used on this plate
+	_output.WellsUsed = counter
 
 }
 
@@ -168,15 +171,17 @@ type SerialDilutionInput struct {
 	OutPlate               *wtype.LHPlate
 	Solution               *wtype.LHComponent
 	TotalVolumeperDilution wunit.Volume
-	WellsUsed              int
+	WellsAlreadyUsed       int
 }
 
 type SerialDilutionOutput struct {
 	Dilutions []*wtype.LHComponent
+	WellsUsed int
 }
 
 type SerialDilutionSOutput struct {
 	Data struct {
+		WellsUsed int
 	}
 	Outputs struct {
 		Dilutions []*wtype.LHComponent
@@ -197,8 +202,9 @@ func init() {
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolumeperDilution", Desc: "", Kind: "Parameters"},
-				{Name: "WellsUsed", Desc: "", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "", Kind: "Parameters"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "WellsUsed", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

@@ -1,14 +1,14 @@
 {
   "Parameters": {
     "SerialDilute": {
+      "ByRow": false,
       "Diluent": "water",
       "DilutionFactor": 10,
       "NumberOfDilutions": 16,
       "OutPlate": "pcrplate_skirted_riser20",
       "Solution": "tartrazine",
       "TotalVolumeperDilution": "100ul",
-      "WellsUsed": 0,
-	  "ByRow": false
+      "WellsAlreadyUsed": 0
     }
   },
   "connections": [],

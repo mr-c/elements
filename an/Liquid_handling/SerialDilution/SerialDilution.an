@@ -117,6 +117,9 @@ Steps {
 // export as Output
 Dilutions = dilutions 
 
+// Output the number of wells that have been used on this plate
+WellsUsed = counter
+
 }
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
