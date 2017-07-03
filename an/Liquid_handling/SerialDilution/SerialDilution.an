@@ -13,11 +13,13 @@ Parameters (
 	TotalVolumeperDilution Volume
 	DilutionFactor  int // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
 	NumberOfDilutions int
+	ByRow bool
+	WellsAlreadyUsed int
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	
+	WellsUsed int
 )
 
 
@@ -46,6 +48,11 @@ Setup {
 // for every input
 Steps {
 	
+	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
+	
+	allwellpositions := OutPlate.AllWellPositions(ByRow)
+	var counter int = WellsAlreadyUsed
+
 	dilutions := make([]*LHComponent,0)
 
 	var aliquot *LHComponent
@@ -76,17 +83,18 @@ Steps {
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
-	// mix both samples to OutPlate
-	aliquot = MixTo(OutPlate.Type,"", 1,diluentSample, solutionSample)
+	// mix both diluent and sample to OutPlate
+	aliquot = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
 
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	
+	counter++
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < NumberOfDilutions; k++ {
 		
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(Diluent, diluentVolume)
 		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
@@ -94,17 +102,23 @@ Steps {
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 		
+	
+		
 		// Mix sample into nextdiluent sample
-		nextaliquot := Mix(nextdiluentSample,nextSample)
+		nextaliquot := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 		
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+		counter++
 		}
 		
 // export as Output
 Dilutions = dilutions 
+
+// Output the number of wells that have been used on this plate
+WellsUsed = counter
 
 }
 // Run after controls and a steps block are completed to
