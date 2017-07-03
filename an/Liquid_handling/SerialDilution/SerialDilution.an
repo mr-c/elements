@@ -13,6 +13,8 @@ Parameters (
 	TotalVolumeperDilution Volume
 	DilutionFactor  int // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
 	NumberOfDilutions int
+	ByRow bool
+	WellsAlreadyUsed int
 )
 
 // Data which is returned from this protocol, and data types
@@ -46,6 +48,11 @@ Setup {
 // for every input
 Steps {
 	
+	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
+	
+	allwellpositions := OutPlate.AllWellPositions(ByRow)
+	var counter int = WellsAlreadyUsed
+
 	dilutions := make([]*LHComponent,0)
 
 	var aliquot *LHComponent
@@ -76,12 +83,19 @@ Steps {
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
-	// mix both samples to OutPlate
-	aliquot = MixTo(OutPlate.Type,"", 1,diluentSample, solutionSample)
+	// add diluent and solution sample instructions together
+	dilutedSample := make([]*LHComponent,0)
+	dilutedSample = append(dilutedSample, diluentSample)
+	dilutedSample = append(dilutedSample, solutionSample)
+	
+	// mix both diluent and sample to OutPlate
+	aliquot = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", dilutedSample...)
 
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	
+	counter++
+	nextDilutedSample := make([]*LHComponent,0)
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < NumberOfDilutions; k++ {
 		
@@ -94,13 +108,17 @@ Steps {
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 		
+		nextDilutedSample = append(nextDilutedSample, nextdiluentSample)
+		nextDilutedSample = append(nextDilutedSample, nextSample)
+		
 		// Mix sample into nextdiluent sample
-		nextaliquot := Mix(nextdiluentSample,nextSample)
+		nextaliquot := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDilutedSample...)
 		
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+		counter++
 		}
 		
 // export as Output
