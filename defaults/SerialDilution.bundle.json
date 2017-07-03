@@ -6,7 +6,9 @@
       "NumberOfDilutions": 16,
       "OutPlate": "pcrplate_skirted_riser20",
       "Solution": "tartrazine",
-      "TotalVolumeperDilution": "100ul"
+      "TotalVolumeperDilution": "100ul",
+      "ByRow": false,
+      "WellsAlreadyUsed": 0
     }
   },
   "connections": [],
