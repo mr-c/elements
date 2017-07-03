@@ -34,6 +34,11 @@ func _SerialDilutionSetup(_ctx context.Context, _input *SerialDilutionInput) {
 // for every input
 func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _output *SerialDilutionOutput) {
 
+	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
+
+	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
+	var counter int = _input.WellsAlreadyUsed
+
 	dilutions := make([]*wtype.LHComponent, 0)
 
 	var aliquot *wtype.LHComponent
@@ -62,17 +67,18 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
-	// mix both samples to OutPlate
-	aliquot = execute.MixTo(_ctx, _input.OutPlate.Type, "", 1, diluentSample, solutionSample)
+	// mix both diluent and sample to OutPlate
+	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
 
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
 
+	counter++
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < _input.NumberOfDilutions; k++ {
 
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 
 		// Ensure liquid type set to Pre and Post Mix
 		aliquot.Type = wtype.LTNeedToMix
@@ -81,16 +87,20 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 
 		// Mix sample into nextdiluent sample
-		nextaliquot := execute.Mix(_ctx, nextdiluentSample, nextSample)
+		nextaliquot := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
 		// reset aliquot
 		aliquot = nextaliquot
+		counter++
 	}
 
 	// export as Output
 	_output.Dilutions = dilutions
+
+	// Output the number of wells that have been used on this plate
+	_output.WellsUsed = counter
 
 }
 
@@ -154,20 +164,24 @@ type SerialDilutionElement struct {
 }
 
 type SerialDilutionInput struct {
+	ByRow                  bool
 	Diluent                *wtype.LHComponent
 	DilutionFactor         int
 	NumberOfDilutions      int
 	OutPlate               *wtype.LHPlate
 	Solution               *wtype.LHComponent
 	TotalVolumeperDilution wunit.Volume
+	WellsAlreadyUsed       int
 }
 
 type SerialDilutionOutput struct {
 	Dilutions []*wtype.LHComponent
+	WellsUsed int
 }
 
 type SerialDilutionSOutput struct {
 	Data struct {
+		WellsUsed int
 	}
 	Outputs struct {
 		Dilutions []*wtype.LHComponent
@@ -181,13 +195,16 @@ func init() {
 			Desc: "Protocol to make a serial dilution series from a solution and diluent\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution.an",
 			Params: []component.ParamDesc{
+				{Name: "ByRow", Desc: "", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
 				{Name: "NumberOfDilutions", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolumeperDilution", Desc: "", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "", Kind: "Parameters"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "WellsUsed", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {
