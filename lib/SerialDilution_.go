@@ -37,7 +37,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
 
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
-	var counter int = _input.WellsAlreadyUsed
+	var counter int = _input.WellsUsed
 
 	dilutions := make([]*wtype.LHComponent, 0)
 
@@ -67,24 +67,18 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
-	// add diluent and solution sample instructions together
-	dilutedSample := make([]*wtype.LHComponent, 0)
-	dilutedSample = append(dilutedSample, diluentSample)
-	dilutedSample = append(dilutedSample, solutionSample)
-
 	// mix both diluent and sample to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", dilutedSample...)
+	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
 
 	// add to dilutions array
 	dilutions = append(dilutions, aliquot)
 
 	counter++
-	nextDilutedSample := make([]*wtype.LHComponent, 0)
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < _input.NumberOfDilutions; k++ {
 
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 
 		// Ensure liquid type set to Pre and Post Mix
 		aliquot.Type = wtype.LTNeedToMix
@@ -92,11 +86,8 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 
-		nextDilutedSample = append(nextDilutedSample, nextdiluentSample)
-		nextDilutedSample = append(nextDilutedSample, nextSample)
-
 		// Mix sample into nextdiluent sample
-		nextaliquot := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDilutedSample...)
+		nextaliquot := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
@@ -177,7 +168,7 @@ type SerialDilutionInput struct {
 	OutPlate               *wtype.LHPlate
 	Solution               *wtype.LHComponent
 	TotalVolumeperDilution wunit.Volume
-	WellsAlreadyUsed       int
+	WellsUsed              int
 }
 
 type SerialDilutionOutput struct {
@@ -206,7 +197,7 @@ func init() {
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Solution", Desc: "", Kind: "Inputs"},
 				{Name: "TotalVolumeperDilution", Desc: "", Kind: "Parameters"},
-				{Name: "WellsAlreadyUsed", Desc: "", Kind: "Parameters"},
+				{Name: "WellsUsed", Desc: "", Kind: "Parameters"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
 			},
 		},

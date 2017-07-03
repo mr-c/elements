@@ -14,7 +14,7 @@ Parameters (
 	DilutionFactor  int // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
 	NumberOfDilutions int
 	ByRow bool
-	WellsAlreadyUsed int
+	WellsUsed int
 )
 
 // Data which is returned from this protocol, and data types
@@ -51,7 +51,7 @@ Steps {
 	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
 	
 	allwellpositions := OutPlate.AllWellPositions(ByRow)
-	var counter int = WellsAlreadyUsed
+	var counter int = WellsUsed
 
 	dilutions := make([]*LHComponent,0)
 
@@ -83,24 +83,18 @@ Steps {
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
-	// add diluent and solution sample instructions together
-	dilutedSample := make([]*LHComponent,0)
-	dilutedSample = append(dilutedSample, diluentSample)
-	dilutedSample = append(dilutedSample, solutionSample)
-	
 	// mix both diluent and sample to OutPlate
-	aliquot = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", dilutedSample...)
+	aliquot = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
 
 	// add to dilutions array
 	dilutions = append(dilutions,aliquot)
 	
 	counter++
-	nextDilutedSample := make([]*LHComponent,0)
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < NumberOfDilutions; k++ {
 		
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(Diluent, diluentVolume)
 		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
@@ -108,11 +102,10 @@ Steps {
 		// sample from previous dilution sample
 		nextSample := mixer.Sample(aliquot, solutionVolume)
 		
-		nextDilutedSample = append(nextDilutedSample, nextdiluentSample)
-		nextDilutedSample = append(nextDilutedSample, nextSample)
+	
 		
 		// Mix sample into nextdiluent sample
-		nextaliquot := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDilutedSample...)
+		nextaliquot := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 		
 		// add to dilutions array 
 		dilutions = append(dilutions,nextaliquot)
