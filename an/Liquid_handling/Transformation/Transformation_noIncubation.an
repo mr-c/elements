@@ -1,8 +1,8 @@
 protocol Transformation_complete_noIncubation
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -17,23 +17,21 @@ Parameters (
 	Recoverytime Time //= 2 (hours)
 	Recoverytemp Temperature
 	Plateoutvolume Volume
-	//Shakerspeed Rate 
-	
+	//Shakerspeed Rate
+
 	//Plateoutdilution float64
-	
+
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
 Inputs (
 	Reaction *LHComponent
 	CompetentCells *LHComponent
 	CompetentCellPlate *LHPlate
-    Recoverymedium *LHComponent
+	Recoverymedium *LHComponent
 	AgarPlate *LHPlate
 )
 
@@ -52,16 +50,16 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	var compCells *LHComponent
-	
+
 	CompetentCells.SetVolume(MinimumCompetentCellVolume)
-	
+
 	// find all wells on plate
 	allWells := CompetentCellPlate.AllWellPositions(wtype.BYCOLUMN)
-	
+
 	var cellsFound bool
-	
+
 	// range through plate looking to see if the competent cells component is present
 	for i := range allWells {
 		if CompetentCellPlate.WellMap()[allWells[i]].WContents.CName == CompetentCells.CName && CompetentCells.Volume().GreaterThan(MinimumCompetentCellVolume) {
@@ -82,37 +80,35 @@ Steps {
 			}
 		}
 	}
-	
+
 	if !cellsFound {
-		Errorf("No %s Cells found on plate with greater than %s volume and no empty positions", CompetentCells.CName,MinimumCompetentCellVolume.ToString())
-	}else{
+		Errorf("No %s Cells found on plate with greater than %s volume and no empty positions", CompetentCells.CName, MinimumCompetentCellVolume.ToString())
+	} else {
 		SetInputPlate(CompetentCellPlate)
 	}
-	
 
-	readycompetentcellsComp := compCells  // readycompetentcells IS now a LHComponent
+	readycompetentcellsComp := compCells // readycompetentcells IS now a LHComponent
 	/*
-	readycompetentcellsComp := Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false) // we can incubate an LHComponent so this is fine
+		readycompetentcellsComp := Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false) // we can incubate an LHComponent so this is fine
 	*/
-	
+
 	DNAsample := mixer.Sample(Reaction, Reactionvolume)
-	
+
 	transformedcellsComp := Mix(readycompetentcellsComp, DNAsample)
-	
+
 	//transformedcellsComp := Incubate (transformedcells, Postplasmidtemp, Postplasmidtime,false)
 
 	recoverymixture := mixer.Sample(Recoverymedium, Recoveryvolume)
 
-	recoverymix2Comp := Mix(transformedcellsComp,recoverymixture)
-	
+	recoverymix2Comp := Mix(transformedcellsComp, recoverymixture)
+
 	//recoverymix2Comp := Incubate (recoverymix2,  Recoverytemp, Recoverytime, true)
-	
-	plateout := mixer.Sample(recoverymix2Comp, Plateoutvolume) 
-	platedculture := MixInto(AgarPlate, "",  plateout)
-	
+
+	plateout := mixer.Sample(recoverymix2Comp, Plateoutvolume)
+	platedculture := MixInto(AgarPlate, "", plateout)
+
 	Platedculture = platedculture
-	
-	
+
 }
 
 // Run after controls and a steps block are completed to

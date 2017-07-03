@@ -3,12 +3,11 @@ protocol Units_Sum
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 )
+
 // Input parameters for this protocol
 Parameters (
 	MyVolume Volume
-    MyOtherVolume Volume
-	
-
+	MyOtherVolume Volume
 )
 
 // Data which is returned from this protocol
@@ -17,13 +16,10 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -37,45 +33,39 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 
-///*
+	///*
 
-var sumofSIValues float64
-var siUnit string
+	var sumofSIValues float64
+	var siUnit string
 
-sumofSIValues = MyVolume.SIValue() + MyOtherVolume.SIValue()
+	sumofSIValues = MyVolume.SIValue() + MyOtherVolume.SIValue()
 
-siUnit = MyVolume.Unit().BaseSISymbol()
+	siUnit = MyVolume.Unit().BaseSISymbol()
 
-// or a less safe but simpler way would be 
-// siUnit = "l"
+	// or a less safe but simpler way would be
+	// siUnit = "l"
 
-SumOfVolumes = wunit.NewVolume(sumofSIValues,siUnit) 
+	SumOfVolumes = wunit.NewVolume(sumofSIValues, siUnit)
 
-//*/
+	//*/
 
-// Exercise: this is quite a convoluted way of doing this so instead we could create a function to perform this task
-// try doing this below
+	// Exercise: this is quite a convoluted way of doing this so instead we could create a function to perform this task
+	// try doing this below
 
-// Approach 1:
-//writing something like the AddVolume func written below the validation section 
+	// Approach 1:
+	//writing something like the AddVolume func written below the validation section
 
-//e.g. 
-//SumOfVolumes = AddVolume(MyVolume,MyOtherVolume)
+	//e.g.
+	//SumOfVolumes = AddVolume(MyVolume,MyOtherVolume)
 
-// Approach 2: 
-// using anthalib funcs and methods
+	// Approach 2:
+	// using anthalib funcs and methods
 
+	SumOfVolumes = (wunit.CopyVolume(MyVolume))
 
-SumOfVolumes = (wunit.CopyVolume(MyVolume))
-
-SumOfVolumes.Add(MyOtherVolume)
-
-
-
-
+	SumOfVolumes.Add(MyOtherVolume)
 
 }
-
 
 // Actions to perform after steps block to analyze data
 Analysis {
@@ -85,7 +75,6 @@ Analysis {
 Validation {
 
 }
-
 
 /*
 // this is how to write a function in go and use it in an antha protocol
@@ -98,10 +87,10 @@ sumofSIValues = myvolume.SIValue() + myothervolume.SIValue()
 
 siUnit = myvolume.Unit().BaseSISymbol()
 
-// or a less safe but simpler way would be 
+// or a less safe but simpler way would be
 // siUnit = "l"
 
-newvolume = wunit.NewVolume(sumofSIValues,siUnit) 
+newvolume = wunit.NewVolume(sumofSIValues,siUnit)
 	return
 }
 */

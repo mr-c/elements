@@ -5,29 +5,28 @@ protocol ResuspendDNA
 // the mixer package is required to use the Sample function
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
-	
+
 	// Mass of DNA to Resuspend
-  	DNAMass Mass
-	
+	DNAMass Mass
+
 	// Target concentration to resuspend to
-  	TargetConc Concentration
-	
+	TargetConc Concentration
+
 	// Molecular weight of the DNA
 	MolecularWeight float64
-	
+
 	// Well location of DNA
 	Well string
-	
+
 	// Plate location of DNA
 	PlateName string
-	
+
 	// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
 	OverRideLiquidPolicy PolicyName
 )
@@ -37,11 +36,11 @@ Data (
 )
 
 Inputs (
-	
+
 	// Diluent to use to resuspend the DNA
 	Diluent *LHComponent
-	
-	// Type of plate DNA sample is on. 
+
+	// Type of plate DNA sample is on.
 	DNAPlate *LHPlate
 )
 
@@ -55,41 +54,39 @@ Requirements {
 Setup {
 }
 
-
 Steps {
 
 	targetconcgperL := TargetConc.GramPerL(MolecularWeight).SIValue()
-	
+
 	dnamassG := DNAMass.SIValue()
-	
-	if DNAMass.Unit().BaseSIUnit()== "kg"{
+
+	if DNAMass.Unit().BaseSIUnit() == "kg" {
 		dnamassG = dnamassG * 1000
-		Warnings = append(Warnings,fmt.Sprintln("Base Unit correction; Base unit of mass = ", DNAMass.Unit().BaseSIUnit()," therfore multiplying by 1000 to convert to grams"))
+		Warnings = append(Warnings, fmt.Sprintln("Base Unit correction; Base unit of mass = ", DNAMass.Unit().BaseSIUnit(), " therfore multiplying by 1000 to convert to grams"))
 	}
-	
-	volumetoadd := wunit.NewVolume(dnamassG/targetconcgperL,"L")
-	
-	diluentSample := mixer.Sample(Diluent,volumetoadd)
-	
-	if OverRideLiquidPolicy == ""{
+
+	volumetoadd := wunit.NewVolume(dnamassG/targetconcgperL, "L")
+
+	diluentSample := mixer.Sample(Diluent, volumetoadd)
+
+	if OverRideLiquidPolicy == "" {
 		OverRideLiquidPolicy = "MegaMix"
 	}
-	
+
 	var err error
-	
+
 	diluentSample.Type, err = wtype.LiquidTypeFromString(OverRideLiquidPolicy)
-	
+
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
-	ResuspendedDNA = MixNamed(DNAPlate.Type,Well,PlateName,diluentSample) 
+
+	ResuspendedDNA = MixNamed(DNAPlate.Type, Well, PlateName, diluentSample)
 
 }
 
 Analysis {
 }
-
 
 Validation {
 }

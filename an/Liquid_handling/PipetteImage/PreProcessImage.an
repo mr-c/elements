@@ -1,21 +1,18 @@
 protocol PreProcessImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
 	goimage "image"
-
-	)
-
+)
 
 // Input parameters for this protocol (data)
 Parameters (
-	
 	ImageFileName string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	UseURL bool          // select this if getting the image from a URL
+	URL string           // enter URL link to the image file here if applicable
 	InputFile File
 	Negative bool
 	Rotate bool
@@ -31,30 +28,27 @@ Data (
 	ProcessedImage File
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
 	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
-Outputs (
-
-)
+Outputs ()
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	//-------------------------------------------------------------------------------------
 	//Globals
 	//-------------------------------------------------------------------------------------
@@ -70,39 +64,38 @@ Steps {
 	// if image is from url, download
 	if UseURL {
 		//downloading image
-		imgFile , err = download.File(URL, ImageFileName)
-		if err != nil{
+		imgFile, err = download.File(URL, ImageFileName)
+		if err != nil {
 			Errorf(err.Error())
 		}
 
 		//opening the image file
 		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 	}
 
 	//opening the image file
 	imgBase, err = image.OpenFile(InputFile)
-	if err != nil{
+	if err != nil {
 		Errorf(err.Error())
 	}
-
 
 	//--------------------------------------------------------------
 	//Image Processing
 	//--------------------------------------------------------------
 
-	if PosterizeImage{
+	if PosterizeImage {
 
 		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 	}
 
 	if CheckAllResizeAlgorithms {
-			image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase, OutPlate, Rotate, image.AllResampleFilters)
 	}
 
 	//--------------------------------------------------------------
@@ -114,14 +107,15 @@ Steps {
 	//--------------------------------------------------------------
 	//Fitting image to plate
 	//--------------------------------------------------------------
-	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+	_, imgBase = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 
-	ProcessedImage, err = image.Export(imgBase,ImageFileName)
-	if err != nil{
-			Errorf(err.Error())
+	ProcessedImage, err = image.Export(imgBase, ImageFileName)
+	if err != nil {
+		Errorf(err.Error())
 	}
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -131,6 +125,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

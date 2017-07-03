@@ -1,11 +1,11 @@
 protocol MakeStockBuffer2
 
 import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"fmt"
 	"strings"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 )
 
 // Input parameters for this protocol (data)
@@ -19,15 +19,14 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Molecule			*LHComponent
-	Diluent			*LHComponent
-	Vessel 		*LHPlate
+	Molecule *LHComponent
+	Diluent *LHComponent
+	Vessel *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	Buffer 			*LHComponent
+	Buffer *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -39,10 +38,10 @@ Data (
 	MoleculeInfo pubchem.Molecule
 	//OriginalDiluentVolume Volume
 )
+
 // Input Requirement specification
 Requirements {
-	
-	
+
 }
 
 // Conditions to run on startup
@@ -51,35 +50,35 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	var err error
-	
+
 	molecule, err := pubchem.MakeMolecule(Molecule.CName)
-      
-	  if err != nil {
-                Errorf(err.Error())
-        }
-	
+
+	if err != nil {
+		Errorf(err.Error())
+	}
+
 	ConcinGperL = TargetConc.GramPerL(molecule.MolecularWeight)
 	ConcinMperL = TargetConc.MolPerL(molecule.MolecularWeight)
-	
-	MassToAddinG,err = wunit.MassForTargetConcentration(TargetConc, TotalVolume)
-	
-        if err != nil {
-                Errorf(err.Error())
-        }	
-		
-	Buffer = MixInto(Vessel,"",
-	mixer.SampleMass(Molecule,MassToAddinG,MoleculeDensity),
-	mixer.SampleForTotalVolume(Diluent,TotalVolume))
 
-	Buffer.CName = ConcinMperL.ToString()+" "+ Molecule.CName
+	MassToAddinG, err = wunit.MassForTargetConcentration(TargetConc, TotalVolume)
 
-	Status = fmt.Sprintln( "Stock added = ", MassToAddinG.ToString(), "of", Molecule.CName,
-	"was added up to ", TotalVolume.SIValue(), "L with ",Diluent.CName,
-	"to make ", TotalVolume.SIValue(), "L", "of", Buffer.CName,
-	"Buffer stock conc =",TargetConc.ToString(),". Extra instructions: ", strings.Join(ExtraInstructions,", "),". Store at ",StorageTemperature.ToString())
-			
+	if err != nil {
+		Errorf(err.Error())
+	}
+
+	Buffer = MixInto(Vessel, "",
+		mixer.SampleMass(Molecule, MassToAddinG, MoleculeDensity),
+		mixer.SampleForTotalVolume(Diluent, TotalVolume))
+
+	Buffer.CName = ConcinMperL.ToString() + " " + Molecule.CName
+
+	Status = fmt.Sprintln("Stock added = ", MassToAddinG.ToString(), "of", Molecule.CName,
+		"was added up to ", TotalVolume.SIValue(), "L with ", Diluent.CName,
+		"to make ", TotalVolume.SIValue(), "L", "of", Buffer.CName,
+		"Buffer stock conc =", TargetConc.ToString(), ". Extra instructions: ", strings.Join(ExtraInstructions, ", "), ". Store at ", StorageTemperature.ToString())
+
 	MoleculeInfo = molecule
 
 }
@@ -94,8 +93,8 @@ Analysis {
 // dipstick basis
 Validation {
 }
+
 /*
 type Mole struct {
 	number float64
 }*/
-

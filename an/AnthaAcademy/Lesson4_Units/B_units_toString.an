@@ -4,6 +4,7 @@ protocol Units_ToString
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 )
+
 // Input parameters for this protocol
 Parameters (
 	MyVolume Volume
@@ -26,13 +27,10 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -51,7 +49,7 @@ Steps {
 	MolesasString = MyMoles.ToString()
 	MassasString = MyMass.ToString()
 	FlowrateString = MyFlowrate.ToString()
-	
+
 	// Exercise: Add an equivalent process for a FlowRate
 }
 

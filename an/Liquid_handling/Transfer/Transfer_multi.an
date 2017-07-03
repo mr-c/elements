@@ -5,9 +5,9 @@
 protocol Transfer_multi
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -15,7 +15,7 @@ Parameters (
 	// Liquid names may be specified which will override the component names
 	// if no liquid names are specified the Starting Solution names are preserved
 	// either all liquidnames must be specified or none
-	Liquidnames []string 
+	Liquidnames []string
 	// One liquid volume is specified for all transfers
 	LiquidVolume Volume
 )
@@ -24,7 +24,6 @@ Parameters (
 Data (
 	Status map[string]string
 )
-
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -40,52 +39,52 @@ Outputs (
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	Status = make(map[string]string)
-	
-	if len(Liquidnames) != len(Startingsolutions) && len(Liquidnames)> 0 {
+
+	if len(Liquidnames) != len(Startingsolutions) && len(Liquidnames) > 0 {
 		Errorf("Unequal length of liquid names specified compared to starting solutions, either make these the same length or keep Liquidnames empty")
 	}
-	
+
 	for i, liquid := range Startingsolutions {
-	
-	
-	if len(Liquidnames) !=  0{
-		liquid.CName = Liquidnames[i]
-	}
-	
-	sample := mixer.Sample(liquid,LiquidVolume) 
-	
-	FinalSolutions = append(FinalSolutions,MixInto(OutPlate, "",sample))
-	
-	// if a liquid name has already been specified the name will be appended
-	if _, found := Status[liquid.CName]; found {
-		originalName := liquid.CName
-		var number int = 2
-		for {
-		liquid.CName = originalName + fmt.Sprint(number)
-			if _, found := Status[liquid.CName]; found {
-				number++
+
+		if len(Liquidnames) != 0 {
+			liquid.CName = Liquidnames[i]
+		}
+
+		sample := mixer.Sample(liquid, LiquidVolume)
+
+		FinalSolutions = append(FinalSolutions, MixInto(OutPlate, "", sample))
+
+		// if a liquid name has already been specified the name will be appended
+		if _, found := Status[liquid.CName]; found {
+			originalName := liquid.CName
+			var number int = 2
+			for {
 				liquid.CName = originalName + fmt.Sprint(number)
-			}else{
-				break
-			}
+				if _, found := Status[liquid.CName]; found {
+					number++
+					liquid.CName = originalName + fmt.Sprint(number)
+				} else {
+					break
 				}
-	}
-	Status[liquid.CName] = LiquidVolume.ToString() + " of " + liquid.CName + " was mixed into " + OutPlate.Type
+			}
+		}
+		Status[liquid.CName] = LiquidVolume.ToString() + " of " + liquid.CName + " was mixed into " + OutPlate.Type
 	}
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -95,5 +94,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
+
 }

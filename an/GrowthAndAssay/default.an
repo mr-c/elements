@@ -1,19 +1,14 @@
 protocol GrowthAndAssay
 
-import (
-)
+import ()
 
-Parameters (
-)
+Parameters ()
 
-Data (
-)
+Data ()
 
-Inputs (
-)
+Inputs ()
 
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }

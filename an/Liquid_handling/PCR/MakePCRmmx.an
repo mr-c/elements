@@ -1,9 +1,8 @@
 protocol MakePCRmmx
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 /*type Polymerase struct {
@@ -17,7 +16,6 @@ import (
 	// this is also a glycerol solution rather than a watersolution!
 }
 */
-
 
 // Input parameters for this protocol (data)
 Parameters (
@@ -33,13 +31,13 @@ Parameters (
 	FwdPrimerName string
 	RevPrimerName string
 	/*
-	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
-	
-	//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on... 
-	//FullTemplatesequence string // better to use Sid's type system here after proof of concept
-	//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
-	//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
-	//TargetTemplatelengthinBP int
+		// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
+
+		//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...
+		//FullTemplatesequence string // better to use Sid's type system here after proof of concept
+		//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
+		//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
+		//TargetTemplatelengthinBP int
 	*/
 	// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
 	Templatevolume Volume
@@ -50,9 +48,7 @@ Parameters (
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -81,75 +77,73 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	// rename components
-	
+
 	bufferVolume := (wunit.CopyVolume(ReactionVolume))
 	bufferVolume.DivideBy(float64(BufferConcinX))
-	
+
 	// Make a mastermix
 	samples := make([]*LHComponent, 0)
 	waterSample := mixer.Sample(Water, WaterVolume)
-	bufferSample := mixer.Sample(Buffer,bufferVolume)
+	bufferSample := mixer.Sample(Buffer, bufferVolume)
 	samples = append(samples, waterSample, bufferSample)
 
 	dntpSample := mixer.Sample(DNTPS, DNTPVol)
 	samples = append(samples, dntpSample)
-	
-	if len(Additives)!=len(AdditiveVols){
+
+	if len(Additives) != len(AdditiveVols) {
 		Errorf("Bad things are going to happen if you have different numbers of additives and additivevolumes")
 	}
-	
+
 	for i := range Additives {
 		additiveSample := mixer.Sample(Additives[i], AdditiveVols[i])
 		samples = append(samples, additiveSample)
 	}
 
 	if Hotstart == false {
-	polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
-	samples = append(samples, polySample)
-	}
-	
-	// if this is true do stuff inside {}
-	if AddPrimerstoMasterMix {
-	
-	FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
-	samples = append(samples, FwdPrimerSample)
-	RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
-	samples = append(samples, RevPrimerSample)
-	
-	}
-	
-	// pipette out to make mastermix
-	mastermix := MixInto(OutPlate, "", samples...)
-	
-	// rest samples to zero
-	samples = make([]*LHComponent, 0)
-	
-	// if this is false do stuff inside {}
-	if !AddPrimerstoMasterMix {
-	
-	FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
-	samples = append(samples, FwdPrimerSample)
-	RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
-	samples = append(samples, RevPrimerSample)
-	
+		polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
+		samples = append(samples, polySample)
 	}
 
-	
-	for j := range samples { 
-	mastermix = Mix(mastermix, samples[j])
+	// if this is true do stuff inside {}
+	if AddPrimerstoMasterMix {
+
+		FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
+		samples = append(samples, FwdPrimerSample)
+		RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
+		samples = append(samples, RevPrimerSample)
+
+	}
+
+	// pipette out to make mastermix
+	mastermix := MixInto(OutPlate, "", samples...)
+
+	// rest samples to zero
+	samples = make([]*LHComponent, 0)
+
+	// if this is false do stuff inside {}
+	if !AddPrimerstoMasterMix {
+
+		FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
+		samples = append(samples, FwdPrimerSample)
+		RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
+		samples = append(samples, RevPrimerSample)
+
+	}
+
+	for j := range samples {
+		mastermix = Mix(mastermix, samples[j])
 	}
 	reaction := mastermix
 
 	// this needs to go after an initial denaturation!
 	if Hotstart {
-	polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
-	
-	reaction = Mix(reaction,polySample)
+		polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
+
+		reaction = Mix(reaction, polySample)
 	}
 
-	
 	// all done
 	Reaction = reaction
 

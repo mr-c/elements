@@ -12,14 +12,12 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*LHComponent
-	OutputPlateType		string
+	Parts []*LHComponent
+	OutputPlateType string
 )
-
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 // Data which is returned from this protocol, and data types
 Data ()
@@ -32,11 +30,11 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	for k:=0;k<len(Vols);k++{
+	for k := 0; k < len(Vols); k++ {
 		var s *LHComponent
-		if !Vols[k].IsZero(){
+		if !Vols[k].IsZero() {
 			s = mixer.Sample(Parts[k], Vols[k])
-		 MixTo(OutputPlateType, "", 1, s)
+			MixTo(OutputPlateType, "", 1, s)
 		}
 	}
 }

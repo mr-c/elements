@@ -2,19 +2,18 @@
 protocol PipetteImage_CMYK_OneByOne
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	VolumeForFullcolour  Volume
+	VolumeForFullcolour Volume
 	Imagefilename string // name of the desired output file name
-	URL string // enter URL link to the image file here if applicable
+	URL string           // enter URL link to the image file here if applicable
 	Rotate bool
 	AutoRotate bool
 )
@@ -23,7 +22,6 @@ Parameters (
 Data (
 	Numberofpixels int
 )
-
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -37,23 +35,22 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*LHComponent
+	Pixels []*LHComponent
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	
+
 	//-------------------------------------------------------------------------------------
 	//Globals
 	//-------------------------------------------------------------------------------------
@@ -67,14 +64,14 @@ Steps {
 	//-------------------------------------------------------------------------------------
 
 	//downloading image
-	imgFile , err = download.File(URL, Imagefilename)
-	if err != nil{
+	imgFile, err = download.File(URL, Imagefilename)
+	if err != nil {
 		Errorf(err.Error())
 	}
 
 	//opening the image file
 	imgBase, err = image.OpenFile(imgFile)
-	if err != nil{
+	if err != nil {
 		Errorf(err.Error())
 	}
 
@@ -85,7 +82,6 @@ Steps {
 	chosencolourpalette := image.AvailablePalettes()["Plan9"]
 	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 
-
 	//----------------------------------------------------------------------------------------------
 	//Pipetting
 	//----------------------------------------------------------------------------------------------
@@ -95,49 +91,49 @@ Steps {
 	counter := 0
 
 	for locationkey, colour := range positiontocolourmap {
-		
+
 		components := make([]*LHComponent, 0)
 
 		cmyk := image.ColourtoCMYK(colour)
-		
-		var maxuint8 uint8 = 255		
-		
-		if cmyk.C ==0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
-		
-		continue
-			
-			}else{
-			
-		counter = counter + 1
-		
-		if cmyk.C > 0{
-			
-		cyanvol := wunit.NewVolume(((float64(cmyk.C)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-		cyanSample := mixer.Sample(Cyan, cyanvol)
-		components = append(components, cyanSample)
-		}
-		
-		if cmyk.Y > 0{
-		yellowvol := wunit.NewVolume(((float64(cmyk.Y)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-		yellowSample := mixer.Sample(Yellow, yellowvol)
-		components = append(components, yellowSample)
-		}
-		
-		if cmyk.M > 0{
-		magentavol := wunit.NewVolume(((float64(cmyk.M)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-		magentaSample := mixer.Sample(Magenta, magentavol)
-		components = append(components, magentaSample)
-		}
-		
-		if cmyk.K > 0{
-		blackvol := wunit.NewVolume(((float64(cmyk.K)/float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-		blackSample := mixer.Sample(Black, blackvol)
-		components = append(components, blackSample)
-		}
-		
-		solution := MixTo(OutPlate.Type, locationkey,1, components...)
-		solutions = append(solutions, solution)
-		
+
+		var maxuint8 uint8 = 255
+
+		if cmyk.C == 0 && cmyk.Y == 0 && cmyk.M == 0 && cmyk.K == 0 {
+
+			continue
+
+		} else {
+
+			counter = counter + 1
+
+			if cmyk.C > 0 {
+
+				cyanvol := wunit.NewVolume(((float64(cmyk.C) / float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				cyanSample := mixer.Sample(Cyan, cyanvol)
+				components = append(components, cyanSample)
+			}
+
+			if cmyk.Y > 0 {
+				yellowvol := wunit.NewVolume(((float64(cmyk.Y) / float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				yellowSample := mixer.Sample(Yellow, yellowvol)
+				components = append(components, yellowSample)
+			}
+
+			if cmyk.M > 0 {
+				magentavol := wunit.NewVolume(((float64(cmyk.M) / float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				magentaSample := mixer.Sample(Magenta, magentavol)
+				components = append(components, magentaSample)
+			}
+
+			if cmyk.K > 0 {
+				blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				blackSample := mixer.Sample(Black, blackvol)
+				components = append(components, blackSample)
+			}
+
+			solution := MixTo(OutPlate.Type, locationkey, 1, components...)
+			solutions = append(solutions, solution)
+
 		}
 	}
 
@@ -145,6 +141,7 @@ Steps {
 	Numberofpixels = len(Pixels)
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -154,6 +151,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

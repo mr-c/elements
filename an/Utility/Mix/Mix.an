@@ -7,13 +7,10 @@ import (
 )
 
 // Parameters to this protocol
-Parameters (
-
-)
+Parameters ()
 
 // Output data of this protocol
-Data (
-)
+Data ()
 
 // Physical inputs to this protocol
 Inputs (
