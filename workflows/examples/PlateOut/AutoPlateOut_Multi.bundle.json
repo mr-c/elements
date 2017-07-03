@@ -11,8 +11,8 @@
       "PlateOutLiquidPolicy": "plateout",
       "PlateOutVolumes": {
         "default": [
-        "50ul",
-        "100ul"
+          "50ul",
+          "100ul"
         ]
       },
       "TransformedCells": [
