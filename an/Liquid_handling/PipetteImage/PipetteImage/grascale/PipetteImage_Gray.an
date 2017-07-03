@@ -2,24 +2,23 @@
 protocol PipetteImage_Gray
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
-	)
-
+)
 
 // Input parameters for this protocol (data)
 Parameters (
-	VolumeForFullcolour  Volume
+	VolumeForFullcolour Volume
 	Imagefilename string // name of image file or if using URL use this field to set the desired filename
 	UseURL bool
 	URL string // enter URL link to the image file here if applicable
 	InputFile File
 	MinimumBlackpercentagethreshold float64 // as a proportion of 1 i.e. 0.5 == 50%. Below this it will be considered white
-	MaxBlackPercentagethreshold float64 // above this value pure black will be dispensed
+	MaxBlackPercentagethreshold float64     // above this value pure black will be dispensed
 	OnlyHighVolumetips bool
 	SkipWhite bool
 	MixingLiquidClass PolicyName
@@ -42,7 +41,6 @@ Data (
 	Fullblack int
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
 	Diluent *LHComponent
@@ -53,23 +51,22 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*LHComponent
+	Pixels []*LHComponent
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	
+
 	//-------------------------------------------------------------------------------------
 	//Globals
 	//-------------------------------------------------------------------------------------
@@ -78,7 +75,7 @@ Steps {
 	var maxuint8 uint8 = 255
 	var minuint8 uint8
 	var fullblackuint8 uint8
-	ShadesofGrey = make([]int,0)
+	ShadesofGrey = make([]int, 0)
 
 	var imgFile File
 	var imgBase *goimage.NRGBA
@@ -87,24 +84,23 @@ Steps {
 	//-------------------------------------------------------------------------------------
 	//Fetching image
 	//-------------------------------------------------------------------------------------
-	if UseURL{
+	if UseURL {
 		//downloading image
-		imgFile , err = download.File(URL, Imagefilename)
-		if err != nil{
+		imgFile, err = download.File(URL, Imagefilename)
+		if err != nil {
 			Errorf(err.Error())
 		}
 
 		//opening the image file
 		imgBase, err = image.OpenFile(imgFile)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 	}
 
-
 	//opening the image file
 	imgBase, err = image.OpenFile(InputFile)
-	if err != nil{
+	if err != nil {
 		Errorf(err.Error())
 	}
 
@@ -113,30 +109,29 @@ Steps {
 	//-------------------------------------------------------------------------------------
 
 	chosencolourpalette := image.AvailablePalettes()["Gray"]
-	
+
 	//-------------------------------------------------------------------------------------
 	//Image processing
 	//-------------------------------------------------------------------------------------
 
 	if CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase, OutPlate, Rotate, image.AllResampleFilters)
 	}
 
-	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+	positiontocolourmap, _ := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 
-	// if posterize rerun 
-	if PosterizeImage{
+	// if posterize rerun
+	if PosterizeImage {
 		var err error
 
 		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 
-		positiontocolourmap, _ = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate,AutoRotate)
+		positiontocolourmap, _ = image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
 	}
-	
-	
+
 	solutions := make([]*LHComponent, 0)
 
 	counter := 0
@@ -144,89 +139,84 @@ Steps {
 	fullblack := 0
 
 	for locationkey, colour := range positiontocolourmap {
-		
 
 		var solution *LHComponent
 
 		gray := image.ColourtoGrayscale(colour)
-		
+
 		if Negative == false {
 			gray.Y = maxuint8 - gray.Y
 		}
-		
-		
+
 		// adjust thresholds for mixing black and white based on user parameters
 		minuint8 = uint8(MinimumBlackpercentagethreshold * float64(maxuint8))
-		
+
 		fullblackuint8 = uint8(MaxBlackPercentagethreshold * float64(maxuint8))
-		
-		
+
 		if gray.Y < minuint8 {
 			if SkipWhite {
-			skipped = skipped + 1
-		}else{
-			whitevol := VolumeForFullcolour
-			Diluent.Type,_ = wtype.LiquidTypeFromString(NonMixingClass)
-			
-			waterSample := mixer.Sample(Diluent,whitevol)
-			solution = MixTo(OutPlate.Type, locationkey,1, waterSample)
-			solutions = append(solutions, solution)
-		}
-		continue
-			
-			}else{
-			
-		counter = counter + 1
-		
-		// check if shade of grey has already been used in image
-		greyindexinpalette := chosencolourpalette.Index(colour)
-		
-		alreadythere := search.Contains(ShadesofGrey,greyindexinpalette)
-		
-		if alreadythere == false{
-			ShadesofGrey = append(ShadesofGrey,greyindexinpalette)
-		}
-			
-			if gray.Y < fullblackuint8 /*&& gray.Y >= minuint8*/{
-			watervol := wunit.NewVolume((float64(maxuint8-gray.Y)/float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-			// force hv tip choice
-			if  OnlyHighVolumetips && watervol.RawValue() < 21	 && watervol.Unit().PrefixedSymbol() == "ul"{
-				watervol.SetValue(21)
+				skipped = skipped + 1
+			} else {
+				whitevol := VolumeForFullcolour
+				Diluent.Type, _ = wtype.LiquidTypeFromString(NonMixingClass)
+
+				waterSample := mixer.Sample(Diluent, whitevol)
+				solution = MixTo(OutPlate.Type, locationkey, 1, waterSample)
+				solutions = append(solutions, solution)
 			}
-			waterSample := mixer.Sample(Diluent, watervol)
-			//components = append(components, waterSample)
-			solution = MixTo(OutPlate.Type, locationkey,1, waterSample)
-		} 
-		if gray.Y >= fullblackuint8{
-			fullblack = fullblack + 1
-			blackvol = VolumeForFullcolour
-		}else {
-		blackvol = wunit.NewVolume((float64(gray.Y)/float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
-		}
-				
-		
-		if DontMix {
-		Black.Type = wtype.LTDISPENSEABOVE
-		}else if gray.Y >= fullblackuint8 {
-		Black.Type,_ = wtype.LiquidTypeFromString(NonMixingClass)
-		}else{
-			Black.Type,_ = wtype.LiquidTypeFromString(MixingLiquidClass)
-		}
-		
-		if OnlyHighVolumetips && blackvol.RawValue() < 21 && blackvol.Unit().PrefixedSymbol() == "ul"{
+			continue
+
+		} else {
+
+			counter = counter + 1
+
+			// check if shade of grey has already been used in image
+			greyindexinpalette := chosencolourpalette.Index(colour)
+
+			alreadythere := search.Contains(ShadesofGrey, greyindexinpalette)
+
+			if alreadythere == false {
+				ShadesofGrey = append(ShadesofGrey, greyindexinpalette)
+			}
+
+			if gray.Y < fullblackuint8 /*&& gray.Y >= minuint8*/ {
+				watervol := wunit.NewVolume((float64(maxuint8-gray.Y) / float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+				// force hv tip choice
+				if OnlyHighVolumetips && watervol.RawValue() < 21 && watervol.Unit().PrefixedSymbol() == "ul" {
+					watervol.SetValue(21)
+				}
+				waterSample := mixer.Sample(Diluent, watervol)
+				//components = append(components, waterSample)
+				solution = MixTo(OutPlate.Type, locationkey, 1, waterSample)
+			}
+			if gray.Y >= fullblackuint8 {
+				fullblack = fullblack + 1
+				blackvol = VolumeForFullcolour
+			} else {
+				blackvol = wunit.NewVolume((float64(gray.Y) / float64(maxuint8) * VolumeForFullcolour.RawValue()), VolumeForFullcolour.Unit().PrefixedSymbol())
+			}
+
+			if DontMix {
+				Black.Type = wtype.LTDISPENSEABOVE
+			} else if gray.Y >= fullblackuint8 {
+				Black.Type, _ = wtype.LiquidTypeFromString(NonMixingClass)
+			} else {
+				Black.Type, _ = wtype.LiquidTypeFromString(MixingLiquidClass)
+			}
+
+			if OnlyHighVolumetips && blackvol.RawValue() < 21 && blackvol.Unit().PrefixedSymbol() == "ul" {
 				blackvol.SetValue(21)
 			}
-			
-						
-		blackSample := mixer.Sample(Black, blackvol)
-		
-		if solution != nil {
-		solution = Mix(solution, blackSample)
-		}else {
-			solution = MixTo(OutPlate.Type, locationkey,1, blackSample)
-		}
-		solutions = append(solutions, solution)
-		
+
+			blackSample := mixer.Sample(Black, blackvol)
+
+			if solution != nil {
+				solution = Mix(solution, blackSample)
+			} else {
+				solution = MixTo(OutPlate.Type, locationkey, 1, blackSample)
+			}
+			solutions = append(solutions, solution)
+
 		}
 	}
 
@@ -237,6 +227,7 @@ Steps {
 	Skipped = skipped
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -246,6 +237,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

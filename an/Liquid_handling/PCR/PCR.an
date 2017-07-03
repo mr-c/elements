@@ -1,13 +1,13 @@
 protocol PCR
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -21,22 +21,22 @@ Parameters (
 	Templatevolume Volume
 	DNTPconc Concentration
 	/*
-	// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
-	
-	//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on... 
-	//FullTemplatesequence string // better to use Sid's type system here after proof of concept
-	//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
-	//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
-	//TargetTemplatelengthinBP int
+		// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume
+
+		//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...
+		//FullTemplatesequence string // better to use Sid's type system here after proof of concept
+		//FullTemplatelength int	// clearly could be calculated from the sequence... Sid will have a method to do this already so check!
+		//TargetTemplatesequence string // better to use Sid's type system here after proof of concept
+		//TargetTemplatelengthinBP int
 	*/
 	// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
-	Numberofcycles int 
+	Numberofcycles int
 	InitDenaturationtime Time
 	Denaturationtime Time
 	//Denaturationtemp Temperature
 	Annealingtime Time
 	AnnealingTemp Temperature // Should be calculated from primer and template binding
-	Extensiontime Time // should be calculated from template length and polymerase rate
+	Extensiontime Time        // should be calculated from template length and polymerase rate
 	Extensiontemp Temperature
 	Finalextensiontime Time
 	Targetsequence string
@@ -49,7 +49,6 @@ Data (
 	FwdPrimerSites []search.Thingfound
 	RevPrimerSites []search.Thingfound
 )
-
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -78,24 +77,21 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	FwdPrimerSites = sequences.FindSeqsinSeqs(Targetsequence, []string{FwdPrimerSeq})
-	
+
 	RevPrimerSites = sequences.FindSeqsinSeqs(Targetsequence, []string{RevPrimerSeq})
 
-	
-	if len(FwdPrimerSites)==0 || len(RevPrimerSites)==0{
-	
-	errordescription := fmt.Sprint(
-						text.Print("FwdPrimerSitesfound:", fmt.Sprint(FwdPrimerSites)),
-						text.Print("RevPrimerSitesfound:", fmt.Sprint(RevPrimerSites)),
-	)
-	
-	Errorf(errordescription)	
+	if len(FwdPrimerSites) == 0 || len(RevPrimerSites) == 0 {
+
+		errordescription := fmt.Sprint(
+			text.Print("FwdPrimerSitesfound:", fmt.Sprint(FwdPrimerSites)),
+			text.Print("RevPrimerSitesfound:", fmt.Sprint(RevPrimerSites)),
+		)
+
+		Errorf(errordescription)
 	}
-	
-	
-	
+
 	// Mix components
 	samples := make([]*LHComponent, 0)
 	bufferSample := mixer.SampleForTotalVolume(Buffer, ReactionVolume)
@@ -125,29 +121,27 @@ Steps {
 	extensionTemp := enzymes.DNApolymerasetemps[polymerase]["extensiontemp"]
 	meltingTemp := enzymes.DNApolymerasetemps[polymerase]["meltingtemp"]
 
-
 	// initial Denaturation
 
 	r1 := Incubate(reaction, meltingTemp, InitDenaturationtime, false)
-	
-	for i:=0; i < Numberofcycles; i++ {
-		
+
+	for i := 0; i < Numberofcycles; i++ {
+
 		// Denature
 
-	r1 = Incubate(r1, meltingTemp, Denaturationtime, false)
-	
+		r1 = Incubate(r1, meltingTemp, Denaturationtime, false)
+
 		// Anneal
-	r1 = Incubate(r1, AnnealingTemp, Annealingtime, false)
-	
-	//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
-	
+		r1 = Incubate(r1, AnnealingTemp, Annealingtime, false)
+
+		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
+
 		// Extend
-	r1 = Incubate(r1, extensionTemp, Extensiontime, false)
-		
+		r1 = Incubate(r1, extensionTemp, Extensiontime, false)
+
 	}
-		// Final Extension
+	// Final Extension
 	r1 = Incubate(r1, extensionTemp, Finalextensiontime, false)
-	
 
 	// all done
 	Reaction = r1

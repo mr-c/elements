@@ -25,7 +25,7 @@ Parameters (
 	//Optionally specify the liquid handling policy to use when plating out (Default = PlateOut)
 	PlateOutLiquidPolicy PolicyName
 
-	//Specify one or more volumes to plate out for each cell solution. 
+	//Specify one or more volumes to plate out for each cell solution.
 	// A "default" may also be specified, which will apply to all reactions which do not have volumes specified explicitely.
 	PlateOutVolumes map[string][]Volume
 
@@ -35,8 +35,7 @@ Parameters (
 )
 
 // Output data of this protocol
-Data (
-)
+Data ()
 
 // Physical inputs to this protocol
 Inputs (
@@ -84,29 +83,29 @@ Steps {
 		//Range through the plate out volumes
 		for _, plateoutvols := range volumes {
 
-				//Run PlateOut element
-				result := RunSteps(PlateOutTest,
-						Parameters{
-							AgarPlateNumber: platecounter,
-							IncubationTemp: IncubationTemp,
-							IncubationTime: IncubationTime,
-			        		NumberofReplicates: NumberofReplicates,
-							PlateOutVolume: plateoutvols,
-			        		PlateOutLiquidPolicy: PlateOutLiquidPolicy,
-							WellsAlreadyUsed: counter,
-										},Inputs {
-							TransformedCells: plateout,
-							AgarPlate: AgarPlate,
-										})
+			//Run PlateOut element
+			result := RunSteps(PlateOutTest,
+				Parameters{
+					AgarPlateNumber:      platecounter,
+					IncubationTemp:       IncubationTemp,
+					IncubationTime:       IncubationTime,
+					NumberofReplicates:   NumberofReplicates,
+					PlateOutVolume:       plateoutvols,
+					PlateOutLiquidPolicy: PlateOutLiquidPolicy,
+					WellsAlreadyUsed:     counter,
+				}, Inputs{
+					TransformedCells: plateout,
+					AgarPlate:        AgarPlate,
+				})
 
-					//Append outputted plated cultures
-					for _, plateoutorder := range result.Outputs.PlatedCultures{
-						PlatedCultures = append(PlatedCultures, plateoutorder)
-					}
+			//Append outputted plated cultures
+			for _, plateoutorder := range result.Outputs.PlatedCultures {
+				PlatedCultures = append(PlatedCultures, plateoutorder)
+			}
 
-					//Increase counters
-					counter = result.Outputs.WellsUsed
-					platecounter = result.Outputs.TransformedPlateNumber
+			//Increase counters
+			counter = result.Outputs.WellsUsed
+			platecounter = result.Outputs.TransformedPlateNumber
 		}
 	}
 }

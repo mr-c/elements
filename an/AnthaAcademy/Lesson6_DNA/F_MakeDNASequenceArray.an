@@ -3,8 +3,8 @@ protocol MakeSequenceArray
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-
 )
+
 // Input parameters for this protocol
 Parameters (
 	Seq1 DNASequence
@@ -23,13 +23,10 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -42,36 +39,37 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	
-	seqs := make([]DNASequence,0)
-	
+
+	seqs := make([]DNASequence, 0)
+
 	if len(Seq1.Seq) > 0 {
-		seqs = append(seqs,Seq1)
+		seqs = append(seqs, Seq1)
 	}
 	if len(Seq2.Seq) > 0 {
-		seqs = append(seqs,Seq2)
+		seqs = append(seqs, Seq2)
 	}
 	if len(Seq3.Seq) > 0 {
-		seqs = append(seqs,Seq3)
+		seqs = append(seqs, Seq3)
 	}
 	if len(Seq4.Seq) > 0 {
-		seqs = append(seqs,Seq4)
+		seqs = append(seqs, Seq4)
 	}
 	if len(Seq5.Seq) > 0 {
-		seqs = append(seqs,Seq5)
+		seqs = append(seqs, Seq5)
 	}
 	if len(Seq6.Seq) > 0 {
-		seqs = append(seqs,Seq6)
+		seqs = append(seqs, Seq6)
 	}
 	if len(Seq7.Seq) > 0 {
-		seqs = append(seqs,Seq7)
+		seqs = append(seqs, Seq7)
 	}
 	if len(Seq8.Seq) > 0 {
-		seqs = append(seqs,Seq8)
+		seqs = append(seqs, Seq8)
 	}
 	Seqs = seqs
-	
+
 }
+
 // Actions to perform after steps block to analyze data
 Analysis {
 

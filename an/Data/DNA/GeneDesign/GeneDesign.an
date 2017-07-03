@@ -3,21 +3,22 @@ protocol GeneDesign
 import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
-	Parts []string // dna sequences as strings "ACTTGCGTC","GGTCCA"
-	Vector string // dna sequence as string
-	ConstructName string // name you want to give your construct
+	Parts []string               // dna sequences as strings "ACTTGCGTC","GGTCCA"
+	Vector string                // dna sequence as string
+	ConstructName string         // name you want to give your construct
 	RestrictionEnzymeName string // typeIIs restriction enzyme name
-	EndsAlreadyAdded bool // have the typeIIs assembly ends been added already? true/false
-	SynthesisProvider string // name of synthesis provider e.g. GenScript
-	ExporttoFastaFile bool // Whether or not you want to export the sequences generated to a fasta file
+	EndsAlreadyAdded bool        // have the typeIIs assembly ends been added already? true/false
+	SynthesisProvider string     // name of synthesis provider e.g. GenScript
+	ExporttoFastaFile bool       // Whether or not you want to export the sequences generated to a fasta file
 )
+
 Data (
 	// output parts with correct overhangs
 	PartsWithOverhangs []DNASequence
@@ -27,41 +28,39 @@ Data (
 	PartsToOrder File
 )
 
-Inputs (
-)
+Inputs ()
 
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
 
 Setup {
-} 
+}
 
 Steps {
 	PartDNA := make([]DNASequence, 0)
-	
+
 	// Retrieve part seqs from entrez
 	for _, part := range Parts {
 		//desiredfilename := filepath.Join(anthapath.Path(), part+".gb")
 		DNA, err := entrez.RetrieveSequence(part, "nucleotide")
 		if err != nil {
-			Errorf("Error getting sequence for part %s: %s",part, err.Error())
+			Errorf("Error getting sequence for part %s: %s", part, err.Error())
 		}
-		PartDNA =append(PartDNA, DNA)
+		PartDNA = append(PartDNA, DNA)
 	}
-	
+
 	// Look up the restriction enzyme
 	EnzymeInf, err := lookup.TypeIIsLookup(RestrictionEnzymeName)
-	
+
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
+
 	// look up vector sequence
-		
-	VectorSeq,err := entrez.RetrieveVector(Vector)
+
+	VectorSeq, err := entrez.RetrieveVector(Vector)
 
 	if err != nil {
 		Errorf("Errorf getting vector %s: %s", Vector, err.Error())
@@ -70,34 +69,32 @@ Steps {
 	// Add overhangs
 	if EndsAlreadyAdded {
 		PartsWithOverhangs = PartDNA
-	}else {
+	} else {
 		// fmt.Println("Parts + vector:",PartDNA,VectorSeq)
-	PartsWithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(PartDNA, VectorSeq, EnzymeInf)
+		PartsWithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(PartDNA, VectorSeq, EnzymeInf)
 	}
-	
+
 	// validation
 	assembly := enzymes.Assemblyparameters{ConstructName, RestrictionEnzymeName, VectorSeq, PartsWithOverhangs}
 	SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
-	
-	
+
 	// check if sequence meets requirements for synthesis
 	ValidationStatus, Validated = sequences.ValidateSynthesis(PartsWithOverhangs, Vector, SynthesisProvider)
-	
+
 	// export sequence to fasta
 	if ExporttoFastaFile {
-	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,ConstructName, PartsWithOverhangs)
-	if err != nil {
-		Errorf(err.Error())
-	}
-	
+		PartsToOrder, _, err = export.FastaSerial(export.LOCAL, ConstructName, PartsWithOverhangs)
+		if err != nil {
+			Errorf(err.Error())
+		}
+
 	}
 }
-	
+
 Analysis {
-	
-} 
+
+}
 
 Validation {
 
 }
-

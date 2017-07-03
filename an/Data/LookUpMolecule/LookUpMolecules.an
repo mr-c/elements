@@ -1,41 +1,45 @@
 // Example of how to look up molecule properties from pubchem.
 // A map of molar concentrations required to make up 1 Mol/l of each compound is also returned.
 protocol LookUpMolecules
- 
+
 import (
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 )
+
 Parameters (
 	// Name of compound or array of multiple compounds
 	Compoundlist []string
-	
+
 	// Set Concentrations for compounds or set default. If no concentration is set the molar concentration will be used
 	OverRideDefaultConcentration map[string]Concentration
 )
+
 Data (
 	// molecule type is returned consisting of name, formula, molecular weight and chemical ID (CID)
 	CompoundProperties []pubchem.Molecule
-	
+
 	// Names of compounds
 	CompoundNames []string
-	
+
 	// A map of molar concentrations required to make up 1 Mol/l of each compound is returned.
 	// The compound name is used as the key. If any duplicate compound names are returned and error will be generated.
 	MolarConcentrations map[string]Concentration
-	
+
 	// return any warnings if the default concentrations have been used for any molecule
 	Warnings []string
 )
-Inputs (
-)
+
+Inputs ()
+
 Outputs (
 	Molecules []*LHComponent
 )
+
 Requirements {
 }
 Setup {
-} 
+}
 Steps {
 
 	MolarConcentrations = make(map[string]Concentration)
@@ -43,44 +47,43 @@ Steps {
 	for _, molecule := range Compoundlist {
 		// method of making molecule from name
 		moleculeProperties, err := pubchem.MakeMolecule(molecule)
-	       
+
 		if err != nil {
-	            Errorf(err.Error())
-	       }
-		
-		CompoundProperties = append(CompoundProperties,moleculeProperties)
-		CompoundNames = append(CompoundNames,moleculeProperties.Name)
-		
+			Errorf(err.Error())
+		}
+
+		CompoundProperties = append(CompoundProperties, moleculeProperties)
+		CompoundNames = append(CompoundNames, moleculeProperties.Name)
+
 		// now set conc
 		var moleculeConc Concentration
 		var found bool
-		
+
 		// check if molecule conc is set in OverRideDefaultConcentration list
-		if moleculeConc, found = OverRideDefaultConcentration[molecule]; found{
-			Warnings = append(Warnings, fmt.Sprintf(`Override Concentration for molecule %s specified so using specified concentration %s instead of default`,molecule,moleculeConc.ToString()))
-		// else check if a default is specified
-		}else if moleculeConc, found = OverRideDefaultConcentration["default"]; found{
-			Warnings = append(Warnings, fmt.Sprintf(`No concentration for molecule %s specified but "default" was specified so using default %s`,molecule,moleculeConc.ToString()))
-		// else use 1 Mol/l conc as default
-		}else{
-			moleculeConc = wunit.NewConcentration(1,"M/l")
-			Warnings = append(Warnings, fmt.Sprintf("No concentration for molecule %s specified so using default Molar concentration %s",molecule,moleculeConc.ToString()))
+		if moleculeConc, found = OverRideDefaultConcentration[molecule]; found {
+			Warnings = append(Warnings, fmt.Sprintf(`Override Concentration for molecule %s specified so using specified concentration %s instead of default`, molecule, moleculeConc.ToString()))
+			// else check if a default is specified
+		} else if moleculeConc, found = OverRideDefaultConcentration["default"]; found {
+			Warnings = append(Warnings, fmt.Sprintf(`No concentration for molecule %s specified but "default" was specified so using default %s`, molecule, moleculeConc.ToString()))
+			// else use 1 Mol/l conc as default
+		} else {
+			moleculeConc = wunit.NewConcentration(1, "M/l")
+			Warnings = append(Warnings, fmt.Sprintf("No concentration for molecule %s specified so using default Molar concentration %s", molecule, moleculeConc.ToString()))
 
 		}
-		
-		if _, found := MolarConcentrations[moleculeProperties.Name];found{
+
+		if _, found := MolarConcentrations[moleculeProperties.Name]; found {
 			Errorf("Duplicate compound found for %s", moleculeProperties.Name)
-		}else{
-			MolarConcentrations[moleculeProperties.Name]= moleculeProperties.GramPerL(moleculeConc)
+		} else {
+			MolarConcentrations[moleculeProperties.Name] = moleculeProperties.GramPerL(moleculeConc)
 		}
 	}
-		
+
 }
 Analysis {
-	
-} 
 
-Validation {
-	
 }
 
+Validation {
+
+}

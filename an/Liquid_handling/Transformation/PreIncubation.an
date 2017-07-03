@@ -1,8 +1,8 @@
 protocol PreIncubation
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -13,9 +13,7 @@ Parameters (
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -38,12 +36,12 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	competentcells := make([]*LHComponent,0)
-	competentcellsample := mixer.Sample(CompetentCells,CompetentCellvolumeperassembly)
-	competentcells = append(competentcells,competentcellsample)
-	readycompetentcells := MixInto(OutPlate, "", competentcells...)  
-	
-	ReadyCompCells = Incubate (readycompetentcells,Preplasmidtemp, Preplasmidtime, false)
+	competentcells := make([]*LHComponent, 0)
+	competentcellsample := mixer.Sample(CompetentCells, CompetentCellvolumeperassembly)
+	competentcells = append(competentcells, competentcellsample)
+	readycompetentcells := MixInto(OutPlate, "", competentcells...)
+
+	ReadyCompCells = Incubate(readycompetentcells, Preplasmidtemp, Preplasmidtime, false)
 }
 
 // Run after controls and a steps block are completed to

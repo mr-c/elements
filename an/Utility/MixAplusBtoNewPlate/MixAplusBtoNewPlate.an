@@ -7,9 +7,9 @@ protocol MixAplusBtoNewPlate
 
 // Place golang packages to import here
 import (
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 )
 
 // Parameters to this protocol
@@ -19,15 +19,13 @@ Parameters (
 )
 
 // Output data of this protocol
-Data (
-	
-)
+Data ()
 
 // Physical inputs to this protocol
 Inputs (
 	ComponentsA []*LHComponent
 	ComponentsB []*LHComponent
-	OutPlate 	*LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs to this protocol
@@ -42,15 +40,15 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	if len(ComponentsA) == len(ComponentsB) && len(VolumesA) == len(VolumesB) && len(ComponentsA) == len(VolumesA){
-		for i := 0; i < len(ComponentsA); i++{		
-			MixedComponents = append(MixedComponents, MixInto(OutPlate,"", 
-			mixer.Sample(ComponentsA[i],VolumesA[i]),
-			mixer.Sample(ComponentsB[i],VolumesB[i])))
+	if len(ComponentsA) == len(ComponentsB) && len(VolumesA) == len(VolumesB) && len(ComponentsA) == len(VolumesA) {
+		for i := 0; i < len(ComponentsA); i++ {
+			MixedComponents = append(MixedComponents, MixInto(OutPlate, "",
+				mixer.Sample(ComponentsA[i], VolumesA[i]),
+				mixer.Sample(ComponentsB[i], VolumesB[i])))
 		}
-	}else{
-		Errorf("The number of components specified in the two lists do not match! You have %s Volumes and %s Components for A and %s Volumes and %s Components for B." ,len(VolumesA), len(ComponentsA),len(ComponentsB),len(VolumesB))
-	}	
+	} else {
+		Errorf("The number of components specified in the two lists do not match! You have %s Volumes and %s Components for A and %s Volumes and %s Components for B.", len(VolumesA), len(ComponentsA), len(ComponentsB), len(VolumesB))
+	}
 }
 
 // Run after controls and a steps block are completed to post process any data

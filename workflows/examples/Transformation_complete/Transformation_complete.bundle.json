@@ -1,10 +1,4 @@
 {
-  "connections": [],
-  "processes": {
-    "Transformation_1": {
-      "component": "Transformation_complete_noIncubation"
-    }
-  },
   "Parameters": {
     "Transformation_1": {
       "AgarPlate": "falcon6wellAgar",
@@ -22,6 +16,12 @@
       "Recoverytemp": "25C",
       "Recoverytime": "57600s",
       "Recoveryvolume": "500ul"
+    }
+  },
+  "connections": [],
+  "processes": {
+    "Transformation_1": {
+      "component": "Transformation_complete_noIncubation"
     }
   }
 }

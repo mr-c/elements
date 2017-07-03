@@ -3,6 +3,7 @@ protocol Printname
 import (
 	"fmt"
 )
+
 // Input parameters for this protocol
 Parameters (
 	Name string
@@ -14,13 +15,10 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -33,8 +31,8 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	if Name == "Michael Jackson"{
-	Fullname = fmt.Sprintln(Name)
+	if Name == "Michael Jackson" {
+		Fullname = fmt.Sprintln(Name)
 	} else {
 		Fullname = "there's only one Michael Jackson, we accept no imitators"
 	}

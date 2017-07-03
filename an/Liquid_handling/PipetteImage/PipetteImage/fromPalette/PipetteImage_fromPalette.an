@@ -2,27 +2,26 @@
 protocol PipetteImage_fromPalette
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	goimage "image"
 	"image/color"
 	"strconv"
 	"strings"
-	"fmt"
-	goimage "image"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
-	VolumePerWell  Volume
-	ImageFile File 
+	VolumePerWell Volume
+	ImageFile File
 	Palette color.Palette
 	ColourIndextoComponentMap map[string]string
 	OnlythisColour string
 	NotthisColour string
-	Rotate bool // option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
-	AutoRotate bool // Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+	Rotate bool        // option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+	AutoRotate bool    // Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
 	LowerThreshold int // The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 	PosterizeImage bool
 	PosterizeLevels int
@@ -35,7 +34,6 @@ Data (
 	ProcessedImage File
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
 	Colourcomponents []*LHComponent
@@ -44,22 +42,21 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Pixels[]*LHComponent
+	Pixels []*LHComponent
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-
 
 	//-------------------------------------------------------------------------------------
 	//Globals
@@ -68,7 +65,7 @@ Steps {
 	var imgBase *goimage.NRGBA
 
 	var err error
-	
+
 	lowerThreshold := uint8(LowerThreshold)
 
 	//-------------------------------------------------------------------------------------
@@ -79,36 +76,36 @@ Steps {
 
 	//opening the image file
 	imgBase, err = image.OpenFile(ImageFile)
-	
-	if err != nil{
+
+	if err != nil {
 		Errorf(err.Error())
 	}
 
 	//-------------------------------------------------------------------------------------
 	//Image processing
 	//-------------------------------------------------------------------------------------
-	
-	if PosterizeImage{
+
+	if PosterizeImage {
 
 		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 	}
-	
-	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, OutPlate, &Palette, Rotate,AutoRotate)
-	
+
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, OutPlate, &Palette, Rotate, AutoRotate)
+
 	//-------------------------------------------------------------------------------------
 	//Export processed image
 	//-------------------------------------------------------------------------------------
 
-	ProcessedImage, err = image.Export(plateImage,ImageFile.Name)
-	
-	if err != nil{
-			Errorf(err.Error())
+	ProcessedImage, err = image.Export(plateImage, ImageFile.Name)
+
+	if err != nil {
+		Errorf(err.Error())
 	}
-	
-	image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+
+	image.CheckAllResizealgorithms(imgBase, OutPlate, Rotate, image.AllResampleFilters)
 
 	//-------------------------------------------------------------------------------------
 	//Pipetting
@@ -118,93 +115,93 @@ Steps {
 	counter := 0
 
 	for locationkey, colour := range positiontocolourmap {
-		
-		
-			if  col, found := image.Colourcomponentmap[colour]; found {
-				if col == NotthisColour {
-					Errorf("Not this component:", col)
-				}
+
+		if col, found := image.Colourcomponentmap[colour]; found {
+			if col == NotthisColour {
+				Errorf("Not this component:", col)
 			}
-		
+		}
+
 		cmyk := image.ColourtoCMYK(colour)
-				
+
 		// temp skip of wells with x, e.g. x1,x2,x12
-		
-		if cmyk.C  <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
+
+		if cmyk.C <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
 			// skip pixel
-		}else if strings.Contains(locationkey,"x") || strings.Contains(locationkey,"X")  {
+		} else if strings.Contains(locationkey, "x") || strings.Contains(locationkey, "X") {
 			// skip pixel
-		}else {
+		} else {
 			// pipette this pixel
 			colourindex := strconv.Itoa(Palette.Index(colour))
-			
+
 			compName, componentpresent := ColourIndextoComponentMap[colourindex]
-			
+
 			component, err := findComponent(Colourcomponents, compName)
-			
+
 			if err != nil {
 				Errorf("Cannot find component: ", err.Error())
 			}
-			
-				if componentpresent && component.CName == NotthisColour {
-					Errorf("Not this component:", image.Colourcomponentmap[colour])
+
+			if componentpresent && component.CName == NotthisColour {
+				Errorf("Not this component:", image.Colourcomponentmap[colour])
+			}
+
+			/*
+				if !componentpresent {
+
+
+				for key, _ := range ColourIndextoComponentMap {
+					foundthese = append(foundthese,key)
 				}
-			
-			/*	
-			if !componentpresent {
-				
-			
-			for key, _ := range ColourIndextoComponentMap {
-				foundthese = append(foundthese,key)
-			}
-			sort.Strings(foundthese)
-			Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
-			}
+				sort.Strings(foundthese)
+				Errorf("Component ", colourindex, "not found in ColourIndextoComponentMap.", "Found these entries only: ", strings.Join(foundthese, ","))
+				}
 			*/
-		
+
 			if componentpresent {
-				
-					if LiquidType != ""{
+
+				if LiquidType != "" {
 					component.Type, err = wtype.LiquidTypeFromString(LiquidType)
-					
+
 					if err != nil {
-						Errorf("for component",component.CName, err.Error())
+						Errorf("for component", component.CName, err.Error())
 					}
 				}
-				if OnlythisColour !="" {
-			
-					if image.Colourcomponentmap[colour] == OnlythisColour{
-							counter = counter + 1
-			
+				if OnlythisColour != "" {
+
+					if image.Colourcomponentmap[colour] == OnlythisColour {
+						counter = counter + 1
+
 						pixelSample := mixer.Sample(component, VolumePerWell)
 						solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
 						solutions = append(solutions, solution)
-						}
-					
-				}else{
-					
-					if NotthisColour == ""{
+					}
+
+				} else {
+
+					if NotthisColour == "" {
 						counter++
 						pixelSample := mixer.Sample(component, VolumePerWell)
 						solution := MixNamed(OutPlate.Type, locationkey, "Image", pixelSample)
 						solutions = append(solutions, solution)
-					}else if component.CName != NotthisColour && image.Colourcomponentmap[colour] != NotthisColour {
+					} else if component.CName != NotthisColour && image.Colourcomponentmap[colour] != NotthisColour {
 						counter++
 						pixelSample := mixer.Sample(component, VolumePerWell)
 						solution := MixNamed(OutPlate.Type, locationkey, "Image", pixelSample)
 						solutions = append(solutions, solution)
-					}else{
+					} else {
 						Errorf("component: NotthisColourFound: ", component.CName)
 					}
 				}
-				
-			}	
+
+			}
 		}
 	}
 	Pixels = solutions
 	Numberofpixels = len(Pixels)
-	
+
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -214,17 +211,16 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
+
 }
 
 // Looks for a component matching on name only.
 // If more than one component present the first component will be returned with no error
-func findComponent(components []*LHComponent, componentName string)(component *LHComponent, err error){
-	for _,comp := range components {
+func findComponent(components []*LHComponent, componentName string) (component *LHComponent, err error) {
+	for _, comp := range components {
 		if comp.CName == componentName {
 			return comp, nil
 		}
 	}
-	return component, fmt.Errorf("No component found with name %s in component list",componentName)
+	return component, fmt.Errorf("No component found with name %s in component list", componentName)
 }
-

@@ -1,17 +1,16 @@
 protocol InoculateDOE
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
 	InoculumVolume Volume
 )
 
-Data (
-)
+Data ()
 
 Inputs (
 	Inoculum *LHComponent
@@ -29,10 +28,10 @@ Setup {
 }
 
 Steps {
-	inocsample:=mixer.Sample(Inoculum, InoculumVolume)
+	inocsample := mixer.Sample(Inoculum, InoculumVolume)
 	fmt.Println("Inoculum ", Inoculum.CName, "Inoculum Volume ", InoculumVolume.ToString(), "Medium", Medium.CName)
-	Seed=Mix(Medium, inocsample)
-	fmt.Println("Seed:",Seed.CName)
+	Seed = Mix(Medium, inocsample)
+	fmt.Println("Seed:", Seed.CName)
 }
 
 Analysis {

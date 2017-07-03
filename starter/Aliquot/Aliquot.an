@@ -7,18 +7,17 @@
 protocol Aliquot
 
 import (
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
 	// This parameter represents the volume of solution that you have in the lab available to be aliquoted. It does not represent the total volume to be aliquoted or the volume of liquid that will be used.
 	SolutionVolume Volume
 	// This parameter dictates the final volume each aliquot will have.
-	VolumePerAliquot  Volume
+	VolumePerAliquot Volume
 	// This parameter states the number of aliquots that will be made from the input Solution.
 	NumberofAliquots int
 	// This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transfer.
@@ -30,10 +29,7 @@ Parameters (
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -41,7 +37,6 @@ Inputs (
 	Solution *LHComponent
 	// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
 	OutPlate *LHPlate
-
 )
 
 // Physical outputs from this protocol with types
@@ -63,16 +58,16 @@ Setup {
 // for every input
 Steps {
 
-	number := SolutionVolume.SIValue()/VolumePerAliquot.SIValue()
+	number := SolutionVolume.SIValue() / VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	if possiblenumberofAliquots < NumberofAliquots {
 		Errorf("Not enough solution for this many aliquots")
 	}
 
 	//check if maxvolume of outplate is higher than specified aliquot volume
-	if OutPlate.Welltype.MaxVolume().LessThanRounded(VolumePerAliquot,5){
-				Errorf("Aliquot volume specified (%s) too high for well capacity (%s) of current plate (%s)",VolumePerAliquot.ToString(),OutPlate.Welltype.MaxVolume(),OutPlate.Name())
-			}
+	if OutPlate.Welltype.MaxVolume().LessThanRounded(VolumePerAliquot, 5) {
+		Errorf("Aliquot volume specified (%s) too high for well capacity (%s) of current plate (%s)", VolumePerAliquot.ToString(), OutPlate.Welltype.MaxVolume(), OutPlate.Name())
+	}
 
 	// if PreMix is selected change liquid type accordingly
 	if PreMix {
@@ -80,16 +75,15 @@ Steps {
 	}
 
 	// if a solution name is given change the name
-	if ChangeSolutionName != ""{
+	if ChangeSolutionName != "" {
 		Solution.CName = ChangeSolutionName
 	}
 
-	aliquots := make([]*LHComponent,0)
-
+	aliquots := make([]*LHComponent, 0)
 
 	for i := 0; i < NumberofAliquots; i++ {
-		if Solution.TypeName() == "dna"{
-		Solution.Type = wtype.LTDoNotMix
+		if Solution.TypeName() == "dna" {
+			Solution.Type = wtype.LTDoNotMix
 		}
 		aliquotSample := mixer.Sample(Solution, VolumePerAliquot)
 
@@ -100,17 +94,18 @@ Steps {
 		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
 		// 3. the sample or array of samples to be mixed
 		var aliquot *LHComponent
-		if OptimisePlateUsage{
-		aliquot = MixNamed(OutPlate.Type, "","AliquotPlate", aliquotSample)
-		}else{
-		aliquot = MixInto(OutPlate, "", aliquotSample)
+		if OptimisePlateUsage {
+			aliquot = MixNamed(OutPlate.Type, "", "AliquotPlate", aliquotSample)
+		} else {
+			aliquot = MixInto(OutPlate, "", aliquotSample)
 		}
-		if aliquot != nil{
-				aliquots = append(aliquots,aliquot)
-			}
+		if aliquot != nil {
+			aliquots = append(aliquots, aliquot)
+		}
 	}
 	Aliquots = aliquots
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {

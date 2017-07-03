@@ -1,36 +1,37 @@
 // example protocol for parsing the contents of a plate from a csv file
 protocol ParsePlate
+
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	inplate "github.com/antha-lang/antha/target/mixer"
 	"bytes"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	inplate "github.com/antha-lang/antha/target/mixer"
 )
+
 // Input parameters for this protocol (data)
 Parameters (
 	InputCSVfile File
-) 
+)
+
 // Data which is returned from this protocol, and data types
 Data (
 	Error error
 	Warnings []string
 )
 
-
 // Physical Inputs to this protocol with types
-Inputs (
-   
-) 
+Inputs ()
+
 // Physical outputs from this protocol with types
 Outputs (
-	AllComponents []*LHComponent//Gel
+	AllComponents []*LHComponent //Gel
 	PlatewithComponents *LHPlate
 	ComponentMap map[string]*LHComponent
 )
 
 // No special requirements on inputs
 Requirements {
-  
+
 }
 
 // Condititions run on startup
@@ -46,45 +47,45 @@ Steps {
 
 	// Read file
 	filecontents, err := InputCSVfile.ReadAll()
-	
+
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
+
 	// create a reader from filecontents
 	reader := bytes.NewReader(filecontents)
-	
+
 	// Parse plate from reader
-	plateresult,err:=inplate.ParsePlateCSVWithValidationConfig(reader, inplate.PermissiveValidationConfig())
-	
+	plateresult, err := inplate.ParsePlateCSVWithValidationConfig(reader, inplate.PermissiveValidationConfig())
+
 	if err != nil {
 		Error = err
 		Errorf(err.Error())
 	}
-	
+
 	// assign LHPlate variable
 	inputplate := plateresult.Plate
-	
+
 	// return any warnings from plate parsing process
 	Warnings = plateresult.Warnings
-	
-	components := make([]*LHComponent,0)
+
+	components := make([]*LHComponent, 0)
 	ComponentMap = make(map[string]*LHComponent)
-	
+
 	// get all plate components and return into both a slice and a map
-	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN){
-	
-	if !inputplate.WellMap()[wellcontents].Empty() {
-	
-	component := inputplate.WellMap()[wellcontents].WContents
-	components = append(components, component)
-	ComponentMap[component.CName] = component
-	
+	for _, wellcontents := range inputplate.AllWellPositions(wtype.BYCOLUMN) {
+
+		if !inputplate.WellMap()[wellcontents].Empty() {
+
+			component := inputplate.WellMap()[wellcontents].WContents
+			components = append(components, component)
+			ComponentMap[component.CName] = component
+
 		}
 	}
-	if len(AllComponents)==0{
+	if len(AllComponents) == 0 {
 		err = fmt.Errorf("No Components found when parsing plate" + InputCSVfile.Name)
-		Warnings = append(Warnings,err.Error())
+		Warnings = append(Warnings, err.Error())
 		Error = err
 	}
 	AllComponents = components
@@ -92,8 +93,6 @@ Steps {
 	SetInputPlate(PlatewithComponents)
 
 }
-	
-
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -107,4 +106,3 @@ Analysis {
 Validation {
 
 }
-
