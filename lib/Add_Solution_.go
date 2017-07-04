@@ -1,4 +1,4 @@
-// Protocol AddNewLHComponent allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
+// Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
 // The element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off
 // of a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
@@ -36,12 +36,12 @@ import
 // This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
 
 // Conditions to run on startup
-func _AddNewLHComponentSetup(_ctx context.Context, _input *AddNewLHComponentInput) {
+func _Add_SolutionSetup(_ctx context.Context, _input *Add_SolutionInput) {
 
 }
 
 // The core process for this protocol. These steps are executed for each input.
-func _AddNewLHComponentSteps(_ctx context.Context, _input *AddNewLHComponentInput, _output *AddNewLHComponentOutput) {
+func _Add_SolutionSteps(_ctx context.Context, _input *Add_SolutionInput, _output *Add_SolutionOutput) {
 
 	//Initialise variable err with type error
 	var err error
@@ -97,28 +97,28 @@ func _AddNewLHComponentSteps(_ctx context.Context, _input *AddNewLHComponentInpu
 
 // Run after controls and a steps block are completed to post process any data
 // and provide downstream results
-func _AddNewLHComponentAnalysis(_ctx context.Context, _input *AddNewLHComponentInput, _output *AddNewLHComponentOutput) {
+func _Add_SolutionAnalysis(_ctx context.Context, _input *Add_SolutionInput, _output *Add_SolutionOutput) {
 
 }
 
 // A block of tests to perform to validate that the sample was processed
 // correctly. Optionally, destructive tests can be performed to validate
 // results on a dipstick basis
-func _AddNewLHComponentValidation(_ctx context.Context, _input *AddNewLHComponentInput, _output *AddNewLHComponentOutput) {
+func _Add_SolutionValidation(_ctx context.Context, _input *Add_SolutionInput, _output *Add_SolutionOutput) {
 
 }
-func _AddNewLHComponentRun(_ctx context.Context, input *AddNewLHComponentInput) *AddNewLHComponentOutput {
-	output := &AddNewLHComponentOutput{}
-	_AddNewLHComponentSetup(_ctx, input)
-	_AddNewLHComponentSteps(_ctx, input, output)
-	_AddNewLHComponentAnalysis(_ctx, input, output)
-	_AddNewLHComponentValidation(_ctx, input, output)
+func _Add_SolutionRun(_ctx context.Context, input *Add_SolutionInput) *Add_SolutionOutput {
+	output := &Add_SolutionOutput{}
+	_Add_SolutionSetup(_ctx, input)
+	_Add_SolutionSteps(_ctx, input, output)
+	_Add_SolutionAnalysis(_ctx, input, output)
+	_Add_SolutionValidation(_ctx, input, output)
 	return output
 }
 
-func AddNewLHComponentRunSteps(_ctx context.Context, input *AddNewLHComponentInput) *AddNewLHComponentSOutput {
-	soutput := &AddNewLHComponentSOutput{}
-	output := _AddNewLHComponentRun(_ctx, input)
+func Add_SolutionRunSteps(_ctx context.Context, input *Add_SolutionInput) *Add_SolutionSOutput {
+	soutput := &Add_SolutionSOutput{}
+	output := _Add_SolutionRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -128,19 +128,19 @@ func AddNewLHComponentRunSteps(_ctx context.Context, input *AddNewLHComponentInp
 	return soutput
 }
 
-func AddNewLHComponentNew() interface{} {
-	return &AddNewLHComponentElement{
+func Add_SolutionNew() interface{} {
+	return &Add_SolutionElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AddNewLHComponentInput{}
+				input := &Add_SolutionInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AddNewLHComponentRun(_ctx, input)
+				output := _Add_SolutionRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AddNewLHComponentInput{},
-			Out: &AddNewLHComponentOutput{},
+			In:  &Add_SolutionInput{},
+			Out: &Add_SolutionOutput{},
 		},
 	}
 }
@@ -151,24 +151,24 @@ var (
 	_ = wunit.Make_units
 )
 
-type AddNewLHComponentElement struct {
+type Add_SolutionElement struct {
 	inject.CheckedRunner
 }
 
-type AddNewLHComponentInput struct {
+type Add_SolutionInput struct {
 	Name               string
 	StockConcentration wunit.Concentration
 	TemplateComponent  *wtype.LHComponent
 	UseLHPolicy        wtype.PolicyName
 }
 
-type AddNewLHComponentOutput struct {
+type Add_SolutionOutput struct {
 	NewLHComponent     *wtype.LHComponent
 	NewLHComponentName string
 	Status             string
 }
 
-type AddNewLHComponentSOutput struct {
+type Add_SolutionSOutput struct {
 	Data struct {
 		NewLHComponentName string
 		Status             string
@@ -179,11 +179,11 @@ type AddNewLHComponentSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AddNewLHComponent",
-		Constructor: AddNewLHComponentNew,
+	if err := addComponent(component.Component{Name: "Add_Solution",
+		Constructor: Add_SolutionNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol AddNewLHComponent allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
-			Path: "src/github.com/antha-lang/elements/starter/AddNewLHComponent.an",
+			Desc: "Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
+			Path: "src/github.com/antha-lang/elements/starter/Add_Solution.an",
 			Params: []component.ParamDesc{
 				{Name: "Name", Desc: "Name of new LHComponent, if empty defaults to TemplateComponent name\n", Kind: "Parameters"},
 				{Name: "StockConcentration", Desc: "Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration\n", Kind: "Parameters"},

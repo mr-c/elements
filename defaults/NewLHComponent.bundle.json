@@ -11,7 +11,7 @@
   },
   "processes": {
     "Process1": {
-      "component": "AddNewLHComponent"
+      "component": "Add_Solution"
     }
   }
 }

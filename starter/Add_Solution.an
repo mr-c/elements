@@ -1,8 +1,8 @@
-// Protocol AddNewLHComponent allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
+// Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
 // The element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off
 // of a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
-protocol AddNewLHComponent
+protocol Add_Solution
 
 // Place golang packages to import here
 import (

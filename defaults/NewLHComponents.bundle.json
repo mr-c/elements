@@ -24,7 +24,7 @@
   },
   "processes": {
     "Process1": {
-      "component": "NewLHComponents"
+      "component": "Add_Solution_Multi"
     }
   }
 }

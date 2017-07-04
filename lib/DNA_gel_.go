@@ -34,7 +34,7 @@ import (
 //DNA ladder
 //loading dye to mix with samples
 // plate to mix samples if required
-//Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.
+//Specifies the samples to load. These may be set here using the Add_Solution_Multi element or fed in from a previous element such as AutoPCR_multi.
 //water
 
 // Physical outputs from this protocol with types
@@ -330,7 +330,7 @@ func init() {
 				{Name: "LoadingDyeVolume", Desc: "specify the volume of loading dye to add to each sample\n", Kind: "Parameters"},
 				{Name: "MixPlate", Desc: "plate to mix samples if required\n", Kind: "Inputs"},
 				{Name: "OptimisePlateUsage", Desc: "If selected, loading dye will be mixed with sample in input plate (instead of mixing in a seperate plate)\n", Kind: "Parameters"},
-				{Name: "Reactions", Desc: "Specifies the samples to load. These may be set here using the NewLHComponents element or fed in from a previous element such as AutoPCR_multi.\n", Kind: "Inputs"},
+				{Name: "Reactions", Desc: "Specifies the samples to load. These may be set here using the Add_Solution_Multi element or fed in from a previous element such as AutoPCR_multi.\n", Kind: "Inputs"},
 				{Name: "Replicates", Desc: "define number of technical replicates\n", Kind: "Parameters"},
 				{Name: "SampleVolume", Desc: "specify the volume for each DNA sample or specify a \"default\" to apply to all samples with no volume explicitely specified.\n", Kind: "Parameters"},
 				{Name: "Water", Desc: "water\n", Kind: "Inputs"},
