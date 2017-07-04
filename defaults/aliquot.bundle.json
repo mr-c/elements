@@ -2,7 +2,7 @@
   "Parameters": {
     "AliquotParams": {
       "ByRow": false,
-      "ChangeSolutionName": "Sausages",
+      "ChangeSolutionName": "",
       "NumberOfReplicaPlates": 3,
       "NumberofAliquots": 8,
       "OutPlate": "pcrplate_with_cooler",
