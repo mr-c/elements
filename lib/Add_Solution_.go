@@ -1,6 +1,6 @@
 // Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
-// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off
-// of a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents
+// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off
+// of a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 package lib
 
@@ -14,6 +14,7 @@ import
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
@@ -25,15 +26,13 @@ import
 // Output data of this protocol
 
 // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
-// Outputs the NewLHComponent name as a string
+// Outputs the NewSolution name as a string
 
 // Physical inputs to this protocol
 
-// This TemplateComponent must be specified in the parameters file or the element will have a run time error
-
 // Physical outputs to this protocol
 
-// This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+// This is the NewSolution output that can be wired into another element and be used straight away without having to input it into the LHComponent library
 
 // Conditions to run on startup
 func _Add_SolutionSetup(_ctx context.Context, _input *Add_SolutionInput) {
@@ -46,53 +45,55 @@ func _Add_SolutionSteps(_ctx context.Context, _input *Add_SolutionInput, _output
 	//Initialise variable err with type error
 	var err error
 
+	TemplateComponent := factory.GetComponentByType("water")
+
 	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
-	templateComponentName := _input.TemplateComponent.CName
+	templateComponentName := TemplateComponent.CName
 
 	//Initialise NewComponent variable with the LHComponent properties of the TemplateComponent
 
-	_output.NewLHComponent = _input.TemplateComponent
+	_output.NewSolution = TemplateComponent
 
-	//Sets the name of the NewLHComponent to the user specified Name parameter.
+	//Sets the name of the NewSolution to the user specified Name parameter.
 	//If name parameter is empty set to Name of TemplateComponent
 	if _input.Name != "" {
-		_output.NewLHComponent.CName = _input.Name
+		_output.NewSolution.CName = _input.Name
 	} else {
-		_output.NewLHComponent.CName = _input.TemplateComponent.CName
+		_output.NewSolution.CName = TemplateComponent.CName
 	}
 
-	//Sets the Concentration of the NewLHComponent to user specified StockConcentration
+	//Sets the Concentration of the NewSolution to user specified StockConcentration
 	//If left blank it defaults to the TemplateComponent concentration
 	//If left blank and there is no concentration associated with TemplateComponent it will not set a concentration
 	//Instead will provide a string of 0mM to be output in variable Status
-	var NewLHComponentConc string
+	var NewSolutionConc string
 	if _input.StockConcentration.RawValue() > 0.0 {
-		_output.NewLHComponent.SetConcentration(_input.StockConcentration)
-		NewLHComponentConc = _output.NewLHComponent.Concentration().ToString()
-	} else if _input.TemplateComponent.HasConcentration() {
-		_output.NewLHComponent.SetConcentration(_input.TemplateComponent.Concentration())
-		NewLHComponentConc = _output.NewLHComponent.Concentration().ToString()
+		_output.NewSolution.SetConcentration(_input.StockConcentration)
+		NewSolutionConc = _output.NewSolution.Concentration().ToString()
+	} else if TemplateComponent.HasConcentration() {
+		_output.NewSolution.SetConcentration(TemplateComponent.Concentration())
+		NewSolutionConc = _output.NewSolution.Concentration().ToString()
 	} else {
-		NewLHComponentConc = "0mM"
+		NewSolutionConc = "0mM"
 	}
 
-	//Sets the user defined LHPolicy in UseLHPolicy to use for the NewLHComponent
+	//Sets the user defined LHPolicy in UseLHPolicy to use for the NewSolution
 	//If an unkown LHPolicy is provided by the user an error will be generated
 	//If left blank it defaults to the TemplateComponent LHPolicy type
 	if _input.UseLHPolicy != "" {
-		_output.NewLHComponent.Type, err = wtype.LiquidTypeFromString(_input.UseLHPolicy)
+		_output.NewSolution.Type, err = wtype.LiquidTypeFromString(_input.UseLHPolicy)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	} else {
-		_output.NewLHComponent.Type = _input.TemplateComponent.Type
+		_output.NewSolution.Type = TemplateComponent.Type
 	}
 
 	//Provides a string output describing the new LHComponent
-	_output.Status = _output.NewLHComponent.CName + " LHComponent created based on " + templateComponentName + " LHComponent, with a concentration of " + NewLHComponentConc + " using the  " + _output.NewLHComponent.GetType() + " LHPolicy"
+	_output.Status = _output.NewSolution.CName + " LHComponent created based on " + templateComponentName + " LHComponent, with a concentration of " + NewSolutionConc + " using the  " + _output.NewSolution.GetType() + " LHPolicy"
 
 	//Outputs the new LHComponent name in Data
-	_output.NewLHComponentName = _output.NewLHComponent.CName
+	_output.NewSolutionName = _output.NewSolution.CName
 }
 
 // Run after controls and a steps block are completed to post process any data
@@ -158,23 +159,22 @@ type Add_SolutionElement struct {
 type Add_SolutionInput struct {
 	Name               string
 	StockConcentration wunit.Concentration
-	TemplateComponent  *wtype.LHComponent
 	UseLHPolicy        wtype.PolicyName
 }
 
 type Add_SolutionOutput struct {
-	NewLHComponent     *wtype.LHComponent
-	NewLHComponentName string
-	Status             string
+	NewSolution     *wtype.LHComponent
+	NewSolutionName string
+	Status          string
 }
 
 type Add_SolutionSOutput struct {
 	Data struct {
-		NewLHComponentName string
-		Status             string
+		NewSolutionName string
+		Status          string
 	}
 	Outputs struct {
-		NewLHComponent *wtype.LHComponent
+		NewSolution *wtype.LHComponent
 	}
 }
 
@@ -182,15 +182,14 @@ func init() {
 	if err := addComponent(component.Component{Name: "Add_Solution",
 		Constructor: Add_SolutionNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
+			Desc: "Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
 			Path: "src/github.com/antha-lang/elements/starter/Add_Solution.an",
 			Params: []component.ParamDesc{
 				{Name: "Name", Desc: "Name of new LHComponent, if empty defaults to TemplateComponent name\n", Kind: "Parameters"},
 				{Name: "StockConcentration", Desc: "Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration\n", Kind: "Parameters"},
-				{Name: "TemplateComponent", Desc: "This TemplateComponent must be specified in the parameters file or the element will have a run time error\n", Kind: "Inputs"},
 				{Name: "UseLHPolicy", Desc: "If empty defaults to LHPolicy of TemplateComponent LHComponent\n", Kind: "Parameters"},
-				{Name: "NewLHComponent", Desc: "This is the NewLHComponent output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
-				{Name: "NewLHComponentName", Desc: "Outputs the NewLHComponent name as a string\n", Kind: "Data"},
+				{Name: "NewSolution", Desc: "This is the NewSolution output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
+				{Name: "NewSolutionName", Desc: "Outputs the NewSolution name as a string\n", Kind: "Data"},
 				{Name: "Status", Desc: "Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.\n", Kind: "Data"},
 			},
 		},

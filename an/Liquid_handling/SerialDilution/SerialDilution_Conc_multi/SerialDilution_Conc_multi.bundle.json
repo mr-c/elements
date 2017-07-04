@@ -11,7 +11,7 @@
     {
             "src": {
                 "process": "Process0",
-                "port": "Add_Solution_Multi"
+                "port": "NewSolutions"
             },
             "tgt": {
                 "process": "Process1",

@@ -3,7 +3,7 @@
   "connections": [
     {
       "src": {
-        "port": "NewLHComponent",
+        "port": "NewSolution",
         "process": "Process1"
       },
       "tgt": {

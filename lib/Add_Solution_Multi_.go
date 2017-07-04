@@ -1,6 +1,6 @@
 // Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.
-// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off
-// of a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents
+// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off
+// of a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 package lib
 
@@ -14,7 +14,6 @@ import
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
@@ -33,16 +32,13 @@ import
 
 // Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
 
-// Outputs the NewLHComponent names
+// Outputs the NewSolution names
 
 // Physical inputs to this protocol
 
-// This TemplateComponent must be specified in the parameters file or the element will have a run time error,
-// if "default" is specified that will be used as default for all entries with no value
-
 // Physical outputs to this protocol
 
-// This is the list of Add_Solution_Multi output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+// This is the list of NewSolutions output that can be wired into another element and be used straight away without having to input it into the LHComponent library
 
 // Conditions to run on startup
 func _Add_Solution_MultiSetup(_ctx context.Context, _input *Add_Solution_MultiInput) {
@@ -63,16 +59,6 @@ func _Add_Solution_MultiSteps(_ctx context.Context, _input *Add_Solution_MultiIn
 		defaultConc = _input.StockConcentrations["default"]
 	}
 
-	// if the length of the map is 1 this template will be used for all components
-	// if empty the protocol will terminate with an error
-	var defaultTemplate *wtype.LHComponent
-
-	if _, found := _input.TemplateComponents["default"]; found {
-		defaultTemplate = _input.TemplateComponents["default"]
-	} else if len(_input.TemplateComponents) == 0 {
-		execute.Errorf(_ctx, "No template components specified. Please specify at least a default to use as template for all components")
-	}
-
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
 	var defaultLHPolicy wtype.PolicyName
@@ -91,7 +77,6 @@ func _Add_Solution_MultiSteps(_ctx context.Context, _input *Add_Solution_MultiIn
 
 		var status string
 		var stockConc wunit.Concentration
-		var template *wtype.LHComponent
 		var lhpolicy wtype.PolicyName
 		var found bool
 
@@ -101,29 +86,21 @@ func _Add_Solution_MultiSteps(_ctx context.Context, _input *Add_Solution_MultiIn
 			status = "No concentration specified for " + name + "; "
 		}
 
-		// check if a template component is specified  otherwise use default template
-		if template, found = _input.TemplateComponents[name]; !found {
-			template = factory.GetComponentByType(defaultTemplate.CName)
-			status = status + "No template specified so using default " + defaultTemplate.CName + "; "
-		}
-
 		// check if an LHPolicy is specified
 		if lhpolicy, found = _input.UseLHPolicy[name]; !found {
 			lhpolicy = defaultLHPolicy
-			status = status + "No lhpolicy specified so using policy " + template.TypeName() + " from default component " + defaultTemplate.CName + "; "
+			status = status + "No lhpolicy specified so using default PostMix policy; "
 		}
 
 		// run Add_Solution element
 		result := Add_SolutionRunSteps(_ctx, &Add_SolutionInput{Name: name,
 			StockConcentration: stockConc,
-			UseLHPolicy:        lhpolicy,
-
-			TemplateComponent: template},
+			UseLHPolicy:        lhpolicy},
 		)
 
 		// append outputs
-		_output.Add_Solution_Multi = append(_output.Add_Solution_Multi, result.Outputs.NewLHComponent)
-		_output.NewLHComponentNames = append(_output.NewLHComponentNames, result.Data.NewLHComponentName)
+		_output.NewSolutions = append(_output.NewSolutions, result.Outputs.NewSolution)
+		_output.NewSolutionNames = append(_output.NewSolutionNames, result.Data.NewSolutionName)
 		_output.Status[name] = status + result.Data.Status
 	}
 	// done
@@ -192,23 +169,22 @@ type Add_Solution_MultiElement struct {
 type Add_Solution_MultiInput struct {
 	Names               []string
 	StockConcentrations map[string]wunit.Concentration
-	TemplateComponents  map[string]*wtype.LHComponent
 	UseLHPolicy         map[string]wtype.PolicyName
 }
 
 type Add_Solution_MultiOutput struct {
-	Add_Solution_Multi  []*wtype.LHComponent
-	NewLHComponentNames []string
-	Status              map[string]string
+	NewSolutionNames []string
+	NewSolutions     []*wtype.LHComponent
+	Status           map[string]string
 }
 
 type Add_Solution_MultiSOutput struct {
 	Data struct {
-		NewLHComponentNames []string
-		Status              map[string]string
+		NewSolutionNames []string
+		Status           map[string]string
 	}
 	Outputs struct {
-		Add_Solution_Multi []*wtype.LHComponent
+		NewSolutions []*wtype.LHComponent
 	}
 }
 
@@ -216,15 +192,14 @@ func init() {
 	if err := addComponent(component.Component{Name: "Add_Solution_Multi",
 		Constructor: Add_Solution_MultiNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.\nThe element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
+			Desc: "Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.\nThe element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
 			Path: "src/github.com/antha-lang/elements/starter/Add_Solution_Multi.an",
 			Params: []component.ParamDesc{
 				{Name: "Names", Desc: "list of desired names for new LHComponents, if empty returns an error\n", Kind: "Parameters"},
 				{Name: "StockConcentrations", Desc: "Stock concentration being used,\nif empty this defaults to TemplateComponent concentration,\nif a \"default\" is specified then that will be used as the default for all entries with no value\nif there is no concentration associated with TemplateComponent and no default is specified, no concentration is set\n", Kind: "Parameters"},
-				{Name: "TemplateComponents", Desc: "This TemplateComponent must be specified in the parameters file or the element will have a run time error,\nif \"default\" is specified that will be used as default for all entries with no value\n", Kind: "Inputs"},
 				{Name: "UseLHPolicy", Desc: "If empty this defaults to LHPolicy of TemplateComponent LHComponent,\nif a \"default\" is specified this policy is used for all entries with no value\n", Kind: "Parameters"},
-				{Name: "Add_Solution_Multi", Desc: "This is the list of Add_Solution_Multi output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
-				{Name: "NewLHComponentNames", Desc: "Outputs the NewLHComponent names\n", Kind: "Data"},
+				{Name: "NewSolutionNames", Desc: "Outputs the NewSolution names\n", Kind: "Data"},
+				{Name: "NewSolutions", Desc: "This is the list of NewSolutions output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
 				{Name: "Status", Desc: "Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.\n", Kind: "Data"},
 			},
 		},

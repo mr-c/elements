@@ -1,13 +1,12 @@
 // Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.
-// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewLHComponent variable. The NewLHComponent variable must be based off
-// of a TemplateComponent that already exists in the LHComponent library. The NewLHComponent output can be wired into elements as an input so that new LHComponents 
+// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
+// The NewSolution output can be wired into elements as an input so that new LHComponents 
 // dont need to be made and populated into the library before an element can be used
 protocol Add_Solution_Multi
 
 // Place golang packages to import here
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
@@ -16,13 +15,11 @@ Parameters (
 	Names []string 
 	
 	// Stock concentration being used, 
-	// if empty this defaults to TemplateComponent concentration, 
 	// if a "default" is specified then that will be used as the default for all entries with no value
-	// if there is no concentration associated with TemplateComponent and no default is specified, no concentration is set
+	// if no default is specified, no concentration is set
 	StockConcentrations map[string]Concentration 
 	
-	// If empty this defaults to LHPolicy of TemplateComponent LHComponent, 
-	// if a "default" is specified this policy is used for all entries with no value
+	// If empty this defaults to PostMix which mixes 3 times after dispensing. 
 	UseLHPolicy map[string]PolicyName 
 )
 
@@ -30,21 +27,19 @@ Parameters (
 Data (
 	// Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
 	Status map[string]string 
-	// Outputs the NewLHComponent names 
-	NewLHComponentNames []string
+	// Outputs the NewSolution names 
+	NewSolutionNames []string
 )
 
 // Physical inputs to this protocol
 Inputs (
-	// This TemplateComponent must be specified in the parameters file or the element will have a run time error, 
-	// if "default" is specified that will be used as default for all entries with no value
-	TemplateComponents map[string]*LHComponent 
+
 )
 
 // Physical outputs to this protocol
 Outputs (
-	// This is the list of Add_Solution_Multi output that can be wired into another element and be used straight away without having to input it into the LHComponent library
-	Add_Solution_Multi []*LHComponent 
+	// This is the list of NewSolutions output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+	NewSolutions []*LHComponent 
 )
 
 // Conditions to run on startup
@@ -59,24 +54,13 @@ Steps {
 		Errorf("No Names specified for new components")
 	}
 	
-	
 	// initialise default conc as empty, if not found in map, no concentration will be set unless a "default" key is used in the StockConcentrations map
 	var defaultConc Concentration
 	
 	if _, found := StockConcentrations["default"];found{
 		defaultConc = StockConcentrations["default"]
 	}
-	
-	// if the length of the map is 1 this template will be used for all components
-	// if empty the protocol will terminate with an error
-	var defaultTemplate *LHComponent
-	
-	if _, found := TemplateComponents["default"];found{
-		defaultTemplate = TemplateComponents["default"]
-	}else if len(TemplateComponents)==0{
-		Errorf("No template components specified. Please specify at least a default to use as template for all components")
-	}
-	
+			
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
 	var defaultLHPolicy PolicyName
@@ -95,7 +79,6 @@ Steps {
 		
 		var status string
 		var stockConc Concentration
-		var template *LHComponent
 		var lhpolicy PolicyName
 		var found bool
 		
@@ -104,17 +87,11 @@ Steps {
 			stockConc = defaultConc
 			status = "No concentration specified for " + name + "; "
 		}
-		
-		// check if a template component is specified  otherwise use default template
-		if template, found = TemplateComponents[name];!found{
-			template = factory.GetComponentByType(defaultTemplate.CName)
-			status = status + "No template specified so using default " + defaultTemplate.CName + "; "
-		}
-		
+				
 		// check if an LHPolicy is specified 
 		if lhpolicy, found = UseLHPolicy[name];!found{
 			lhpolicy = defaultLHPolicy
-			status = status + "No lhpolicy specified so using policy " + template.TypeName() +" from default component " + defaultTemplate.CName + "; " 
+			status = status + "No lhpolicy specified so using default PostMix policy; " 
 		}
 		
 	// run Add_Solution element
@@ -123,12 +100,11 @@ Steps {
 		StockConcentration: stockConc,
 		UseLHPolicy: lhpolicy,
 	},Inputs{
-		TemplateComponent: template,
 	})
 	
 	// append outputs
-	Add_Solution_Multi = append(Add_Solution_Multi,result.Outputs.NewLHComponent)
-	NewLHComponentNames = append(NewLHComponentNames,result.Data.NewLHComponentName)
+	NewSolutions = append(NewSolutions,result.Outputs.NewSolution)
+	NewSolutionNames = append(NewSolutionNames,result.Data.NewSolutionName)
 	Status[name] = status + result.Data.Status 
 	}
 	// done
