@@ -13,10 +13,7 @@
         "MOPS": "50mM",
         "default": "0mM"
       },
-      "TemplateComponents": {
-        "PIPES": "dna",
-        "default": "water"
-      },
+      
       "UseLHPolicy": {
         "default": "water"
       }

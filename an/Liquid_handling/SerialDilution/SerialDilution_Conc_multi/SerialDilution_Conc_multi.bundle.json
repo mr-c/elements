@@ -28,9 +28,7 @@
             "StockConcentrations": {
                 "default": "100g/L"
             },
-            "TemplateComponents": {
-                "default": "water"
-            },
+            
             "UseLHPolicy": {
                 "default": ""
             }

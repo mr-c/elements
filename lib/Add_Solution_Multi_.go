@@ -1,6 +1,6 @@
 // Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.
-// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off
-// of a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents
+// The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
+// The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 package lib
 
@@ -21,12 +21,10 @@ import
 // list of desired names for new LHComponents, if empty returns an error
 
 // Stock concentration being used,
-// if empty this defaults to TemplateComponent concentration,
 // if a "default" is specified then that will be used as the default for all entries with no value
-// if there is no concentration associated with TemplateComponent and no default is specified, no concentration is set
+// if no default is specified, no concentration is set
 
-// If empty this defaults to LHPolicy of TemplateComponent LHComponent,
-// if a "default" is specified this policy is used for all entries with no value
+// If empty this defaults to PostMix which mixes 3 times after dispensing.
 
 // Output data of this protocol
 
@@ -192,12 +190,12 @@ func init() {
 	if err := addComponent(component.Component{Name: "Add_Solution_Multi",
 		Constructor: Add_Solution_MultiNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.\nThe element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
+			Desc: "Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.\nThe element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.\nThe NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
 			Path: "src/github.com/antha-lang/elements/starter/Add_Solution_Multi.an",
 			Params: []component.ParamDesc{
 				{Name: "Names", Desc: "list of desired names for new LHComponents, if empty returns an error\n", Kind: "Parameters"},
-				{Name: "StockConcentrations", Desc: "Stock concentration being used,\nif empty this defaults to TemplateComponent concentration,\nif a \"default\" is specified then that will be used as the default for all entries with no value\nif there is no concentration associated with TemplateComponent and no default is specified, no concentration is set\n", Kind: "Parameters"},
-				{Name: "UseLHPolicy", Desc: "If empty this defaults to LHPolicy of TemplateComponent LHComponent,\nif a \"default\" is specified this policy is used for all entries with no value\n", Kind: "Parameters"},
+				{Name: "StockConcentrations", Desc: "Stock concentration being used,\nif a \"default\" is specified then that will be used as the default for all entries with no value\nif no default is specified, no concentration is set\n", Kind: "Parameters"},
+				{Name: "UseLHPolicy", Desc: "If empty this defaults to PostMix which mixes 3 times after dispensing.\n", Kind: "Parameters"},
 				{Name: "NewSolutionNames", Desc: "Outputs the NewSolution names\n", Kind: "Data"},
 				{Name: "NewSolutions", Desc: "This is the list of NewSolutions output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
 				{Name: "Status", Desc: "Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.\n", Kind: "Data"},

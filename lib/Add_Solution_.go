@@ -1,6 +1,6 @@
 // Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
-// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off
-// of a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents
+// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
+// The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 package lib
 
@@ -19,9 +19,9 @@ import
 
 // Parameters to this protocol
 
-// Name of new LHComponent, if empty defaults to TemplateComponent name
-// Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration
-// If empty defaults to LHPolicy of TemplateComponent LHComponent
+// Name of new LHComponent.
+// Stock concentration being used; if none is specified it will not set a concentration.
+// If empty defaults to PostMix
 
 // Output data of this protocol
 
@@ -182,12 +182,12 @@ func init() {
 	if err := addComponent(component.Component{Name: "Add_Solution",
 		Constructor: Add_SolutionNew,
 		Desc: component.ComponentDesc{
-			Desc: "Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. The NewSolution variable must be based off\nof a TemplateComponent that already exists in the LHComponent library. The NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
+			Desc: "Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.\nThe element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.\nThe NewSolution output can be wired into elements as an input so that new LHComponents\ndont need to be made and populated into the library before an element can be used\n",
 			Path: "src/github.com/antha-lang/elements/starter/Add_Solution.an",
 			Params: []component.ParamDesc{
-				{Name: "Name", Desc: "Name of new LHComponent, if empty defaults to TemplateComponent name\n", Kind: "Parameters"},
-				{Name: "StockConcentration", Desc: "Stock concentration being used, if empty defaults to TemplateComponent concentration, if there is no concentration associated with TemplateComponent it will not set a concentration\n", Kind: "Parameters"},
-				{Name: "UseLHPolicy", Desc: "If empty defaults to LHPolicy of TemplateComponent LHComponent\n", Kind: "Parameters"},
+				{Name: "Name", Desc: "Name of new LHComponent.\n", Kind: "Parameters"},
+				{Name: "StockConcentration", Desc: "Stock concentration being used; if none is specified it will not set a concentration.\n", Kind: "Parameters"},
+				{Name: "UseLHPolicy", Desc: "If empty defaults to PostMix\n", Kind: "Parameters"},
 				{Name: "NewSolution", Desc: "This is the NewSolution output that can be wired into another element and be used straight away without having to input it into the LHComponent library\n", Kind: "Outputs"},
 				{Name: "NewSolutionName", Desc: "Outputs the NewSolution name as a string\n", Kind: "Data"},
 				{Name: "Status", Desc: "Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.\n", Kind: "Data"},

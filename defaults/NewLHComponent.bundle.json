@@ -5,7 +5,6 @@
     "Process1": {
       "Name": "MOPS",
       "StockConcentration": "50mM",
-      "TemplateComponent": "water",
       "UseLHPolicy": "water"
     }
   },
