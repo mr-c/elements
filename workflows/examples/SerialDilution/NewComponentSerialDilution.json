@@ -1,0 +1,39 @@
+{
+  "Parameters": {
+    "AddNewLHComponent": {
+      "Name": "Sausages",
+      "StockConcentration": "1M",
+      "TemplateComponent": "water",
+      "UseLHPolicy": "water"
+    },
+    "SerialDilution": {
+      "ByRow": false,
+      "Diluent": "water",
+      "DilutionFactor": 10,
+      "NumberOfDilutions": 8,
+      "OutPlate": "pcrplate_skirted_riser20",
+      "TotalVolumeperDilution": "100ul",
+      "WellsAlreadyUsed": 0
+    }
+  },
+  "Processes": {
+    "AddNewLHComponent": {
+      "component": "AddNewLHComponent"
+    },
+    "SerialDilution": {
+      "component": "SerialDilution"
+    }
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "NewLHComponent",
+        "process": "AddNewLHComponent"
+      },
+      "tgt": {
+        "port": "Solution",
+        "process": "SerialDilution"
+      }
+    }
+  ]
+}

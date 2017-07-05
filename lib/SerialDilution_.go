@@ -35,13 +35,14 @@ func _SerialDilutionSetup(_ctx context.Context, _input *SerialDilutionInput) {
 func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _output *SerialDilutionOutput) {
 
 	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
-
 	allwellpositions := _input.OutPlate.AllWellPositions(_input.ByRow)
 	var counter int = _input.WellsAlreadyUsed
 
+	// Create a slice to store our liquid handling instructions for all our serial dilutions.
 	dilutions := make([]*wtype.LHComponent, 0)
 
-	var aliquot *wtype.LHComponent
+	// Create a variable to store the liquid handling instructions for a single dilution
+	var firstDilution *wtype.LHComponent
 
 	// calculate solution volume
 
@@ -57,21 +58,43 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
 
-	if _input.Solution.HasConcentration() {
-		solutionname := _input.Solution.CName
-		_input.Solution.CName = _input.Solution.Concentration().ToString() + " " + solutionname
-		_input.Solution.CName = normalise(_input.Solution.CName)
-	}
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
 	// mix both diluent and sample to OutPlate
-	aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
+	firstDilution = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
+
+	// Create a variable to store the solution name in
+	var solutionname string
+
+	// Create a variable to store the calculated concentration per solution
+	var newconcentration wunit.Concentration
+
+	// If the Stock Solution has a concentration associated with it then rename the diluted solution with its new concentration
+	if _input.Solution.HasConcentration() {
+
+		// extract the solution name as a string and store in our solution name variable
+		solutionname = _input.Solution.CName
+
+		// extract the solution concentration as a string and store in our solution concentration variable
+		solutionConcentration := _input.Solution.Concentration()
+
+		// Calculate the new concentration after dilution by dividing the solution concentration by the dilution factor
+		newconcentration = wunit.DivideConcentration(solutionConcentration, float64(_input.DilutionFactor))
+
+		// Rename the first dilution sample to contain the concentration in its name
+		firstDilution.CName = newconcentration.ToString() + " " + solutionname
+
+		// Normalise the name to a format that can be parsed for DOE elements
+		firstDilution.CName = normalise(firstDilution.CName)
+	}
 
 	// add to dilutions array
-	dilutions = append(dilutions, aliquot)
+	dilutions = append(dilutions, firstDilution)
 
+	// add 1 to our counter to keep track of the number of wells that have been used
 	counter++
+
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < _input.NumberOfDilutions; k++ {
 
@@ -79,24 +102,41 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		nextDiluentSample := mixer.Sample(_input.Diluent, _input.TotalVolumeperDilution)
 
 		// Ensure liquid type set to Pre and Post Mix
-		aliquot.Type = wtype.LTNeedToMix
+		firstDilution.Type = wtype.LTNeedToMix
 
 		// sample from previous dilution sample
-		nextSample := mixer.Sample(aliquot, solutionVolume)
+		nextSample := mixer.Sample(firstDilution, solutionVolume)
 
 		// Mix sample into nextdiluent sample
-		nextaliquot := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
+		nextDilution := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
+
+		// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
+		nextconcentration := wunit.DivideConcentration(newconcentration, float64(_input.DilutionFactor))
+
+		// Rename the next dilution sample to show its new concentration
+		nextDilution.CName = nextconcentration.ToString() + " " + solutionname
+
+		// Normalise the name to a format that can be parsed for DOE elements
+		nextDilution.CName = normalise(nextDilution.CName)
+
+		// Set the new concentration to the next concentration calculated ready for the next round of the loop
+		newconcentration = nextconcentration
 
 		// add to dilutions array
-		dilutions = append(dilutions, nextaliquot)
+		dilutions = append(dilutions, nextDilution)
+
 		// reset aliquot
-		aliquot = nextaliquot
+		firstDilution = nextDilution
+
+		// add 1 to the counter to keep track of the wells used in our output plate
 		counter++
 	}
 
-	// Remove the aditional solution volume from the final dilution to waste such that its volume equals the user defined final volume.
-	disposeSample := mixer.Sample(aliquot, solutionVolume)
-	_output.Waste = execute.MixNamed(_ctx, "reservoir", "", "SolutionWaste", disposeSample)
+	// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
+	disposeSample := mixer.Sample(firstDilution, solutionVolume)
+
+	// export the waste solution
+	_output.Waste = execute.Mix(_ctx, disposeSample)
 
 	// export as Output
 	_output.Dilutions = dilutions
