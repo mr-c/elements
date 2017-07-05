@@ -1,10 +1,10 @@
 Parameters:
   SerialDilute:
     ByRow: false
-	Diluent: water
+    Diluent: water
     DilutionFactor: 10
     NumberOfDilutions: 16
     OutPlate: DSW96_riser
     Solution: tartrazine
     TotalVolumeperDilution: 100ul
-	WellsAlreadyUsed: 0
+    WellsAlreadyUsed: 0
