@@ -13,13 +13,33 @@ import (
 
 // Input parameters for this protocol (data)
 
-// e.g. 10 would take 1 part solution to 9 parts diluent for each dilution
+// This is the final volume that you will achieve after the dilutions have been performed.
+
+// The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution.
+
+// The number of dilutions you wish to make.
+
+// An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.
+
+// If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.
 
 // Data which is returned from this protocol, and data types
 
+// How many wells were used by this element in your output plate.
+
 // Physical Inputs to this protocol with types
 
+// The physical solution you wish to serially dilute, e.g. BSA, DNA, Glucose.
+
+// The physical solution you want to make your dilutions into, e.g. water, Buffer.
+
+//The physical plate where your serial dilutions will be made.
+
 // Physical outputs from this protocol with types
+
+// The physical dilutions made by this element.
+
+// The excess solution removed from the final dilution, this is moved to the input plate.
 
 func _SerialDilutionRequirements() {
 
@@ -239,17 +259,17 @@ func init() {
 			Desc: "Protocol to make a serial dilution series from a solution and diluent\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/SerialDilution/SerialDilution.an",
 			Params: []component.ParamDesc{
-				{Name: "ByRow", Desc: "", Kind: "Parameters"},
-				{Name: "Diluent", Desc: "", Kind: "Inputs"},
-				{Name: "DilutionFactor", Desc: "e.g. 10 would take 1 part solution to 9 parts diluent for each dilution\n", Kind: "Parameters"},
-				{Name: "NumberOfDilutions", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
-				{Name: "Solution", Desc: "", Kind: "Inputs"},
-				{Name: "TotalVolumeperDilution", Desc: "", Kind: "Parameters"},
-				{Name: "WellsAlreadyUsed", Desc: "", Kind: "Parameters"},
-				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
-				{Name: "Waste", Desc: "", Kind: "Outputs"},
-				{Name: "WellsUsed", Desc: "", Kind: "Data"},
+				{Name: "ByRow", Desc: "An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.\n", Kind: "Parameters"},
+				{Name: "Diluent", Desc: "The physical solution you want to make your dilutions into, e.g. water, Buffer.\n", Kind: "Inputs"},
+				{Name: "DilutionFactor", Desc: "The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution.\n", Kind: "Parameters"},
+				{Name: "NumberOfDilutions", Desc: "The number of dilutions you wish to make.\n", Kind: "Parameters"},
+				{Name: "OutPlate", Desc: "The physical plate where your serial dilutions will be made.\n", Kind: "Inputs"},
+				{Name: "Solution", Desc: "The physical solution you wish to serially dilute, e.g. BSA, DNA, Glucose.\n", Kind: "Inputs"},
+				{Name: "TotalVolumeperDilution", Desc: "This is the final volume that you will achieve after the dilutions have been performed.\n", Kind: "Parameters"},
+				{Name: "WellsAlreadyUsed", Desc: "If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.\n", Kind: "Parameters"},
+				{Name: "Dilutions", Desc: "The physical dilutions made by this element.\n", Kind: "Outputs"},
+				{Name: "Waste", Desc: "The excess solution removed from the final dilution, this is moved to the input plate.\n", Kind: "Outputs"},
+				{Name: "WellsUsed", Desc: "How many wells were used by this element in your output plate.\n", Kind: "Data"},
 			},
 		},
 	}); err != nil {

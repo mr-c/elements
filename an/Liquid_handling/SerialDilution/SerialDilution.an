@@ -11,29 +11,40 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
+	// This is the final volume that you will achieve after the dilutions have been performed.
 	TotalVolumeperDilution Volume
-	DilutionFactor  int // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
+	// The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution. 
+	DilutionFactor  int
+	// The number of dilutions you wish to make.
 	NumberOfDilutions int
+	// An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.
 	ByRow bool
+	// If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.
 	WellsAlreadyUsed int
 )
 
 // Data which is returned from this protocol, and data types
 Data (
+	// How many wells were used by this element in your output plate.
 	WellsUsed int
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *LHComponent 
+	// The physical solution you wish to serially dilute, e.g. BSA, DNA, Glucose.
+	Solution *LHComponent
+	// The physical solution you want to make your dilutions into, e.g. water, Buffer.
 	Diluent *LHComponent
+	//The physical plate where your serial dilutions will be made.
 	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+	// The physical dilutions made by this element.
 	Dilutions []*LHComponent
+	// The excess solution removed from the final dilution, this is moved to the input plate.
 	Waste *LHComponent
 )
 
