@@ -33,6 +33,7 @@ Inputs (
 // Physical outputs from this protocol with types
 Outputs (
 	Dilutions []*LHComponent
+	Waste *LHComponent
 )
 
 Requirements {
@@ -63,22 +64,13 @@ Steps {
 	solutionVolume := (wunit.CopyVolume(TotalVolumeperDilution))
 	
 	// use divideby method
-	solutionVolume.DivideBy(float64(DilutionFactor)) 
-	
-	// use same approach to work out diluent volume to add	
-	diluentVolume := (wunit.CopyVolume(TotalVolumeperDilution))
-	
-	// this time using the substract method
-	diluentVolume.Subtract(solutionVolume)	
+	solutionVolume.DivideBy(float64(DilutionFactor) - 1.00) 
 	
 	// sample diluent
-	diluentSample := mixer.Sample(Diluent,diluentVolume)
+	diluentSample := mixer.Sample(Diluent,TotalVolumeperDilution)
 		
 	// Ensure liquid type set to Pre and Post Mix 
-	Solution.Type = wtype.LTNeedToMix
-		// check if the enzyme is specified and if not mix the 
-		
-	
+	Solution.Type = wtype.LTNeedToMix		
 	
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
@@ -94,7 +86,7 @@ Steps {
 	for k := 1; k < NumberOfDilutions; k++ {
 		
 		// take next sample of diluent
-		nextDiluentSample := mixer.Sample(Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(Diluent, TotalVolumeperDilution)
 		
 		// Ensure liquid type set to Pre and Post Mix 
 		aliquot.Type = wtype.LTNeedToMix
@@ -113,6 +105,9 @@ Steps {
 		aliquot = nextaliquot
 		counter++
 		}
+		
+		disposeSample := mixer.Sample(aliquot, solutionVolume)
+		Waste = MixNamed("reservoir","","SolutionWaste", disposeSample)
 		
 // export as Output
 Dilutions = dilutions 

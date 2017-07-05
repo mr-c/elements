@@ -49,20 +49,13 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	solutionVolume := (wunit.CopyVolume(_input.TotalVolumeperDilution))
 
 	// use divideby method
-	solutionVolume.DivideBy(float64(_input.DilutionFactor))
-
-	// use same approach to work out diluent volume to add
-	diluentVolume := (wunit.CopyVolume(_input.TotalVolumeperDilution))
-
-	// this time using the substract method
-	diluentVolume.Subtract(solutionVolume)
+	solutionVolume.DivideBy(float64(_input.DilutionFactor) - 1.00)
 
 	// sample diluent
-	diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+	diluentSample := mixer.Sample(_input.Diluent, _input.TotalVolumeperDilution)
 
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
-	// check if the enzyme is specified and if not mix the
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
@@ -78,7 +71,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	for k := 1; k < _input.NumberOfDilutions; k++ {
 
 		// take next sample of diluent
-		nextDiluentSample := mixer.Sample(_input.Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(_input.Diluent, _input.TotalVolumeperDilution)
 
 		// Ensure liquid type set to Pre and Post Mix
 		aliquot.Type = wtype.LTNeedToMix
@@ -95,6 +88,9 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		aliquot = nextaliquot
 		counter++
 	}
+
+	disposeSample := mixer.Sample(aliquot, solutionVolume)
+	_output.Waste = execute.MixNamed(_ctx, "reservoir", "", "SolutionWaste", disposeSample)
 
 	// export as Output
 	_output.Dilutions = dilutions
@@ -176,6 +172,7 @@ type SerialDilutionInput struct {
 
 type SerialDilutionOutput struct {
 	Dilutions []*wtype.LHComponent
+	Waste     *wtype.LHComponent
 	WellsUsed int
 }
 
@@ -185,6 +182,7 @@ type SerialDilutionSOutput struct {
 	}
 	Outputs struct {
 		Dilutions []*wtype.LHComponent
+		Waste     *wtype.LHComponent
 	}
 }
 
@@ -204,6 +202,7 @@ func init() {
 				{Name: "TotalVolumeperDilution", Desc: "", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "", Kind: "Parameters"},
 				{Name: "Dilutions", Desc: "", Kind: "Outputs"},
+				{Name: "Waste", Desc: "", Kind: "Outputs"},
 				{Name: "WellsUsed", Desc: "", Kind: "Data"},
 			},
 		},

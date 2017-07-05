@@ -1,12 +1,14 @@
 {
   "Parameters": {
     "SerialDilute": {
-      "Diluent": "water",
+      "ByRow": false,
+	  "Diluent": "water",
       "DilutionFactor": 10,
       "NumberOfDilutions": 16,
       "OutPlate": "DSW96_riser",
       "Solution": "tartrazine",
-      "TotalVolumeperDilution": "100ul"
+      "TotalVolumeperDilution": "100ul",
+	  "WellsAlreadyUsed": 0
     }
   }
 }
