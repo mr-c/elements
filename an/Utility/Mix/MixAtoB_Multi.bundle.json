@@ -31,7 +31,8 @@
       "PreMix": false,
       "Solution": "water",
       "SolutionVolume": "4000ul",
-      "VolumePerAliquot": "25ul"
+      "VolumePerAliquot": "25ul",
+		"NumberOfReplicaPlates": 1
     }
   },
   "config": null
