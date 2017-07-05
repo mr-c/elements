@@ -16,7 +16,7 @@
   },
   "processes": {
     "Process1": {
-      "component": "PlateOutTest"
+      "component": "PlateOut"
     }
   }
 }
