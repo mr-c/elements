@@ -1,23 +1,27 @@
 Parameters:
   AliquotParams:
+    NumberOfReplicaPlates: 1
     NumberofAliquots: 8
     OutPlate: pcrplate_with_cooler
     Solution: water
     SolutionVolume: 4000ul
     VolumePerAliquot: 25ul
   AliquotParams2:
+    NumberOfReplicaPlates: 1
     NumberofAliquots: 8
     OutPlate: pcrplate_with_cooler
     Solution: water
     SolutionVolume: 4000ul
     VolumePerAliquot: 25ul
   AliquotParams3:
+    NumberOfReplicaPlates: 1
     NumberofAliquots: 8
     OutPlate: pcrplate_with_cooler
     Solution: fluorescein
     SolutionVolume: 4000ul
     VolumePerAliquot: 25ul
   AliquotParams4:
+    NumberOfReplicaPlates: 1
     NumberofAliquots: 8
     OutPlate: pcrplate_with_cooler
     Solution: fluorescein
