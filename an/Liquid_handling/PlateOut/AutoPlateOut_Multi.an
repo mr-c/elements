@@ -84,7 +84,7 @@ Steps {
 		for _, plateoutvols := range volumes {
 
 			//Run PlateOut element
-			result := RunSteps(PlateOutTest,
+			result := RunSteps(PlateOut,
 				Parameters{
 					AgarPlateNumber:      platecounter,
 					IncubationTemp:       IncubationTemp,
