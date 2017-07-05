@@ -57,6 +57,11 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// Ensure liquid type set to Pre and Post Mix
 	_input.Solution.Type = wtype.LTNeedToMix
 
+	if _input.Solution.HasConcentration() {
+		solutionname := _input.Solution.CName
+		_input.Solution.CName = _input.Solution.Concentration().ToString() + " " + solutionname
+		_input.Solution.CName = normalise(_input.Solution.CName)
+	}
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 

@@ -72,6 +72,11 @@ Steps {
 	// Ensure liquid type set to Pre and Post Mix 
 	Solution.Type = wtype.LTNeedToMix		
 	
+	if Solution.HasConcentration() {
+	solutionname := Solution.CName
+	Solution.CName = Solution.Concentration().ToString() + " " + solutionname
+	Solution.CName = normalise(Solution.CName)
+			}
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
