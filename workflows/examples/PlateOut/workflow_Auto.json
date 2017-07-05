@@ -2,7 +2,7 @@
   "connections": [],
   "processes": {
     "AutoPlateOut": {
-      "component": "AutoPlateOut_Multi"
+      "component": "PlateOut_Multi"
     }
   }
 }

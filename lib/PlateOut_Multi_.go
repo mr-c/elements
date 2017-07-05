@@ -188,7 +188,7 @@ func init() {
 		Constructor: PlateOut_MultiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/PlateOut_Multi.an",
+			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/AutoPlateOut_Multi.an",
 			Params: []component.ParamDesc{
 				{Name: "AgarPlate", Desc: "The output plate type, which can be any plate within the Antha library (Default = falcon6wellAgar)\nAn omniwell may be used for plating out up to 96 spots, but a 96 well plate image must be selected in Antha (e.g. pcrplate_skirted)\n", Kind: "Inputs"},
 				{Name: "AgarPlateNumber", Desc: "Optionally specify the number of agar plates to begin counting from (Default = 1)\n", Kind: "Parameters"},
