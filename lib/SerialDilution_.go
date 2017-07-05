@@ -89,6 +89,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		counter++
 	}
 
+	// Remove the aditional solution volume from the final dilution to waste such that its volume equals the user defined final volume.
 	disposeSample := mixer.Sample(aliquot, solutionVolume)
 	_output.Waste = execute.MixNamed(_ctx, "reservoir", "", "SolutionWaste", disposeSample)
 
