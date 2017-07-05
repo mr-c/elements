@@ -1,5 +1,5 @@
 // Protocol PlateOut dispenses a liquid input (i.e Transformed Cells) at a user-definable volume onto an output plate of the users choice.
-protocol PlateOutTest
+protocol PlateOut
 
 // Place golang packages to import here
 import (

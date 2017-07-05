@@ -45,12 +45,12 @@ import
 //the plated cultures are outputted as an array which can be fed into other protocols in the Antha workflow
 
 // Conditions to run on startup
-func _AutoPlateOut_MultiSetup(_ctx context.Context, _input *AutoPlateOut_MultiInput) {
+func _PlateOut_MultiSetup(_ctx context.Context, _input *PlateOut_MultiInput) {
 
 }
 
 // The core process for this protocol. These steps are executed for each input.
-func _AutoPlateOut_MultiSteps(_ctx context.Context, _input *AutoPlateOut_MultiInput, _output *AutoPlateOut_MultiOutput) {
+func _PlateOut_MultiSteps(_ctx context.Context, _input *PlateOut_MultiInput, _output *PlateOut_MultiOutput) {
 	//Setup counter to track WellsAlreadyUsed
 	var counter int = _input.WellsAlreadyUsed
 	var platecounter int = _input.AgarPlateNumber
@@ -101,28 +101,28 @@ func _AutoPlateOut_MultiSteps(_ctx context.Context, _input *AutoPlateOut_MultiIn
 
 // Run after controls and a steps block are completed to post process any data
 // and provide downstream results
-func _AutoPlateOut_MultiAnalysis(_ctx context.Context, _input *AutoPlateOut_MultiInput, _output *AutoPlateOut_MultiOutput) {
+func _PlateOut_MultiAnalysis(_ctx context.Context, _input *PlateOut_MultiInput, _output *PlateOut_MultiOutput) {
 
 }
 
 // A block of tests to perform to validate that the sample was processed
 // correctly. Optionally, destructive tests can be performed to validate
 // results on a dipstick basis
-func _AutoPlateOut_MultiValidation(_ctx context.Context, _input *AutoPlateOut_MultiInput, _output *AutoPlateOut_MultiOutput) {
+func _PlateOut_MultiValidation(_ctx context.Context, _input *PlateOut_MultiInput, _output *PlateOut_MultiOutput) {
 
 }
-func _AutoPlateOut_MultiRun(_ctx context.Context, input *AutoPlateOut_MultiInput) *AutoPlateOut_MultiOutput {
-	output := &AutoPlateOut_MultiOutput{}
-	_AutoPlateOut_MultiSetup(_ctx, input)
-	_AutoPlateOut_MultiSteps(_ctx, input, output)
-	_AutoPlateOut_MultiAnalysis(_ctx, input, output)
-	_AutoPlateOut_MultiValidation(_ctx, input, output)
+func _PlateOut_MultiRun(_ctx context.Context, input *PlateOut_MultiInput) *PlateOut_MultiOutput {
+	output := &PlateOut_MultiOutput{}
+	_PlateOut_MultiSetup(_ctx, input)
+	_PlateOut_MultiSteps(_ctx, input, output)
+	_PlateOut_MultiAnalysis(_ctx, input, output)
+	_PlateOut_MultiValidation(_ctx, input, output)
 	return output
 }
 
-func AutoPlateOut_MultiRunSteps(_ctx context.Context, input *AutoPlateOut_MultiInput) *AutoPlateOut_MultiSOutput {
-	soutput := &AutoPlateOut_MultiSOutput{}
-	output := _AutoPlateOut_MultiRun(_ctx, input)
+func PlateOut_MultiRunSteps(_ctx context.Context, input *PlateOut_MultiInput) *PlateOut_MultiSOutput {
+	soutput := &PlateOut_MultiSOutput{}
+	output := _PlateOut_MultiRun(_ctx, input)
 	if err := inject.AssignSome(output, &soutput.Data); err != nil {
 		panic(err)
 	}
@@ -132,19 +132,19 @@ func AutoPlateOut_MultiRunSteps(_ctx context.Context, input *AutoPlateOut_MultiI
 	return soutput
 }
 
-func AutoPlateOut_MultiNew() interface{} {
-	return &AutoPlateOut_MultiElement{
+func PlateOut_MultiNew() interface{} {
+	return &PlateOut_MultiElement{
 		inject.CheckedRunner{
 			RunFunc: func(_ctx context.Context, value inject.Value) (inject.Value, error) {
-				input := &AutoPlateOut_MultiInput{}
+				input := &PlateOut_MultiInput{}
 				if err := inject.Assign(value, input); err != nil {
 					return nil, err
 				}
-				output := _AutoPlateOut_MultiRun(_ctx, input)
+				output := _PlateOut_MultiRun(_ctx, input)
 				return inject.MakeValue(output), nil
 			},
-			In:  &AutoPlateOut_MultiInput{},
-			Out: &AutoPlateOut_MultiOutput{},
+			In:  &PlateOut_MultiInput{},
+			Out: &PlateOut_MultiOutput{},
 		},
 	}
 }
@@ -155,11 +155,11 @@ var (
 	_ = wunit.Make_units
 )
 
-type AutoPlateOut_MultiElement struct {
+type PlateOut_MultiElement struct {
 	inject.CheckedRunner
 }
 
-type AutoPlateOut_MultiInput struct {
+type PlateOut_MultiInput struct {
 	AgarPlate            *wtype.LHPlate
 	AgarPlateNumber      int
 	IncubationTemp       wunit.Temperature
@@ -171,11 +171,11 @@ type AutoPlateOut_MultiInput struct {
 	WellsAlreadyUsed     int
 }
 
-type AutoPlateOut_MultiOutput struct {
+type PlateOut_MultiOutput struct {
 	PlatedCultures []*wtype.LHComponent
 }
 
-type AutoPlateOut_MultiSOutput struct {
+type PlateOut_MultiSOutput struct {
 	Data struct {
 	}
 	Outputs struct {
@@ -184,8 +184,8 @@ type AutoPlateOut_MultiSOutput struct {
 }
 
 func init() {
-	if err := addComponent(component.Component{Name: "AutoPlateOut_Multi",
-		Constructor: AutoPlateOut_MultiNew,
+	if err := addComponent(component.Component{Name: "PlateOut_Multi",
+		Constructor: PlateOut_MultiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PlateOut/AutoPlateOut_Multi.an",

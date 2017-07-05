@@ -25,7 +25,7 @@
   },
   "processes": {
     "Process1": {
-      "component": "AutoPlateOut_Multi"
+      "component": "PlateOut_Multi"
     }
   }
 }

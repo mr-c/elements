@@ -1,5 +1,5 @@
 // Protocol PlateOutReactionInput takes in an array of TransformedCells (i.e. recovered cells) from another element (e.g. AutTransformation_multi) and performs a plate out reaction onto plates of the users choice
-protocol AutoPlateOut_Multi
+protocol PlateOut_Multi
 
 // Place golang packages to import here
 import (
@@ -84,7 +84,7 @@ Steps {
 		for _, plateoutvols := range volumes {
 
 			//Run PlateOut element
-			result := RunSteps(PlateOutTest,
+			result := RunSteps(PlateOut,
 				Parameters{
 					AgarPlateNumber:      platecounter,
 					IncubationTemp:       IncubationTemp,
