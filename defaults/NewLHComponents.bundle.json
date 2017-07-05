@@ -13,10 +13,7 @@
         "MOPS": "50mM",
         "default": "0mM"
       },
-      "TemplateComponents": {
-        "PIPES": "dna",
-        "default": "water"
-      },
+      
       "UseLHPolicy": {
         "default": "water"
       }
@@ -24,7 +21,7 @@
   },
   "processes": {
     "Process1": {
-      "component": "NewLHComponents"
+      "component": "Add_Solution_Multi"
     }
   }
 }
