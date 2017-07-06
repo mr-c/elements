@@ -154,11 +154,10 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		counter++
 	}
 
-	// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
-	disposeSample := mixer.Sample(firstDilution, solutionVolume)
-
 	// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
 	if _input.RemoveExcessSolution {
+		// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
+		disposeSample := mixer.Sample(firstDilution, solutionVolume)
 		execute.Mix(_ctx, disposeSample)
 	}
 	// export as Output
