@@ -9,7 +9,7 @@
     "SerialDilution": {
       "ByRow": true,
       "Diluent": "water",
-      "DilutionFactor": 2,
+      "DilutionFactor": 1.2,
       "NumberOfDilutions": 12,
       "OutPlate": "pcrplate_skirted_riser20",
       "RemoveExcessSolution": true,
