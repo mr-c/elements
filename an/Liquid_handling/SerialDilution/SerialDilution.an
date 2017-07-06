@@ -138,6 +138,7 @@ Steps {
 		// Mix sample into nextdiluent sample
 		nextDilution := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 		
+		if newconcentration.RawValue() > 0  {
 		// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
 		nextconcentration := wunit.DivideConcentration(newconcentration, float64(DilutionFactor))
 		
@@ -149,6 +150,7 @@ Steps {
 		
 		// Set the new concentration to the next concentration calculated ready for the next round of the loop
 		newconcentration = nextconcentration
+		}
 		
 		// add to dilutions array 
 		dilutions = append(dilutions,nextDilution)

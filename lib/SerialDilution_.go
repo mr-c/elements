@@ -130,17 +130,19 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		// Mix sample into nextdiluent sample
 		nextDilution := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 
-		// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
-		nextconcentration := wunit.DivideConcentration(newconcentration, float64(_input.DilutionFactor))
+		if newconcentration.RawValue() > 0 {
+			// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
+			nextconcentration := wunit.DivideConcentration(newconcentration, float64(_input.DilutionFactor))
 
-		// Rename the next dilution sample to show its new concentration
-		nextDilution.CName = nextconcentration.ToString() + " " + solutionname
+			// Rename the next dilution sample to show its new concentration
+			nextDilution.CName = nextconcentration.ToString() + " " + solutionname
 
-		// Normalise the name to a format that can be parsed for DOE elements
-		nextDilution.CName = normalise(nextDilution.CName)
+			// Normalise the name to a format that can be parsed for DOE elements
+			nextDilution.CName = normalise(nextDilution.CName)
 
-		// Set the new concentration to the next concentration calculated ready for the next round of the loop
-		newconcentration = nextconcentration
+			// Set the new concentration to the next concentration calculated ready for the next round of the loop
+			newconcentration = nextconcentration
+		}
 
 		// add to dilutions array
 		dilutions = append(dilutions, nextDilution)
