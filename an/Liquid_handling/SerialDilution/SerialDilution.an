@@ -21,6 +21,8 @@ Parameters (
 	ByRow bool
 	// If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.
 	WellsAlreadyUsed int
+	// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+	RemoveExcessSolution bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -44,8 +46,6 @@ Inputs (
 Outputs (
 	// The physical dilutions made by this element.
 	Dilutions []*LHComponent
-	// The excess solution removed from the final dilution, this is moved to the input plate.
-	Waste *LHComponent
 )
 
 Requirements {
@@ -165,9 +165,10 @@ Steps {
 		// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
 		disposeSample := mixer.Sample(firstDilution, solutionVolume)
 		
-		// export the waste solution
-		Waste = Mix(disposeSample)
-		
+		// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+		if RemoveExcessSolution {
+		Mix(disposeSample)
+		}
 // export as Output
 Dilutions = dilutions 
 

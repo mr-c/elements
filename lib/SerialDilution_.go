@@ -23,6 +23,8 @@ import (
 
 // If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.
 
+// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+
 // Data which is returned from this protocol, and data types
 
 // How many wells were used by this element in your output plate.
@@ -38,8 +40,6 @@ import (
 // Physical outputs from this protocol with types
 
 // The physical dilutions made by this element.
-
-// The excess solution removed from the final dilution, this is moved to the input plate.
 
 func _SerialDilutionRequirements() {
 
@@ -157,9 +157,10 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
 	disposeSample := mixer.Sample(firstDilution, solutionVolume)
 
-	// export the waste solution
-	_output.Waste = execute.Mix(_ctx, disposeSample)
-
+	// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+	if _input.RemoveExcessSolution {
+		execute.Mix(_ctx, disposeSample)
+	}
 	// export as Output
 	_output.Dilutions = dilutions
 
@@ -233,6 +234,7 @@ type SerialDilutionInput struct {
 	DilutionFactor         int
 	NumberOfDilutions      int
 	OutPlate               *wtype.LHPlate
+	RemoveExcessSolution   bool
 	Solution               *wtype.LHComponent
 	TotalVolumeperDilution wunit.Volume
 	WellsAlreadyUsed       int
@@ -240,7 +242,6 @@ type SerialDilutionInput struct {
 
 type SerialDilutionOutput struct {
 	Dilutions []*wtype.LHComponent
-	Waste     *wtype.LHComponent
 	WellsUsed int
 }
 
@@ -250,7 +251,6 @@ type SerialDilutionSOutput struct {
 	}
 	Outputs struct {
 		Dilutions []*wtype.LHComponent
-		Waste     *wtype.LHComponent
 	}
 }
 
@@ -266,11 +266,11 @@ func init() {
 				{Name: "DilutionFactor", Desc: "The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution.\n", Kind: "Parameters"},
 				{Name: "NumberOfDilutions", Desc: "The number of dilutions you wish to make.\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "The physical plate where your serial dilutions will be made.\n", Kind: "Inputs"},
+				{Name: "RemoveExcessSolution", Desc: "Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.\n", Kind: "Parameters"},
 				{Name: "Solution", Desc: "The physical solution you wish to serially dilute, e.g. BSA, DNA, Glucose.\n", Kind: "Inputs"},
 				{Name: "TotalVolumeperDilution", Desc: "This is the final volume that you will achieve after the dilutions have been performed.\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.\n", Kind: "Parameters"},
 				{Name: "Dilutions", Desc: "The physical dilutions made by this element.\n", Kind: "Outputs"},
-				{Name: "Waste", Desc: "The excess solution removed from the final dilution, this is moved to the input plate.\n", Kind: "Outputs"},
 				{Name: "WellsUsed", Desc: "How many wells were used by this element in your output plate.\n", Kind: "Data"},
 			},
 		},

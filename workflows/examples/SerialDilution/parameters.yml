@@ -8,3 +8,4 @@ Parameters:
     Solution: tartrazine
     TotalVolumeperDilution: 100ul
     WellsAlreadyUsed: 0
+    RemoveExcessSolution: true
