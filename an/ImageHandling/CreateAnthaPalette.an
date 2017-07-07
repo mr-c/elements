@@ -15,8 +15,8 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	AnthaPalette	*image.AnthaPalette	//AnthaPalette to be generated
-	//ColorVolume		Volume				//Volume of each color on the palette you want to generate
-	//PalettePlate	wtype.LHPlate		//Plate on which the palette will be generated
+	ColorVolume		Volume				//Volume of each color on the palette you want to generate
+	PalettePlate	wtype.LHPlate		//Plate on which the palette will be generated
 	LowerThreshold	int					//RGB value below which we do not create a color (we consider it nil). The number is between 0 and 65535.
 )
 
@@ -59,10 +59,6 @@ Steps {
 	//Placeholder for the current number of colors added to a solution.
 	colorsAdded := 1
 
-	//TODO Those globals are set up for testing
-	ColorVolume := wunit.NewVolume(10,"ul")
-	PalettePlate := factory.GetPlateByType("pcrplate_skirted")
-
 
 	//----------------------------------------------------------------------------------
 	//Generating colors
@@ -74,7 +70,6 @@ Steps {
 		//PlaceHolder for the LHComponent solution to be pipetted into the well
 		var solution *LHComponent
 
-		//TODO use this variable to fill the rest of the well?
 		//PlaceHolder for the total well volume
 		//var totalVolume []Volume
 		//Boolean checking if the solution being made for the current color is initialized

@@ -5,7 +5,6 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/microArch/factory"
-	"fmt"
 
 	goimage "image"
 	)
@@ -15,7 +14,7 @@ import (
 Parameters (
 	InputImage		*goimage.NRGBA		//Image to use for this element
 	AnthaPalette	*image.AnthaPalette	//Palette to use for this element
-	PlateName		string				//Name of the plate type to use to print the image
+	Plate			*wtype.LHPlate				//Plate which will be used to print the image
 )
 
 // Data which is returned from this protocol, and data types
@@ -48,14 +47,8 @@ Setup {
 // for every input
 Steps {
 
-
-	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
-	plate := factory.GetPlateByType(PlateName)
-
 	//This function will create an AnthaImage object from a digital image.
-	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, plate)
-
-	fmt.Println("AnthaImage made")
+	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, Plate)
 
 }
 // Run after controls and a steps block are completed to

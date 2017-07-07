@@ -2,7 +2,6 @@
 package lib
 
 import (
-	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/microArch/factory"
@@ -19,7 +18,7 @@ import (
 
 //Image to use for this element
 //Palette to use for this element
-//Name of the plate type to use to print the image
+//Plate which will be used to print the image
 
 // Data which is returned from this protocol, and data types
 
@@ -43,13 +42,8 @@ func _MakeAnthaImageSetup(_ctx context.Context, _input *MakeAnthaImageInput) {
 // for every input
 func _MakeAnthaImageSteps(_ctx context.Context, _input *MakeAnthaImageInput, _output *MakeAnthaImageOutput) {
 
-	//TODO: There should be an emlement to do this from parameters, but for now we have to use a string to refer to it
-	plate := factory.GetPlateByType(_input.PlateName)
-
 	//This function will create an AnthaImage object from a digital image.
-	_output.AnthaImage, _output.ResizedImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, plate)
-
-	fmt.Println("AnthaImage made")
+	_output.AnthaImage, _output.ResizedImage = image.MakeAnthaImg(_input.InputImage, _input.AnthaPalette, _input.Plate)
 
 }
 
@@ -115,7 +109,7 @@ type MakeAnthaImageElement struct {
 type MakeAnthaImageInput struct {
 	AnthaPalette *image.AnthaPalette
 	InputImage   *goimage.NRGBA
-	PlateName    string
+	Plate        *wtype.LHPlate
 }
 
 type MakeAnthaImageOutput struct {
@@ -141,7 +135,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AnthaPalette", Desc: "Palette to use for this element\n", Kind: "Parameters"},
 				{Name: "InputImage", Desc: "Image to use for this element\n", Kind: "Parameters"},
-				{Name: "PlateName", Desc: "Name of the plate type to use to print the image\n", Kind: "Parameters"},
+				{Name: "Plate", Desc: "Plate which will be used to print the image\n", Kind: "Parameters"},
 				{Name: "AnthaImage", Desc: "converted image to anthaImage\n", Kind: "Data"},
 				{Name: "ResizedImage", Desc: "Image resized to fit plate\n", Kind: "Data"},
 			},

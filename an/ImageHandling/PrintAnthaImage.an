@@ -52,9 +52,6 @@ Steps {
 	var pixelSolution *LHComponent
 	var wellLocation  string
 
-	//TODO: temporary fixed pixel volume for testing
-	pixelVolume := wunit.NewVolume(50,"ul")
-
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
@@ -70,7 +67,7 @@ Steps {
 		wellLocation = pix.Location.FormatA1()
 
 		//initiating the LHComponent with the volume
-		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
+		pixelSolution = mixer.Sample(pixelSolution, PixVolume)
 
 		//Executing the liquidHandling action
 		MixNamed(AnthaImage.Plate.Type, wellLocation, AnthaImage.Plate.ID, pixelSolution)

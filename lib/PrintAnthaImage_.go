@@ -45,9 +45,6 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 	var pixelSolution *wtype.LHComponent
 	var wellLocation string
 
-	//TODO: temporary fixed pixel volume for testing
-	pixelVolume := wunit.NewVolume(50, "ul")
-
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
@@ -62,7 +59,7 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 		wellLocation = pix.Location.FormatA1()
 
 		//initiating the LHComponent with the volume
-		pixelSolution = mixer.Sample(pixelSolution, pixelVolume)
+		pixelSolution = mixer.Sample(pixelSolution, _input.PixVolume)
 
 		//Executing the liquidHandling action
 		execute.MixNamed(_ctx, _input.AnthaImage.Plate.Type, wellLocation, _input.AnthaImage.Plate.ID, pixelSolution)

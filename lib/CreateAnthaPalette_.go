@@ -18,8 +18,8 @@ import (
 // Input parameters for this protocol (data)
 
 //AnthaPalette to be generated
-//ColorVolume		Volume				//Volume of each color on the palette you want to generate
-//PalettePlate	wtype.LHPlate		//Plate on which the palette will be generated
+//Volume of each color on the palette you want to generate
+//Plate on which the palette will be generated
 //RGB value below which we do not create a color (we consider it nil). The number is between 0 and 65535.
 
 // Data which is returned from this protocol, and data types
@@ -54,10 +54,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 	//Placeholder for the current number of colors added to a solution.
 	colorsAdded := 1
 
-	//TODO Those globals are set up for testing
-	ColorVolume := wunit.NewVolume(10, "ul")
-	PalettePlate := factory.GetPlateByType("pcrplate_skirted")
-
 	//----------------------------------------------------------------------------------
 	//Generating colors
 	//----------------------------------------------------------------------------------
@@ -68,7 +64,6 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 		//PlaceHolder for the LHComponent solution to be pipetted into the well
 		var solution *wtype.LHComponent
 
-		//TODO use this variable to fill the rest of the well?
 		//PlaceHolder for the total well volume
 		//var totalVolume []Volume
 		//Boolean checking if the solution being made for the current color is initialized
@@ -82,10 +77,10 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 
 		//figure out the volumes needed for the color and adding them to a map for easier iteration
 		volumes := map[string]wunit.Volume{
-			"c": wunit.NewVolume((float64(c)/float64(maxCMYK))*ColorVolume.RawValue(), ColorVolume.Unit().PrefixedSymbol()),
-			"m": wunit.NewVolume((float64(m)/float64(maxCMYK))*ColorVolume.RawValue(), ColorVolume.Unit().PrefixedSymbol()),
-			"y": wunit.NewVolume((float64(y)/float64(maxCMYK))*ColorVolume.RawValue(), ColorVolume.Unit().PrefixedSymbol()),
-			"k": wunit.NewVolume((float64(k)/float64(maxCMYK))*ColorVolume.RawValue(), ColorVolume.Unit().PrefixedSymbol()),
+			"c": wunit.NewVolume((float64(c)/float64(maxCMYK))*_input.ColorVolume.RawValue(), _input.ColorVolume.Unit().PrefixedSymbol()),
+			"m": wunit.NewVolume((float64(m)/float64(maxCMYK))*_input.ColorVolume.RawValue(), _input.ColorVolume.Unit().PrefixedSymbol()),
+			"y": wunit.NewVolume((float64(y)/float64(maxCMYK))*_input.ColorVolume.RawValue(), _input.ColorVolume.Unit().PrefixedSymbol()),
+			"k": wunit.NewVolume((float64(k)/float64(maxCMYK))*_input.ColorVolume.RawValue(), _input.ColorVolume.Unit().PrefixedSymbol()),
 		}
 
 		//Check if the values for each colors is lower than the lowerThreshold defined, if they are we do not produce this palette color
@@ -109,7 +104,7 @@ func _CreateAnthaPaletteSteps(_ctx context.Context, _input *CreateAnthaPaletteIn
 					}
 
 					//since this is the first color to be pipetted, we use MixNamed to instantiate the LHComponent
-					solution = execute.MixNamed(_ctx, PalettePlate.Type, "", "Palette", sample)
+					solution = execute.MixNamed(_ctx, _input.PalettePlate.Type, "", "Palette", sample)
 
 					//change to pipette above to signal LHComponents are still to be added
 					sample.Type = wtype.LTDISPENSEABOVE
@@ -219,7 +214,9 @@ type CreateAnthaPaletteElement struct {
 
 type CreateAnthaPaletteInput struct {
 	AnthaPalette   *image.AnthaPalette
+	ColorVolume    wunit.Volume
 	LowerThreshold int
+	PalettePlate   wtype.LHPlate
 }
 
 type CreateAnthaPaletteOutput struct {
@@ -242,7 +239,9 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/ImageHandling/CreateAnthaPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaPalette", Desc: "AnthaPalette to be generated\n", Kind: "Parameters"},
-				{Name: "LowerThreshold", Desc: "ColorVolume\t\tVolume\t\t\t\t//Volume of each color on the palette you want to generate\nPalettePlate\twtype.LHPlate\t\t//Plate on which the palette will be generated\n\nRGB value below which we do not create a color (we consider it nil). The number is between 0 and 65535.\n", Kind: "Parameters"},
+				{Name: "ColorVolume", Desc: "Volume of each color on the palette you want to generate\n", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "RGB value below which we do not create a color (we consider it nil). The number is between 0 and 65535.\n", Kind: "Parameters"},
+				{Name: "PalettePlate", Desc: "Plate on which the palette will be generated\n", Kind: "Parameters"},
 				{Name: "MixedAnthaPalette", Desc: "The palette with physical location information added to the LHComponents.\n", Kind: "Outputs"},
 			},
 		},
