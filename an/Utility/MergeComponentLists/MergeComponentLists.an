@@ -9,13 +9,10 @@ import (
 )
 
 // Parameters to this protocol
-Parameters (
-
-)
+Parameters ()
 
 // Output data of this protocol
-Data (
-)
+Data ()
 
 // Physical inputs to this protocol
 Inputs (
@@ -35,15 +32,15 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	
+
 	for _, component := range ComponentsA {
-		MergedComponents = append(MergedComponents,component)
+		MergedComponents = append(MergedComponents, component)
 	}
-	
+
 	for _, component := range ComponentsB {
-		MergedComponents = append(MergedComponents,component)
+		MergedComponents = append(MergedComponents, component)
 	}
-	
+
 }
 
 // Run after controls and a steps block are completed to post process any data

@@ -1,9 +1,9 @@
 protocol ReactionMix
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"fmt"
 )
 
 // Input parameters for this protocol (data)
@@ -14,11 +14,10 @@ Parameters (
 	LigaseV Volume
 	ATPV Volume
 	REV Volume
-	
+
 	ReactionVolume Volume
-	ReactionTemp	Temperature
-	ReactionTime	Time
-	
+	ReactionTemp Temperature
+	ReactionTime Time
 )
 
 // Physical Inputs to this protocol with types
@@ -30,11 +29,10 @@ Inputs (
 	ATP *LHComponent
 	RE *LHComponent
 	Water *LHComponent
-	
+
 	InPlate *LHPlate
 	OutPlate *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
@@ -42,46 +40,41 @@ Outputs (
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-	
-)
+Data ()
 
 Requirements {}
 
 // Conditions to run on startup
 Setup {}
 
-
 Steps {
-	
-	fmt.Println("Components:",Components)
-	
+
+	fmt.Println("Components:", Components)
+
 	samples := make([]*LHComponent, 0)
-	
+
 	VectorS := mixer.Sample(Vector, VectorV)
 	BufferS := mixer.Sample(Buffer, BufferV)
 	LigaseS := mixer.Sample(Ligase, LigaseV)
 	ATPS := mixer.Sample(ATP, ATPV)
 	RES := mixer.Sample(RE, REV)
-	
+
 	//com := []Volume{VectorV, BufferV, LigaseV, ATPV, REV}
 	//WaterS := mixer.TopUpVolume(Water, com, ReactionVolume)
-	WaterS:=mixer.SampleForTotalVolume(Water, ReactionVolume)
-	
+	WaterS := mixer.SampleForTotalVolume(Water, ReactionVolume)
+
 	ComponentsS := mixer.MultiSample(Components, ComponentsV)
-	
+
 	samples = append(samples, VectorS, BufferS, LigaseS, ATPS, RES, WaterS)
 	samples = append(samples, ComponentsS...)
-	
+
 	// Incubate
 	Reaction = Incubate(mixer.MixInto(OutPlate, "", samples...), ReactionTemp, ReactionTime, false)
-	
-}
 
+}
 
 Analysis {
 }
-
 
 Validation {
 }

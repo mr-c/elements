@@ -2,60 +2,58 @@
 protocol TransformationEfficiency
 
 // Place golang packages to import here
-import (
-)
- 
+import ()
+
 type transformationEfficiency struct {
 	CFUperugperml float64
-	MetaData metaData 
+	MetaData      metaData
 }
 
-
 type metaData struct {
-	CFU int
+	CFU            int
 	PlateOutVolume Volume
-	DNA DNASequence
-	DNAMass Mass
-	Assembly map[string][]DNASequence
+	DNA            DNASequence
+	DNAMass        Mass
+	Assembly       map[string][]DNASequence
 }
 
 type relativeTransformationEfficiency struct {
-	ControlEfficiency transformationEfficiency
+	ControlEfficiency      transformationEfficiency
 	ExperimentalEfficiency transformationEfficiency
 }
 
-func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(cfuperugperml float64){
+func calcTransformationEfficiency(colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass) (cfuperugperml float64) {
 	cfuperugperml = float64(colonyCount) * float64(plateOutdilutionX) / ((volumeToml(plateoutVolumeinml)) * massToug(dnamassinug))
 	return
 }
 
-func newTransformationEfficiency(seq DNASequence colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass)(efficiency transformationEfficiency){
-	cfuperugperml := calcTransformationEfficiency(colonyCount,plateoutVolumeinml,plateOutdilutionX,dnamassinug)
-		
-		efficiency = transformationEfficiency{
-			CFUperugperml:cfuperugperml,
-			MetaData: metaData{
-							CFU: colonyCount,
-							PlateOutVolume: plateoutVolumeinml,
-							DNAMass: dnamassinug,
-							DNA: seq,},
-		}
-		return efficiency
+func newTransformationEfficiency(seq DNASequence, colonyCount int, plateoutVolumeinml Volume, plateOutdilutionX int, dnamassinug Mass) (efficiency transformationEfficiency) {
+	cfuperugperml := calcTransformationEfficiency(colonyCount, plateoutVolumeinml, plateOutdilutionX, dnamassinug)
+
+	efficiency = transformationEfficiency{
+		CFUperugperml: cfuperugperml,
+		MetaData: metaData{
+			CFU:            colonyCount,
+			PlateOutVolume: plateoutVolumeinml,
+			DNAMass:        dnamassinug,
+			DNA:            seq},
+	}
+	return efficiency
 }
 
-func volumeToml (volume Volume) (volumeinml float64) {
+func volumeToml(volume Volume) (volumeinml float64) {
 	volumeinml = volume.SIValue() * 1000
-return	
+	return
 }
 
-func massToug (mass Mass) (massinug float64) {
+func massToug(mass Mass) (massinug float64) {
 	massinug = mass.SIValue() * 1000000000
 	return
 }
 
 // Parameters to this protocol
 Parameters (
-	TransformationName string 
+	TransformationName string
 	ColonyCount int
 	ControlColonyCount int
 	DNAMass Mass
@@ -76,13 +74,10 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs (
-			
-)
+Inputs ()
 
 // Physical outputs to this protocol
-Outputs (
-)
+Outputs ()
 
 // Conditions to run on startup
 Setup {
@@ -91,23 +86,21 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	
+
 	var platoutDilutioninX int = 1
-	
-	
+
 	// calculate transformation efficiency of experiemntal sample
-	EquivalentTransformationEfficiency = newTransformationEfficiency(DNA,ColonyCount,PlateOutVolume,platoutDilutioninX,DNAMass)
-	
+	EquivalentTransformationEfficiency = newTransformationEfficiency(DNA, ColonyCount, PlateOutVolume, platoutDilutioninX, DNAMass)
+
 	// calculate transformation efficiency of control sample
-	ControlTransformationEfficiency = newTransformationEfficiency(ControlDNA,ControlColonyCount,ControlPlateOutVolume,platoutDilutioninX,ControlDNAMass)
-	
+	ControlTransformationEfficiency = newTransformationEfficiency(ControlDNA, ControlColonyCount, ControlPlateOutVolume, platoutDilutioninX, ControlDNAMass)
+
 	// Calculate relative transformation efficiency
 	RelativeTransformationEfficiency.ControlEfficiency = ControlTransformationEfficiency
-	
+
 	RelativeTransformationEfficiency.ExperimentalEfficiency = EquivalentTransformationEfficiency
 
 }
-
 
 // Run after controls and a steps block are completed to post process any data
 // and provide downstream results

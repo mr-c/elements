@@ -1,7 +1,9 @@
 {
   "Parameters": {
     "AliquotParams": {
+      "ByRow": false,
       "ChangeSolutionName": "",
+      "NumberOfReplicaPlates": 3,
       "NumberofAliquots": 8,
       "OutPlate": "pcrplate_with_cooler",
       "PreMix": false,

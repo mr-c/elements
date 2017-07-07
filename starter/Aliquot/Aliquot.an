@@ -1,119 +1,144 @@
 // The Aliquot element will transfer a defined liquid at defined volumes a specified number of times into a chosen plate type.
-// The user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand 
-// (e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired 
-// into the Solution parameter of this element for aliquoting. If the solution already exists in your lab or has been made manually but a definition for this solution does 
-// not exist in the Antha library then the AddNewLHComponent element can be used to define this solution with the output from the 
+// The user has the option to premix the solution to be aliquoted if the input solution tends to sediment or separate when left to stand
+// (e.g. a suspension of cells in media) or has recently been thawed. Upstream elements that produce solutions as outputs can be wired
+// into the Solution parameter of this element for aliquoting. If the solution already exists in your lab or has been made manually but a definition for this solution does
+// not exist in the Antha library then the Add_Solution element can be used to define this solution with the output from the
 // element wired into the Solution parameter of this element.
 protocol Aliquot
 
 import (
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
 	// This parameter represents the volume of solution that you have in the lab available to be aliquoted. It does not represent the total volume to be aliquoted or the volume of liquid that will be used.
-	SolutionVolume Volume 
+	SolutionVolume Volume
 	// This parameter dictates the final volume each aliquot will have.
-	VolumePerAliquot  Volume 
+	VolumePerAliquot Volume
 	// This parameter states the number of aliquots that will be made from the input Solution.
-	NumberofAliquots int 
+	NumberofAliquots int
+	// This parameter states whether the aliquots should be made by row or column.
+	ByRow bool
+	// This parameter sets the number of replica plates to perform aliquots to. Default number of plates is 1.
+	NumberOfReplicaPlates int
 	// This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transfer.
-	PreMix bool 
+	PreMix bool
 	// This parameter is an optional field. If you want to change the name of the input Solution for traceability then do so. If not the default name will be given as the chosen input Solution LHComponent name.
-	ChangeSolutionName string 
-	// This parameter is an optional field. If set to true then the aliquots will be transferred to a specific named plate such that if two instances of this element are run in parallel the aliquots from both will be put on the same output plate rather than two separate output plates.
-	OptimisePlateUsage bool 
+	ChangeSolutionName string
+	// This parameter is an optional field. It states the number of wells that have already been used in the output plate and will start making aliquots from this position onwards. If there is more than one replica plate all plates would have the same number of wells already used.
+	WellsAlreadyUsed int
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	
+	// This data output is a count of how many wells have been used in the output plate.
+	WellsUsed int
 )
-
 
 // Physical Inputs to this protocol with types
 Inputs (
-	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the AddNewLHComponent element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
-	Solution *LHComponent 
+	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
+	Solution *LHComponent
 	// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
-	OutPlate *LHPlate 
-	
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
 	// This is a list of the resulting aliquots that have been made by the element.
-	Aliquots []*LHComponent 
+	Aliquots []*LHComponent
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	number := SolutionVolume.SIValue()/VolumePerAliquot.SIValue()
+
+	number := SolutionVolume.SIValue() / VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	if possiblenumberofAliquots < NumberofAliquots {
 		Errorf("Not enough solution for this many aliquots")
 	}
-	
-	// if PreMix is selected change liquid type accordingly 
+
+	//check if maxvolume of outplate is higher than specified aliquot volume
+	if OutPlate.Welltype.MaxVolume().LessThanRounded(VolumePerAliquot, 5) {
+		Errorf("Aliquot volume specified (%s) too high for well capacity (%s) of current plate (%s)", VolumePerAliquot.ToString(), OutPlate.Welltype.MaxVolume(), OutPlate.Name())
+	}
+
+	// if PreMix is selected change liquid type accordingly
 	if PreMix {
 		Solution.Type = wtype.LTPreMix
 	}
-	
-	// if a solution name is given change the name 
-	if ChangeSolutionName != ""{
+
+	// if a solution name is given change the name
+	if ChangeSolutionName != "" {
 		Solution.CName = ChangeSolutionName
 	}
+
+	// This code allows the user to specify how the aliquots should be made, by row or by column.	
+	allwellpositions := OutPlate.AllWellPositions(ByRow)
+
+	aliquots := make([]*LHComponent, 0)
+
+	// This code checks to make sure the number of replica plates is greater than 0.
+	if NumberOfReplicaPlates < 1 {
+	Errorf("Number of replica plates must be greater than 0")
+	}
+
+	// This loop allows the user to specify the number of replica plates of aliquots they want.
+	for platenumber := 1; platenumber < (NumberOfReplicaPlates + 1); platenumber++{
+		var counter int = WellsAlreadyUsed
 	
-	aliquots := make([]*LHComponent,0)
-	
-	
+	// This loop cycles through the number of aliquots required	
 	for i := 0; i < NumberofAliquots; i++ {
-		if Solution.TypeName() == "dna"{
-		Solution.Type = wtype.LTDoNotMix
+		
+		// This statement changes the liquid handling policy if the soultion being aliquoted is DNA to avoid cross contamination.
+		if Solution.TypeName() == "dna" {
+			Solution.Type = wtype.LTDoNotMix
 		}
 		aliquotSample := mixer.Sample(Solution, VolumePerAliquot)
 		
-		// the MixInto command is used instead of Mix to specify the plate
-		// MixInto allows you to specify the exact plate to MixInto (i.e. rather than just a plate type. e.g. barcode 123214234)
-		// the three input fields to the MixInto command represent 
-		// 1. the plate 
-		// 2. well location as a  string e.g. "A1" (in this case leaving it blank "" will leave the well location up to the scheduler),
-		// 3. the sample or array of samples to be mixed
-		var aliquot *LHComponent
-		if OptimisePlateUsage{
-		aliquot = MixNamed(OutPlate.Type, "","AliquotPlate", aliquotSample)
-		}else{
-		aliquot = MixInto(OutPlate, "", aliquotSample)	
+		var aliquot *LHComponent	
+			
+		// The MixTo command here cycles through the well positions of the chosen plate type and plate number for each aliquot.
+		// the MixTo command is used instead of Mix to specify the plate type (e.g. "greiner384" or "pcrplate_skirted")
+		// the four input fields to the MixTo command represent
+		// 1. the platetype as a string: commonly the input to the antha element will actually be an LHPlate rather than a string so the type field can be accessed with OutPlate.Type
+		// 2. well location as a  string e.g. "A1" (in this instance determined by a counter and the plate type or leaving it blank "" will leave the well location up to the scheduler),
+		// 3. the plate number as an integer, starting from 1 (not zero)
+		// 4. the sample or array of samples to be mixed; in the case of an array you'd normally feed this in as samples...
+		aliquot = MixTo(OutPlate.Type, allwellpositions[counter], platenumber, aliquotSample)
+
+		if aliquot != nil {
+			aliquots = append(aliquots, aliquot)
 		}
-		if aliquot != nil{
-				aliquots = append(aliquots,aliquot)
-			}
+		// Counter is increased by 1 each cycle of the loop to keep track of the wells used.
+		counter++
+	}
+		WellsUsed = counter
 	}
 	Aliquots = aliquots
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
 }
 
-// A block of tests to perform to validate that the sample was processed 
-//correctly. Optionally, destructive tests can be performed to validate 
+// A block of tests to perform to validate that the sample was processed
+//correctly. Optionally, destructive tests can be performed to validate
 //results on a dipstick basis
 Validation {
-	
+
 }

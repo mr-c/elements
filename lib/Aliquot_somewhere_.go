@@ -6,7 +6,7 @@ import
 // we can import code libraries and use functions and types from these libraries
 (
 	"context"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/mixer" // the Sample function is imported from mixer
 	"github.com/antha-lang/antha/antha/anthalib/wtype" // the LHComponent type is imported from this library
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
@@ -14,8 +14,6 @@ import
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
 )
-
-// the Sample function is imported from mixer
 
 // Input parameters for this protocol (data)
 

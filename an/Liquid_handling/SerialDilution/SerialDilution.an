@@ -5,31 +5,46 @@ protocol SerialDilution
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"	
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wunit"
 )
 
 
 // Input parameters for this protocol (data)
 Parameters (
+	// This is the final volume that you will achieve after the dilutions have been performed.
 	TotalVolumeperDilution Volume
-	DilutionFactor  int // e.g. 10 would take 1 part solution to 9 parts diluent for each dilution 
+	// The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution. 
+	DilutionFactor  int
+	// The number of dilutions you wish to make.
 	NumberOfDilutions int
+	// An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.
+	ByRow bool
+	// If using a plate that already has solutions in other wells you can specify from which well you want your serial dilution to start from.
+	WellsAlreadyUsed int
+	// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+	RemoveExcessSolution bool
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	
+	// How many wells were used by this element in your output plate.
+	WellsUsed int
 )
 
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Solution *LHComponent 
+	// The physical solution you wish to serially dilute, e.g. BSA, DNA, Glucose.
+	Solution *LHComponent
+	// The physical solution you want to make your dilutions into, e.g. water, Buffer.
 	Diluent *LHComponent
+	//The physical plate where your serial dilutions will be made.
 	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
+	// The physical dilutions made by this element.
 	Dilutions []*LHComponent
 )
 
@@ -46,9 +61,15 @@ Setup {
 // for every input
 Steps {
 	
+	// This code allows the user to specify how the Serial Dilutions should be made in order, by row or by column.
+	allwellpositions := OutPlate.AllWellPositions(ByRow)
+	var counter int = WellsAlreadyUsed
+
+	// Create a slice to store our liquid handling instructions for all our serial dilutions.
 	dilutions := make([]*LHComponent,0)
 
-	var aliquot *LHComponent
+	// Create a variable to store the liquid handling instructions for a single dilution
+	var firstDilution *LHComponent
 	
 	// calculate solution volume
 	
@@ -56,55 +77,102 @@ Steps {
 	solutionVolume := (wunit.CopyVolume(TotalVolumeperDilution))
 	
 	// use divideby method
-	solutionVolume.DivideBy(float64(DilutionFactor)) 
-	
-	// use same approach to work out diluent volume to add	
-	diluentVolume := (wunit.CopyVolume(TotalVolumeperDilution))
-	
-	// this time using the substract method
-	diluentVolume.Subtract(solutionVolume)	
+	solutionVolume.DivideBy(float64(DilutionFactor) - 1.00) 
 	
 	// sample diluent
-	diluentSample := mixer.Sample(Diluent,diluentVolume)
+	diluentSample := mixer.Sample(Diluent,TotalVolumeperDilution)
 		
 	// Ensure liquid type set to Pre and Post Mix 
-	Solution.Type = wtype.LTNeedToMix
-		// check if the enzyme is specified and if not mix the 
-		
-	
+	Solution.Type = wtype.LTNeedToMix		
 	
 	// sample solution
 	solutionSample := mixer.Sample(Solution,solutionVolume)
 	
-	// mix both samples to OutPlate
-	aliquot = MixTo(OutPlate.Type,"", 1,diluentSample, solutionSample)
+	// mix both diluent and sample to OutPlate
+	firstDilution = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
+	
+	// Create a variable to store the solution name in
+	var solutionname string
+	
+	// Create a variable to store the calculated concentration per solution
+	var newconcentration Concentration
+	
+	// If the Stock Solution has a concentration associated with it then rename the diluted solution with its new concentration
+	if Solution.HasConcentration() {
+		
+		// extract the solution name as a string and store in our solution name variable
+		solutionname = Solution.CName
+		
+		// extract the solution concentration as a string and store in our solution concentration variable
+		solutionConcentration := Solution.Concentration()
+		
+		// Calculate the new concentration after dilution by dividing the solution concentration by the dilution factor
+		newconcentration = wunit.DivideConcentration(solutionConcentration, float64(DilutionFactor))
+		
+		// Rename the first dilution sample to contain the concentration in its name
+		firstDilution.CName = newconcentration.ToString() + " " + solutionname
+		
+		// Normalise the name to a format that can be parsed for DOE elements
+		firstDilution.CName = normalise(firstDilution.CName)
+	}
 
+	
 	// add to dilutions array
-	dilutions = append(dilutions,aliquot)
+	dilutions = append(dilutions,firstDilution)
+	
+	// add 1 to our counter to keep track of the number of wells that have been used
+	counter++
 	
 	// loop through NumberOfDilutions until all serial dilutions are made
 	for k := 1; k < NumberOfDilutions; k++ {
 		
 		// take next sample of diluent
-		nextdiluentSample := mixer.Sample(Diluent, diluentVolume)
+		nextDiluentSample := mixer.Sample(Diluent, TotalVolumeperDilution)
 		
 		// Ensure liquid type set to Pre and Post Mix 
-		aliquot.Type = wtype.LTNeedToMix
+		firstDilution.Type = wtype.LTNeedToMix
 		
 		// sample from previous dilution sample
-		nextSample := mixer.Sample(aliquot, solutionVolume)
+		nextSample := mixer.Sample(firstDilution, solutionVolume)
 		
 		// Mix sample into nextdiluent sample
-		nextaliquot := Mix(nextdiluentSample,nextSample)
+		nextDilution := MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
 		
-		// add to dilutions array 
-		dilutions = append(dilutions,nextaliquot)
-		// reset aliquot
-		aliquot = nextaliquot
+		if newconcentration.RawValue() > 0  {
+		// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
+		nextconcentration := wunit.DivideConcentration(newconcentration, float64(DilutionFactor))
+		
+		// Rename the next dilution sample to show its new concentration
+		nextDilution.CName = nextconcentration.ToString() + " " + solutionname
+		
+		// Normalise the name to a format that can be parsed for DOE elements
+		nextDilution.CName = normalise(nextDilution.CName)
+		
+		// Set the new concentration to the next concentration calculated ready for the next round of the loop
+		newconcentration = nextconcentration
 		}
 		
+		// add to dilutions array 
+		dilutions = append(dilutions,nextDilution)
+		
+		// reset aliquot
+		firstDilution = nextDilution
+		
+		// add 1 to the counter to keep track of the wells used in our output plate
+		counter++
+		}
+		
+		// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
+		if RemoveExcessSolution {
+		// Remove the aditional solution volume from the final dilution and move it to the input plate such that the final dilution volume equals the user defined final volume.
+		disposeSample := mixer.Sample(firstDilution, solutionVolume)
+		Mix(disposeSample)
+		}
 // export as Output
 Dilutions = dilutions 
+
+// Output the number of wells that have been used on this plate
+WellsUsed = counter
 
 }
 // Run after controls and a steps block are completed to

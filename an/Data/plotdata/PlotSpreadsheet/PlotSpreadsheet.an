@@ -2,10 +2,10 @@
 protocol PlotSpreadsheet
 
 import (
-	"unicode"
-	"strings"
-	"strconv"
 	"bytes"
+	"strconv"
+	"strings"
+	"unicode"
 
 	"github.com/antha-lang/antha/antha/anthalib/wutil"
 	"github.com/gonum/plot"
@@ -16,7 +16,7 @@ import (
 )
 
 // Input parameters for this protocol (data)
-Parameters  (
+Parameters (
 	XlsFile File
 	// Which sheet to load from XlsFile. 0 is the first sheet.
 	Sheet int
@@ -40,12 +40,12 @@ Data (
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed for every
@@ -75,7 +75,7 @@ Steps {
 	readCells := func(sheet *xlsx.Sheet, cellRange string) []float64 {
 		c := strings.SplitN(cellRange, ":", 2)
 		if len(c) < 2 {
-			c = []string {"A1", "A1"}
+			c = []string{"A1", "A1"}
 		}
 		startCol, startRow := index(c[0])
 		endCol, endRow := index(c[1])
@@ -90,8 +90,8 @@ Steps {
 		total := (endRow - startRow + 1) * (endCol - startCol + 1)
 		vs := make([]float64, total)
 		idx := 0
-		for i := startRow; i < endRow + 1; i++ {
-			for j := startCol; j < endCol + 1; j++ {
+		for i := startRow; i < endRow+1; i++ {
+			for j := startCol; j < endCol+1; j++ {
 				v, _ := sheet.Rows[i].Cells[j].Float()
 				if len(sheet.Rows) <= i {
 					Errorf("invalid cell %s%d", wutil.NumToAlpha(j+1), i+1)
@@ -118,9 +118,9 @@ Steps {
 	var yvalues [][]float64
 	for idx, yrange := range YRanges {
 		ys := readCells(sheet, yrange)
-		if lx, ly := len(xvalues) , len(ys); lx != ly {
+		if lx, ly := len(xvalues), len(ys); lx != ly {
 			Errorf("number of x values (%d) does not equal number of y values (%d) for %dth y range",
-				lx, ly, idx) 
+				lx, ly, idx)
 		}
 		yvalues = append(yvalues, ys)
 	}
@@ -164,7 +164,7 @@ Steps {
 	var out bytes.Buffer
 	w.WriteTo(&out)
 
-	Plot.Name = "plot."+PlotFormat
+	Plot.Name = "plot." + PlotFormat
 	Plot.WriteAll(out.Bytes())
 }
 
@@ -177,5 +177,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
+
 }

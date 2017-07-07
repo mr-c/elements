@@ -12,10 +12,9 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*LHComponent
-	OutputPlateType		string
+	Parts []*LHComponent
+	OutputPlateType string
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
@@ -35,19 +34,19 @@ Setup {}
 Steps {
 	var m *LHComponent
 
-	for k:=0;k<len(Vols);k++{
+	for k := 0; k < len(Vols); k++ {
 		var s *LHComponent
-		if !Vols[k].IsZero(){
+		if !Vols[k].IsZero() {
 			s = mixer.Sample(Parts[k], Vols[k])
-			if m!=nil{
-			 m = Mix(m,s)
-			}else{
-			 m = MixTo(OutputPlateType, "", 1, s)
+			if m != nil {
+				m = Mix(m, s)
+			} else {
+				m = MixTo(OutputPlateType, "", 1, s)
 			}
 		}
 	}
 
-	Reaction = m 
+	Reaction = m
 }
 
 // Run after controls and a steps block are completed to

@@ -1,27 +1,27 @@
 // example protocol for loading a DNAgel
 
 protocol DNA_gel_fromCSV
+
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	inplate "github.com/antha-lang/antha/target/mixer"
-
 )
+
 // Input parameters for this protocol (data)
 Parameters (
-	
 	ProjectName string
 	Loadingdyeinsample bool
 	InputCSVfile string
 	Samplenumber int
-	Watervol	Volume
+	Watervol Volume
 	LadderVolume Volume
 	Loadingdyevolume Volume
 	DNAgelrunvolume Volume
-	
+
 	Mixingpolicy PolicyName //wtype.LiquidType
-	
+
 	//DNAladder Volume // or should this be a concentration?
 
 	//DNAgelruntime time.Duration
@@ -37,7 +37,7 @@ Parameters (
 
 // Data which is returned from this protocol, and data types
 Data (
-   //	NumberofBands[] int
+	//	NumberofBands[] int
 	//Bandsizes[] Length
 	//Bandconc[]Concentration
 	//Pass bool
@@ -45,18 +45,17 @@ Data (
 	Error error
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-    Water	*LHComponent
+	Water *LHComponent
 	Ladder *LHComponent
-	Sampletotest *LHComponent//WaterSolution
-	Loadingdye *LHComponent//WaterSolution //Chemspiderlink // not correct link but similar desirable
-	DNAgel *LHPlate  // gel
-	MixPlate *LHPlate// plate to mix samples if required
+	Sampletotest *LHComponent //WaterSolution
+	Loadingdye *LHComponent   //WaterSolution //Chemspiderlink // not correct link but similar desirable
+	DNAgel *LHPlate           // gel
+	MixPlate *LHPlate         // plate to mix samples if required
 
 	//DNAladder *LHComponent//NucleicacidSolution
-    //Water *LHComponent//WaterSolution
+	//Water *LHComponent//WaterSolution
 
 	//DNAgelbuffer *LHComponent//WaterSolution
 	//DNAgelNucleicacidintercalator *LHComponent//ToxicSolution // e.g. ethidium bromide, sybrsafe
@@ -67,15 +66,15 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-	Loadedsamples []*LHComponent//Gel
-    //
+	Loadedsamples []*LHComponent //Gel
+	//
 )
 
 // No special requirements on inputs
 Requirements {
-    // None
-/* QC if negative result should still show band then include QC which will result in band // in reality this may never happen... the primers should be designed within antha too
-control blank with no template_DNA */
+	// None
+	/* QC if negative result should still show band then include QC which will result in band // in reality this may never happen... the primers should be designed within antha too
+	   control blank with no template_DNA */
 }
 
 // Condititions run on startup
@@ -94,142 +93,137 @@ Setup {
 Steps {
 
 	// parse sample locations from file
-	inputplate,err := inplate.ParseInputPlateFile(InputCSVfile) 
-	
+	inputplate, err := inplate.ParseInputPlateFile(InputCSVfile)
+
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
-	// count number of colonies from inplate	
-	loadedsamples := make([]*LHComponent,0)
-	wells := make([]string,0)
-	volumes := make([]Volume,0)
-	
+
+	// count number of colonies from inplate
+	loadedsamples := make([]*LHComponent, 0)
+	wells := make([]string, 0)
+	volumes := make([]Volume, 0)
+
 	var DNAgelloadmix *LHComponent
 	var loadedsample *LHComponent
 	Water.Type = wtype.LTloadwater
-	
+
 	var counter int
-	
+
 	// work out sample volume
-	
+
 	// copy volume
 	samplevolume := (wunit.CopyVolume(DNAgelrunvolume))
-		
+
 	// subtract volume of water
 	samplevolume.Subtract(Watervol)
 	/*
-	// add ladder sample to first column
-	loadedsample = MixInto(
-	DNAgel,
-	DNAgel.AllWellPositions(wtype.BYROW)[counter],
-	mixer.Sample(Water,Watervol),
-	mixer.Sample(Ladder, samplevolume),
-	)
-
-	loadedsamples = append(Loadedsamples,loadedsample)
-	wells = append(wells,DNAgel.AllWellPositions(wtype.BYROW)[counter])
-	volumes = append(volumes,loadedsample.Volume())
-	counter++
-	*/
-	for j:=0;j< Samplenumber;j++{
-	for _, wellcontents := range inputplate.AllWellPositions(false){
-	
-	if inputplate.WellMap()[wellcontents].Empty() == false{
-			
-		// ready to add water to well
-	waterSample := mixer.Sample(Water,Watervol)
-	
-	// get position, ensuring the list is by row rather than by column
-	position := DNAgel.AllWellPositions(wtype.BYROW)[counter]
-
-		//get well coordinates
-	wellcoords := wtype.MakeWellCoordsA1(position)
-	fmt.Println("wellcoords.X",wellcoords.X)
-	
-	
-	// if first column add ladder sample 
-	if wellcoords.X == 0 {
-		
-	Ladder.Type,_ = wtype.LiquidTypeFromString(Mixingpolicy)	
-	
-		laddersample := MixInto(
+		// add ladder sample to first column
+		loadedsample = MixInto(
 		DNAgel,
-	DNAgel.AllWellPositions(wtype.BYROW)[counter],
-	mixer.SampleForTotalVolume(Water,DNAgelrunvolume),
-	mixer.Sample(Ladder, LadderVolume),
-	)
-
-	loadedsamples = append(loadedsamples,laddersample)
-	wells = append(wells,position)
-	volumes = append(volumes,laddersample.Volume())
-	counter++
-		
-	}
-	
-	// refresh position in case ladder was added
-	position = DNAgel.AllWellPositions(wtype.BYROW)[counter]
-	
-	
-	// temporarily avoiding using last column; remove later
-	// skips contents so fix properly!!
-	/*
-	if wellcoords.X == DNAgel.WlsX-1{
-		counter++
-		position = DNAgel.AllWellPositions(wtype.BYROW)[counter]
-	}
-		*/
-	Sampletotest =  inputplate.WellMap()[wellcontents].WContents
-	
-	
-	// load gel
-	
-	// add loading dye if necessary
-		if Loadingdyeinsample == false {
-					
-		Loadingdye.Type,_ = wtype.LiquidTypeFromString("NeedToMix")
-						
-		DNAgelloadmixsolution := MixInto(
-		MixPlate,
-		"",
-		mixer.Sample(Sampletotest,samplevolume),
-		mixer.Sample(Loadingdye,Loadingdyevolume),
+		DNAgel.AllWellPositions(wtype.BYROW)[counter],
+		mixer.Sample(Water,Watervol),
+		mixer.Sample(Ladder, samplevolume),
 		)
-		DNAgelloadmix = DNAgelloadmixsolution
-		}else {
-			
-		DNAgelloadmix = Sampletotest
-		
+
+		loadedsamples = append(Loadedsamples,loadedsample)
+		wells = append(wells,DNAgel.AllWellPositions(wtype.BYROW)[counter])
+		volumes = append(volumes,loadedsample.Volume())
+		counter++
+	*/
+	for j := 0; j < Samplenumber; j++ {
+		for _, wellcontents := range inputplate.AllWellPositions(false) {
+
+			if inputplate.WellMap()[wellcontents].Empty() == false {
+
+				// ready to add water to well
+				waterSample := mixer.Sample(Water, Watervol)
+
+				// get position, ensuring the list is by row rather than by column
+				position := DNAgel.AllWellPositions(wtype.BYROW)[counter]
+
+				//get well coordinates
+				wellcoords := wtype.MakeWellCoordsA1(position)
+				fmt.Println("wellcoords.X", wellcoords.X)
+
+				// if first column add ladder sample
+				if wellcoords.X == 0 {
+
+					Ladder.Type, _ = wtype.LiquidTypeFromString(Mixingpolicy)
+
+					laddersample := MixInto(
+						DNAgel,
+						DNAgel.AllWellPositions(wtype.BYROW)[counter],
+						mixer.SampleForTotalVolume(Water, DNAgelrunvolume),
+						mixer.Sample(Ladder, LadderVolume),
+					)
+
+					loadedsamples = append(loadedsamples, laddersample)
+					wells = append(wells, position)
+					volumes = append(volumes, laddersample.Volume())
+					counter++
+
+				}
+
+				// refresh position in case ladder was added
+				position = DNAgel.AllWellPositions(wtype.BYROW)[counter]
+
+				// temporarily avoiding using last column; remove later
+				// skips contents so fix properly!!
+				/*
+					if wellcoords.X == DNAgel.WlsX-1{
+						counter++
+						position = DNAgel.AllWellPositions(wtype.BYROW)[counter]
+					}
+				*/
+				Sampletotest = inputplate.WellMap()[wellcontents].WContents
+
+				// load gel
+
+				// add loading dye if necessary
+				if Loadingdyeinsample == false {
+
+					Loadingdye.Type, _ = wtype.LiquidTypeFromString("NeedToMix")
+
+					DNAgelloadmixsolution := MixInto(
+						MixPlate,
+						"",
+						mixer.Sample(Sampletotest, samplevolume),
+						mixer.Sample(Loadingdye, Loadingdyevolume),
+					)
+					DNAgelloadmix = DNAgelloadmixsolution
+				} else {
+
+					DNAgelloadmix = Sampletotest
+
+				}
+
+				// Ensure  sample will be dispensed appropriately:
+
+				// comment this line out to repeat load of same sample in all wells using first sample name
+				//DNAgelloadmix.CName = Samplenames[i]//[i] //originalname + strconv.Itoa(i)
+
+				// replacing following line with temporary hard code whilst developing protocol:
+				DNAgelloadmix.Type, _ = wtype.LiquidTypeFromString(Mixingpolicy)
+				//DNAgelloadmix.Type = "loadwater"
+
+				loadedsample = MixInto(
+					DNAgel,
+					position,
+					waterSample,
+				)
+
+				loadedsample = Mix(loadedsample, mixer.Sample(DNAgelloadmix, samplevolume))
+
+				loadedsamples = append(loadedsamples, loadedsample)
+				wells = append(wells, position)
+				volumes = append(volumes, loadedsample.Volume())
+
+				counter++
+			}
 		}
 
-	// Ensure  sample will be dispensed appropriately:
-
-	
-	// comment this line out to repeat load of same sample in all wells using first sample name
-	//DNAgelloadmix.CName = Samplenames[i]//[i] //originalname + strconv.Itoa(i)
-	
-	// replacing following line with temporary hard code whilst developing protocol:
-	DNAgelloadmix.Type,_ = wtype.LiquidTypeFromString(Mixingpolicy)	
-	//DNAgelloadmix.Type = "loadwater"
-	
-	loadedsample = MixInto(
-	DNAgel,
-	position,
-	waterSample,
-	)
-	
-	loadedsample = Mix(loadedsample,mixer.Sample(DNAgelloadmix, samplevolume))
-
-	loadedsamples = append(loadedsamples,loadedsample)
-	wells = append(wells,position)
-	volumes = append(volumes,loadedsample.Volume())
-	
-	
-	counter++
 	}
-	}
-
-}
 	Loadedsamples = loadedsamples
 
 	// export to file
@@ -238,31 +232,31 @@ Steps {
 	// Then run the gel
 	/* DNAgel := electrophoresis.Run(Loadedgel,Runvoltage,DNAgelruntime)
 
-	// then analyse
-   	DNAgel.Visualise()
-	PCR_product_length = call(assemblydesign_validation).PCR_product_length
-	if DNAgel.Numberofbands() == 1
-	&& DNAgel.Bandsize(DNAgel[0]) == PCR_product_length {
-		Pass = true
+		// then analyse
+	   	DNAgel.Visualise()
+		PCR_product_length = call(assemblydesign_validation).PCR_product_length
+		if DNAgel.Numberofbands() == 1
+		&& DNAgel.Bandsize(DNAgel[0]) == PCR_product_length {
+			Pass = true
+			}
+
+		incorrect_assembly_possibilities := assemblydesign_validation.Otherpossibleassemblysizes()
+
+		for _, incorrect := range incorrect_assembly_possibilities {
+			if  PCR_product_length == incorrect {
+	    pass == false
+		S := "matches size of incorrect assembly possibility"
 		}
 
-	incorrect_assembly_possibilities := assemblydesign_validation.Otherpossibleassemblysizes()
-
-	for _, incorrect := range incorrect_assembly_possibilities {
-		if  PCR_product_length == incorrect {
-    pass == false
-	S := "matches size of incorrect assembly possibility"
-	}
-
-	//cherrypick(positive_colonies,recoverylocation)*/
+		//cherrypick(positive_colonies,recoverylocation)*/
 }
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
-    // need the control samples to be completed before doing the analysis
+	// need the control samples to be completed before doing the analysis
 
-    //
+	//
 
 }
 
@@ -270,22 +264,22 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-  /* 	if calculatedbandsize == expected {
-		stop
-	}
-	if calculatedbandsize != expected {
-	if S == "matches size of incorrect assembly possibility" {
-		call(assembly_troubleshoot)
+	/* 	if calculatedbandsize == expected {
+			stop
 		}
-	} // loop at beginning should be designed to split labware resource optimally in the event of any failures e.g. if 96well capacity and 4 failures check 96/4 = 12 colonies of each to maximise chance of getting a hit
-    }
-    if repeat > 2
-	stop
-    }
-    if (recoverylocation doesn't grow then use backup or repeat 
-	}
-	if sequencingresults do not match expected then use backup or repeat
-    // TODO: */
+		if calculatedbandsize != expected {
+		if S == "matches size of incorrect assembly possibility" {
+			call(assembly_troubleshoot)
+			}
+		} // loop at beginning should be designed to split labware resource optimally in the event of any failures e.g. if 96well capacity and 4 failures check 96/4 = 12 colonies of each to maximise chance of getting a hit
+	    }
+	    if repeat > 2
+		stop
+	    }
+	    if (recoverylocation doesn't grow then use backup or repeat
+		}
+		if sequencingresults do not match expected then use backup or repeat
+	    // TODO: */
 }
 
 //func cherrypick ()

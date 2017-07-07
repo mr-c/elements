@@ -3,7 +3,6 @@ protocol AssemblySimulation
 import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-
 )
 
 Parameters (
@@ -12,8 +11,8 @@ Parameters (
 	RE string
 	SynthesisProvider string
 )
-Data (
 
+Data (
 	SimulatedSequence DNASequence
 	RestrictionSitesFound []enzymes.Restrictionsites
 	NumberofSuccessfulAssemblies int
@@ -23,38 +22,30 @@ Data (
 	ValidationStatus string
 )
 
-Inputs (
-)
+Inputs ()
 
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
 
 Setup {
-} 
+}
 
 Steps {
-	
 
 	// Assembly parameters
 	assembly := enzymes.Assemblyparameters{"Simulated", RE, VectorSeq, PartsWithOverhangs}
-	
+
 	// Simulation
 	SimulationStatus, NumberofSuccessfulAssemblies, RestrictionSitesFound, SimulatedSequence, Warnings = enzymes.Assemblysimulator(assembly)
-	
-	
-	
-	
-	
+
 }
-	
+
 Analysis {
-	
-} 
+
+}
 
 Validation {
 
 }
-

@@ -3,11 +3,11 @@
 package lib
 
 import (
+	"context"
+	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
@@ -46,10 +46,17 @@ func _PrimerDesign_coverRegionSteps(_ctx context.Context, _input *PrimerDesign_c
 	var plasmid wtype.DNASequence
 	var allprimers []oligos.Primer
 
-	plasmid, err := parser.GenbankToAnnotatedSeq(_input.DNASeqfile)
+	seqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if err != nil {
-		execute.Errorf(_ctx, "antha ninja: %s", err.Error())
+		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())
+	}
+
+	if len(seqs) > 0 {
+		plasmid = seqs[0]
+	}
+	if len(seqs) > 1 {
+		_output.Warnings = fmt.Errorf("Warning! more than one sequence in sequence file! Only used first sequence for primer design")
 	}
 
 	if strings.Contains(strings.ToUpper(_input.Method), "POSITIONS") {

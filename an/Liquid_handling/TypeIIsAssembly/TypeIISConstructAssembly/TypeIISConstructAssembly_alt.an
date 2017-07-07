@@ -1,43 +1,42 @@
 protocol TypeIISConstructAssembly_alt
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"fmt"
 	"strings"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	ReactionVolume 				Volume
-	PartMinVol 					Volume
-	PartConcs 					[]Concentration
-	PartNames					[]string
-	VectorVol 					Volume
-	BufferVol 					Volume
-	AtpVol 						Volume
-	ReVol 						Volume
-	LigVol	 					Volume
+	ReactionVolume Volume
+	PartMinVol Volume
+	PartConcs []Concentration
+	PartNames []string
+	VectorVol Volume
+	BufferVol Volume
+	AtpVol Volume
+	ReVol Volume
+	LigVol Volume
 
-	ReactionTemp 				Temperature
-	ReactionTime 				Time
-	InactivationTemp 			Temperature
-	InactivationTime 			Time
+	ReactionTemp Temperature
+	ReactionTime Time
+	InactivationTemp Temperature
+	InactivationTime Time
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts 				[]*LHComponent
-	Vector 				*LHComponent
-	RestrictionEnzyme 	*LHComponent
-	Buffer 				*LHComponent
-	Water  				*LHComponent
-	Ligase 				*LHComponent
-	Atp 				*LHComponent
-	OutPlate 			*LHPlate
-	InPlate 			*LHPlate
+	Parts []*LHComponent
+	Vector *LHComponent
+	RestrictionEnzyme *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
+	Ligase *LHComponent
+	Atp *LHComponent
+	OutPlate *LHPlate
+	InPlate *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
@@ -57,7 +56,7 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
@@ -71,25 +70,25 @@ Steps {
 	//vectorSample := mixer.Sample(Vector, VectorVol)
 	vectorSample := mixer.Sample(Vector, VectorVol)
 	samples = append(samples, vectorSample)
-	
+
 	s := ""
-	comments := make([]string,0)
+	comments := make([]string, 0)
 	var partSample *LHComponent
 
 	for k, part := range Parts {
 		if PartConcs[k].SIValue() <= 0.1 {
-		s = fmt.Sprintln("creating dna part num ", k, " comp ", part.CName, " renamed to ", PartNames[k], " vol ", PartConcs[k].ToString())
-		partSample = mixer.SampleForConcentration(part, PartConcs[k])
+			s = fmt.Sprintln("creating dna part num ", k, " comp ", part.CName, " renamed to ", PartNames[k], " vol ", PartConcs[k].ToString())
+			partSample = mixer.SampleForConcentration(part, PartConcs[k])
 		} else {
-		s = fmt.Sprintln("Conc too low so minimum volume used","creating dna part num ", k, " comp ", part.CName, " renamed to ", PartNames[k], " vol ", PartMinVol.ToString())
-		partSample = mixer.Sample(part, PartMinVol)
+			s = fmt.Sprintln("Conc too low so minimum volume used", "creating dna part num ", k, " comp ", part.CName, " renamed to ", PartNames[k], " vol ", PartMinVol.ToString())
+			partSample = mixer.Sample(part, PartMinVol)
 		}
 		partSample.CName = PartNames[k]
 		samples = append(samples, partSample)
-		comments = append(comments,s)
-		
+		comments = append(comments, s)
+
 	}
-	S = strings.Join(comments,"")
+	S = strings.Join(comments, "")
 
 	reSample := mixer.Sample(RestrictionEnzyme, ReVol)
 	samples = append(samples, reSample)

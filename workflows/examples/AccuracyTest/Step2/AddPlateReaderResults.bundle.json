@@ -15,13 +15,14 @@
       "Extinctioncoefficient": 20330,
       "FindOptWavelength": true,
       "ManualComparison": false,
-      "MarsResultsFileXLSX": {
+      "Molecule": "tartrazine",
+      "OutputFilename": null,
+      "PlateReaderFileType": "Mars",
+      "PlateReaderResultsFileXLSX": {
         "host_file": {
           "filename": "180117platereaderresults.xlsx"
         }
       },
-      "Molecule": "tartrazine",
-      "OutputFilename": null,
       "PlateType": "greiner384",
       "R2threshold": 0.7,
       "ReadingTypeinMarsFile": "Abs Spectrum",

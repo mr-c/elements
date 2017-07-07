@@ -78,7 +78,7 @@ func _AutoColonyPCRSteps(_ctx context.Context, _input *AutoColonyPCRInput, _outp
 
 		if wellcontents.Empty() == false {
 
-			if counter == (_input.Plate.WlsX * _input.Plate. /*+NumberofBlanks*/ WlsY) {
+			if counter == (_input.Plate.WlsX * _input.Plate.WlsY) /*+NumberofBlanks*/ {
 				fmt.Println("plate full, counter = ", counter)
 				platenum++
 				//reset counter
