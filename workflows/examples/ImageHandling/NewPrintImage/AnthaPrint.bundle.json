@@ -17,9 +17,9 @@
       "OutputImageFileName": "Resized"
     },
     "MakeAnthaImage": {
-      "PlateName": "greiner384"
+      "Plate": "greiner384"
     },
-    "NewLHComponents": {
+    "Add_Solution_Multi": {
       "Names": [
         "blue",
         "yellow",
@@ -29,8 +29,8 @@
         "transparent",
         "white"
       ],
-      "TemplateComponents": {
-        "default": "water"
+      "UseLHPolicy": {
+          "default": "water"
       }
     }
   },
@@ -71,11 +71,11 @@
       },
       "component": "MakeAnthaPalette"
     },
-    "NewLHComponents": {
+    "Add_Solution_Multi": {
       "Metadata": {
         "skin": "light"
       },
-      "component": "NewLHComponents"
+      "component": "Add_Solution_Multi"
     },
     "PrintAnthaImage": {
       "Metadata": {
@@ -102,8 +102,8 @@
     },
     {
       "src": {
-        "port": "NewLHComponents",
-        "process": "NewLHComponents"
+        "port": "NewSolutions",
+        "process": "Add_Solution_Multi"
       },
       "tgt": {
         "port": "LHComponents",

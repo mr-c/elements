@@ -7,7 +7,7 @@
     "CreateAnthaPalette": {
       "LowerThreshold": 0
     },
-    "NewLHComponents": {
+    "Add_Solution_Multi": {
       "Names": [
         "UVCupidPink",
         "UVyellow",
@@ -57,7 +57,7 @@
         "UVScroogeOrange",
         "UVFrostyCFP"
       ],
-      "TemplateComponents": {
+      "UseLHPolicy": {
         "default": "water"
       }
     }
@@ -81,11 +81,11 @@
       },
       "component": "MakeAnthaPalette"
     },
-    "NewLHComponents": {
+    "Add_Solution_Multi": {
       "Metadata": {
         "skin": "light"
       },
-      "component": "NewLHComponents"
+      "component": "Add_Solution_Multi"
     }
   },
   "Properties": {
@@ -106,8 +106,8 @@
     },
     {
       "src": {
-        "port": "NewLHComponents",
-        "process": "NewLHComponents"
+        "port": "NewSolutions",
+        "process": "Add_Solution_Multi"
       },
       "tgt": {
         "port": "LHComponents",
