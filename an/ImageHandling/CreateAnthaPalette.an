@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/microArch/factory"
 	"image/color"
 )
 

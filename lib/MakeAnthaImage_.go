@@ -4,7 +4,6 @@ package lib
 import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 
 	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
