@@ -70,7 +70,22 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	solutionVolume := (wunit.CopyVolume(_input.TotalVolumeperDilution))
 
 	// use divideby method
-	solutionVolume.DivideBy(float64(_input.DilutionFactor) - 1.00)
+	solutionVolume.DivideBy(_input.DilutionFactor - 1.00)
+
+	// create a slice to hold all the volumes
+	var volumes []wunit.Volume
+
+	// add all the volumes to the slice
+	volumes = append(volumes, solutionVolume)
+	volumes = append(volumes, _input.TotalVolumeperDilution)
+
+	// calculate the total volume for the intermediate dilution
+	totalVolume := wunit.AddVolumes(volumes)
+
+	// check the volume of the plate type selected for each well against the intermediate dilution total volume. If it is exceeded report an error identifying the discrepancy
+	if _input.OutPlate.Welltype.MaxVolume().LessThanRounded(totalVolume, 7) {
+		execute.Errorf(_ctx, "Intermediate dilution volume calculated: (%s) too high for well capacity (%s) of current plate (%s)", totalVolume.ToString(), _input.OutPlate.Welltype.MaxVolume().ToString(), _input.OutPlate.Type)
+	}
 
 	// sample diluent
 	diluentSample := mixer.Sample(_input.Diluent, _input.TotalVolumeperDilution)
@@ -230,7 +245,7 @@ type SerialDilutionElement struct {
 type SerialDilutionInput struct {
 	ByRow                  bool
 	Diluent                *wtype.LHComponent
-	DilutionFactor         int
+	DilutionFactor         float64
 	NumberOfDilutions      int
 	OutPlate               *wtype.LHPlate
 	RemoveExcessSolution   bool
