@@ -65,9 +65,13 @@ Setup {
 // for every input
 Steps {
 
+	// We need to make sure that we have enough solution after subtracting the residual volume of solution left in the input plate.
+	// In future this will be calculated explicietly, but here we are estimating it as 10% extra for simplicity.
+	residualVol := SolutionVolume.SIValue() * 0.10
+
 	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
 	// We round this number down to the nearest number of aliquots.
-	number := SolutionVolume.SIValue() / VolumePerAliquot.SIValue()
+	number := (SolutionVolume.SIValue() - residualVol) / VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
 	if possiblenumberofAliquots < (NumberofAliquots * NumberOfReplicaPlates) {

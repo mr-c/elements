@@ -62,9 +62,13 @@ func _AliquotSetup(_ctx context.Context, _input *AliquotInput) {
 // for every input
 func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotOutput) {
 
+	// We need to make sure that we have enough solution after subtracting the residual volume of solution left in the input plate.
+	// In future this will be calculated explicietly, but here we are estimating it as 10% extra for simplicity.
+	residualVol := _input.SolutionVolume.SIValue() * 0.10
+
 	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
 	// We round this number down to the nearest number of aliquots.
-	number := _input.SolutionVolume.SIValue() / _input.VolumePerAliquot.SIValue()
+	number := (_input.SolutionVolume.SIValue() - residualVol) / _input.VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
 	if possiblenumberofAliquots < (_input.NumberofAliquots * _input.NumberOfReplicaPlates) {
