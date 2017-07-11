@@ -41,9 +41,9 @@ import (
 
 // Physical Inputs to this protocol with types
 
-// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
+// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be aliquoted.
 
-// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
+// This parameter allows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
 
 // Physical outputs from this protocol with types
 
@@ -62,9 +62,12 @@ func _AliquotSetup(_ctx context.Context, _input *AliquotInput) {
 // for every input
 func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotOutput) {
 
+	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
+	// We round this number down to the nearest number of aliquots.
 	number := _input.SolutionVolume.SIValue() / _input.VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
-	if possiblenumberofAliquots < _input.NumberofAliquots {
+	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
+	if possiblenumberofAliquots < (_input.NumberofAliquots * _input.NumberOfReplicaPlates) {
 		execute.Errorf(_ctx, "Not enough solution for this many aliquots")
 	}
 
@@ -100,7 +103,7 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 		// This loop cycles through the number of aliquots required
 		for i := 0; i < _input.NumberofAliquots; i++ {
 
-			// This statement changes the liquid handling policy if the soultion being aliquoted is DNA to avoid cross contamination.
+			// This statement changes the liquid handling policy if the solution being aliquoted is DNA to avoid cross contamination.
 			if _input.Solution.TypeName() == "dna" {
 				_input.Solution.Type = wtype.LTDoNotMix
 			}
@@ -111,7 +114,7 @@ func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotO
 			// The MixTo command here cycles through the well positions of the chosen plate type and plate number for each aliquot.
 			// the MixTo command is used instead of Mix to specify the plate type (e.g. "greiner384" or "pcrplate_skirted")
 			// the four input fields to the MixTo command represent
-			// 1. the platetype as a string: commonly the input to the antha element will actually be an LHPlate rather than a string so the type field can be accessed with OutPlate.Type
+			// 1. the platetype as a string: commonly the input to the Antha element will actually be an LHPlate rather than a string so the type field can be accessed with OutPlate.Type
 			// 2. well location as a  string e.g. "A1" (in this instance determined by a counter and the plate type or leaving it blank "" will leave the well location up to the scheduler),
 			// 3. the plate number as an integer, starting from 1 (not zero)
 			// 4. the sample or array of samples to be mixed; in the case of an array you'd normally feed this in as samples...
@@ -225,9 +228,9 @@ func init() {
 				{Name: "ChangeSolutionName", Desc: "This parameter is an optional field. If you want to change the name of the input Solution for traceability then do so. If not the default name will be given as the chosen input Solution LHComponent name.\n", Kind: "Parameters"},
 				{Name: "NumberOfReplicaPlates", Desc: "This parameter sets the number of replica plates to perform aliquots to. Default number of plates is 1.\n", Kind: "Parameters"},
 				{Name: "NumberofAliquots", Desc: "This parameter states the number of aliquots that will be made from the input Solution.\n", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.\n", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "This parameter allows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.\n", Kind: "Inputs"},
 				{Name: "PreMix", Desc: "This parameter is an optional field. If the solution to be aliquoted has components that may sink to the bottom of the solution then select this option for the solution to be premixed prior to transfer.\n", Kind: "Parameters"},
-				{Name: "Solution", Desc: "This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.\n", Kind: "Inputs"},
+				{Name: "Solution", Desc: "This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be aliquoted.\n", Kind: "Inputs"},
 				{Name: "SolutionVolume", Desc: "This parameter represents the volume of solution that you have in the lab available to be aliquoted. It does not represent the total volume to be aliquoted or the volume of liquid that will be used.\n", Kind: "Parameters"},
 				{Name: "VolumePerAliquot", Desc: "This parameter dictates the final volume each aliquot will have.\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "This parameter is an optional field. It states the number of wells that have already been used in the output plate and will start making aliquots from this position onwards. If there is more than one replica plate all plates would have the same number of wells already used.\n", Kind: "Parameters"},

@@ -40,9 +40,9 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be alliquoted.
+	// This Physical input will have associated properties to determine how the liquid should be handled, e.g. is your Solution water or is it Glycerol. If your physical liquid does not exist in the Antha LHComponent library then create a new one on the fly with the Add_Solution element and wire the output into this input. Alternatively wire a solution made by another element into this input to be aliquoted.
 	Solution *LHComponent
-	// This parameter alows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
+	// This parameter allows you to specify the type of plate you are aliquoting your Solution into. Choose from one of the available plate options from the Antha plate library.
 	OutPlate *LHPlate
 )
 
@@ -65,9 +65,12 @@ Setup {
 // for every input
 Steps {
 
+	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
+	// We round this number down to the nearest number of aliquots.
 	number := SolutionVolume.SIValue() / VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
-	if possiblenumberofAliquots < NumberofAliquots {
+	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
+	if possiblenumberofAliquots < (NumberofAliquots * NumberOfReplicaPlates) {
 		Errorf("Not enough solution for this many aliquots")
 	}
 
@@ -86,7 +89,7 @@ Steps {
 		Solution.CName = ChangeSolutionName
 	}
 
-	// This code allows the user to specify how the aliquots should be made, by row or by column.	
+	// This code allows the user to specify how the aliquots should be made, by row or by column.
 	allwellpositions := OutPlate.AllWellPositions(ByRow)
 
 	aliquots := make([]*LHComponent, 0)
@@ -99,22 +102,22 @@ Steps {
 	// This loop allows the user to specify the number of replica plates of aliquots they want.
 	for platenumber := 1; platenumber < (NumberOfReplicaPlates + 1); platenumber++{
 		var counter int = WellsAlreadyUsed
-	
-	// This loop cycles through the number of aliquots required	
+
+	// This loop cycles through the number of aliquots required
 	for i := 0; i < NumberofAliquots; i++ {
-		
-		// This statement changes the liquid handling policy if the soultion being aliquoted is DNA to avoid cross contamination.
+
+		// This statement changes the liquid handling policy if the solution being aliquoted is DNA to avoid cross contamination.
 		if Solution.TypeName() == "dna" {
 			Solution.Type = wtype.LTDoNotMix
 		}
 		aliquotSample := mixer.Sample(Solution, VolumePerAliquot)
-		
-		var aliquot *LHComponent	
-			
+
+		var aliquot *LHComponent
+
 		// The MixTo command here cycles through the well positions of the chosen plate type and plate number for each aliquot.
 		// the MixTo command is used instead of Mix to specify the plate type (e.g. "greiner384" or "pcrplate_skirted")
 		// the four input fields to the MixTo command represent
-		// 1. the platetype as a string: commonly the input to the antha element will actually be an LHPlate rather than a string so the type field can be accessed with OutPlate.Type
+		// 1. the platetype as a string: commonly the input to the Antha element will actually be an LHPlate rather than a string so the type field can be accessed with OutPlate.Type
 		// 2. well location as a  string e.g. "A1" (in this instance determined by a counter and the plate type or leaving it blank "" will leave the well location up to the scheduler),
 		// 3. the plate number as an integer, starting from 1 (not zero)
 		// 4. the sample or array of samples to be mixed; in the case of an array you'd normally feed this in as samples...
