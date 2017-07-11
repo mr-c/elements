@@ -75,7 +75,7 @@ func _PlateOut_MultiSteps(_ctx context.Context, _input *PlateOut_MultiInput, _ou
 		for _, plateoutvols := range volumes {
 
 			//Run PlateOut element
-			result := PlateOutRunSteps(_ctx, &PlateOutInput{AgarPlateNumber: platecounter,
+			result := PlateOutTestRunSteps(_ctx, &PlateOutTestInput{AgarPlateNumber: platecounter,
 				IncubationTemp:       _input.IncubationTemp,
 				IncubationTime:       _input.IncubationTime,
 				NumberofReplicates:   _input.NumberofReplicates,
