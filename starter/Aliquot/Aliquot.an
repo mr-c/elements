@@ -66,16 +66,19 @@ Setup {
 Steps {
 
 	// We need to make sure that we have enough solution after subtracting the residual volume of solution left in the input plate.
-	// In future this will be calculated explicietly, but here we are estimating it as 10% extra for simplicity.
-	residualVol := SolutionVolume.SIValue() * 0.10
-
+	// In future this will be calculated explicitly, but here we are estimating it as 10% extra for simplicity.
+	residualVolAllowance := 0.10
+	residualVol := wunit.MultiplyVolume(SolutionVolume, residualVolAllowance)
+	// Calculate the volume needed based on the number of aliquots, number of replica plates, and aliquot amount specified. This is only used for error messages.
+	minVolume := wunit.MultiplyVolume(VolumePerAliquot, float64(NumberofAliquots * NumberOfReplicaPlates))
+	volumeNeeded := wunit.MultiplyVolume(minVolume, (1/(1-residualVolAllowance)))
 	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
 	// We round this number down to the nearest number of aliquots.
-	number := (SolutionVolume.SIValue() - residualVol) / VolumePerAliquot.SIValue()
+	number := (SolutionVolume.SIValue() - residualVol.SIValue()) / VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
 	if possiblenumberofAliquots < (NumberofAliquots * NumberOfReplicaPlates) {
-		Errorf("Not enough solution for this many aliquots")
+		Errorf("Not enough solution for this many aliquots. You have specified %s, but %s is required based on the parameters you have specified and a 10 percent allowance for residual volume left in the input plate.", SolutionVolume.ToString(), volumeNeeded.ToString())
 	}
 
 	//check if maxvolume of outplate is higher than specified aliquot volume

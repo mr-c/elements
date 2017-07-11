@@ -63,16 +63,19 @@ func _AliquotSetup(_ctx context.Context, _input *AliquotInput) {
 func _AliquotSteps(_ctx context.Context, _input *AliquotInput, _output *AliquotOutput) {
 
 	// We need to make sure that we have enough solution after subtracting the residual volume of solution left in the input plate.
-	// In future this will be calculated explicietly, but here we are estimating it as 10% extra for simplicity.
-	residualVol := _input.SolutionVolume.SIValue() * 0.10
-
+	// In future this will be calculated explicitly, but here we are estimating it as 10% extra for simplicity.
+	residualVolAllowance := 0.10
+	residualVol := wunit.MultiplyVolume(_input.SolutionVolume, residualVolAllowance)
+	// Calculate the volume needed based on the number of aliquots, number of replica plates, and aliquot amount specified. This is only used for error messages.
+	minVolume := wunit.MultiplyVolume(_input.VolumePerAliquot, float64(_input.NumberofAliquots*_input.NumberOfReplicaPlates))
+	volumeNeeded := wunit.MultiplyVolume(minVolume, (1 / (1 - residualVolAllowance)))
 	// Here we're doing some maths to work out what the possible number of aliquots is that we can make given the volume specified and the volume of solution we have.
 	// We round this number down to the nearest number of aliquots.
-	number := (_input.SolutionVolume.SIValue() - residualVol) / _input.VolumePerAliquot.SIValue()
+	number := (_input.SolutionVolume.SIValue() - residualVol.SIValue()) / _input.VolumePerAliquot.SIValue()
 	possiblenumberofAliquots, _ := wutil.RoundDown(number)
 	// The total number of aliquots to be made is the number specified by the user for each of the Replica Plates being made.
 	if possiblenumberofAliquots < (_input.NumberofAliquots * _input.NumberOfReplicaPlates) {
-		execute.Errorf(_ctx, "Not enough solution for this many aliquots")
+		execute.Errorf(_ctx, "Not enough solution for this many aliquots. You have specified %s, but %s is required based on the parameters you have specified and a 10 percent allowance for residual volume left in the input plate.", _input.SolutionVolume.ToString(), volumeNeeded.ToString())
 	}
 
 	//check if maxvolume of outplate is higher than specified aliquot volume
