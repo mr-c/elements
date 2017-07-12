@@ -1,0 +1,143 @@
+{
+    "Processes": {
+        "SerialDilution_739133": {
+            "component": "SerialDilution",
+            "Metadata": {
+                "x": 290,
+                "y": 309,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 106,
+                "y": 149
+            }
+        },
+        "SerialDilution_530910": {
+            "component": "SerialDilution",
+            "Metadata": {
+                "x": 556,
+                "y": 102,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 105,
+                "y": 154
+            }
+        },
+        "Add_Solution_527234": {
+            "component": "Add_Solution",
+            "Metadata": {
+                "x": 63,
+                "y": 316,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 105,
+                "y": 151
+            }
+        },
+        "Add_Solution_339657": {
+            "component": "Add_Solution",
+            "Metadata": {
+                "x": 250,
+                "y": 72,
+                "skin": "light"
+            },
+            "metadata": {
+                "x": 105,
+                "y": 148
+            }
+        }
+    },
+    "connections": [
+        {
+            "src": {
+                "process": "Add_Solution_527234",
+                "port": "NewSolution"
+            },
+            "tgt": {
+                "process": "SerialDilution_739133",
+                "port": "Solution"
+            }
+        },
+        {
+            "src": {
+                "process": "Add_Solution_339657",
+                "port": "NewSolution"
+            },
+            "tgt": {
+                "process": "SerialDilution_530910",
+                "port": "Solution"
+            }
+        }
+    ],
+    "Properties": {
+        "id": "---",
+        "name": "no name",
+        "description": "no description"
+    },
+    "Parameters": {
+        "SerialDilution_739133": {
+            "ByRow": true,
+            "Diluent": "water",
+            "DilutionFactor": 2,
+            "NumberOfDilutions": 12,
+            "OutPlate": "pcrplate_skirted_riser20",
+            "RemoveExcessSolution": true,
+            "TotalVolumeperDilution": "100ul",
+            "WellsAlreadyUsed": 0,
+	  "DilutionPlateName": "DilutionPlate1"
+        },
+        "SerialDilution_530910": {
+            "ByRow": true,
+            "Diluent": "water",
+            "DilutionFactor": 5,
+            "NumberOfDilutions": 12,
+            "OutPlate": "pcrplate_skirted_riser20",
+            "RemoveExcessSolution": true,
+            "TotalVolumeperDilution": "100ul",
+            "WellsAlreadyUsed": 0,
+	  "DilutionPlateName": "DilutionPlate2"
+        },
+        "Add_Solution_527234": {
+            "Name": "Glucose",
+            "StockConcentration": "1M",
+            "UseLHPolicy": "water"
+        },
+        "Add_Solution_339657": {
+            "Name": "Phosphate",
+            "StockConcentration": "2M",
+            "UseLHPolicy": "water"
+        }
+    },
+    "Config": {
+        "DriverSpecificInputPreferences": [
+            "position_4",
+            "position_5",
+            "position_3"
+        ],
+        "DriverSpecificOutputPreferences": [
+            "position_9",
+            "position_6",
+            "position_8",
+            "position_5",
+            "position_3",
+            "position_1"
+        ],
+        "DriverSpecificTipPreferences": [
+            "position_2",
+            "position_3",
+            "position_6",
+            "position_9",
+            "position_8",
+            "position_5",
+            "position_7"
+        ],
+        "DriverSpecificTipWastePreferences": [
+            "position_1",
+            "position_7"
+        ],
+        "InputPlateType": [],
+        "OutputPlateType": []
+    }
+}
