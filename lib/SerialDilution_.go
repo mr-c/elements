@@ -25,7 +25,7 @@ import (
 
 // Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
 
-// This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the diffewrent instances.
+// This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If left blank it will default to DilutionPlate. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the different instances.
 
 // Data which is returned from this protocol, and data types
 
@@ -97,6 +97,11 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 
 	// sample solution
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
+
+	// Check to see if a DilutionPlateName has been specified by the user and if it hasnt then set to default "DilutionPlate"
+	if _input.DilutionPlateName == "" {
+		_input.DilutionPlateName = "DilutionPlate"
+	}
 
 	// mix both diluent and sample to OutPlate
 	firstDilution = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], _input.DilutionPlateName, diluentSample, solutionSample)
@@ -281,7 +286,7 @@ func init() {
 				{Name: "ByRow", Desc: "An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "The physical solution you want to make your dilutions into, e.g. water, Buffer.\n", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution.\n", Kind: "Parameters"},
-				{Name: "DilutionPlateName", Desc: "This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the diffewrent instances.\n", Kind: "Parameters"},
+				{Name: "DilutionPlateName", Desc: "This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If left blank it will default to DilutionPlate. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the different instances.\n", Kind: "Parameters"},
 				{Name: "NumberOfDilutions", Desc: "The number of dilutions you wish to make.\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "The physical plate where your serial dilutions will be made.\n", Kind: "Inputs"},
 				{Name: "RemoveExcessSolution", Desc: "Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.\n", Kind: "Parameters"},
