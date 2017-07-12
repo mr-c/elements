@@ -14,7 +14,8 @@
       "OutPlate": "DSW96",
       "RemoveExcessSolution": true,
       "TotalVolumeperDilution": "100ul",
-      "WellsAlreadyUsed": 0
+      "WellsAlreadyUsed": 0,
+	  "DilutionPlateName": "DilutionPlate"
     }
   },
   "Processes": {
