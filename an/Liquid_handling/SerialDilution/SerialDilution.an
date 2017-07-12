@@ -23,7 +23,7 @@ Parameters (
 	WellsAlreadyUsed int
 	// Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
 	RemoveExcessSolution bool
-	// This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets. 
+	// This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the diffewrent instances. 
 	DilutionPlateName string
 )
 

@@ -25,6 +25,8 @@ import (
 
 // Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.
 
+// This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the diffewrent instances.
+
 // Data which is returned from this protocol, and data types
 
 // How many wells were used by this element in your output plate.
@@ -97,7 +99,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 	solutionSample := mixer.Sample(_input.Solution, solutionVolume)
 
 	// mix both diluent and sample to OutPlate
-	firstDilution = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample, solutionSample)
+	firstDilution = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], _input.DilutionPlateName, diluentSample, solutionSample)
 
 	// Create a variable to store the solution name in
 	var solutionname string
@@ -143,7 +145,7 @@ func _SerialDilutionSteps(_ctx context.Context, _input *SerialDilutionInput, _ou
 		nextSample := mixer.Sample(firstDilution, solutionVolume)
 
 		// Mix sample into nextdiluent sample
-		nextDilution := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextDiluentSample, nextSample)
+		nextDilution := execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], _input.DilutionPlateName, nextDiluentSample, nextSample)
 
 		if newconcentration.RawValue() > 0 {
 			// Calculate the conc entration for the next dilution based on the concentration of the previous dilution
@@ -246,6 +248,7 @@ type SerialDilutionInput struct {
 	ByRow                  bool
 	Diluent                *wtype.LHComponent
 	DilutionFactor         float64
+	DilutionPlateName      string
 	NumberOfDilutions      int
 	OutPlate               *wtype.LHPlate
 	RemoveExcessSolution   bool
@@ -278,6 +281,7 @@ func init() {
 				{Name: "ByRow", Desc: "An optional parameter to define whether you want your dilutions to be made in rows or columns in your plate.\n", Kind: "Parameters"},
 				{Name: "Diluent", Desc: "The physical solution you want to make your dilutions into, e.g. water, Buffer.\n", Kind: "Inputs"},
 				{Name: "DilutionFactor", Desc: "The dilution factor to be applied to the serial dilution, e.g. 10 would take 1 part solution to 9 parts diluent for each dilution.\n", Kind: "Parameters"},
+				{Name: "DilutionPlateName", Desc: "This name will be used as the identifier for the specific plate you are making your Serial Dilutions to. If running more than one instance of the Serial Dilution element in parallel and want the dilutions to all be made on the same plate be sure this name is the same across all instance parameter sets, and be sure to wire WellsAlreadyUsed into WellsUsed between the diffewrent instances.\n", Kind: "Parameters"},
 				{Name: "NumberOfDilutions", Desc: "The number of dilutions you wish to make.\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "The physical plate where your serial dilutions will be made.\n", Kind: "Inputs"},
 				{Name: "RemoveExcessSolution", Desc: "Option to remove the excess solution volume in the last dilution to the input plate if equal volumes across all dilutions are desired.\n", Kind: "Parameters"},
