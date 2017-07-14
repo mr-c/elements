@@ -1,0 +1,101 @@
+{
+  "Config": {
+    "DriverSpecificInputPreferences": [
+      "position_4",
+      "position_5",
+      "position_3"
+    ],
+    "DriverSpecificOutputPreferences": [
+      "position_9",
+      "position_6",
+      "position_8",
+      "position_5",
+      "position_3",
+      "position_1"
+    ],
+    "DriverSpecificTipPreferences": [
+      "position_2",
+      "position_3",
+      "position_6",
+      "position_9",
+      "position_8",
+      "position_5",
+      "position_7"
+    ],
+    "DriverSpecificTipWastePreferences": [
+      "position_1",
+      "position_7"
+    ],
+    "InputPlateType": [],
+    "OutputPlateType": []
+  },
+  "Parameters": {
+    "AliquotAdvanced_499741": {
+      "AliquotPlateName": "",
+      "ByRow": false,
+      "ChangeSolutionName": "Glucose",
+      "NumberOfReplicaPlates": 1,
+      "NumberofAliquots": 14,
+      "OutPlate": "pcrplate_skirted_riser20",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
+    },
+    "AliquotAdvanced_628605": {
+      "AliquotPlateName": "",
+      "ByRow": true,
+      "ChangeSolutionName": "MOPS",
+      "NumberOfReplicaPlates": 1,
+      "NumberofAliquots": 12,
+      "OutPlate": "pcrplate_skirted_riser20",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul",
+      "WellsAlreadyUsed": []
+    }
+  },
+  "Processes": {
+    "AliquotAdvanced_499741": {
+      "Metadata": {
+        "skin": "light",
+        "x": 381,
+        "y": 227
+      },
+      "component": "AliquotAdvanced",
+      "metadata": {
+        "x": 101,
+        "y": 148
+      }
+    },
+    "AliquotAdvanced_628605": {
+      "Metadata": {
+        "x": 105,
+        "y": 149
+      },
+      "component": "AliquotAdvanced",
+      "metadata": {
+        "x": 105,
+        "y": 149
+      }
+    }
+  },
+  "Properties": {
+    "description": "no description",
+    "id": "---",
+    "name": "no name"
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "WellsUsed",
+        "process": "AliquotAdvanced_628605"
+      },
+      "tgt": {
+        "port": "WellsAlreadyUsed",
+        "process": "AliquotAdvanced_499741"
+      }
+    }
+  ]
+}
