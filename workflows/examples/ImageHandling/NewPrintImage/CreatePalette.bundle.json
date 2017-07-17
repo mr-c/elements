@@ -1,12 +1,5 @@
 {
   "Parameters": {
-    "ChoosePalette": {
-      "AvailableColors": [],
-      "PaletteID": "UV"
-    },
-    "CreateAnthaPalette": {
-      "LowerThreshold": 0
-    },
     "Add_Solution_Multi": {
       "Names": [
         "UVCupidPink",
@@ -60,9 +53,22 @@
       "UseLHPolicy": {
         "default": "water"
       }
+    },
+    "ChoosePalette": {
+      "AvailableColors": [],
+      "PaletteID": "UV"
+    },
+    "CreateAnthaPalette": {
+      "LowerThreshold": 0
     }
   },
   "Processes": {
+    "Add_Solution_Multi": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "Add_Solution_Multi"
+    },
     "ChoosePalette": {
       "Metadata": {
         "skin": "light"
@@ -80,12 +86,6 @@
         "skin": "light"
       },
       "component": "MakeAnthaPalette"
-    },
-    "Add_Solution_Multi": {
-      "Metadata": {
-        "skin": "light"
-      },
-      "component": "Add_Solution_Multi"
     }
   },
   "Properties": {

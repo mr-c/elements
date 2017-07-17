@@ -3,6 +3,20 @@
     "UseDriverTipTracking": true
   },
   "Parameters": {
+    "Add_Solution_Multi": {
+      "Names": [
+        "blue",
+        "yellow",
+        "green",
+        "red",
+        "black",
+        "transparent",
+        "white"
+      ],
+      "UseLHPolicy": {
+        "default": "water"
+      }
+    },
     "ChoosePalette": {
       "AvailableColors": [],
       "PaletteID": "Paints"
@@ -18,23 +32,15 @@
     },
     "MakeAnthaImage": {
       "Plate": "greiner384"
-    },
-    "Add_Solution_Multi": {
-      "Names": [
-        "blue",
-        "yellow",
-        "green",
-        "red",
-        "black",
-        "transparent",
-        "white"
-      ],
-      "UseLHPolicy": {
-          "default": "water"
-      }
     }
   },
   "Processes": {
+    "Add_Solution_Multi": {
+      "Metadata": {
+        "skin": "light"
+      },
+      "component": "Add_Solution_Multi"
+    },
     "ChoosePalette": {
       "Metadata": {
         "skin": "light"
@@ -70,12 +76,6 @@
         "skin": "light"
       },
       "component": "MakeAnthaPalette"
-    },
-    "Add_Solution_Multi": {
-      "Metadata": {
-        "skin": "light"
-      },
-      "component": "Add_Solution_Multi"
     },
     "PrintAnthaImage": {
       "Metadata": {
