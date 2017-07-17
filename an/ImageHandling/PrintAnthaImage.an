@@ -29,7 +29,7 @@ Inputs (
 
 // Physical outputs from this protocol with types
 Outputs (
-
+	OutAnthaImage *image.AnthaImg
 )
 
 Requirements {
@@ -80,6 +80,11 @@ Steps {
 	fmt.Println("AnthaImage printed")
 	//getting the number of pipette actions
 
+	//------------------------------------------------------------------
+	//Returning printed AnthaImage
+	//------------------------------------------------------------------
+
+	OutAnthaImage = AnthaImage
 
 }
 // Run after controls and a steps block are completed to
