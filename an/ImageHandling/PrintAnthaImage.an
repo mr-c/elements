@@ -6,6 +6,8 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 
+	"image/color"
+
 	"fmt"
 )
 
@@ -14,6 +16,7 @@ import (
 Parameters (
 	AnthaImage	*image.AnthaImg	//AnthaImage to print on a plate
 	PixVolume	Volume			//Volume of LHComponent needed to make a pixel
+	ColorToExclude string		//Background color which we do not want to print, leave blank if you want to print all colors.
 )
 
 // Data which is returned from this protocol, and data types
@@ -51,6 +54,13 @@ Steps {
 	//placeholders
 	var pixelSolution *LHComponent
 	var wellLocation  string
+	var colorToExclude color.Color
+
+	if ColorToExclude == ""{
+		colorToExclude = image.SelectColor(ColorToExclude)
+	}else{
+		colorToExclude = color.NRGBA{}
+	}
 
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
@@ -59,6 +69,11 @@ Steps {
 
 	counter :=0
 	for _, pix := range AnthaImage.Pix {
+
+		//Skipping pixel if it is of the background color
+		if colorToExclude == pix.Color.Color {
+			continue
+		}
 
 		//Getting the LHComponent of this pixel
 		pixelSolution = pix.Color.Component

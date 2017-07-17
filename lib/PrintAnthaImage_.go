@@ -6,6 +6,8 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
+	"image/color"
+
 	"context"
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -18,6 +20,7 @@ import (
 
 //AnthaImage to print on a plate
 //Volume of LHComponent needed to make a pixel
+//Background color which we do not want to print, leave blank if you want to print all colors.
 
 // Data which is returned from this protocol, and data types
 
@@ -44,6 +47,13 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 	//placeholders
 	var pixelSolution *wtype.LHComponent
 	var wellLocation string
+	var colorToExclude color.Color
+
+	if _input.ColorToExclude == "" {
+		colorToExclude = image.SelectColor(_input.ColorToExclude)
+	} else {
+		colorToExclude = color.NRGBA{}
+	}
 
 	//------------------------------------------------------------------
 	//Iterating through each pixels in the image and pipetting them
@@ -51,6 +61,11 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 
 	counter := 0
 	for _, pix := range _input.AnthaImage.Pix {
+
+		//Skipping pixel if it is of the background color
+		if colorToExclude == pix.Color.Color {
+			continue
+		}
 
 		//Getting the LHComponent of this pixel
 		pixelSolution = pix.Color.Component
@@ -71,6 +86,12 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 
 	fmt.Println("AnthaImage printed")
 	//getting the number of pipette actions
+
+	//------------------------------------------------------------------
+	//Returning printed AnthaImage
+	//------------------------------------------------------------------
+
+	_output.OutAnthaImage = _input.AnthaImage
 
 }
 
@@ -134,17 +155,20 @@ type PrintAnthaImageElement struct {
 }
 
 type PrintAnthaImageInput struct {
-	AnthaImage *image.AnthaImg
-	PixVolume  wunit.Volume
+	AnthaImage     *image.AnthaImg
+	ColorToExclude string
+	PixVolume      wunit.Volume
 }
 
 type PrintAnthaImageOutput struct {
+	OutAnthaImage *image.AnthaImg
 }
 
 type PrintAnthaImageSOutput struct {
 	Data struct {
 	}
 	Outputs struct {
+		OutAnthaImage *image.AnthaImg
 	}
 }
 
@@ -156,7 +180,9 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PrintAnthaImage.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaImage", Desc: "AnthaImage to print on a plate\n", Kind: "Parameters"},
+				{Name: "ColorToExclude", Desc: "Background color which we do not want to print, leave blank if you want to print all colors.\n", Kind: "Parameters"},
 				{Name: "PixVolume", Desc: "Volume of LHComponent needed to make a pixel\n", Kind: "Parameters"},
+				{Name: "OutAnthaImage", Desc: "", Kind: "Outputs"},
 			},
 		},
 	}); err != nil {
