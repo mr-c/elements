@@ -9,12 +9,13 @@
     "SerialDilution": {
       "ByRow": true,
       "Diluent": "water",
-      "DilutionFactor": 2,
+      "DilutionFactor": 1.2,
       "NumberOfDilutions": 12,
-      "OutPlate": "pcrplate_skirted_riser20",
+      "OutPlate": "DSW96",
       "RemoveExcessSolution": true,
       "TotalVolumeperDilution": "100ul",
-      "WellsAlreadyUsed": 0
+      "WellsAlreadyUsed": 0,
+	  "DilutionPlateName": "DilutionPlate"
     }
   },
   "Processes": {
