@@ -13,6 +13,7 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/execute/executeutil"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/inventory/testinventory"
 	"github.com/antha-lang/antha/target"
 	"github.com/antha-lang/antha/target/human"
 )
@@ -33,7 +34,8 @@ func makeContext() (context.Context, error) {
 			return nil, err
 		}
 	}
-	return ctx, nil
+
+	return testinventory.NewContext(ctx), nil
 }
 
 func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) {
