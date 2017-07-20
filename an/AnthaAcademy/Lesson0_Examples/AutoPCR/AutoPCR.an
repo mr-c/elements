@@ -4,7 +4,7 @@ protocol AutoPCR_demo
 import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/inventory"
 )
 
 // Input parameters for this protocol (data)
@@ -72,15 +72,19 @@ Steps {
 
 	// get additive info
 	for additive, volume := range AdditiveToAdditiveVolume {
+		additivecomponent, err := inventory.NewComponent(_ctx, additive)
 
-		var additivecomponent *LHComponent
-		var componentfound bool = factory.ComponentInFactory(additive)
-		if componentfound {
-			additivecomponent = factory.GetComponentByType(additive)
-		} else {
-			// if not found in factory use dmso as the base liquid handling type and change name to additivename specified
-			additivecomponent = factory.GetComponentByType("DMSO")
-			additivecomponent.CName = additive
+		if err == inventory.ErrUnknownType {
+			// if not found in factory use dmso as the base liquid
+			// handling type and change name to additivename
+			// specified
+			additivecomponent, err = inventory.NewComponent(_ctx, "DMSO")
+			if err == nil {
+				additivecomponent.CName = additive
+			}
+		}
+		if err != nil {
+			Errorf("cannot make component: %s", err)
 		}
 		additives = append(additives, additivecomponent)
 		additivevolumes = append(additivevolumes, volume)

@@ -8,7 +8,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 	goimage "image"
 	"image/color"
 	"strconv"
@@ -95,8 +94,8 @@ Steps {
 		CompetentCellTransferVolume Volume      = wunit.NewVolume(20.0, "ul")
 		RecoveryPlateNumber         int         = 1
 
-		PlatewithRecoveryMedia  *LHPlate = factory.GetPlateByType("DSW96_riser40")
-		PlateWithCompetentCells *LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
+		PlatewithRecoveryMedia  *LHPlate = NewPlate("DSW96_riser40")
+		PlateWithCompetentCells *LHPlate = NewPlate("pcrplate_with_cooler")
 	)
 
 	colourtoComponentMap := make(map[string]string)
@@ -190,7 +189,7 @@ Steps {
 		if ComponentType != nil {
 			componenttopick = ComponentType
 		} else {
-			componenttopick = factory.GetComponentByType("water")
+			componenttopick = NewComponent("water")
 		}
 		componenttopick.CName = componentname
 

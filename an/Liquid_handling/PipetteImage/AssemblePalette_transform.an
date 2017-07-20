@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 	goimage "image"
 	"image/color"
 	"strconv"
@@ -79,8 +78,8 @@ Steps {
 		CompetentCellTransferVolume Volume      = wunit.NewVolume(20.0, "ul")
 		RecoveryPlateNumber         int         = 1
 
-		PlatewithRecoveryMedia  *LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
-		PlateWithCompetentCells *LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
+		PlatewithRecoveryMedia  *LHPlate = NewPlate("pcrplate_skirted_riser")
+		PlateWithCompetentCells *LHPlate = NewPlate("pcrplate_skirted_riser")
 	)
 
 	redname := Red.CName
@@ -168,15 +167,15 @@ Steps {
 				counter = counter + 1
 
 				/*
-						MasterMix.Type,err = wtype.LiquidTypeFromString(LHPolicyName)
+							MasterMix.Type,err = wtype.LiquidTypeFromString(LHPolicyName)
 
-						if err != nil {
-				                 Errorf("cannot find liquid type: %s", err)
-				    	}
+							if err != nil {
+					                 Errorf("cannot find liquid type: %s", err)
+					    	}
 
-						mmxSample:=mixer.Sample(MasterMix,MasterMixVolume)
+							mmxSample:=mixer.Sample(MasterMix,MasterMixVolume)
 
-						components = append(components, mmxSample)
+							components = append(components, mmxSample)
 				*/
 				Red.CName = fmt.Sprint(redname, "_RBSstrength_", uint8(r))
 				Red.Type = wtype.LTPostMix

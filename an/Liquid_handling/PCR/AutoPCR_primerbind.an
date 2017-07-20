@@ -2,7 +2,6 @@ protocol AutoPCR_primerbind
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -74,14 +73,11 @@ Steps {
 				Finalextensiontime:   wunit.NewTime(180, "s"),
 				WellPosition:         wellposition,
 			}, Inputs{
-				FwdPrimer: FwdPrimertype,
-				RevPrimer: RevPrimertype,
-
-				PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-
-				Template: Templatetype,
-
-				OutPlate: Plate,
+				FwdPrimer:     FwdPrimertype,
+				RevPrimer:     RevPrimertype,
+				PCRPolymerase: NewComponent("Q5Polymerase"),
+				Template:      Templatetype,
+				OutPlate:      Plate,
 			})
 
 		Reactions = append(Reactions, result.Outputs.Reaction)

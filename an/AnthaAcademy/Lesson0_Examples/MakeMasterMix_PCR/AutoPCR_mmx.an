@@ -3,8 +3,8 @@ protocol AutoPCR_mmx_demo
 
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	//"github.com/antha-lang/antha/antha/anthalib/thermocycle"
 
+	//"github.com/antha-lang/antha/antha/anthalib/thermocycle"
 )
 
 // Input parameters for this protocol (data)

@@ -13,7 +13,6 @@
         "MOPS": "50mM",
         "default": "0mM"
       },
-      
       "UseLHPolicy": {
         "default": "water"
       }

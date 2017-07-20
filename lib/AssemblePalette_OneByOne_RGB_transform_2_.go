@@ -12,7 +12,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 	goimage "image"
 	"image/color"
 	"strconv"
@@ -65,8 +64,8 @@ func _AssemblePalette_OneByOne_RGB_transform_2Steps(_ctx context.Context, _input
 		CompetentCellTransferVolume wunit.Volume      = wunit.NewVolume(20.0, "ul")
 		RecoveryPlateNumber         int               = 1
 
-		PlatewithRecoveryMedia  *wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
-		PlateWithCompetentCells *wtype.LHPlate = factory.GetPlateByType("pcrplate_skirted_riser")
+		PlatewithRecoveryMedia  *wtype.LHPlate = execute.NewPlate(_ctx, "pcrplate_skirted_riser")
+		PlateWithCompetentCells *wtype.LHPlate = execute.NewPlate(_ctx, "pcrplate_skirted_riser")
 	)
 
 	redname := _input.Red.CName
