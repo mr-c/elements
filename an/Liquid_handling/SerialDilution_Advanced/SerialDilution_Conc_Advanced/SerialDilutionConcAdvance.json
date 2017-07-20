@@ -1,0 +1,31 @@
+{
+  "connections": [],
+  "processes": {
+    "SerialDilute": {
+      "component": "SerialDilution_Conc_Advanced"
+    }
+  },
+  "Parameters": {
+    "SerialDilute": {
+      "ByRow": false,
+      "Diluent": "water",
+      "OutPlate": "DSW96_riser",
+      "Solution": "tartrazine",
+      "FinalVolumePerDilution": "100ul",
+      "StockConcentration": "10mg/ml",
+      "TargetConcentrations": [
+        "1mg/ml",
+        "0.2mg/ml",
+        "0.1mg/ml",
+        "0.0025mg/ml"
+      ],
+	"IncludeStockSolution": false,
+	"DilutionPlateName": "Sausages",
+	"WellsAlreadyUsed": {},
+	"NumberOfReplicaPlates": 2
+    }
+  }
+
+
+
+}
