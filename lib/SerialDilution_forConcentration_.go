@@ -95,7 +95,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		solutionname = _input.Solution.CName
 	}
 
-	aliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
+	aliquot.CName = deleteSpace(_input.TargetConcentrations[dilutionPosition].ToString()) + " " + solutionname
 	aliquot.CName = normalise(aliquot.CName)
 	aliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 
@@ -147,7 +147,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		}
 
 		// rename sample to include concentration
-		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
+		nextaliquot.CName = deleteSpace(_input.TargetConcentrations[dilutionPosition].ToString()) + " " + solutionname
 
 		nextaliquot.CName = normalise(nextaliquot.CName)
 
@@ -183,6 +183,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 }
 
+/*
 // if the component name contains a concentration the concentration name will be normalised
 // e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
 func normalise(name string) (normalised string) {
@@ -194,9 +195,36 @@ func normalise(name string) (normalised string) {
 	containsConc, conc, nameonly := wunit.ParseConcentration(name)
 
 	if containsConc {
-		return conc.ToString() + " " + nameonly
+		return nameonly //conc.ToString() + " " + nameonly
 	} else {
 		return nameonly
+	}
+}
+*/
+
+func deleteSpace(str string) string {
+	return strings.Replace(str, " ", "", -1)
+}
+
+// if the component name contains a concentration the concentration name will be normalised
+// e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
+// A concatanenated name such as 10g/L glucose + 10g/L yeast extract will be returned with no modifications
+func normalise(name string) (normalised string) {
+
+	if strings.Contains(name, wtype.MIXDELIMITER) {
+		return name
+	}
+
+	containsConc, conc, nameonly := wunit.ParseConcentration(name)
+
+	if containsConc {
+		if conc.RawValue() > 0 {
+			return deleteSpace(conc.ToString()) + " " + nameonly
+		} else {
+			return nameonly
+		}
+	} else {
+		return name
 	}
 }
 

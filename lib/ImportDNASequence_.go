@@ -26,6 +26,7 @@ import (
 //Return DNA sequence as type DNASequence
 //Status for user
 //Warnings for user
+// g/mol
 
 // Physical inputs to this protocol
 
@@ -98,6 +99,9 @@ func _ImportDNASequenceSteps(_ctx context.Context, _input *ImportDNASequenceInpu
 
 		}
 	}
+
+	_output.MolecularWeight = _output.DNA.MolecularWeight()
+
 	_output.Status = fmt.Sprintln(text.Print("DNA_Seq: ", _output.DNA)) + _output.Status
 	_output.Warnings = err
 
@@ -167,16 +171,18 @@ type ImportDNASequenceInput struct {
 }
 
 type ImportDNASequenceOutput struct {
-	DNA      wtype.DNASequence
-	Status   string
-	Warnings error
+	DNA             wtype.DNASequence
+	MolecularWeight float64
+	Status          string
+	Warnings        error
 }
 
 type ImportDNASequenceSOutput struct {
 	Data struct {
-		DNA      wtype.DNASequence
-		Status   string
-		Warnings error
+		DNA             wtype.DNASequence
+		MolecularWeight float64
+		Status          string
+		Warnings        error
 	}
 	Outputs struct {
 	}
@@ -194,6 +200,7 @@ func init() {
 				{Name: "RenameSequence", Desc: "optional parameter to rename the dna sequence. If left empty the name specified in the file is used\n", Kind: "Parameters"},
 				{Name: "SequenceFile", Desc: "Supported file formats formats: .gdx .fasta .gb\n", Kind: "Parameters"},
 				{Name: "DNA", Desc: "Return DNA sequence as type DNASequence\n", Kind: "Data"},
+				{Name: "MolecularWeight", Desc: "g/mol\n", Kind: "Data"},
 				{Name: "Status", Desc: "Status for user\n", Kind: "Data"},
 				{Name: "Warnings", Desc: "Warnings for user\n", Kind: "Data"},
 			},

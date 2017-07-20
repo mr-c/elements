@@ -22,6 +22,7 @@ Data (
 	DNA DNASequence //Return DNA sequence as type DNASequence
 	Status string   //Status for user
 	Warnings error  //Warnings for user
+	MolecularWeight float64 // g/mol
 )
 
 // Physical inputs to this protocol
@@ -95,8 +96,11 @@ Steps {
 			DNA = wtype.Annotate(DNA, features)
 			Status = fmt.Sprintln(text.Print("ORFs: ", orfs))
 
-		}
 	}
+	}
+	
+MolecularWeight = DNA.MolecularWeight()
+		
 	Status = fmt.Sprintln(text.Print("DNA_Seq: ", DNA)) + Status
 	Warnings = err
 

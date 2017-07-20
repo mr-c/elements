@@ -4,6 +4,7 @@ AN_DIRS=an starter
 AN_OUT=lib
 INPUT_DIRS=workflows starter defaults
 PACKAGE=github.com/antha-lang/elements
+ANPACKAGE=github.com/antha-lang/antha
 
 # Compile after downloading dependencies
 all: update_deps fmt_json compile
@@ -28,6 +29,9 @@ check_json:
 
 fmt_json:
 	go run cmd/format-json/main.go -inPlace $(INPUT_DIRS)
+	
+fmt_an:
+	go run $(ANPACKAGE)/cmd/anthafmt/format.go $(AN_DIRS) --write
 
 update_deps:
 	go list -f '{{join .Deps "\n"}}' $(PACKAGE)/cmd/antharun \
