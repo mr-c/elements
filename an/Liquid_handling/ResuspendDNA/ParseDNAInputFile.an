@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 	"strings"
 )
 
@@ -269,7 +268,7 @@ Steps {
 			PartMassMap[partname] = wunit.NewMass(partmass, "ug")
 			PartPlateMap[partname] = platename
 
-			part := factory.GetComponentByType("dna_part")
+			part := NewComponent("dna_part")
 			part.CName = partname
 
 			if partVol > 0.0 {

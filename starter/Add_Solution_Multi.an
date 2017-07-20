@@ -1,6 +1,6 @@
 // Protocol Add_Solution_Multi allows for making a slice of new LHComponents (liquid handling component) when they do not exist in the LHComponent library.
 // The element recursively calls the Add_Solution element which takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
-// The NewSolution output can be wired into elements as an input so that new LHComponents 
+// The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 protocol Add_Solution_Multi
 
@@ -12,34 +12,32 @@ import (
 // Parameters to this protocol
 Parameters (
 	// list of desired names for new LHComponents, if empty returns an error
-	Names []string 
-	
-	// Stock concentration being used, 
+	Names []string
+
+	// Stock concentration being used,
 	// if a "default" is specified then that will be used as the default for all entries with no value
 	// if no default is specified, no concentration is set
-	StockConcentrations map[string]Concentration 
-	
-	// If empty this defaults to PostMix which mixes 3 times after dispensing. 
-	UseLHPolicy map[string]PolicyName 
+	StockConcentrations map[string]Concentration
+
+	// If empty this defaults to PostMix which mixes 3 times after dispensing.
+	UseLHPolicy map[string]PolicyName
 )
 
 // Output data of this protocol
 Data (
 	// Outputs status to return to user on any substitutions made, what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
-	Status map[string]string 
-	// Outputs the NewSolution names 
+	Status map[string]string
+	// Outputs the NewSolution names
 	NewSolutionNames []string
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs to this protocol
 Outputs (
 	// This is the list of NewSolutions output that can be wired into another element and be used straight away without having to input it into the LHComponent library
-	NewSolutions []*LHComponent 
+	NewSolutions []*LHComponent
 )
 
 // Conditions to run on startup
@@ -49,63 +47,62 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	
-	if len(Names)==0{
+
+	if len(Names) == 0 {
 		Errorf("No Names specified for new components")
 	}
-	
+
 	// initialise default conc as empty, if not found in map, no concentration will be set unless a "default" key is used in the StockConcentrations map
 	var defaultConc Concentration
-	
-	if _, found := StockConcentrations["default"];found{
+
+	if _, found := StockConcentrations["default"]; found {
 		defaultConc = StockConcentrations["default"]
 	}
-			
+
 	// if the length of the map is 1 this lhpolicy will be used for all components
 	// if empty the lhpolicy of the Template Component is used
 	var defaultLHPolicy PolicyName
-	
-	if policy,found := UseLHPolicy["default"];found{
-			defaultLHPolicy = policy
-	}else{
+
+	if policy, found := UseLHPolicy["default"]; found {
+		defaultLHPolicy = policy
+	} else {
 		defaultLHPolicy = ""
 	}
-	
+
 	// initialise map for appending with results
 	Status = make(map[string]string)
-	
+
 	// range through component names
 	for _, name := range Names {
-		
+
 		var status string
 		var stockConc Concentration
 		var lhpolicy PolicyName
 		var found bool
-		
-		// check if a concentration is specified 
-		if stockConc, found = StockConcentrations[name];!found{
+
+		// check if a concentration is specified
+		if stockConc, found = StockConcentrations[name]; !found {
 			stockConc = defaultConc
 			status = "No concentration specified for " + name + "; "
 		}
-				
-		// check if an LHPolicy is specified 
-		if lhpolicy, found = UseLHPolicy[name];!found{
+
+		// check if an LHPolicy is specified
+		if lhpolicy, found = UseLHPolicy[name]; !found {
 			lhpolicy = defaultLHPolicy
-			status = status + "No lhpolicy specified so using default PostMix policy; " 
+			status = status + "No lhpolicy specified so using default PostMix policy; "
 		}
-		
-	// run Add_Solution element
-	result := RunSteps(Add_Solution,Parameters{
-		Name: name,
-		StockConcentration: stockConc,
-		UseLHPolicy: lhpolicy,
-	},Inputs{
-	})
-	
-	// append outputs
-	NewSolutions = append(NewSolutions,result.Outputs.NewSolution)
-	NewSolutionNames = append(NewSolutionNames,result.Data.NewSolutionName)
-	Status[name] = status + result.Data.Status 
+
+		// run Add_Solution element
+		result := RunSteps(Add_Solution, Parameters{
+			Name:               name,
+			StockConcentration: stockConc,
+			UseLHPolicy:        lhpolicy,
+		}, Inputs{})
+
+		// append outputs
+		NewSolutions = append(NewSolutions, result.Outputs.NewSolution)
+		NewSolutionNames = append(NewSolutionNames, result.Data.NewSolutionName)
+		Status[name] = status + result.Data.Status
 	}
 	// done
 }

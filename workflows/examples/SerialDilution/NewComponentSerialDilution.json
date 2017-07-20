@@ -10,12 +10,12 @@
       "ByRow": true,
       "Diluent": "water",
       "DilutionFactor": 1.2,
+      "DilutionPlateName": "DilutionPlate",
       "NumberOfDilutions": 12,
       "OutPlate": "DSW96",
       "RemoveExcessSolution": true,
       "TotalVolumeperDilution": "100ul",
-      "WellsAlreadyUsed": 0,
-	  "DilutionPlateName": "DilutionPlate"
+      "WellsAlreadyUsed": 0
     }
   },
   "Processes": {

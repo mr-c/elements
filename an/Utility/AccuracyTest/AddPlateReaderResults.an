@@ -16,7 +16,6 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Pubchem"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 	"github.com/montanaflynn/stats"
 
 	"bytes"
@@ -366,7 +365,7 @@ Steps {
 			} else {
 				volused = wunit.AddVolumes([]Volume{Stockvol, experimentalvolume})
 			}
-			pathlength, err := platereader.EstimatePathLength(factory.GetPlateByType(PlateType.Type), volused)
+			pathlength, err := platereader.EstimatePathLength(NewPlate(PlateType.Type), volused)
 
 			if err != nil {
 				panic(err)
