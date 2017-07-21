@@ -167,8 +167,6 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 
 	}
 
-	_output.Reactions[0] = execute.Prompt(_ctx, _output.Reactions[0], "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
-
 	// once all values of loop have been completed, export the plate contents as a csv file
 	_output.Errors = append(_output.Errors, wtype.ExportPlateCSV(_input.Projectname+".csv", _input.Plate, _input.Projectname+"outputPlate", welllocations, _output.Reactions, volumes))
 
@@ -271,7 +269,7 @@ func init() {
 		Constructor: AutoPCR_mmx_multiNew,
 		Desc: component.ComponentDesc{
 			Desc: "Perform multiple PCR reactions with common default parameters using a mastermix\n",
-			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/AutoPCR_mmx.an",
+			Path: "src/github.com/antha-lang/elements/starter/MakeMasterMix_PCR/AutoPCR_mmx_Multi.an",
 			Params: []component.ParamDesc{
 				{Name: "DefaultMasterMixVolume", Desc: "Volume of mastermix to add to the reaction.\n", Kind: "Parameters"},
 				{Name: "DefaultPolymerase", Desc: "Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.\nThis input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.\n", Kind: "Inputs"},
