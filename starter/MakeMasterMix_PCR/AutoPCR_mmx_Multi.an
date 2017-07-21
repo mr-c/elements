@@ -187,6 +187,8 @@ Steps {
 
 	}
 
+	Prompt(Reactions[0], "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
+
 	// once all values of loop have been completed, export the plate contents as a csv file
 	Errors = append(Errors, wtype.ExportPlateCSV(Projectname+".csv", Plate, Projectname+"outputPlate", welllocations, Reactions, volumes))
 
