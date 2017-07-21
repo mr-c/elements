@@ -167,6 +167,8 @@ func _AutoPCR_mmx_multiSteps(_ctx context.Context, _input *AutoPCR_mmx_multiInpu
 
 	}
 
+	_output.Reactions[0] = execute.Prompt(_ctx, _output.Reactions[0], "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
+
 	// once all values of loop have been completed, export the plate contents as a csv file
 	_output.Errors = append(_output.Errors, wtype.ExportPlateCSV(_input.Projectname+".csv", _input.Plate, _input.Projectname+"outputPlate", welllocations, _output.Reactions, volumes))
 
