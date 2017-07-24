@@ -2,32 +2,28 @@
 protocol PosterizeImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	InputImage	*goimage.NRGBA			//Input image for this element
-	Level		int						//Posterizing level. This refers to the number of colors used to express the image. It cannot be set to 1.
+	InputImage *goimage.NRGBA //Input image for this element
+	Level int                 //Posterizing level. This refers to the number of colors used to express the image. It cannot be set to 1.
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	OutputImage *goimage.NRGBA		//Opened image
-	Error	error					//error message
+	OutputImage *goimage.NRGBA //Opened image
+	Error error                //error message
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -48,9 +44,6 @@ Steps {
 	}
 }
 
-
-
-
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -62,4 +55,3 @@ Analysis {
 Validation {
 
 }
-

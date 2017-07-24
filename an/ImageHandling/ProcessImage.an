@@ -2,30 +2,27 @@
 protocol ProcessImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
 	goimage "image"
-
-	)
-
+)
 
 // Input parameters for this protocol (data)
 Parameters (
-	InputImage *goimage.NRGBA		//Image to use for his element
-	Rotate bool						//Rotating image to fit plate
-	AutoRotate bool					//Rotating image to fit plate
-	PosterizeImage bool				//Posterize the image (espress it with fewer colors)
-	PosterizeLevels int				//Posterizing value (number of colors to express the image with)
-	Palette string					//Palette name with which to the image will be changed
-	CheckAllResizeAlgorithms bool	//Iterate over every type of resizing algorithm to see the different image they output
+	InputImage *goimage.NRGBA     //Image to use for his element
+	Rotate bool                   //Rotating image to fit plate
+	AutoRotate bool               //Rotating image to fit plate
+	PosterizeImage bool           //Posterize the image (espress it with fewer colors)
+	PosterizeLevels int           //Posterizing value (number of colors to express the image with)
+	Palette string                //Palette name with which to the image will be changed
+	CheckAllResizeAlgorithms bool //Iterate over every type of resizing algorithm to see the different image they output
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	ProcessedImage *goimage.NRGBA	//Resulting image
+	ProcessedImage *goimage.NRGBA //Resulting image
 )
-
 
 // Physical Inputs to this protocol with types
 Inputs (
@@ -33,23 +30,21 @@ Inputs (
 )
 
 // Physical outputs from this protocol with types
-Outputs (
-
-)
+Outputs ()
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	//-------------------------------------------------------------------------------------
 	//Globals
 	//-------------------------------------------------------------------------------------
@@ -62,9 +57,9 @@ Steps {
 	//Posterize image
 	//--------------------------------------------------------------
 
-	if PosterizeImage{
+	if PosterizeImage {
 		imgBase, err = image.Posterize(imgBase, PosterizeLevels)
-		if err != nil{
+		if err != nil {
 			Errorf(err.Error())
 		}
 	}
@@ -74,7 +69,7 @@ Steps {
 	//--------------------------------------------------------------
 
 	if CheckAllResizeAlgorithms {
-			image.CheckAllResizealgorithms(imgBase,OutPlate,Rotate,image.AllResampleFilters)
+		image.CheckAllResizealgorithms(imgBase, OutPlate, Rotate, image.AllResampleFilters)
 	}
 
 	//--------------------------------------------------------------
@@ -96,6 +91,7 @@ Steps {
 	ProcessedImage = imgBase
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -105,6 +101,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

@@ -3,32 +3,28 @@
 protocol ChoosePalette
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"image/color"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	PaletteID string					//Name of the Palette to use. The names are in the pixelToPlate package in the standard library.
-	AvailableColors	[]string			//ID of the available colors. Leave blank if you want to use the palette
+	PaletteID string         //Name of the Palette to use. The names are in the pixelToPlate package in the standard library.
+	AvailableColors []string //ID of the available colors. Leave blank if you want to use the palette
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	Palette	color.Palette				//Selected palette
-	Error	error						//error message
+	Palette color.Palette //Selected palette
+	Error error           //error message
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -45,8 +41,8 @@ Steps {
 	//Globals
 	//-----------------------------------------------------------
 
-	var palette 	color.Palette
-	var tempColor	color.Color
+	var palette color.Palette
+	var tempColor color.Color
 
 	//-----------------------------------------------------------
 	//Creating palette
@@ -71,9 +67,6 @@ Steps {
 
 }
 
-
-
-
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -85,4 +78,3 @@ Analysis {
 Validation {
 
 }
-

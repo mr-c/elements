@@ -2,32 +2,28 @@
 protocol DownloadImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	URL	string //URL from which the image will be downloaded
+	URL string //URL from which the image will be downloaded
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	Image *goimage.NRGBA		//Opened image
-	Error	error				//error message
+	Image *goimage.NRGBA //Opened image
+	Error error          //error message
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -44,31 +40,27 @@ Steps {
 	//Globals
 	//-------------------------------------------------------------------------------------
 
-	var imgFile	File
+	var imgFile File
 
 	//-------------------------------------------------------------------------------------
 	//Fetching image file
 	//-------------------------------------------------------------------------------------
 
-	imgFile , Error = download.File(URL, "Downloaded file")
-	if Error != nil{
+	imgFile, Error = download.File(URL, "Downloaded file")
+	if Error != nil {
 		Errorf(Error.Error())
 	}
-
 
 	//-------------------------------------------------------------------------------------
 	//Opening image
 	//-------------------------------------------------------------------------------------
 
 	Image, Error = image.OpenFile(imgFile)
-	if Error != nil{
+	if Error != nil {
 		Errorf(Error.Error())
 	}
 
 }
-
-
-
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -81,4 +73,3 @@ Analysis {
 Validation {
 
 }
-

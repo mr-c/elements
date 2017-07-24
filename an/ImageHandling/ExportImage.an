@@ -2,31 +2,27 @@
 protocol ExportImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	OutputImageFileName string	//desired name for the output file
-	Image *goimage.NRGBA		//image object to export to File
+	OutputImageFileName string //desired name for the output file
+	Image *goimage.NRGBA       //image object to export to File
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	ImageFile File	//Image as a file object
+	ImageFile File //Image as a file object
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -45,15 +41,12 @@ Steps {
 	//Exporting resulting images
 	//--------------------------------------------------------------
 
-	ImageFile, err = image.Export(Image,OutputImageFileName)
-	if err != nil{
+	ImageFile, err = image.Export(Image, OutputImageFileName)
+	if err != nil {
 		Errorf(err.Error())
 	}
 
 }
-
-
-
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -66,4 +59,3 @@ Analysis {
 Validation {
 
 }
-

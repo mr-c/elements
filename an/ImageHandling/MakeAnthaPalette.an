@@ -3,32 +3,28 @@
 protocol MakeAnthaPalette
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
-	"image/color"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"image/color"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
-	Palette		color.Palette			//Palette to couple with LHComponents
-	LHComponents []*wtype.LHComponent	//LHComponents to couple with the colors in the palette
+	Palette color.Palette             //Palette to couple with LHComponents
+	LHComponents []*wtype.LHComponent //LHComponents to couple with the colors in the palette
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	AnthaPalette	*image.AnthaPalette		//Resulting AnthaPalette object, the LHComponents are coupled with the colors.
+	AnthaPalette *image.AnthaPalette //Resulting AnthaPalette object, the LHComponents are coupled with the colors.
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -51,12 +47,9 @@ Steps {
 	}
 
 	//converting the palette to an AnthaPalette
-	AnthaPalette = image.MakeAnthaPalette (Palette, LHComponents)
+	AnthaPalette = image.MakeAnthaPalette(Palette, LHComponents)
 
 }
-
-
-
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -69,4 +62,3 @@ Analysis {
 Validation {
 
 }
-

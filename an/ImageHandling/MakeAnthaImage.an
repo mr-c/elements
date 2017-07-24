@@ -2,44 +2,38 @@
 protocol MakeAnthaImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
 	goimage "image"
-	)
-
+)
 
 // Input parameters for this protocol (data)
 Parameters (
-	InputImage		*goimage.NRGBA		//Image to use for this element
-	AnthaPalette	*image.AnthaPalette	//Palette to use for this element
-	Plate			*wtype.LHPlate				//Plate which will be used to print the image
+	InputImage *goimage.NRGBA        //Image to use for this element
+	AnthaPalette *image.AnthaPalette //Palette to use for this element
+	Plate *wtype.LHPlate             //Plate which will be used to print the image
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	AnthaImage	*image.AnthaImg			//converted image to anthaImage
-	ResizedImage *goimage.NRGBA			//Image resized to fit plate
+	AnthaImage *image.AnthaImg  //converted image to anthaImage
+	ResizedImage *goimage.NRGBA //Image resized to fit plate
 )
-
 
 // Physical Inputs to this protocol with types
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-
-)
+Outputs ()
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
@@ -50,6 +44,7 @@ Steps {
 	AnthaImage, ResizedImage = image.MakeAnthaImg(InputImage, AnthaPalette, Plate)
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -59,6 +54,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

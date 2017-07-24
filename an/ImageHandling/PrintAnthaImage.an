@@ -2,33 +2,27 @@
 protocol PrintAnthaImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
 	"image/color"
 
 	"fmt"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	AnthaImage	*image.AnthaImg	//AnthaImage to print on a plate
-	PixVolume	Volume			//Volume of LHComponent needed to make a pixel
-	ColorToExclude string		//Background color which we do not want to print, leave blank if you want to print all colors.
+	AnthaImage *image.AnthaImg //AnthaImage to print on a plate
+	PixVolume Volume           //Volume of LHComponent needed to make a pixel
+	ColorToExclude string      //Background color which we do not want to print, leave blank if you want to print all colors.
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
 Outputs (
@@ -36,7 +30,7 @@ Outputs (
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
@@ -53,12 +47,12 @@ Steps {
 
 	//placeholders
 	var pixelSolution *LHComponent
-	var wellLocation  string
+	var wellLocation string
 	var colorToExclude color.Color
 
-	if ColorToExclude == ""{
+	if ColorToExclude == "" {
 		colorToExclude = image.SelectColor(ColorToExclude)
-	}else{
+	} else {
 		colorToExclude = color.NRGBA{}
 	}
 
@@ -66,8 +60,7 @@ Steps {
 	//Iterating through each pixels in the image and pipetting them
 	//------------------------------------------------------------------
 
-
-	counter :=0
+	counter := 0
 	for _, pix := range AnthaImage.Pix {
 
 		//Skipping pixel if it is of the background color
@@ -102,6 +95,7 @@ Steps {
 	OutAnthaImage = AnthaImage
 
 }
+
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
 Analysis {
@@ -111,6 +105,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}
