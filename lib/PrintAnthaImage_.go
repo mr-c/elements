@@ -50,9 +50,9 @@ func _PrintAnthaImageSteps(_ctx context.Context, _input *PrintAnthaImageInput, _
 	var colorToExclude color.Color
 
 	if _input.ColorToExclude == "" {
-		colorToExclude = image.SelectColor(_input.ColorToExclude)
-	} else {
 		colorToExclude = color.NRGBA{}
+	} else {
+		colorToExclude = image.SelectColor(_input.ColorToExclude)
 	}
 
 	//------------------------------------------------------------------

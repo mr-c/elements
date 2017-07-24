@@ -51,9 +51,9 @@ Steps {
 	var colorToExclude color.Color
 
 	if ColorToExclude == "" {
-		colorToExclude = image.SelectColor(ColorToExclude)
-	} else {
 		colorToExclude = color.NRGBA{}
+	} else {
+		colorToExclude = image.SelectColor(ColorToExclude)
 	}
 
 	//------------------------------------------------------------------

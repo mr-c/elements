@@ -32,6 +32,9 @@
     },
     "MakeAnthaImage": {
       "Plate": "greiner384"
+    },
+    "PrintAnthaImage": {
+      "ColorToExclude" : "white"
     }
   },
   "Processes": {
