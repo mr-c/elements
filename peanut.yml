@@ -3,7 +3,7 @@ kind: package
 name: github.com/antha-lang/elements
 version: 0.0.2
 build:
-  baseimage: docker.synthace.com/synthace/antha:1.7-build
+  baseimage: docker.synthace.com/synthace/antha:1.8-build
   volumes:
   - /certs
   commands:

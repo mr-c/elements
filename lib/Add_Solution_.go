@@ -14,7 +14,6 @@ import
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
@@ -45,7 +44,7 @@ func _Add_SolutionSteps(_ctx context.Context, _input *Add_SolutionInput, _output
 	//Initialise variable err with type error
 	var err error
 
-	TemplateComponent := factory.GetComponentByType("water")
+	TemplateComponent := execute.NewComponent(_ctx, "water")
 
 	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
 	templateComponentName := TemplateComponent.CName

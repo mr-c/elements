@@ -2,13 +2,13 @@
   "Parameters": {
     "AliquotParams": {
       "ChangeSolutionName": "",
+      "NumberOfReplicaPlates": 1,
       "NumberofAliquots": 8,
       "OutPlate": "DSW96_riser20",
       "PreMix": false,
       "Solution": "water",
       "SolutionVolume": "10000ul",
-      "VolumePerAliquot": "1ml",
-      "NumberOfReplicaPlates": 1
+      "VolumePerAliquot": "1ml"
     }
   },
   "connections": [],

@@ -1,5 +1,5 @@
 // Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
-// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable. 
+// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
 // The NewSolution output can be wired into elements as an input so that new LHComponents
 // dont need to be made and populated into the library before an element can be used
 protocol Add_Solution
@@ -7,7 +7,6 @@ protocol Add_Solution
 // Place golang packages to import here
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Parameters to this protocol
@@ -19,13 +18,12 @@ Parameters (
 
 // Output data of this protocol
 Data (
-	Status string             // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
+	Status string          // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
 	NewSolutionName string // Outputs the NewSolution name as a string
 )
 
 // Physical inputs to this protocol
-Inputs (
-)
+Inputs ()
 
 // Physical outputs to this protocol
 Outputs (
@@ -42,9 +40,9 @@ Steps {
 
 	//Initialise variable err with type error
 	var err error
-	
-	TemplateComponent := factory.GetComponentByType("water")
-	
+
+	TemplateComponent := NewComponent("water")
+
 	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
 	templateComponentName := TemplateComponent.CName
 

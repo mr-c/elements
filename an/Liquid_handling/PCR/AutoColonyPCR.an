@@ -3,7 +3,6 @@ protocol AutoColonyPCR
 import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 	inplate "github.com/antha-lang/antha/target/mixer"
 	"strconv"
 )
@@ -63,7 +62,7 @@ Steps {
 	numberofcolonies := 0
 
 	// parse colony locations from file
-	inputplate, err := inplate.ParseInputPlateFile(WellstopickCSV)
+	inputplate, err := inplate.ParseInputPlateFile(_ctx, WellstopickCSV)
 
 	if err != nil {
 		Errorf("Error parsing inputplate csv file")
@@ -125,9 +124,9 @@ Steps {
 				}, Inputs{
 					FwdPrimer:     FwdPrimertype,
 					RevPrimer:     RevPrimertype,
-					MasterMix:     factory.GetComponentByType("Q5mastermix"),
-					PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-					RecoveryWater: factory.GetComponentByType("water"),
+					MasterMix:     NewComponent("Q5mastermix"),
+					PCRPolymerase: NewComponent("Q5Polymerase"),
+					RecoveryWater: NewComponent("water"),
 					Template:      colonyComponent,
 					OutPlate:      Plate,
 					RecoveryPlate: RecoveryPlate,

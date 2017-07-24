@@ -64,12 +64,12 @@ Analysis {
 
 Validation {
 	/*
-	if OD.sample_absorbance > 1 {
-	panic("Sample likely needs further dilution")
-	}
-	if OD.sample_absorbance < 0.02 {
-	warn("low inoculation OD")
-	//could add visual (i.e. manual or camera based) validation
-	// TODO: add test of replicate variance
-	}*/
+		if OD.sample_absorbance > 1 {
+		panic("Sample likely needs further dilution")
+		}
+		if OD.sample_absorbance < 0.02 {
+		warn("low inoculation OD")
+		//could add visual (i.e. manual or camera based) validation
+		// TODO: add test of replicate variance
+		}*/
 }

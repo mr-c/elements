@@ -11,7 +11,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 	goimage "image"
 	"image/color"
 	"sort"
@@ -130,7 +129,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		if _input.ComponentType != nil {
 			componenttopick = _input.ComponentType
 		} else {
-			componenttopick = factory.GetComponentByType("Paint")
+			componenttopick = execute.NewComponent(_ctx, "Paint")
 		}
 		componenttopick.CName = componentname
 

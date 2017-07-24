@@ -3,10 +3,10 @@ Parameters:
     ByRow: false
     Diluent: water
     DilutionFactor: 10
+    DilutionPlateName: DilutionPlate
     NumberOfDilutions: 16
     OutPlate: DSW96_riser
     RemoveExcessSolution: true
     Solution: tartrazine
     TotalVolumeperDilution: 100ul
     WellsAlreadyUsed: 0
-    DilutionPlateName: DilutionPlate

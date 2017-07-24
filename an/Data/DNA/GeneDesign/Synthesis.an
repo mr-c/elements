@@ -3,7 +3,6 @@ protocol Synthesis
 import (
 	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -35,7 +34,7 @@ Steps {
 	fmt.Println("Parts:", PartsWithOverhangs)
 	for i, part := range PartsWithOverhangs {
 
-		dna := factory.GetComponentByType("dna")
+		dna := NewComponent("dna")
 		dna.CName = part.Nm
 		fmt.Println("dna:", i, dna)
 		components = append(components, dna)

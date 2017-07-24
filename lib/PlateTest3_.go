@@ -16,8 +16,8 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/inventory/testinventory"
 	"github.com/antha-lang/antha/microArch/driver/liquidhandling"
-	"github.com/antha-lang/antha/microArch/factory"
 	"time"
 )
 
@@ -86,7 +86,10 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 	_output.PlatesUsedPostRunPerPlateType = make([]int, 0)
 
 	// Get list of plates to check validity of plate names specified in parameters
-	platelist := factory.GetPlateList()
+	var platelist []string
+	for _, plate := range testinventory.GetPlates(_ctx) {
+		platelist = append(platelist, plate.Type)
+	}
 
 	// This if statement ensures that default behaviour should be to assume that
 	// all plates have no wells used if no WellsUsedperPlateTypeInorder []int is specified
@@ -106,7 +109,7 @@ func _PlateTest3Steps(_ctx context.Context, _input *PlateTest3Input, _output *Pl
 
 		// get all well positions from the plate
 
-		lhplate := factory.GetPlateByType(_input.OutPlates[k])
+		lhplate := execute.NewPlate(_ctx, _input.OutPlates[k])
 
 		wellpositionsarray := lhplate.AllWellPositions(wtype.BYCOLUMN)
 

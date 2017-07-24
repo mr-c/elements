@@ -13,7 +13,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/inventory"
 	"strconv"
 )
 
@@ -112,17 +112,20 @@ func _MasterMixMakerSteps(_ctx context.Context, _input *MasterMixMakerInput, _ou
 	lhComponents := make([]*wtype.LHComponent, 0)
 
 	for _, component := range _input.Components {
-
-		if factory.ComponentInFactory(component) {
-			lhComponents = append(lhComponents, factory.GetComponentByType(component))
-		} else {
+		comp, err := inventory.NewComponent(_ctx, component)
+		if err == inventory.ErrUnknownType {
 			// if component not in factory use dna as default component type
-			defaultcomponent := factory.GetComponentByType("dna_part")
-			defaultcomponent.Type = wtype.LTDNAMIX
-
-			defaultcomponent.CName = component
-			lhComponents = append(lhComponents, defaultcomponent)
+			comp, err = inventory.NewComponent(_ctx, "dna_part")
+			if err == nil {
+				comp.Type = wtype.LTDNAMIX
+				comp.CName = component
+			}
 		}
+		if err != nil {
+			execute.Errorf(_ctx, "cannot make component: %s", err)
+		}
+
+		lhComponents = append(lhComponents, comp)
 
 	}
 

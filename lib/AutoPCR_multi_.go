@@ -9,7 +9,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/inventory"
 )
 
 // Input parameters for this protocol (data)
@@ -60,17 +60,20 @@ func _AutoPCR_multiSteps(_ctx context.Context, _input *AutoPCR_multiInput, _outp
 
 	// get additive info
 	for additive, volume := range _input.AdditiveToAdditiveVolume {
-
-		var additivecomponent *wtype.LHComponent
-		var componentfound bool = factory.ComponentInFactory(additive)
-		if componentfound {
-			additivecomponent = factory.GetComponentByType(additive)
-		} else {
-			// if not found in factory use dmso as the base liquid handling type and change name to additivename specified
-			additivecomponent = factory.GetComponentByType("DMSO")
-			additivecomponent.CName = additive
+		comp, err := inventory.NewComponent(_ctx, additive)
+		if err == inventory.ErrUnknownType {
+			// if not found in factory use dmso as the base liquid
+			// handling type and change name to additivename
+			// specified
+			comp, err = inventory.NewComponent(_ctx, "DMSO")
+			if err == nil {
+				comp.CName = additive
+			}
 		}
-		additives = append(additives, additivecomponent)
+		if err != nil {
+			execute.Errorf(_ctx, "cannot make component: %s", err)
+		}
+		additives = append(additives, comp)
 		additivevolumes = append(additivevolumes, volume)
 	}
 

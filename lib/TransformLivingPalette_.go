@@ -13,7 +13,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 	goimage "image"
 	"image/color"
 	"strconv"
@@ -79,8 +78,8 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		CompetentCellTransferVolume wunit.Volume      = wunit.NewVolume(20.0, "ul")
 		RecoveryPlateNumber         int               = 1
 
-		PlatewithRecoveryMedia  *wtype.LHPlate = factory.GetPlateByType("DSW96_riser40")
-		PlateWithCompetentCells *wtype.LHPlate = factory.GetPlateByType("pcrplate_with_cooler")
+		PlatewithRecoveryMedia  *wtype.LHPlate = execute.NewPlate(_ctx, "DSW96_riser40")
+		PlateWithCompetentCells *wtype.LHPlate = execute.NewPlate(_ctx, "pcrplate_with_cooler")
 	)
 
 	colourtoComponentMap := make(map[string]string)
@@ -174,7 +173,7 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		if _input.ComponentType != nil {
 			componenttopick = _input.ComponentType
 		} else {
-			componenttopick = factory.GetComponentByType("water")
+			componenttopick = execute.NewComponent(_ctx, "water")
 		}
 		componenttopick.CName = componentname
 
