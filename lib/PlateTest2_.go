@@ -10,7 +10,7 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/inventory/testinventory"
 
 	"encoding/csv"
 	"os"
@@ -75,7 +75,10 @@ func _PlateTest2Steps(_ctx context.Context, _input *PlateTest2Input, _output *Pl
 	_output.PlatesUsedPostRunPerPlateType = make([]int, 0)
 
 	// Get list of plates to check validity of plate names specified in parameters
-	platelist := factory.GetPlateList()
+	var platelist []string
+	for _, plate := range testinventory.GetPlates(_ctx) {
+		platelist = append(platelist, plate.Type)
+	}
 
 	// This if statement ensures that default behaviour should be to assume that
 	// all plates have no wells used if no WellsUsedperPlateTypeInorder []int is specified
@@ -94,7 +97,7 @@ func _PlateTest2Steps(_ctx context.Context, _input *PlateTest2Input, _output *Pl
 		var platenumber int = 1
 
 		// get all well positions from the plate
-		wellpositionsarray := factory.GetPlateByType(_input.OutPlates[k]).AllWellPositions(wtype.BYCOLUMN)
+		wellpositionsarray := execute.NewPlate(_ctx, _input.OutPlates[k]).AllWellPositions(wtype.BYCOLUMN)
 
 		// Initialise a counter to be equal to the number of wells used for that plate
 		// The counter will be used to select the correct well position

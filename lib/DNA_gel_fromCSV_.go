@@ -84,7 +84,7 @@ func _DNA_gel_fromCSVSetup(_ctx context.Context, _input *DNA_gel_fromCSVInput) {
 func _DNA_gel_fromCSVSteps(_ctx context.Context, _input *DNA_gel_fromCSVInput, _output *DNA_gel_fromCSVOutput) {
 
 	// parse sample locations from file
-	inputplate, err := inplate.ParseInputPlateFile(_input.InputCSVfile)
+	inputplate, err := inplate.ParseInputPlateFile(_ctx, _input.InputCSVfile)
 
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())

@@ -3,7 +3,6 @@ protocol AutoPCR_Gradient_Split
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	//"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -106,12 +105,12 @@ Steps {
 			}, Inputs{
 				FwdPrimer:     FwdPrimertype,
 				RevPrimer:     RevPrimertype,
-				DNTPS:         factory.GetComponentByType("DNTPs"),
-				PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-				Buffer:        factory.GetComponentByType("Q5buffer"),
-				Water:         factory.GetComponentByType("water"),
+				DNTPS:         NewComponent("DNTPs"),
+				PCRPolymerase: NewComponent("Q5Polymerase"),
+				Buffer:        NewComponent("Q5buffer"),
+				Water:         NewComponent("water"),
 				Template:      Templatetype,
-				Additives:     []*LHComponent{factory.GetComponentByType("GCenhancer")},
+				Additives:     []*LHComponent{NewComponent("GCenhancer")},
 				OutPlate:      Plate,
 			})
 

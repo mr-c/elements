@@ -12,7 +12,8 @@ all: update_deps fmt_json compile
 # Compile using current state of working directories
 current: fmt_json compile
 
-gen_comp: anthac
+gen_comp: anthac anthafmt
+	anthafmt -w $(AN_DIRS)
 	antha -outdir=$(AN_OUT) $(AN_DIRS)
 	gofmt -w -s lib
 
@@ -42,6 +43,9 @@ update_deps:
 
 anthac:
 	go install -v github.com/antha-lang/antha/cmd/antha
+
+anthafmt:
+	go install -v github.com/antha-lang/antha/cmd/anthafmt
 
 compile: gen_comp
 	go install -v $(PACKAGE)/cmd/antharun

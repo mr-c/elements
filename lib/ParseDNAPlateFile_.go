@@ -15,7 +15,6 @@ import
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 	"strings"
 )
 
@@ -259,7 +258,7 @@ func _ParseDNAPlateFileSteps(_ctx context.Context, _input *ParseDNAPlateFileInpu
 			_output.PartMassMap[partname] = wunit.NewMass(partmass, "ug")
 			_output.PartPlateMap[partname] = platename
 
-			part := factory.GetComponentByType("dna_part")
+			part := execute.NewComponent(_ctx, "dna_part")
 			part.CName = partname
 
 			if partVol > 0.0 {

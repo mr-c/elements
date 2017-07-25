@@ -93,7 +93,7 @@ Setup {
 Steps {
 
 	// parse sample locations from file
-	inputplate, err := inplate.ParseInputPlateFile(InputCSVfile)
+	inputplate, err := inplate.ParseInputPlateFile(_ctx, InputCSVfile)
 
 	if err != nil {
 		Errorf(err.Error())
