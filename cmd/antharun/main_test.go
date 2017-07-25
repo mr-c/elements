@@ -16,6 +16,7 @@ import (
 	"github.com/antha-lang/antha/inventory/testinventory"
 	"github.com/antha-lang/antha/target"
 	"github.com/antha-lang/antha/target/human"
+	"github.com/antha-lang/antha/workflowtest"
 )
 
 const (
@@ -62,12 +63,17 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 				return
 			}
 		}
-		_, err := execute.Run(ctx, execute.Opt{
+		results, err := execute.Run(ctx, execute.Opt{
 			Workflow: input.Workflow,
 			Params:   input.Params,
 			Target:   tgt,
 			TransitionalReadLocalFiles: true,
 		})
+
+		if err == nil && input.Expected != nil {
+			err = workflowtest.CompareTestResults(results, *input.Expected)
+		}
+
 		errs <- err
 	}()
 
