@@ -183,33 +183,14 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 }
 
-/*
-// if the component name contains a concentration the concentration name will be normalised
-// e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
-func normalise(name string) (normalised string) {
-
-	if strings.Contains(name, wtype.MIXDELIMITER) {
-		return name
-	}
-
-	containsConc, conc, nameonly := wunit.ParseConcentration(name)
-
-	if containsConc {
-		return nameonly //conc.ToString() + " " + nameonly
-	} else {
-		return nameonly
-	}
-}
-*/
-
-func deleteSpace(str string) string {
-	return strings.Replace(str, " ", "", -1)
-}
-
 // if the component name contains a concentration the concentration name will be normalised
 // e.g. 10ng/ul glucose will be normalised to 10 mg/l glucose or 10mM glucose to 10 mM/l glucose or 10mM/l glucose to 10 mM/l glucose or glucose 10mM/l to 10 mM/l glucose
 // A concatanenated name such as 10g/L glucose + 10g/L yeast extract will be returned with no modifications
 func normalise(name string) (normalised string) {
+
+	deleteSpace = func(str string) string {
+		return strings.Replace(str, " ", "", -1)
+	}
 
 	if strings.Contains(name, wtype.MIXDELIMITER) {
 		return name
