@@ -27,6 +27,8 @@ Parameters (
 
 	// Optionally start after a specified well position if wells are allready used in the plate.
 	WellsAlreadyUsed int
+
+	SkipSolutionsWithNoTargetConcenctrations bool
 )
 
 // Data which is returned from this protocol, and data types
@@ -84,7 +86,7 @@ Steps {
 			startVol = vol
 		} else if vol, found := StartVolumeperDilution["default"]; found {
 			startVol = vol
-		} else {
+		} else if _, targetsFound := TargetConcentrations[solution.CName]; !SkipSolutionsWithNoTargetConcenctrations && !targetsFound {
 			Errorf("No volume specified for %s and no default volume specified", solution.CName)
 		}
 
@@ -94,7 +96,7 @@ Steps {
 			targetConcs = concs
 		} else if concs, found := TargetConcentrations["default"]; found {
 			targetConcs = concs
-		} else {
+		} else if !SkipSolutionsWithNoTargetConcenctrations {
 			Errorf("No target concentrations specified for %s and no default specified", solution.CName)
 		}
 
@@ -105,7 +107,7 @@ Steps {
 			solConc = conc
 		} else if solution.HasConcentration() {
 			solConc = solution.Concentration()
-		} else {
+		} else if _, targetsFound := TargetConcentrations[solution.CName]; !SkipSolutionsWithNoTargetConcenctrations && !targetsFound {
 			Errorf("no Stock Concentration found for %s, please set this. ", solution.CName)
 		}
 

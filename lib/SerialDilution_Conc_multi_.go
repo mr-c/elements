@@ -69,7 +69,7 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 			startVol = vol
 		} else if vol, found := _input.StartVolumeperDilution["default"]; found {
 			startVol = vol
-		} else {
+		} else if _, targetsFound := _input.TargetConcentrations[solution.CName]; !_input.SkipSolutionsWithNoTargetConcenctrations && !targetsFound {
 			execute.Errorf(_ctx, "No volume specified for %s and no default volume specified", solution.CName)
 		}
 
@@ -79,7 +79,7 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 			targetConcs = concs
 		} else if concs, found := _input.TargetConcentrations["default"]; found {
 			targetConcs = concs
-		} else {
+		} else if !_input.SkipSolutionsWithNoTargetConcenctrations {
 			execute.Errorf(_ctx, "No target concentrations specified for %s and no default specified", solution.CName)
 		}
 
@@ -90,7 +90,7 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 			solConc = conc
 		} else if solution.HasConcentration() {
 			solConc = solution.Concentration()
-		} else {
+		} else if _, targetsFound := _input.TargetConcentrations[solution.CName]; !_input.SkipSolutionsWithNoTargetConcenctrations && !targetsFound {
 			execute.Errorf(_ctx, "no Stock Concentration found for %s, please set this. ", solution.CName)
 		}
 
@@ -186,14 +186,15 @@ type SerialDilution_Conc_multiElement struct {
 }
 
 type SerialDilution_Conc_multiInput struct {
-	ByRow                       bool
-	Diluent                     *wtype.LHComponent
-	OutPlate                    *wtype.LHPlate
-	OverrideStockConcentrations map[string]wunit.Concentration
-	SolutionsWithConcentrations []*wtype.LHComponent
-	StartVolumeperDilution      map[string]wunit.Volume
-	TargetConcentrations        map[string][]wunit.Concentration
-	WellsAlreadyUsed            int
+	ByRow                                    bool
+	Diluent                                  *wtype.LHComponent
+	OutPlate                                 *wtype.LHPlate
+	OverrideStockConcentrations              map[string]wunit.Concentration
+	SkipSolutionsWithNoTargetConcenctrations bool
+	SolutionsWithConcentrations              []*wtype.LHComponent
+	StartVolumeperDilution                   map[string]wunit.Volume
+	TargetConcentrations                     map[string][]wunit.Concentration
+	WellsAlreadyUsed                         int
 }
 
 type SerialDilution_Conc_multiOutput struct {
@@ -225,6 +226,7 @@ func init() {
 				{Name: "Diluent", Desc: "Use the same diluent for all component dilutions.\n", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "Use the same outplate for all dilutions.\n", Kind: "Inputs"},
 				{Name: "OverrideStockConcentrations", Desc: "Optional parameter to override the solution concentration.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
+				{Name: "SkipSolutionsWithNoTargetConcenctrations", Desc: "", Kind: "Parameters"},
 				{Name: "SolutionsWithConcentrations", Desc: "Starting solutions. The names of the solutions will be used to set concentrations and starting volumes in the other parameters\n", Kind: "Inputs"},
 				{Name: "StartVolumeperDilution", Desc: "Specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "Specify target concentrations to make for each solution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
