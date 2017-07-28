@@ -126,7 +126,7 @@ func init() {
 		Constructor: ResizeImageToPlateNew,
 		Desc: component.ComponentDesc{
 			Desc: "Resize an image to fit the specified plate. We use the resizing package at:\nhttps://github.com/disintegration/imaging\nWe use Lanczos resampling to resize since this is the best but slowest method.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ResizeImageToPlate.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ResizeImageToPlate/element.an",
 			Params: []component.ParamDesc{
 				{Name: "InputImage", Desc: "Input image for this element\n", Kind: "Parameters"},
 				{Name: "InputPlate", Desc: "Plate to which the image will be resized\n", Kind: "Parameters"},

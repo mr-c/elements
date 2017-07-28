@@ -133,7 +133,7 @@ func init() {
 		Constructor: MakeAnthaPaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will couple the given LHComponents with the Palette. It merges the arrays by index, so the first LHComponent\nwill be the first color and so on. The resulting information is held in the AnthaPalette Object\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/MakeAnthaPalette.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/MakeAnthaPalette/element.an",
 			Params: []component.ParamDesc{
 				{Name: "LHComponents", Desc: "LHComponents to couple with the colors in the palette\n", Kind: "Parameters"},
 				{Name: "Palette", Desc: "Palette to couple with LHComponents\n", Kind: "Parameters"},

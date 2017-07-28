@@ -1,5 +1,5 @@
-//Select the palette of colors with which the image will be modified. This element uses names defined
-//in the standard library.
+//Select the colors you want to form a palette object. This element uses names defined in the standard library. You
+//can either select a library, or specific colors.
 protocol ChoosePalette
 
 import (
@@ -48,15 +48,20 @@ Steps {
 	//Creating palette
 	//-----------------------------------------------------------
 
-	//Loading Palette library
-	palette = image.SelectLibrary(PaletteID)
-
-	//If only some colors are available
-	if AvailableColors != nil {
+	switch {
+	case PaletteID != "":
+		palette = image.SelectLibrary(PaletteID)
+	case len(AvailableColors) > 0:
 		for i := range AvailableColors {
 			tempColor = image.SelectColor(AvailableColors[i])
 			palette = append(palette, tempColor)
 		}
+	default:
+		panic("no option selected in ChoosePalette")
+	}
+
+	if len(AvailableColors) > 0 && PaletteID != "" {
+		panic("Choose to either select from library or from color ID")
 	}
 
 	//-----------------------------------------------------------

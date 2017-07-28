@@ -128,7 +128,7 @@ func init() {
 		Constructor: PosterizeImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Posterizing refers to expressing an image using a defined number of different tones.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PosterizeImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PosterizeImage/element.an",
 			Params: []component.ParamDesc{
 				{Name: "InputImage", Desc: "Input image for this element\n", Kind: "Parameters"},
 				{Name: "Level", Desc: "Posterizing level. This refers to the number of colors used to express the image. It cannot be set to 1.\n", Kind: "Parameters"},

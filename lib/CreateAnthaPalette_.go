@@ -235,7 +235,7 @@ func init() {
 		Constructor: CreateAnthaPaletteNew,
 		Desc: component.ComponentDesc{
 			Desc: "This element will work out and perform the dilutions necessary to make an antha palette.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/CreateAnthaPalette.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/CreateAnthaPalette/element.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaPalette", Desc: "AnthaPalette to be generated\n", Kind: "Parameters"},
 				{Name: "ColorVolume", Desc: "Volume of each color on the palette you want to generate\n", Kind: "Parameters"},

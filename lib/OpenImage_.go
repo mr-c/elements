@@ -129,7 +129,7 @@ func init() {
 		Constructor: OpenImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "Opens an image file, returning an image object\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/OpenImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/OpenImage/element.an",
 			Params: []component.ParamDesc{
 				{Name: "ImgFile", Desc: "File object\n", Kind: "Parameters"},
 				{Name: "Error", Desc: "error message\n", Kind: "Data"},

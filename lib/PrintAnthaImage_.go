@@ -177,7 +177,7 @@ func init() {
 		Constructor: PrintAnthaImageNew,
 		Desc: component.ComponentDesc{
 			Desc: "This will take an AnthaImg object and generate the instructions for the robot to print it on a plate.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PrintAnthaImage.an",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/PrintAnthaImage/element.an",
 			Params: []component.ParamDesc{
 				{Name: "AnthaImage", Desc: "AnthaImage to print on a plate\n", Kind: "Parameters"},
 				{Name: "ColorToExclude", Desc: "Background color which we do not want to print, leave blank if you want to print all colors.\n", Kind: "Parameters"},

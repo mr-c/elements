@@ -1,5 +1,5 @@
-//Select the palette of colors with which the image will be modified. This element uses names defined
-//in the standard library.
+//Select the colors you want to form a palette object. This element uses names defined in the standard library. You
+//can either select a library, or specific colors.
 package lib
 
 import (
@@ -49,15 +49,20 @@ func _ChoosePaletteSteps(_ctx context.Context, _input *ChoosePaletteInput, _outp
 	//Creating palette
 	//-----------------------------------------------------------
 
-	//Loading Palette library
-	palette = image.SelectLibrary(_input.PaletteID)
-
-	//If only some colors are available
-	if _input.AvailableColors != nil {
+	switch {
+	case _input.PaletteID != "":
+		palette = image.SelectLibrary(_input.PaletteID)
+	case len(_input.AvailableColors) > 0:
 		for i := range _input.AvailableColors {
 			tempColor = image.SelectColor(_input.AvailableColors[i])
 			palette = append(palette, tempColor)
 		}
+	default:
+		panic("no option selected in ChoosePalette")
+	}
+
+	if len(_input.AvailableColors) > 0 && _input.PaletteID != "" {
+		panic("Choose to either select from library or from color ID")
 	}
 
 	//-----------------------------------------------------------
@@ -150,8 +155,8 @@ func init() {
 	if err := addComponent(component.Component{Name: "ChoosePalette",
 		Constructor: ChoosePaletteNew,
 		Desc: component.ComponentDesc{
-			Desc: "Select the palette of colors with which the image will be modified. This element uses names defined\nin the standard library.\n",
-			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ChoosePalette.an",
+			Desc: "Select the colors you want to form a palette object. This element uses names defined in the standard library. You\ncan either select a library, or specific colors.\n",
+			Path: "src/github.com/antha-lang/elements/an/ImageHandling/ChoosePalette/element.an",
 			Params: []component.ParamDesc{
 				{Name: "AvailableColors", Desc: "ID of the available colors. Leave blank if you want to use the palette\n", Kind: "Parameters"},
 				{Name: "PaletteID", Desc: "Name of the Palette to use. The names are in the pixelToPlate package in the standard library.\n", Kind: "Parameters"},
