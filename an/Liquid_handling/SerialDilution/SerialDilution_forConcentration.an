@@ -78,7 +78,7 @@ Steps {
 		diluentSample := mixer.Sample(Diluent, diluentVolume)
 		// mix  to OutPlate
 		aliquot = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample)
-		// Ensure liquid type set to Pre and Post Mix
+		// Ensure liquid type set to MegaMix for sufficient mixing
 		Solution.Type = wtype.LTMegaMix
 	}
 
@@ -140,7 +140,7 @@ Steps {
 
 			nextdiluentSample = MixNamed(OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
 
-			// Ensure liquid type set to Pre and Post Mix
+			// Ensure liquid type set to MegaMix for sufficient mixing
 			aliquot.Type = wtype.LTMegaMix
 		}
 
