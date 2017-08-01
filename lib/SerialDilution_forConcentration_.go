@@ -163,6 +163,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// export as Output
 	_output.Dilutions = dilutions
 
+	//re-assign solution LHPolcy to water to avoid MegaMixing in downstream elements
 	for _, dilutiontype := range _output.Dilutions {
 		dilutiontype.Type = wtype.LTWater
 	}

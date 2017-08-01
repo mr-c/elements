@@ -171,6 +171,7 @@ Steps {
 	// export as Output
 	Dilutions = dilutions
 
+	//re-assign solution LHPolcy to water to avoid MegaMixing in downstream elements
 	for _, dilutiontype := range Dilutions {
 		dilutiontype.Type = wtype.LTWater
 	}
