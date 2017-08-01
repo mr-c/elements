@@ -4,6 +4,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -70,7 +71,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 		// mix  to OutPlate
 		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample)
-		// Ensure liquid type set to Pre and Post Mix
+		// Ensure liquid type set to MegaMix for sufficient mixing
 		_input.Solution.Type = wtype.LTMegaMix
 	}
 
@@ -132,7 +133,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 			nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
 
-			// Ensure liquid type set to Pre and Post Mix
+			// Ensure liquid type set to MegaMix for sufficient mixing
 			aliquot.Type = wtype.LTMegaMix
 		}
 
@@ -149,8 +150,6 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		// rename sample to include concentration
 		nextaliquot.CName = _input.TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 
-		nextaliquot.CName = normalise(nextaliquot.CName)
-
 		nextaliquot.SetConcentration(_input.TargetConcentrations[dilutionPosition])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
@@ -164,6 +163,10 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// export as Output
 	_output.Dilutions = dilutions
 
+	for _, dilutiontype := range _output.Dilutions {
+		dilutiontype.Type = wtype.LTWater
+	}
+
 	// export all concentrations used as export
 	_output.AllDilutions = append(_output.AllDilutions, _input.Solution)
 	_output.AllConcentrations = append(_output.AllConcentrations, _input.StockConcentration)
@@ -172,7 +175,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	_input.Solution.CName = normalise(_input.Solution.CName)
 	_output.ComponentNames = append(_output.ComponentNames, _input.Solution.CName)
 	for i, dilution := range _output.Dilutions {
-
+		fmt.Printf("Dilution %s is of liquid policy %s", dilution.CName, dilution.Type)
 		_output.AllDilutions = append(_output.AllDilutions, dilution)
 		_output.ComponentNames = append(_output.ComponentNames, dilution.CName)
 		_output.AllConcentrations = append(_output.AllConcentrations, _input.TargetConcentrations[i])

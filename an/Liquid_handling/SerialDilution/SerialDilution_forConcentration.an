@@ -3,6 +3,7 @@
 protocol SerialDilution_forConcentration
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"strings"
@@ -157,8 +158,6 @@ Steps {
 		// rename sample to include concentration
 		nextaliquot.CName = TargetConcentrations[dilutionPosition].ToString() + " " + solutionname
 
-		nextaliquot.CName = normalise(nextaliquot.CName)
-
 		nextaliquot.SetConcentration(TargetConcentrations[dilutionPosition])
 		// add to dilutions array
 		dilutions = append(dilutions, nextaliquot)
@@ -172,6 +171,10 @@ Steps {
 	// export as Output
 	Dilutions = dilutions
 
+	for _, dilutiontype := range Dilutions {
+		dilutiontype.Type = wtype.LTWater
+	}
+
 	// export all concentrations used as export
 	AllDilutions = append(AllDilutions, Solution)
 	AllConcentrations = append(AllConcentrations, StockConcentration)
@@ -180,7 +183,7 @@ Steps {
 	Solution.CName = normalise(Solution.CName)
 	ComponentNames = append(ComponentNames, Solution.CName)
 	for i, dilution := range Dilutions {
-
+		fmt.Printf("Dilution %s is of liquid policy %s", dilution.CName, dilution.Type)
 		AllDilutions = append(AllDilutions, dilution)
 		ComponentNames = append(ComponentNames, dilution.CName)
 		AllConcentrations = append(AllConcentrations, TargetConcentrations[i])
