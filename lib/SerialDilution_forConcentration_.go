@@ -4,7 +4,6 @@ package lib
 
 import (
 	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -176,7 +175,6 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	_input.Solution.CName = normalise(_input.Solution.CName)
 	_output.ComponentNames = append(_output.ComponentNames, _input.Solution.CName)
 	for i, dilution := range _output.Dilutions {
-		fmt.Printf("Dilution %s is of liquid policy %s", dilution.CName, dilution.Type)
 		_output.AllDilutions = append(_output.AllDilutions, dilution)
 		_output.ComponentNames = append(_output.ComponentNames, dilution.CName)
 		_output.AllConcentrations = append(_output.AllConcentrations, _input.TargetConcentrations[i])

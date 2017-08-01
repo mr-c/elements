@@ -3,7 +3,6 @@
 protocol SerialDilution_forConcentration
 
 import (
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"strings"
@@ -184,7 +183,6 @@ Steps {
 	Solution.CName = normalise(Solution.CName)
 	ComponentNames = append(ComponentNames, Solution.CName)
 	for i, dilution := range Dilutions {
-		fmt.Printf("Dilution %s is of liquid policy %s", dilution.CName, dilution.Type)
 		AllDilutions = append(AllDilutions, dilution)
 		ComponentNames = append(ComponentNames, dilution.CName)
 		AllConcentrations = append(AllConcentrations, TargetConcentrations[i])
