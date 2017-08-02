@@ -3,6 +3,7 @@
 protocol SerialDilution_forConcentration
 
 import (
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"strings"
@@ -170,9 +171,13 @@ Steps {
 	// export as Output
 	Dilutions = dilutions
 
-	//re-assign solution LHPolcy to water to avoid MegaMixing in downstream elements
+	//re-assign solution LHPolcy to original Solution LHPolicy to avoid MegaMixing in downstream elements
 	for _, dilutiontype := range Dilutions {
-		dilutiontype.Type = wtype.LTWater
+		if Solution.Type != 0 {
+			dilutiontype.Type = Solution.Type
+		} else {
+			dilutiontype.Type = wtype.LTWater
+		}
 	}
 
 	// export all concentrations used as export

@@ -4,6 +4,7 @@ package lib
 
 import (
 	"context"
+	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -162,9 +163,16 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 	// export as Output
 	_output.Dilutions = dilutions
 
-	//re-assign solution LHPolcy to water to avoid MegaMixing in downstream elements
+	//re-assign solution LHPolcy to original Solution LHPolicy to avoid MegaMixing in downstream elements
 	for _, dilutiontype := range _output.Dilutions {
-		dilutiontype.Type = wtype.LTWater
+		if _input.Solution.Type != 0 {
+			dilutiontype.Type = _input.Solution.Type
+		} else {
+			dilutiontype.Type = wtype.LTWater
+		}
+
+		fmt.Printf("Solution type is %s", dilutiontype.Type)
+
 	}
 
 	// export all concentrations used as export
