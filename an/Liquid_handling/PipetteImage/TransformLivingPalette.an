@@ -9,7 +9,9 @@ import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	goimage "image"
 	"image/color"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -50,7 +52,6 @@ Inputs (
 	/*Antibiotic *LHComponent
 	Inducer *LHComponent
 	Repressor *LHComponent*/
-	ComponentType *LHComponent
 	OutPlate *LHPlate
 )
 
@@ -109,8 +110,19 @@ Steps {
 	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
 
-	if _, found := image.AvailablePalettes()[Palettename]; !found {
-		Errorf("Palette %s not found", Palettename)
+	// check that palette name is valid
+	_, ok := image.AvailablePalettes()[Palettename]
+
+	if !ok {
+		var validpalettes []string
+
+		for key, _ := range image.AvailablePalettes() {
+			validpalettes = append(validpalettes, key)
+		}
+
+		sort.Strings(validpalettes)
+
+		Errorf("Palette %s not available. Valid entries are: %s", Palettename, strings.Join(validpalettes, ","))
 	}
 
 	if Subset {

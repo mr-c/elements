@@ -14,7 +14,9 @@ import (
 	"github.com/antha-lang/antha/inject"
 	goimage "image"
 	"image/color"
+	"sort"
 	"strconv"
+	"strings"
 )
 
 // Input parameters for this protocol (data)
@@ -92,8 +94,19 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
 
-	if _, found := image.AvailablePalettes()[_input.Palettename]; !found {
-		execute.Errorf(_ctx, "Palette %s not found", _input.Palettename)
+	// check that palette name is valid
+	_, ok := image.AvailablePalettes()[_input.Palettename]
+
+	if !ok {
+		var validpalettes []string
+
+		for key := range image.AvailablePalettes() {
+			validpalettes = append(validpalettes, key)
+		}
+
+		sort.Strings(validpalettes)
+
+		execute.Errorf(_ctx, "Palette %s not available. Valid entries are: %s", _input.Palettename, strings.Join(validpalettes, ","))
 	}
 
 	if _input.Subset {
@@ -366,7 +379,6 @@ type TransformLivingPaletteElement struct {
 
 type TransformLivingPaletteInput struct {
 	AutoRotate     bool
-	ComponentType  *wtype.LHComponent
 	ImageFile      wtype.File
 	Notthiscolour  string
 	OnlythisColour string
@@ -408,11 +420,10 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/TransformLivingPalette.an",
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
 				{Name: "ImageFile", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
-				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
+				{Name: "OutPlate", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
 				{Name: "Palettename", Desc: "", Kind: "Parameters"},
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
