@@ -148,11 +148,8 @@ Steps {
 		// use template component instead
 		var componenttopick *LHComponent
 
-		if ComponentType != nil {
-			componenttopick = ComponentType
-		} else {
-			componenttopick = NewComponent("Paint")
-		}
+		componenttopick = NewComponent("Paint")
+
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick

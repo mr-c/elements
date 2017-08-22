@@ -126,11 +126,8 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		// use template component instead
 		var componenttopick *wtype.LHComponent
 
-		if _input.ComponentType != nil {
-			componenttopick = _input.ComponentType
-		} else {
-			componenttopick = execute.NewComponent(_ctx, "Paint")
-		}
+		componenttopick = execute.NewComponent(_ctx, "Paint")
+
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick

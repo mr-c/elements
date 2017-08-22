@@ -4,7 +4,6 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -24,10 +23,6 @@ import (
 /*AntibioticVolume Volume
 InducerVolume Volume
 RepressorVolume Volume*/
-// name of image file or if using URL use this field to set the desired filename
-
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
 
 //IncTemp Temperature
 //IncTime Time
@@ -87,7 +82,6 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
 	// img and error placeholders
-	var imgFile wtype.File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -98,33 +92,18 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
 
+	if _, found := image.AvailablePalettes()[_input.Palettename]; !found {
+		execute.Errorf(_ctx, "Palette %s not found", _input.Palettename)
+	}
+
 	if _input.Subset {
 		chosencolourpalette = image.MakeSubPallette(_input.Palettename, _input.Subsetnames)
 	} else {
 		chosencolourpalette = image.AvailablePalettes()[_input.Palettename]
 	}
 
-	//--------------------------------------------------------------
-	//Fetching image
-	//--------------------------------------------------------------
-
-	// if image is from url, download
-	if _input.UseURL {
-		//downloading image
-		imgFile, err = download.File(_input.URL, _input.ImageFileName)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			execute.Errorf(_ctx, err.Error())
-		}
-	}
-
 	//opening the image file
-	imgBase, err = image.OpenFile(_input.InputFile)
+	imgBase, err = image.OpenFile(_input.ImageFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}
@@ -163,21 +142,22 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, _input.Subsetnames)
 	}
 
-	for colourname := range colourtostringmap {
+	for colour := range colourtostringmap {
 
-		componentname := colourtostringmap[colourname]
+		componentname := colourtostringmap[colour]
 
 		// use template component instead
 		var componenttopick *wtype.LHComponent
 
-		if _input.ComponentType != nil {
-			componenttopick = _input.ComponentType
-		} else {
-			componenttopick = execute.NewComponent(_ctx, "water")
-		}
+		componenttopick = execute.NewComponent(_ctx, "water")
+
 		componenttopick.CName = componentname
 
-		componentmap[componentname] = componenttopick
+		if _, found := componentmap[componentname]; !found {
+
+			componentmap[componentname] = componenttopick
+
+		}
 
 	}
 
@@ -190,12 +170,19 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 	counter := 0
 	_output.UniqueComponents = make([]string, 0)
 
-	// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipetting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 
 		//components := make([]*LHComponent, 0)
 
-		component := componentmap[colourtostringmap[colour]]
+		var component *wtype.LHComponent
+		var found bool
+
+		component, found = componentmap[colourtostringmap[colour]]
+
+		if !found {
+			execute.Errorf(_ctx, "%s not found in component map %+v", colourtostringmap[colour], componentmap)
+		}
 
 		// for palette
 		colourindex := chosencolourpalette.Index(colour)
@@ -204,10 +191,8 @@ func _TransformLivingPaletteSteps(_ctx context.Context, _input *TransformLivingP
 		component.Type, err = wtype.LiquidTypeFromString(_input.UseLiquidClass) //wtype.LTCulture
 
 		if err != nil {
-			panic(err.Error())
+			execute.Errorf(_ctx, err.Error())
 		}
-
-		//	fmt.Println(image.Colourcomponentmap[colour])
 
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if _input.OnlythisColour != "" {
@@ -382,8 +367,7 @@ type TransformLivingPaletteElement struct {
 type TransformLivingPaletteInput struct {
 	AutoRotate     bool
 	ComponentType  *wtype.LHComponent
-	ImageFileName  string
-	InputFile      wtype.File
+	ImageFile      wtype.File
 	Notthiscolour  string
 	OnlythisColour string
 	OutPlate       *wtype.LHPlate
@@ -391,10 +375,8 @@ type TransformLivingPaletteInput struct {
 	Rotate         bool
 	Subset         bool
 	Subsetnames    []string
-	URL            string
 	UVimage        bool
 	UseLiquidClass wtype.PolicyName
-	UseURL         bool
 	VolumePerWell  wunit.Volume
 }
 
@@ -427,8 +409,7 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "ComponentType", Desc: "InPlate *LHPlate\nMedia *LHComponent\nAntibiotic *LHComponent\n\tInducer *LHComponent\n\tRepressor *LHComponent\n", Kind: "Inputs"},
-				{Name: "ImageFileName", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n\nname of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "InputFile", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "InoculationVolume Volume\nAntibioticVolume Volume\n\tInducerVolume Volume\n\tRepressorVolume Volume\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
 				{Name: "OnlythisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
@@ -436,10 +417,8 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "Subset", Desc: "", Kind: "Parameters"},
 				{Name: "Subsetnames", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UVimage", Desc: "", Kind: "Parameters"},
 				{Name: "UseLiquidClass", Desc: "", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
 				{Name: "VolumePerWell", Desc: "", Kind: "Parameters"},
 				{Name: "ColourtoComponentMap", Desc: "", Kind: "Data"},
 				{Name: "Numberofpixels", Desc: "", Kind: "Data"},

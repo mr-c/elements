@@ -3,7 +3,6 @@ protocol TransformLivingPalette
 
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -20,10 +19,7 @@ Parameters (
 	/*AntibioticVolume Volume
 	InducerVolume Volume
 	RepressorVolume Volume*/
-	ImageFileName string // name of image file or if using URL use this field to set the desired filename
-	InputFile File
-	UseURL bool // select this if getting the image from a URL
-	URL string  // enter URL link to the image file here if applicable
+	ImageFile File
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -103,7 +99,6 @@ Steps {
 	wellpositions := PlateWithCompetentCells.AllWellPositions(wtype.BYCOLUMN)
 
 	// img and error placeholders
-	var imgFile File
 	var imgBase *goimage.NRGBA
 	var err error
 
@@ -114,33 +109,18 @@ Steps {
 	// make sub pallette if necessary
 	var chosencolourpalette color.Palette
 
+	if _, found := image.AvailablePalettes()[Palettename]; !found {
+		Errorf("Palette %s not found", Palettename)
+	}
+
 	if Subset {
 		chosencolourpalette = image.MakeSubPallette(Palettename, Subsetnames)
 	} else {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
 
-	//--------------------------------------------------------------
-	//Fetching image
-	//--------------------------------------------------------------
-
-	// if image is from url, download
-	if UseURL {
-		//downloading image
-		imgFile, err = download.File(URL, ImageFileName)
-		if err != nil {
-			Errorf(err.Error())
-		}
-
-		//opening the image file
-		imgBase, err = image.OpenFile(imgFile)
-		if err != nil {
-			Errorf(err.Error())
-		}
-	}
-
 	//opening the image file
-	imgBase, err = image.OpenFile(InputFile)
+	imgBase, err = image.OpenFile(ImageFile)
 	if err != nil {
 		Errorf(err.Error())
 	}
@@ -179,21 +159,22 @@ Steps {
 		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 	}
 
-	for colourname, _ := range colourtostringmap {
+	for colour, _ := range colourtostringmap {
 
-		componentname := colourtostringmap[colourname]
+		componentname := colourtostringmap[colour]
 
 		// use template component instead
 		var componenttopick *LHComponent
 
-		if ComponentType != nil {
-			componenttopick = ComponentType
-		} else {
-			componenttopick = NewComponent("water")
-		}
+		componenttopick = NewComponent("water")
+
 		componenttopick.CName = componentname
 
-		componentmap[componentname] = componenttopick
+		if _, found := componentmap[componentname]; !found {
+
+			componentmap[componentname] = componenttopick
+
+		}
 
 	}
 
@@ -206,12 +187,19 @@ Steps {
 	counter := 0
 	UniqueComponents = make([]string, 0)
 
-	// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipetting the correct coloured protein into each well
 	for _, colour := range positiontocolourmap {
 
 		//components := make([]*LHComponent, 0)
 
-		component := componentmap[colourtostringmap[colour]]
+		var component *LHComponent
+		var found bool
+
+		component, found = componentmap[colourtostringmap[colour]]
+
+		if !found {
+			Errorf("%s not found in component map %+v", colourtostringmap[colour], componentmap)
+		}
 
 		// for palette
 		colourindex := chosencolourpalette.Index(colour)
@@ -220,10 +208,8 @@ Steps {
 		component.Type, err = wtype.LiquidTypeFromString(UseLiquidClass) //wtype.LTCulture
 
 		if err != nil {
-			panic(err.Error())
+			Errorf(err.Error())
 		}
-
-		//	fmt.Println(image.Colourcomponentmap[colour])
 
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
 		if OnlythisColour != "" {
