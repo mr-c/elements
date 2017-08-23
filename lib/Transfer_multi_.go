@@ -52,6 +52,8 @@ func _Transfer_multiSteps(_ctx context.Context, _input *Transfer_multiInput, _ou
 		execute.Errorf(_ctx, "Unequal length of liquid names specified compared to starting solutions, either make these the same length or keep Liquidnames empty")
 	}
 
+	var outPlateWells []string = _input.OutPlate.AllWellPositions(wtype.BYCOLUMN)
+
 	for i, liquid := range _input.Startingsolutions {
 
 		if len(_input.Liquidnames) != 0 {
@@ -60,7 +62,7 @@ func _Transfer_multiSteps(_ctx context.Context, _input *Transfer_multiInput, _ou
 
 		sample := mixer.Sample(liquid, _input.LiquidVolume)
 
-		_output.FinalSolutions = append(_output.FinalSolutions, execute.MixInto(_ctx, _input.OutPlate, "", sample))
+		_output.FinalSolutions = append(_output.FinalSolutions, execute.MixInto(_ctx, _input.OutPlate, outPlateWells[i], sample))
 
 		// if a liquid name has already been specified the name will be appended
 		if _, found := _output.Status[liquid.CName]; found {
