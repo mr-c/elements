@@ -70,7 +70,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 		diluentSample := mixer.Sample(_input.Diluent, diluentVolume)
 		// mix  to OutPlate
 		aliquot = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", diluentSample)
-		// Ensure liquid type set to Pre and Post Mix
+		// Ensure liquid type set to MegaMix for sufficient mixing
 		_input.Solution.Type = wtype.LTMegaMix
 	}
 
@@ -132,7 +132,7 @@ func _SerialDilution_forConcentrationSteps(_ctx context.Context, _input *SerialD
 
 			nextdiluentSample = execute.MixNamed(_ctx, _input.OutPlate.Type, allwellpositions[counter], "DilutionPlate", nextdiluentSample)
 
-			// Ensure liquid type set to Pre and Post Mix
+			// Ensure liquid type set to MegaMix for sufficient mixing
 			aliquot.Type = wtype.LTMegaMix
 		}
 
