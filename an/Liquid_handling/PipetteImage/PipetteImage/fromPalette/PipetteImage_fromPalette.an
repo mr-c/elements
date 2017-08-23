@@ -136,14 +136,19 @@ Steps {
 
 			compName, componentpresent := ColourIndextoComponentMap[colourindex]
 
+			if !componentpresent {
+				Errorf("Palette index %d not found in ColourIndextoComponentMap %+v:", Palette.Index(colour), ColourIndextoComponentMap)
+			}
+
 			component, err := findComponent(Colourcomponents, compName)
 
-			if err != nil {
-				Errorf("Cannot find component: ", err.Error())
+			if err != nil || !componentpresent {
+				message := fmt.Sprintln("colour", colour, "colourindex", colourindex, "compName", compName, "Colourcomponents", names(Colourcomponents), "ColourIndextoComponentMap", ColourIndextoComponentMap, "Palette", Palette)
+				Errorf("Cannot find component: %s: %s", err.Error(), message)
 			}
 
 			if componentpresent && component.CName == NotthisColour {
-				Errorf("Not this component:", image.Colourcomponentmap[colour])
+				Errorf("Not this component: %s", image.Colourcomponentmap[colour])
 			}
 
 			/*
@@ -212,6 +217,14 @@ Analysis {
 // dipstick basis
 Validation {
 
+}
+
+func names(components []*LHComponent) (names []string) {
+
+	for _, component := range components {
+		names = append(names, component.Name())
+	}
+	return
 }
 
 // Looks for a component matching on name only.

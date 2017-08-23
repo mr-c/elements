@@ -120,14 +120,19 @@ func _PipetteImage_fromPaletteSteps(_ctx context.Context, _input *PipetteImage_f
 
 			compName, componentpresent := _input.ColourIndextoComponentMap[colourindex]
 
+			if !componentpresent {
+				execute.Errorf(_ctx, "Palette index %d not found in ColourIndextoComponentMap %+v:", _input.Palette.Index(colour), _input.ColourIndextoComponentMap)
+			}
+
 			component, err := findComponent(_input.Colourcomponents, compName)
 
-			if err != nil {
-				execute.Errorf(_ctx, "Cannot find component: ", err.Error())
+			if err != nil || !componentpresent {
+				message := fmt.Sprintln("colour", colour, "colourindex", colourindex, "compName", compName, "Colourcomponents", names(_input.Colourcomponents), "ColourIndextoComponentMap", _input.ColourIndextoComponentMap, "Palette", _input.Palette)
+				execute.Errorf(_ctx, "Cannot find component: %s: %s", err.Error(), message)
 			}
 
 			if componentpresent && component.CName == _input.NotthisColour {
-				execute.Errorf(_ctx, "Not this component:", image.Colourcomponentmap[colour])
+				execute.Errorf(_ctx, "Not this component: %s", image.Colourcomponentmap[colour])
 			}
 
 			/*
@@ -196,6 +201,14 @@ func _PipetteImage_fromPaletteAnalysis(_ctx context.Context, _input *PipetteImag
 // dipstick basis
 func _PipetteImage_fromPaletteValidation(_ctx context.Context, _input *PipetteImage_fromPaletteInput, _output *PipetteImage_fromPaletteOutput) {
 
+}
+
+func names(components []*wtype.LHComponent) (names []string) {
+
+	for _, component := range components {
+		names = append(names, component.Name())
+	}
+	return
 }
 
 // Looks for a component matching on name only.
