@@ -4,7 +4,12 @@
       "AutoRotate": true,
       "Black": "Black",
       "Cyan": "Cyan",
-      "Imagefilename": "taylor.png",
+      "ImageFile": {
+        "host_file":{
+          "filename":"taylor.png"
+        },
+        "name": "taylor.png"
+      },
       "Magenta": "Magenta",
       "OutPlate": "pcrplate_skirted_riser20",
       "PalettePlate": "pcrplate_skirted_riser20",
@@ -18,7 +23,12 @@
     },
     "Pipette1": {
       "AutoRotate": true,
-      "Imagefilename": "taylor.png",
+      "ImageFile": {
+        "host_file":{
+          "filename":"taylor.png"
+        },
+        "name": "taylor.png"
+      },
       "NotthisColour": "white",
       "OnlythisColour": "",
       "OutPlate": "Agarplateforpicking768_riser20",

@@ -33,11 +33,11 @@ func _JoinDNASequences_mapSteps(_ctx context.Context, _input *JoinDNASequences_m
 	// make a lookup table of []DNASequences; in go these are called maps
 	// in this case the map is called sequencepairs; the key is of type string; the values returned will be an array of DNASequences
 	// e.g. we can add two sequences eGFP and sfGFP to the map like so:
-	// sequencepairs["GFPSequences"] = wtype.DNASequence{eGFP,sfGFP}
+	// sequencepairs["GFPSequences"] = DNASequence{eGFP,sfGFP}
 	// we can return the two stored sequences to a variable called gfpseqscopy using the key "GFPSequences" by typing
 	// gfpseqscopy := sequencepairs["GFPSequences"]
 
-	var sequencepairs = make(map[string][]wtype.DNASequence)
+	sequencepairs := make(map[string][]wtype.DNASequence)
 
 	// Step 1. Call antha element for turning a string array of parts into []DNASequence for each map entry
 	// We can range through maps in a similar fashion to arrays; the important difference is after for the key value is used rather than the index as is the case with array
@@ -53,7 +53,7 @@ func _JoinDNASequences_mapSteps(_ctx context.Context, _input *JoinDNASequences_m
 	}
 
 	//  make an array of seqs to export for each map combination
-	var seqstoexport = make([]wtype.DNASequence, 0)
+	seqstoexport := make([]wtype.DNASequence, 0)
 
 	// Step 2. Range through the map created in step 1.
 	for key, Seqsinorder := range sequencepairs {

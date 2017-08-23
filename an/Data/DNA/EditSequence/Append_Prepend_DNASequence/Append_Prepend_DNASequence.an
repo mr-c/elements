@@ -5,36 +5,33 @@ protocol Append_Prepend_DNASequence
 
 // Place golang packages to import here
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"strings"
 )
 
 // Parameters to this protocol
 Parameters (
-	ProjectName string //this will be used to name the output FASTA file and folder
-	InputSequences	[]wtype.DNASequence //input DNA sequences
-	AddPrefix	string	//string of DNA, if empty nothing is added
-	AddSuffix	string	//string of DNA, if empty nothing is added
+	ProjectName string           //this will be used to name the output FASTA file and folder
+	InputSequences []DNASequence //input DNA sequences
+	AddPrefix string             //string of DNA, if empty nothing is added
+	AddSuffix string             //string of DNA, if empty nothing is added
 )
 
 // Output data of this protocol
 Data (
-	ModifiedSequences	[]wtype.DNASequence //output modified DNA sequences
-	Warnings 	error //error messages reported back to the user
-	ModifiedSequenceFile File //output Fasta file
+	ModifiedSequences []DNASequence //output modified DNA sequences
+	Warnings error                  //error messages reported back to the user
+	ModifiedSequenceFile File       //output Fasta file
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs to this protocol
-Outputs (
-)
+Outputs ()
 
 // Conditions to run on startup
 Setup {
@@ -48,7 +45,7 @@ Steps {
 	var warnings []string
 
 	//range through the InputSequences
- 	for _, editedSequence := range InputSequences {
+	for _, editedSequence := range InputSequences {
 
 		//check if the InputSequence is a plasmid, and return warning message if so
 		if editedSequence.Plasmid {
@@ -60,12 +57,12 @@ Steps {
 		passed, illegals, _ := sequences.Illegalnucleotides(editedSequence)
 
 		if !passed {
-			var newstatus = make([]string,0)
+			var newstatus = make([]string, 0)
 			for _, illegal := range illegals {
 
-				newstatus =append(newstatus, "part: " + editedSequence.Nm +" "+ editedSequence.Seq + ": contains illegalnucleotides:"+ illegal.ToString())
+				newstatus = append(newstatus, "part: "+editedSequence.Nm+" "+editedSequence.Seq+": contains illegalnucleotides:"+illegal.ToString())
 			}
-			warnings = append(warnings,strings.Join(newstatus,""))
+			warnings = append(warnings, strings.Join(newstatus, ""))
 		}
 
 		//Append and Prepend the given additional bp to the input sequence
@@ -74,17 +71,17 @@ Steps {
 
 		//append modified sequences to the ModifiedSequences array
 		ModifiedSequences = append(ModifiedSequences, editedSequence)
-		}
+	}
 
 	//add the ModifiedSequences to a FASTA file in new folder with ProjectName (Default: Edited_Seqeunces)
 	if ProjectName == "" {
 		ProjectName = "Edited_Seqeunces"
 	}
 
-	outputFile, _, err := export.FastaSerial(export.LOCAL,ProjectName, ModifiedSequences)
+	outputFile, _, err := export.FastaSerial(export.LOCAL, ProjectName, ModifiedSequences)
 	if err != nil {
-			Errorf(err.Error())
-			}
+		Errorf(err.Error())
+	}
 	ModifiedSequenceFile = outputFile
 
 	//add all warnings to the Warnings output and report to user

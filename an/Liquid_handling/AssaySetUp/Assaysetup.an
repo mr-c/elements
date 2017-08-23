@@ -1,15 +1,14 @@
 protocol Assaysetup
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
 	TotalVolume Volume
-	EnzymeVolume  Volume
+	EnzymeVolume Volume
 	SubstrateVolume Volume
 	NumberofReactions int
 )
@@ -19,18 +18,17 @@ Data (
 	Status string
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	Buffer *wtype.LHComponent
-	Substrate *wtype.LHComponent
-	Enzyme *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Buffer *LHComponent
+	Substrate *LHComponent
+	Enzyme *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reactions []*wtype.LHComponent
+	Reactions []*LHComponent
 )
 
 Requirements {
@@ -43,24 +41,23 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	reactions := make([]*wtype.LHComponent,0)
-	
-	
+
+	reactions := make([]*LHComponent, 0)
+
 	for i := 0; i < NumberofReactions; i++ {
-		eachreaction := make([]*wtype.LHComponent, 0)
+		eachreaction := make([]*LHComponent, 0)
 		bufferSample := mixer.SampleForTotalVolume(Buffer, TotalVolume)
-		eachreaction = append(eachreaction,bufferSample)
+		eachreaction = append(eachreaction, bufferSample)
 		subSample := mixer.Sample(Substrate, SubstrateVolume)
-		eachreaction = append(eachreaction,subSample)
+		eachreaction = append(eachreaction, subSample)
 		enzSample := mixer.Sample(Enzyme, EnzymeVolume)
-		eachreaction = append(eachreaction,enzSample)
+		eachreaction = append(eachreaction, enzSample)
 		reaction := MixInto(OutPlate, "", eachreaction...)
-		reactions = append(reactions,reaction)
-		
+		reactions = append(reactions, reaction)
+
 	}
 	Reactions = reactions
-	
+
 }
 
 // Run after controls and a steps block are completed to

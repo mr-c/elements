@@ -1,47 +1,46 @@
 protocol RestrictionDigestion_conc
 
 import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
-	"fmt"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	ReactionVolume 				Volume
-	BufferConcX					int
-	DNAConc 					Concentration
-	DNAMassperReaction			Mass
-	DNAName						string
-	EnzymeNames					[]string
-	BSAvol						Volume
-	
-	StockReConcinUperml 		[]int
-	DesiredConcinUperml	 		[]int
-	
-	ReactionTemp 				Temperature
-	ReactionTime 				Time
-	InactivationTemp 			Temperature
-	InactivationTime 			Time
-	Platenumber 				int
+	ReactionVolume Volume
+	BufferConcX int
+	DNAConc Concentration
+	DNAMassperReaction Mass
+	DNAName string
+	EnzymeNames []string
+	BSAvol Volume
+
+	StockReConcinUperml []int
+	DesiredConcinUperml []int
+
+	ReactionTemp Temperature
+	ReactionTime Time
+	InactivationTemp Temperature
+	InactivationTime Time
+	Platenumber int
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	DNASolution 		*wtype.LHComponent
-	EnzSolutions 		[]*wtype.LHComponent
-	BSAoptional		 	*wtype.LHComponent
-	Buffer 				*wtype.LHComponent
-	Water  				*wtype.LHComponent
+	DNASolution *LHComponent
+	EnzSolutions []*LHComponent
+	BSAoptional *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
 
-	OutPlate 			*wtype.LHPlate
+	OutPlate *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -57,58 +56,58 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	statii := make([]string,0)
-	
-	
-	samples := make([]*wtype.LHComponent, 0)
+
+	statii := make([]string, 0)
+
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
 
 	// workout volume of buffer to add in SI units
-	BufferVol := wunit.NewVolume(float64(ReactionVolume.SIValue()/float64(BufferConcX)),"l")	
-	statii = append(statii,fmt.Sprintln("buffer volume conversion:",ReactionVolume.SIValue(),BufferConcX, float64(ReactionVolume.SIValue()/float64(BufferConcX)), " Buffervol = ", BufferVol.SIValue()))
+	BufferVol := wunit.NewVolume(float64(ReactionVolume.SIValue()/float64(BufferConcX)), "l")
+	statii = append(statii, fmt.Sprintln("buffer volume conversion:", ReactionVolume.SIValue(), BufferConcX, float64(ReactionVolume.SIValue()/float64(BufferConcX)), " Buffervol = ", BufferVol.SIValue()))
 	bufferSample := mixer.Sample(Buffer, BufferVol)
 	samples = append(samples, bufferSample)
 
-	if BSAvol.Mvalue != 0 {bsaSample := mixer.Sample(BSAoptional, BSAvol)
-	samples = append(samples, bsaSample)
+	if BSAvol.Mvalue != 0 {
+		bsaSample := mixer.Sample(BSAoptional, BSAvol)
+		samples = append(samples, bsaSample)
 	}
-	
+
 	DNASolution.CName = DNAName
-	
+
 	// work out necessary volume to add
-	DNAVol,err := wunit.VolumeForTargetMass(DNAMassperReaction,DNAConc) //NewVolume(float64((DNAMassperReaction.SIValue()/DNAConc.SIValue())),"l")
-	
-	if err !=nil{
+	DNAVol, err := wunit.VolumeForTargetMass(DNAMassperReaction, DNAConc) //NewVolume(float64((DNAMassperReaction.SIValue()/DNAConc.SIValue())),"l")
+
+	if err != nil {
 		Errorf(err.Error())
 	}
-	
-	statii = append(statii,fmt.Sprintln("DNA MAss to Volume conversion:", DNAMassperReaction.SIValue(),DNAConc.SIValue(),float64((DNAMassperReaction.SIValue()/DNAConc.SIValue())), "DNAVol =",DNAVol.SIValue()))
-	statii = append(statii,fmt.Sprintln("DNAVOL",DNAVol.ToString()))
+
+	statii = append(statii, fmt.Sprintln("DNA MAss to Volume conversion:", DNAMassperReaction.SIValue(), DNAConc.SIValue(), float64((DNAMassperReaction.SIValue()/DNAConc.SIValue())), "DNAVol =", DNAVol.SIValue()))
+	statii = append(statii, fmt.Sprintln("DNAVOL", DNAVol.ToString()))
 	dnaSample := mixer.Sample(DNASolution, DNAVol)
 	samples = append(samples, dnaSample)
 
 	for k, enzyme := range EnzSolutions {
-		
-		/* 
-		e.g. 
-		DesiredUinreaction = 1  // U
-		StockReConcinUperml = 10000 // U/ml
-		ReactionVolume = 20ul
+
+		/*
+			e.g.
+			DesiredUinreaction = 1  // U
+			StockReConcinUperml = 10000 // U/ml
+			ReactionVolume = 20ul
 		*/
-		stockconcinUperul := StockReConcinUperml[k]/1000
-		enzvoltoaddinul := DesiredConcinUperml[k]/stockconcinUperul
-		
+		stockconcinUperul := StockReConcinUperml[k] / 1000
+		enzvoltoaddinul := DesiredConcinUperml[k] / stockconcinUperul
+
 		var enzvoltoadd Volume
-		
+
 		if float64(enzvoltoaddinul) < 0.5 {
-			enzvoltoadd = wunit.NewVolume(float64(0.5),"ul")
-			}else {
-				enzvoltoadd = wunit.NewVolume(float64(enzvoltoaddinul),"ul")
-				}
+			enzvoltoadd = wunit.NewVolume(float64(0.5), "ul")
+		} else {
+			enzvoltoadd = wunit.NewVolume(float64(enzvoltoaddinul), "ul")
+		}
 		enzyme.CName = EnzymeNames[k]
-		text.Print("adding enzyme" + EnzymeNames[k], "to" + DNAName)
+		text.Print("adding enzyme"+EnzymeNames[k], "to"+DNAName)
 		enzSample := mixer.Sample(enzyme, enzvoltoadd)
 		enzSample.CName = EnzymeNames[k]
 		samples = append(samples, enzSample)

@@ -3,17 +3,15 @@
 protocol Mastermix_one
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
 	Reactionspermastermix int
 	ComponentVolumesperReaction []Volume
-
 )
 
 // Data which is returned from this protocol, and data types
@@ -21,17 +19,16 @@ Data (
 	Status string
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	//TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
-	Components []*wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	//TopUpBuffer *LHComponent // optional if nil this is ignored
+	Components []*LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Mastermix *wtype.LHComponent
+	Mastermix *LHComponent
 )
 
 Requirements {
@@ -44,36 +41,34 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	var mastermix *wtype.LHComponent
-	
-	if len(Components) != len(ComponentVolumesperReaction){
+
+	var mastermix *LHComponent
+
+	if len(Components) != len(ComponentVolumesperReaction) {
 		panic("len(Components) != len(OtherComponentVolumes)")
 	}
-		
-		eachmastermix := make([]*wtype.LHComponent, 0)
-		
-		
-		for k,component := range Components {
-			if k == len(Components){
-				component.Type = wtype.LTNeedToMix //"NeedToMix"
-			}
-		
-		// multiply volume of each component by number of reactions per mastermix
-		adjustedvol := wunit.NewVolume(float64(Reactionspermastermix)*ComponentVolumesperReaction[k].SIValue()*1000000,"ul")
-			
-		componentSample := mixer.Sample(component,adjustedvol)
-		component.CName = "component"+fmt.Sprint(k+1)
-		eachmastermix = append(eachmastermix,componentSample)
-		
-		
+
+	eachmastermix := make([]*LHComponent, 0)
+
+	for k, component := range Components {
+		if k == len(Components) {
+			component.Type = wtype.LTNeedToMix //"NeedToMix"
 		}
-	mastermix = MixInto(OutPlate, "",  eachmastermix...)
-	
+
+		// multiply volume of each component by number of reactions per mastermix
+		adjustedvol := wunit.NewVolume(float64(Reactionspermastermix)*ComponentVolumesperReaction[k].SIValue()*1000000, "ul")
+
+		componentSample := mixer.Sample(component, adjustedvol)
+		component.CName = "component" + fmt.Sprint(k+1)
+		eachmastermix = append(eachmastermix, componentSample)
+
+	}
+	mastermix = MixInto(OutPlate, "", eachmastermix...)
+
 	Mastermix = mastermix
-	
- Status = "Mastermix Made"
-	
+
+	Status = "Mastermix Made"
+
 }
 
 // Run after controls and a steps block are completed to

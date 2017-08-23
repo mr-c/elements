@@ -268,7 +268,7 @@ func init() {
 				{Name: "InitDenaturationtime", Desc: "", Kind: "Parameters"},
 				{Name: "MasterMix", Desc: "", Kind: "Inputs"},
 				{Name: "MasterMixVolume", Desc: "PCRprep parameters:\n", Kind: "Parameters"},
-				{Name: "Numberofcycles", Desc: "\t// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume\n\n\t//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...\n\t//FullTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//FullTemplatelength int\t// clearly could be calculated from the sequence... Sid will have a method to do this already so check!\n\t//TargetTemplatesequence string // better to use Sid's type system here after proof of concept\n\t//TargetTemplatelengthinBP int\n\nReaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
+				{Name: "Numberofcycles", Desc: "\t\t// let's be ambitious and try this as part of type polymerase Polymeraseconc Volume\n\n\t\t//Templatetype string  // e.g. colony, genomic, pure plasmid... will effect efficiency. We could get more sophisticated here later on...\n\t\t//FullTemplatesequence string // better to use Sid's type system here after proof of concept\n\t\t//FullTemplatelength int\t// clearly could be calculated from the sequence... Sid will have a method to do this already so check!\n\t\t//TargetTemplatesequence string // better to use Sid's type system here after proof of concept\n\t\t//TargetTemplatelengthinBP int\n\nReaction parameters: (could be a entered as thermocycle parameters type possibly?)\n", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PCRPolymerase", Desc: "", Kind: "Inputs"},
 				{Name: "PolymeraseAlreadyaddedtoMastermix", Desc: "", Kind: "Parameters"},
@@ -295,7 +295,7 @@ func init() {
 }
 
 /*type Polymerase struct {
-	wtype.LHComponent
+	LHComponent
 	Rate_BPpers float64
 	Fidelity_errorrate float64 // could dictate how many colonies are checked in validation!
 	Extensiontemp Temperature

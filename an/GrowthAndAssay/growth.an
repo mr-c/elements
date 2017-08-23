@@ -1,8 +1,8 @@
-protocol GrowthDOE 
+protocol GrowthDOE
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
@@ -11,15 +11,14 @@ Parameters (
 	ShakingSpeed Rate //AngularVelocity
 )
 
-Data (
-)
+Data ()
 
 Inputs (
-	StrainInMedium *wtype.LHComponent
+	StrainInMedium *LHComponent
 )
 
 Outputs (
-	Culture *wtype.LHComponent
+	Culture *LHComponent
 )
 
 Requirements {

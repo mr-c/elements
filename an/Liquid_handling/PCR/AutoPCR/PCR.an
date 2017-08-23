@@ -2,9 +2,9 @@
 protocol PCR_SetVolumes
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -24,15 +24,15 @@ Parameters (
 	FwdPrimerName string
 	RevPrimerName string
 	WellPosition string
-	
+
 	// Reaction parameters: (could be a entered as thermocycle parameters type possibly?)
-	Numberofcycles int 
+	Numberofcycles int
 	InitDenaturationtime Time
 	Denaturationtime Time
 	//Denaturationtemp Temperature
 	Annealingtime Time
 	AnnealingTemp Temperature // Should be calculated from primer and template binding
-	Extensiontime Time // should be calculated from template length and polymerase rate
+	Extensiontime Time        // should be calculated from template length and polymerase rate
 	Finalextensiontime Time
 	Hotstart bool
 	AddPrimerstoMasterMix bool
@@ -43,24 +43,23 @@ Data (
 	Status string
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	FwdPrimer *wtype.LHComponent
-	RevPrimer *wtype.LHComponent
-	DNTPS *wtype.LHComponent
-	PCRPolymerase *wtype.LHComponent
-	Buffer *wtype.LHComponent
-	Water *wtype.LHComponent
-	Template *wtype.LHComponent // the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it 
+	FwdPrimer *LHComponent
+	RevPrimer *LHComponent
+	DNTPS *LHComponent
+	PCRPolymerase *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
+	Template *LHComponent // the name of the LHComponent; any LHComponent coming in from the parameters file must be a valid LHComponent so Antha knows how to handle it
 
-	Additives []*wtype.LHComponent // e.g. DMSO
-	OutPlate *wtype.LHPlate
+	Additives []*LHComponent // e.g. DMSO
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 Requirements {
@@ -70,113 +69,110 @@ Requirements {
 Setup {
 }
 
-	// The core process for this protocol, with the steps to be performed
-	// for every input
+// The core process for this protocol, with the steps to be performed
+// for every input
 Steps {
-	
-	// liquidhandling components all have a defined liquid class which 
-	// determines how they'll be pipetted (e.g. glycerol is viscous so must be 
-	// pipetted more slowly than water). For this reason when we define an LHComponent it must be based on 
-	// one which exists in antha already so antha knows how it should be pipetted. 
-	// We can rename them though by inputting the component name as a parameter 
-	
+
+	// liquidhandling components all have a defined liquid class which
+	// determines how they'll be pipetted (e.g. glycerol is viscous so must be
+	// pipetted more slowly than water). For this reason when we define an LHComponent it must be based on
+	// one which exists in antha already so antha knows how it should be pipetted.
+	// We can rename them though by inputting the component name as a parameter
+
 	// The LHComponent type has many properties and behaviours which you can call upon using a period
-	// For example, an LHComponent's name is stored as a field called CName. 
+	// For example, an LHComponent's name is stored as a field called CName.
 	// We can change the name of the LHComponent Template to the string TemplateName like so
-	
+
 	Template.CName = TemplateName
 	// The Template and TemplateName variables are declared above and given a type
 	// Template is an LHComponent which is a physical input so it's declared in the Inputs section.
 	// TemplateName is a string so just data input; it is therefore delcared in the parameters section.
-	
+
 	// Now do the same for the primers
 	FwdPrimer.CName = FwdPrimerName
 	RevPrimer.CName = RevPrimerName
-	
-	
-	
+
 	bufferVolume := (wunit.CopyVolume(ReactionVolume))
 	bufferVolume.DivideBy(float64(BufferConcinX))
-	
+
 	// Make a mastermix
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.Sample(Water, WaterVolume)
-	bufferSample := mixer.Sample(Buffer,bufferVolume)
+	bufferSample := mixer.Sample(Buffer, bufferVolume)
 	samples = append(samples, waterSample, bufferSample)
 
 	dntpSample := mixer.Sample(DNTPS, DNTPVol)
 	samples = append(samples, dntpSample)
-	
-	if len(Additives)!=len(AdditiveVols){
+
+	if len(Additives) != len(AdditiveVols) {
 		Errorf("Bad things are going to happen if you have different numbers of additives and additivevolumes")
 	}
-	
+
 	for i := range Additives {
 		additiveSample := mixer.Sample(Additives[i], AdditiveVols[i])
 		samples = append(samples, additiveSample)
 	}
 
 	if Hotstart == false {
-	polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
-	samples = append(samples, polySample)
+		polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
+		samples = append(samples, polySample)
 	}
-	
+
 	// if this is true do stuff inside {}
 	if AddPrimerstoMasterMix {
-	
-	FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
-	samples = append(samples, FwdPrimerSample)
-	RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
-	samples = append(samples, RevPrimerSample)
-	
+
+		FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
+		samples = append(samples, FwdPrimerSample)
+		RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
+		samples = append(samples, RevPrimerSample)
+
 	}
-	
+
 	// pipette out to make mastermix
-	var mastermix *wtype.LHComponent
-	for j := range samples { 
-	if j == 0  {
-	mastermix = MixInto(OutPlate, WellPosition, samples[j])
-	}else{
-	mastermix = Mix(mastermix, samples[j])
+	var mastermix *LHComponent
+	for j := range samples {
+		if j == 0 {
+			mastermix = MixInto(OutPlate, WellPosition, samples[j])
+		} else {
+			mastermix = Mix(mastermix, samples[j])
+		}
 	}
-	}
-	
+
 	// reset samples to zero
-	samples = make([]*wtype.LHComponent, 0)
-	
+	samples = make([]*LHComponent, 0)
+
 	// if this is false do stuff inside {}
 	if !AddPrimerstoMasterMix {
-	
-	FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
-	samples = append(samples, FwdPrimerSample)
-	RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
-	samples = append(samples, RevPrimerSample)
-	
+
+		FwdPrimerSample := mixer.Sample(FwdPrimer, FwdPrimerVol)
+		samples = append(samples, FwdPrimerSample)
+		RevPrimerSample := mixer.Sample(RevPrimer, RevPrimerVol)
+		samples = append(samples, RevPrimerSample)
+
 	}
-	
+
 	templateSample := mixer.Sample(Template, Templatevolume)
 	samples = append(samples, templateSample)
 
-	
-	for j := range samples { 
-	
-	// mix last sample
-	if !Hotstart && j == len(samples)-1{
-		samples[j].Type = wtype.LTPostMix
-	}
-	
-	mastermix = Mix(mastermix, samples[j])
-	
+	for j := range samples {
+
+		// mix last sample
+		if !Hotstart && j == len(samples)-1 {
+			samples[j].Type = wtype.LTPostMix
+		}
+
+		mastermix = Mix(mastermix, samples[j])
+
 	}
 	reaction := mastermix
 
 	// this needs to go after an initial denaturation!
 	if Hotstart {
-	
-	polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
-	polySample.Type = wtype.LTPostMix
-	
-	reaction = Mix(reaction,polySample)
+
+		polySample := mixer.Sample(PCRPolymerase, PolymeraseVolume)
+		polySample.Type = wtype.LTPostMix
+
+		reaction = Mix(reaction, polySample)
 	}
 
 	// thermocycle parameters called from enzyme lookup:
@@ -186,35 +182,33 @@ Steps {
 	extensionTemp := enzymes.DNApolymerasetemps[polymerase]["extensiontemp"]
 	meltingTemp := enzymes.DNApolymerasetemps[polymerase]["meltingtemp"]
 
-
 	// initial Denaturation
 
 	r1 := Incubate(reaction, meltingTemp, InitDenaturationtime, false)
-	
-	for i:=0; i < Numberofcycles; i++ {
-		
+
+	for i := 0; i < Numberofcycles; i++ {
+
 		// Denature
 
-	r1 = Incubate(r1, meltingTemp, Denaturationtime, false)
-	
+		r1 = Incubate(r1, meltingTemp, Denaturationtime, false)
+
 		// Anneal
-	r1 = Incubate(r1, AnnealingTemp, Annealingtime, false)
-	
-	//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
-	
+		r1 = Incubate(r1, AnnealingTemp, Annealingtime, false)
+
+		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
+
 		// Extend
-	r1 = Incubate(r1, extensionTemp, Extensiontime, false)
-		
+		r1 = Incubate(r1, extensionTemp, Extensiontime, false)
+
 	}
-		// Final Extension
+	// Final Extension
 	r1 = Incubate(r1, extensionTemp, Finalextensiontime, false)
-	
 
 	// all done
 	Reaction = r1
-	
+
 	Reaction.CName = ReactionName
-	
+
 	Status = "Success"
 }
 
@@ -230,7 +224,7 @@ Validation {
 }
 
 /*type Polymerase struct {
-	wtype.LHComponent
+	LHComponent
 	Rate_BPpers float64
 	Fidelity_errorrate float64 // could dictate how many colonies are checked in validation!
 	Extensiontemp Temperature
@@ -240,4 +234,3 @@ Validation {
 	// this is also a glycerol solution rather than a watersolution!
 }
 */
-

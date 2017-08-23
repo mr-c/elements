@@ -9,7 +9,7 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/inventory"
 )
 
 // Input parameters for this protocol (data)
@@ -58,15 +58,19 @@ func _AutoPCR_demoSteps(_ctx context.Context, _input *AutoPCR_demoInput, _output
 
 	// get additive info
 	for additive, volume := range _input.AdditiveToAdditiveVolume {
+		additivecomponent, err := inventory.NewComponent(_ctx, additive)
 
-		var additivecomponent *wtype.LHComponent
-		var componentfound bool = factory.ComponentInFactory(additive)
-		if componentfound {
-			additivecomponent = factory.GetComponentByType(additive)
-		} else {
-			// if not found in factory use dmso as the base liquid handling type and change name to additivename specified
-			additivecomponent = factory.GetComponentByType("DMSO")
-			additivecomponent.CName = additive
+		if err == inventory.ErrUnknownType {
+			// if not found in factory use dmso as the base liquid
+			// handling type and change name to additivename
+			// specified
+			additivecomponent, err = inventory.NewComponent(_ctx, "DMSO")
+			if err == nil {
+				additivecomponent.CName = additive
+			}
+		}
+		if err != nil {
+			execute.Errorf(_ctx, "cannot make component: %s", err)
 		}
 		additives = append(additives, additivecomponent)
 		additivevolumes = append(additivevolumes, volume)
@@ -218,7 +222,7 @@ type AutoPCR_demoInput struct {
 	FwdPrimertype            *wtype.LHComponent
 	Plate                    *wtype.LHPlate
 	Projectname              string
-	Reactiontoprimerpair     map[string][]string
+	Reactiontoprimerpair     map[string][2]string
 	Reactiontotemplate       map[string]string
 	RevPrimertype            *wtype.LHComponent
 	Templatetype             *wtype.LHComponent

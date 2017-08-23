@@ -50,7 +50,7 @@ func _ParsePlateSteps(_ctx context.Context, _input *ParsePlateInput, _output *Pa
 	reader := bytes.NewReader(filecontents)
 
 	// Parse plate from reader
-	plateresult, err := inplate.ParsePlateCSV(reader)
+	plateresult, err := inplate.ParsePlateCSVWithValidationConfig(_ctx, reader, inplate.PermissiveValidationConfig())
 
 	if err != nil {
 		_output.Error = err

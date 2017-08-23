@@ -23,7 +23,7 @@ import (
 
 // Data which is returned from this protocol
 
-//Return DNA sequence as type wtype.DNASequence
+//Return DNA sequence as type DNASequence
 //Status for user
 //Warnings for user
 
@@ -42,11 +42,12 @@ func _ImportDNASequenceSetup(_ctx context.Context, _input *ImportDNASequenceInpu
 // Core process of the protocol: steps to be performed for each input
 func _ImportDNASequenceSteps(_ctx context.Context, _input *ImportDNASequenceInput, _output *ImportDNASequenceOutput) {
 	//Use function DNAFileToDNASequence to read in file. The function determines
-	//which file type was given as input and returns the DNA sequence as type wtype.DNAsequence
+	//which file type was given as input and returns the DNA sequence as type DNASequence
 	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
 	if err != nil {
 		execute.Errorf(_ctx, "The file could not be imported. Please check if file format supported or if file empty")
 	}
+
 	if len(seqs) == 1 && err == nil {
 		_output.DNA = seqs[0]
 
@@ -192,7 +193,7 @@ func init() {
 				{Name: "OverrideSequenceType", Desc: "Optional specification if DNA is of type \"Plasmid, Linear or SingleStranded\". If left empty the SequenceType is assigned from the file.\n", Kind: "Parameters"},
 				{Name: "RenameSequence", Desc: "optional parameter to rename the dna sequence. If left empty the name specified in the file is used\n", Kind: "Parameters"},
 				{Name: "SequenceFile", Desc: "Supported file formats formats: .gdx .fasta .gb\n", Kind: "Parameters"},
-				{Name: "DNA", Desc: "Return DNA sequence as type wtype.DNASequence\n", Kind: "Data"},
+				{Name: "DNA", Desc: "Return DNA sequence as type DNASequence\n", Kind: "Data"},
 				{Name: "Status", Desc: "Status for user\n", Kind: "Data"},
 				{Name: "Warnings", Desc: "Warnings for user\n", Kind: "Data"},
 			},

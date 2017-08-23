@@ -1,14 +1,14 @@
 protocol Transformation_lowlevel
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	//CompetentCellvolumeperassembly wunit.Volume //= 50.(uL)
-	Reactionvolume wunit.Volume
+	//CompetentCellvolumeperassembly Volume //= 50.(uL)
+	Reactionvolume Volume
 	Postplasmidtime wunit.Time
 	Postplasmidtemp wunit.Temperature
 	Recoverytime wunit.Time
@@ -16,27 +16,24 @@ Parameters (
 	//Coolplatepositions []string
 	//HotplatePositions []string
 	//RecoveryPositions []string
-	
+
 )
 
 // Data which is returned from this protocol, and data types
-Data (
-)
-
+Data ()
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Reactions []*wtype.LHComponent
-	ReadyCompCells []*wtype.LHComponent
-	RecoveryMediaAliquots []*wtype.LHComponent
-	//RecoveryPlate *wtype.LHPlate
-	//CompcellPlate *wtype.LHPlate
+	Reactions []*LHComponent
+	ReadyCompCells []*LHComponent
+	RecoveryMediaAliquots []*LHComponent
+	//RecoveryPlate *LHPlate
+	//CompcellPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	Transformedcells []*wtype.LHComponent
-	
+	Transformedcells []*LHComponent
 )
 
 Requirements {
@@ -49,43 +46,39 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
+
 	// declare variables for use later
-	var transformations []*wtype.LHComponent
-	var incubatedtransformations []*wtype.LHComponent
-	var recoverymixes []*wtype.LHComponent
-	
-	
-	
+	var transformations []*LHComponent
+	var incubatedtransformations []*LHComponent
+	var recoverymixes []*LHComponent
+
 	// add dna to competent cell aliquots
 	for i, reaction := range Reactions {
-	DNAsample := mixer.Sample(reaction, Reactionvolume)
+		DNAsample := mixer.Sample(reaction, Reactionvolume)
 
-	transformationmix := Mix(ReadyCompCells[i],DNAsample)
-	
-	transformations = append(transformations,transformationmix)
-	
+		transformationmix := Mix(ReadyCompCells[i], DNAsample)
+
+		transformations = append(transformations, transformationmix)
+
 	}
-	
+
 	// wait
 	for _, transformationmix := range transformations {
-	incubated := Incubate (transformationmix, Postplasmidtemp, Postplasmidtime,false)
-	incubatedtransformations = append(incubatedtransformations,incubated)
+		incubated := Incubate(transformationmix, Postplasmidtemp, Postplasmidtime, false)
+		incubatedtransformations = append(incubatedtransformations, incubated)
 	}
-	
+
 	// add to recovery media
 	for j, transformation := range incubatedtransformations {
 		recovery := Mix(RecoveryMediaAliquots[j], transformation)
-		recoverymixes = append(recoverymixes,recovery)
+		recoverymixes = append(recoverymixes, recovery)
 	}
-	
+
 	// recovery
 	for _, mix := range recoverymixes {
-	incubated := Incubate (mix, Recoverytemp, Recoverytime,true)
-	Transformedcells = append(Transformedcells,incubated)
+		incubated := Incubate(mix, Recoverytemp, Recoverytime, true)
+		Transformedcells = append(Transformedcells, incubated)
 	}
-	
-	
 
 }
 

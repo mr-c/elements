@@ -16,15 +16,14 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	//Bufferstock		*wtype.LHComponent
-	Diluent			*wtype.LHComponent
-	//OutPlate 		*wtype.LHPlate
+	//Bufferstock		*LHComponent
+	Diluent *LHComponent
+	//OutPlate 		*LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	//Buffer 			*wtype.LHComponent
+//Buffer 			*LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -33,10 +32,10 @@ Data (
 	StockConc Concentration
 	//OriginalDiluentVolume Volume
 )
+
 // Input Requirement specification
 Requirements {
-	
-	
+
 }
 
 // Conditions to run on startup
@@ -47,22 +46,22 @@ Setup {}
 Steps {
 	//Bufferstockvolume := wunit.NewVolume((FinalVolume.SIValue() * FinalConcentration.SIValue()/Bufferstockconc.SIValue()),"l")
 	var err error
-	StockConc, err = buffers.StockConcentration(Moleculename, MassAddedinG, Diluent.CName, TotalVolume) 
-        if err != nil {
-                panic(err)
-        }
-	
-	/*	
-	Buffer = MixInto(OutPlate,"",
-	mixer.Sample(Bufferstock,BufferVolumeAdded),
-	mixer.Sample(Diluent,DiluentVolume))
+	StockConc, err = buffers.StockConcentration(Moleculename, MassAddedinG, Diluent.CName, TotalVolume)
+	if err != nil {
+		panic(err)
+	}
 
-	Status = fmt.Sprintln( "Buffer stock volume = ", BufferVolumeAdded.ToString(), "of", Bufferstock.CName,
-	"was added to ", DiluentVolume.ToString(), "of", Diluent.CName,
-	"to make ", BufferVolumeAdded.SIValue() + DiluentVolume.SIValue(), "L", "of", Buffername,
-	"Buffer stock conc =",FinalConcentration.ToString())
-		
-	OriginalDiluentVolume = DiluentVolume
+	/*
+		Buffer = MixInto(OutPlate,"",
+		mixer.Sample(Bufferstock,BufferVolumeAdded),
+		mixer.Sample(Diluent,DiluentVolume))
+
+		Status = fmt.Sprintln( "Buffer stock volume = ", BufferVolumeAdded.ToString(), "of", Bufferstock.CName,
+		"was added to ", DiluentVolume.ToString(), "of", Diluent.CName,
+		"to make ", BufferVolumeAdded.SIValue() + DiluentVolume.SIValue(), "L", "of", Buffername,
+		"Buffer stock conc =",FinalConcentration.ToString())
+
+		OriginalDiluentVolume = DiluentVolume
 	*/
 
 }
@@ -77,8 +76,8 @@ Analysis {
 // dipstick basis
 Validation {
 }
+
 /*
 type Mole struct {
 	number float64
 }*/
-

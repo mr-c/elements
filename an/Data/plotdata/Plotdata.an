@@ -1,43 +1,37 @@
 protocol Plotdata
 
-	
 import (
-
 	graph "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/plot"
 )
 
 // Input parameters for this protocol (data)
-Parameters  (                                      
-	Xvalues/*datarange*/ []float64                                                             
-	Yvaluearray/*datarange*/ [][]float64 
-	Exportedfilename string 
-//	HeaderRange []string 
+Parameters (
+	Xvalues /*datarange*/ []float64
+	Yvaluearray /*datarange*/ [][]float64
+	Exportedfilename string
+
+//	HeaderRange []string
 )
 
 // Data which is returned from this protocol, and data types
 Data (
-	//	OutputData       []string
-	
-)
+//	OutputData       []string
 
+)
 
 // Physical Inputs to this protocol with types
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol with types
-Outputs (
-	
-)
+Outputs ()
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
@@ -47,19 +41,16 @@ Steps {
 	// now plot the graph
 
 	// the data points
-	
-	plot,err := graph.Plot(Xvalues, Yvaluearray)
-	
-	if err!=nil{
+
+	plot, err := graph.Plot(Xvalues, Yvaluearray)
+
+	if err != nil {
 		Errorf(err.Error())
 	}
-	
-	graph.Export(plot,"10cm","10cm",Exportedfilename)
-	
+
+	graph.Export(plot, "10cm", "10cm", Exportedfilename)
 
 }
-
-	
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -70,5 +61,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
+
 }

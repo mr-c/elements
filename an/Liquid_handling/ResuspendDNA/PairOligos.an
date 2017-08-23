@@ -4,15 +4,14 @@ protocol PairOligos
 // we need to import the wtype package to use the LHComponent type
 // the mixer package is required to use the Sample function
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
-  	FWDOligoVolume Volume
+	FWDOligoVolume Volume
 	REVOligoVolume Volume
 	Well string
 	TotalVolume Volume
@@ -21,18 +20,17 @@ Parameters (
 	PlateNumber int
 )
 
-Data (
-)
+Data ()
 
 Inputs (
-	FwdOligo *wtype.LHComponent
-	RevOligo *wtype.LHComponent
-	Diluent *wtype.LHComponent
-	Plate *wtype.LHPlate
+	FwdOligo *LHComponent
+	RevOligo *LHComponent
+	Diluent *LHComponent
+	Plate *LHPlate
 )
 
 Outputs (
-	OligoPairs *wtype.LHComponent
+	OligoPairs *LHComponent
 )
 
 Requirements {
@@ -41,26 +39,24 @@ Requirements {
 Setup {
 }
 
-
 Steps {
 
-	diluentSample := mixer.SampleForTotalVolume(Diluent,TotalVolume)
-	
-	fwdOligoSample := mixer.Sample(FwdOligo,FWDOligoVolume)
-	
-	revOligoSample := mixer.Sample(RevOligo,REVOligoVolume)
-	
-	revOligoSample.Type = wtype.LTDNAMIX
-	
-	OligoPairs = MixNamed(Plate.Type,Well,fmt.Sprint("OligoPlate",PlateNumber),diluentSample,fwdOligoSample,revOligoSample) 
+	diluentSample := mixer.SampleForTotalVolume(Diluent, TotalVolume)
 
-	OligoPairs = Incubate(OligoPairs,IncubationTemp,IncubationTime,false)
+	fwdOligoSample := mixer.Sample(FwdOligo, FWDOligoVolume)
+
+	revOligoSample := mixer.Sample(RevOligo, REVOligoVolume)
+
+	revOligoSample.Type = wtype.LTDNAMIX
+
+	OligoPairs = MixNamed(Plate.Type, Well, fmt.Sprint("OligoPlate", PlateNumber), diluentSample, fwdOligoSample, revOligoSample)
+
+	OligoPairs = Incubate(OligoPairs, IncubationTemp, IncubationTime, false)
 
 }
 
 Analysis {
 }
-
 
 Validation {
 }

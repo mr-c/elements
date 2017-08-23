@@ -5,9 +5,7 @@ protocol PairOligos_multiple
 // the mixer package is required to use the Sample function
 import (
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
@@ -19,18 +17,17 @@ Parameters (
 	IncubationTime Time
 )
 
-Data (
-)
+Data ()
 
 Inputs (
-	DNAPartsMap map[string]*wtype.LHComponent
-	Diluent *wtype.LHComponent
-	Plate *wtype.LHPlate
+	DNAPartsMap map[string]*LHComponent
+	Diluent *LHComponent
+	Plate *LHPlate
 )
 
 Outputs (
-	OligoPairsMap map[string]*wtype.LHComponent
-	OligoPairs []*wtype.LHComponent
+	OligoPairsMap map[string]*LHComponent
+	OligoPairs []*LHComponent
 )
 
 Requirements {
@@ -39,16 +36,15 @@ Requirements {
 Setup {
 }
 
-
 Steps {
 
-	if len(FwdOligotoRevOligoMap)==0{
+	if len(FwdOligotoRevOligoMap) == 0 {
 		Errorf("No fwd and reverse oligo pairs specified in FwdOligotoRevOligoMap")
 	}
-	
-	// initialise output map 
-	OligoPairsMap = make(map[string]*wtype.LHComponent)
-	
+
+	// initialise output map
+	OligoPairsMap = make(map[string]*LHComponent)
+
 	// get all well locations for plate
 	var welllocations []string = Plate.AllWellPositions(wtype.BYCOLUMN)
 
@@ -56,87 +52,84 @@ Steps {
 	var counter int = 0
 	var platenum int = 1
 	// range through Oligo pairs map
-	for fwd, rev := range  FwdOligotoRevOligoMap{
-		
+	for fwd, rev := range FwdOligotoRevOligoMap {
+
 		var fwdConc Concentration
 		var revConc Concentration
-	
+
 		// check if stock concs are specified for the fwd oligo or use a default
 		if conc, found := PartConcentrations[fwd]; found {
 			fwdConc = conc
 		} else if conc, found := PartConcentrations["default"]; found {
 			fwdConc = conc
-		}else {
-			Errorf(`No entry set for Fwd Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`,fwd)
+		} else {
+			Errorf(`No entry set for Fwd Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`, fwd)
 		}
-		
+
 		// check if stock concs are specified for the rev oligo or use a default
 		if conc, found := PartConcentrations[rev]; found {
 			revConc = conc
 		} else if conc, found := PartConcentrations["default"]; found {
 			revConc = conc
-		}else {
-			Errorf(`No entry set for Reverse Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`,rev)
+		} else {
+			Errorf(`No entry set for Reverse Oligo  %s and no "default" specified in PartConcentrations: please add one of these.`, rev)
 		}
-	
+
 		// calculate volume to add for target conc
-		fwdoligoVol, err := wunit.VolumeForTargetConcentration(ConcentrationSetPoint, fwdConc, TotalVolume)  
-	
+		fwdoligoVol, err := wunit.VolumeForTargetConcentration(ConcentrationSetPoint, fwdConc, TotalVolume)
+
 		if err != nil {
 			Errorf(err.Error())
 		}
-		
+
 		// calculate volume to add for target conc
-		revoligoVol, err := wunit.VolumeForTargetConcentration(ConcentrationSetPoint, revConc, TotalVolume)  
-	
+		revoligoVol, err := wunit.VolumeForTargetConcentration(ConcentrationSetPoint, revConc, TotalVolume)
+
 		if err != nil {
 			Errorf(err.Error())
 		}
-	
-		// next well 
+
+		// next well
 		well := welllocations[counter]
-	
+
 		// run PairOligos Antha element recursively
 		result := RunSteps(PairOligos,
-		Parameters{
-			TotalVolume: TotalVolume,
-			IncubationTemp: IncubationTemp,
-			IncubationTime: IncubationTime,
-			FWDOligoVolume: fwdoligoVol,
-			REVOligoVolume: revoligoVol,
-			Well: well,
-			PlateNumber: platenum,
-		},Inputs{
-			FwdOligo:	DNAPartsMap[fwd],
-			RevOligo:	DNAPartsMap[rev],
-			Diluent: Diluent,
-			Plate: Plate,
-		})
-		
-		
+			Parameters{
+				TotalVolume:    TotalVolume,
+				IncubationTemp: IncubationTemp,
+				IncubationTime: IncubationTime,
+				FWDOligoVolume: fwdoligoVol,
+				REVOligoVolume: revoligoVol,
+				Well:           well,
+				PlateNumber:    platenum,
+			}, Inputs{
+				FwdOligo: DNAPartsMap[fwd],
+				RevOligo: DNAPartsMap[rev],
+				Diluent:  Diluent,
+				Plate:    Plate,
+			})
+
 		// update output solution with concentration
 		pair := result.Outputs.OligoPairs
 		pair.SetConcentration(ConcentrationSetPoint)
-		
+
 		// add to output map and slice
 		OligoPairsMap[fwd] = pair
-		OligoPairs = append(OligoPairs,pair)
-		
+		OligoPairs = append(OligoPairs, pair)
+
 		// increase counter to find next free well
-		if counter +1 == len(welllocations){
+		if counter+1 == len(welllocations) {
 			counter = 0
-			platenum++	
-		}else {
+			platenum++
+		} else {
 			counter++
 		}
 	}
-
 
 }
 
 Analysis {
 }
-
 
 Validation {
 }

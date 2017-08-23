@@ -1,74 +1,71 @@
 protocol LoadGel_multi
 
 import (
-    "github.com/antha-lang/antha/antha/anthalib/mixer"
-    "github.com/antha-lang/antha/antha/anthalib/wtype"
-    "fmt"
+	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
-    SampleNames     []string
-    LoadVolume      Volume
+	SampleNames []string
+	LoadVolume Volume
 
-    WaterVolume     Volume
-    WaterName       string
+	WaterVolume Volume
+	WaterName string
 
 //    RunVoltage      Int
 //    RunLength       Time
 )
 
 Inputs (
-    Water           *wtype.LHComponent  //preload well with 10uL of water
-    Protein         *wtype.LHComponent  //protein samples for running
-    InPlate         *wtype.LHPlate      //96 well plate with water, marker and samples
-    GelPlate        *wtype.LHPlate      //Gel to load ie OutPlate
+	Water *LHComponent   //preload well with 10uL of water
+	Protein *LHComponent //protein samples for running
+	InPlate *LHPlate     //96 well plate with water, marker and samples
+	GelPlate *LHPlate    //Gel to load ie OutPlate
 )
 
-
 Outputs (
-    RunSolutions   []*wtype.LHComponent
+	RunSolutions []*LHComponent
 )
 
 Data (
-    Status          string
+	Status string
 )
-    //Run length in cm, and protein band height and pixed density after digital scanning
+
+//Run length in cm, and protein band height and pixed density after digital scanning
 
 Setup {
 }
 
 Steps {
 
-
 	// work out well coordinates for any plate
 	wellpositionarray := GelPlate.AllWellPositions(wtype.BYROW)
 
-	
-	RunSolutions = make([]*wtype.LHComponent,0)
+	RunSolutions = make([]*LHComponent, 0)
 
-	var runSolution *wtype.LHComponent
-
+	var runSolution *LHComponent
 
 	for k, SampleName := range SampleNames {
-		
-    samples := make ([]*wtype.LHComponent, 0)
-	
-    waterSample := mixer.Sample(Water, WaterVolume)
-    
-	waterSample.CName = WaterName
-	
-    samples = append(samples, waterSample)
-	
-	Protein.CName = SampleName
 
-    loadSample := mixer.Sample(Protein, LoadVolume)
-	
-    samples = append(samples, loadSample)
-	
-    fmt.Println ("This is a list of samples for loading:", samples)
+		samples := make([]*LHComponent, 0)
 
-    runSolution = MixNamed(GelPlate.Type,wellpositionarray[k], "GelPlate", samples...)
-	RunSolutions = append(RunSolutions,runSolution)
+		waterSample := mixer.Sample(Water, WaterVolume)
+
+		waterSample.CName = WaterName
+
+		samples = append(samples, waterSample)
+
+		Protein.CName = SampleName
+
+		loadSample := mixer.Sample(Protein, LoadVolume)
+
+		samples = append(samples, loadSample)
+
+		fmt.Println("This is a list of samples for loading:", samples)
+
+		runSolution = MixNamed(GelPlate.Type, wellpositionarray[k], "GelPlate", samples...)
+		RunSolutions = append(RunSolutions, runSolution)
 	}
 }
 

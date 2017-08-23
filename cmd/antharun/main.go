@@ -23,6 +23,9 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/antha-lang/antha/cmd/antharun/cmd"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/elements/lib"
@@ -37,5 +40,8 @@ func init() {
 }
 
 func main() {
-	cmd.Execute(library)
+	if err := cmd.Execute(library); err != nil {
+		fmt.Fprintf(os.Stderr, err.Error())
+		os.Exit(1)
+	}
 }

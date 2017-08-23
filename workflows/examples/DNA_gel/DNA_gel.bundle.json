@@ -10,7 +10,9 @@
       "LoadingDye": "LoadingDye",
       "LoadingDyeInSample": false,
       "LoadingDyeMixingPolicy": "NeedToMix",
-      "LoadingDyeVolume": "5ul",
+      "LoadingDyeVolume": {
+        "default": "5ul"
+      },
       "MixPlate": "greiner384_riser20",
       "OptimisePlateUsage": true,
       "Reactions": [
@@ -19,7 +21,9 @@
         "dna"
       ],
       "Replicates": 1,
-      "SampleVolume": "5ul",
+      "SampleVolume": {
+        "default": "10ul"
+      },
       "Water": "water"
     }
   },

@@ -1,14 +1,16 @@
 package lib
 
 import (
-	"context"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
+
+	"context"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 )
 
 // Input parameters for this protocol (data)
@@ -36,29 +38,70 @@ func _PreProcessImageSetup(_ctx context.Context, _input *PreProcessImageInput) {
 // for every input
 func _PreProcessImageSteps(_ctx context.Context, _input *PreProcessImageInput, _output *PreProcessImageOutput) {
 
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	var imgFile wtype.File
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//-------------------------------------------------------------------------------------
+	//Fetching image
+	//-------------------------------------------------------------------------------------
+
 	// if image is from url, download
 	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+		//downloading image
+		imgFile, err = download.File(_input.URL, _input.ImageFileName)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+
+		//opening the image file
+		imgBase, err = image.OpenFile(imgFile)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
-	chosencolourpalette := image.AvailablePalettes()[_input.Palette]
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.InputFile)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//--------------------------------------------------------------
+	//Image Processing
+	//--------------------------------------------------------------
+
+	if _input.PosterizeImage {
+
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
+		if err != nil {
+			execute.Errorf(_ctx, err.Error())
+		}
+	}
 
 	if _input.CheckAllResizeAlgorithms {
-		image.CheckAllResizealgorithms(_input.Imagefilename, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
-	}
-	_, _, newimagename := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
-
-	// if posterize rerun
-	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(newimagename, _input.PosterizeLevels)
-
-		_, _, newimagename = image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+		image.CheckAllResizealgorithms(imgBase, _input.OutPlate, _input.Rotate, image.AllResampleFilters)
 	}
 
-	_output.ProcessedImageFilename = newimagename
+	//--------------------------------------------------------------
+	//Choosing Palette
+	//--------------------------------------------------------------
+
+	chosencolourpalette := image.AvailablePalettes()[_input.Palette]
+
+	//--------------------------------------------------------------
+	//Fitting image to plate
+	//--------------------------------------------------------------
+	_, imgBase = image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+
+	_output.ProcessedImage, err = image.Export(imgBase, _input.ImageFileName)
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 }
 
@@ -124,7 +167,8 @@ type PreProcessImageElement struct {
 type PreProcessImageInput struct {
 	AutoRotate               bool
 	CheckAllResizeAlgorithms bool
-	Imagefilename            string
+	ImageFileName            string
+	InputFile                wtype.File
 	Negative                 bool
 	OutPlate                 *wtype.LHPlate
 	Palette                  string
@@ -136,12 +180,12 @@ type PreProcessImageInput struct {
 }
 
 type PreProcessImageOutput struct {
-	ProcessedImageFilename string
+	ProcessedImage wtype.File
 }
 
 type PreProcessImageSOutput struct {
 	Data struct {
-		ProcessedImageFilename string
+		ProcessedImage wtype.File
 	}
 	Outputs struct {
 	}
@@ -156,7 +200,8 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckAllResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "ImageFileName", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
+				{Name: "InputFile", Desc: "", Kind: "Parameters"},
 				{Name: "Negative", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Palette", Desc: "", Kind: "Parameters"},
@@ -165,7 +210,7 @@ func init() {
 				{Name: "Rotate", Desc: "", Kind: "Parameters"},
 				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
 				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
-				{Name: "ProcessedImageFilename", Desc: "", Kind: "Data"},
+				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -65,7 +64,7 @@ func _AutoPCR_Gradient_mmxSteps(_ctx context.Context, _input *AutoPCR_Gradient_m
 	       ReactionName: reactionname,
 	             FwdPrimerVol: wunit.NewVolume(1,"ul"),
 	             RevPrimerVol: wunit.NewVolume(1,"ul"),
-	             AdditiveVols: []wunit.Volume{wunit.NewVolume(5,"ul")},
+	             AdditiveVols: []Volume{wunit.NewVolume(5,"ul")},
 	             Templatevolume: wunit.NewVolume(1,"ul"),
 	             PolymeraseVolume: wunit.NewVolume(1,"ul"),
 	             DNTPVol:wunit.NewVolume(1,"ul"),
@@ -82,12 +81,12 @@ func _AutoPCR_Gradient_mmxSteps(_ctx context.Context, _input *AutoPCR_Gradient_m
 	                   }, Inputs{
 	             FwdPrimer:FwdPrimertype,
 	             RevPrimer: RevPrimertype,
-	             DNTPS: factory.GetComponentByType("DNTPs") ,
-	             PCRPolymerase:factory.GetComponentByType("Q5Polymerase"),
-	             Buffer:factory.GetComponentByType("Q5buffer"),
-	             Water:factory.GetComponentByType("water"),
+	             DNTPS: NewComponent("DNTPs") ,
+	             PCRPolymerase:NewComponent("Q5Polymerase"),
+	             Buffer:NewComponent("Q5buffer"),
+	             Water:NewComponent("water"),
 	             Template: Templatetype,
-	             Additives: []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")} ,
+	             Additives: []*LHComponent{NewComponent("GCenhancer")} ,
 	             OutPlate: Plate,
 
 	                   })
@@ -135,10 +134,10 @@ func _AutoPCR_Gradient_mmxSteps(_ctx context.Context, _input *AutoPCR_Gradient_m
 
 				FwdPrimer:     _input.FwdPrimertype,
 				RevPrimer:     _input.RevPrimertype,
-				PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
+				PCRPolymerase: execute.NewComponent(_ctx, "Q5Polymerase"),
 				Template:      _input.Templatetype,
 				OutPlate:      _input.Plate,
-				MasterMix:     factory.GetComponentByType("Q5mastermix")},
+				MasterMix:     execute.NewComponent(_ctx, "Q5mastermix")},
 			)
 
 			_output.Reactions = append(_output.Reactions, result.Outputs.Reaction)
@@ -215,7 +214,7 @@ type AutoPCR_Gradient_mmxInput struct {
 	FwdPrimertype               *wtype.LHComponent
 	Plate                       *wtype.LHPlate
 	Projectname                 string
-	Reactiontoprimerpair        map[string][]string
+	Reactiontoprimerpair        map[string][2]string
 	Reactiontotemplate          map[string]string
 	RevPrimertype               *wtype.LHComponent
 	RowGradientRatherthanColumn bool

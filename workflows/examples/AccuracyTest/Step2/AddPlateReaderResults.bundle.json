@@ -1,0 +1,49 @@
+{
+  "Parameters": {
+    "AddResponses": {
+      "Blanks": [
+        "H3"
+      ],
+      "CVthreshold": 0.2,
+      "DesignFile": {
+        "host_file": {
+          "filename": "designfile.xlsx"
+        }
+      },
+      "DesignFiletype": "JMP",
+      "Diluent": "water",
+      "Extinctioncoefficient": 20330,
+      "FindOptWavelength": true,
+      "ManualComparison": false,
+      "Molecule": "tartrazine",
+      "OutputFilename": null,
+      "PlateReaderFileType": "Mars",
+      "PlateReaderResultsFileXLSX": {
+        "host_file": {
+          "filename": "180117platereaderresults.xlsx"
+        }
+      },
+      "PlateType": "greiner384",
+      "R2threshold": 0.7,
+      "ReadingTypeinMarsFile": "Abs Spectrum",
+      "Responsecolumntofill": "Absorbance",
+      "SheetNumber": 0,
+      "StockEqualsTotalVolPerWell": true,
+      "StockconcinMperL": "0.0002878191305957933M/l",
+      "Stockvol": "100ul",
+      "VolumeToManualwells": {
+        "1.390 ul": [
+          "I4"
+        ]
+      },
+      "Wavelength": 472,
+      "WellForScanAnalysis": "I4"
+    }
+  },
+  "connections": [],
+  "processes": {
+    "AddResponses": {
+      "component": "AddPlateReader_Results"
+    }
+  }
+}

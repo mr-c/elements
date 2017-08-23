@@ -4,42 +4,38 @@ import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/entrez"
 )
 
-
 // Input parameters for this protocol
 Parameters (
-	
+
 	// e.g. "EF208560"
-	ID string 
-	
-	// e.g. "nucleotide", "Protein", "Gene". 
+	ID string
+
+	// e.g. "nucleotide", "Protein", "Gene".
 	// Valid Database list: http://www.ncbi.nlm.nih.gov/books/NBK25497/table/chapter2.T._entrez_unique_identifiers_ui/?report=objectonly
-	Database string 
-	
+	Database string
+
 	// e.g. 1
-	MaxReturns int 
-	
-	// e.g. "gb", "fasta". 
+	MaxReturns int
+
+	// e.g. "gb", "fasta".
 	// Valid ReturnType List: http://www.ncbi.nlm.nih.gov/books/NBK25499/table/chapter4.T._valid_values_of__retmode_and/?report=objectonly
-	ReturnType string 
-	
+	ReturnType string
+
 	// e.g myproject/GFPReporter.gb. if Filename == "" no file will be generated.
-	Filename string 
+	Filename string
 )
 
 // Data which is returned from this protocol
 Data (
 	Err error
-	OutputFile File 
+	OutputFile File
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -52,25 +48,24 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	
-	output, err := entrez.RetrieveRecords(ID, Database,MaxReturns,ReturnType)
-			
-	if err != nil {
-		Err = err
-		Errorf("error retrieving record %s in entrez database %s: %s",ID,Database, err.Error())
-	}
-	
-	OutputFile.Name = Filename
-	
-	err = OutputFile.WriteAll(output) 
-	
-	if err != nil {
-		Err = err
-		Errorf("error writing record to file %s: %s",ID,err.Error())
-	}
-	
-}
 
+	output, err := entrez.RetrieveRecords(ID, Database, MaxReturns, ReturnType)
+
+	if err != nil {
+		Err = err
+		Errorf("error retrieving record %s in entrez database %s: %s", ID, Database, err.Error())
+	}
+
+	OutputFile.Name = Filename
+
+	err = OutputFile.WriteAll(output)
+
+	if err != nil {
+		Err = err
+		Errorf("error writing record to file %s: %s", ID, err.Error())
+	}
+
+}
 
 // Actions to perform after steps block to analyze data
 Analysis {

@@ -8,7 +8,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 	inplate "github.com/antha-lang/antha/target/mixer"
 	"strconv"
 )
@@ -51,7 +50,7 @@ func _AutoColonyPCRSteps(_ctx context.Context, _input *AutoColonyPCRInput, _outp
 	numberofcolonies := 0
 
 	// parse colony locations from file
-	inputplate, err := inplate.ParseInputPlateFile(_input.WellstopickCSV)
+	inputplate, err := inplate.ParseInputPlateFile(_ctx, _input.WellstopickCSV)
 
 	if err != nil {
 		execute.Errorf(_ctx, "Error parsing inputplate csv file")
@@ -78,7 +77,7 @@ func _AutoColonyPCRSteps(_ctx context.Context, _input *AutoColonyPCRInput, _outp
 
 		if wellcontents.Empty() == false {
 
-			if counter == (_input.Plate.WlsX * _input.Plate. /*+NumberofBlanks*/ WlsY) {
+			if counter == (_input.Plate.WlsX * _input.Plate.WlsY) /*+NumberofBlanks*/ {
 				fmt.Println("plate full, counter = ", counter)
 				platenum++
 				//reset counter
@@ -111,9 +110,9 @@ func _AutoColonyPCRSteps(_ctx context.Context, _input *AutoColonyPCRInput, _outp
 
 				FwdPrimer:     _input.FwdPrimertype,
 				RevPrimer:     _input.RevPrimertype,
-				MasterMix:     factory.GetComponentByType("Q5mastermix"),
-				PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-				RecoveryWater: factory.GetComponentByType("water"),
+				MasterMix:     execute.NewComponent(_ctx, "Q5mastermix"),
+				PCRPolymerase: execute.NewComponent(_ctx, "Q5Polymerase"),
+				RecoveryWater: execute.NewComponent(_ctx, "water"),
 				Template:      colonyComponent,
 				OutPlate:      _input.Plate,
 				RecoveryPlate: _input.RecoveryPlate},
@@ -199,7 +198,7 @@ type AutoColonyPCRInput struct {
 	FwdPrimertype        *wtype.LHComponent
 	Plate                *wtype.LHPlate
 	Projectname          string
-	Reactiontoprimerpair map[string][]string
+	Reactiontoprimerpair map[string][2]string
 	RecoveryPlate        *wtype.LHPlate
 	RevPrimertype        *wtype.LHComponent
 	Templatetype         *wtype.LHComponent

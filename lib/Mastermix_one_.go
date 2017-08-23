@@ -19,7 +19,7 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//TopUpBuffer *wtype.LHComponent // optional if nil this is ignored
+//TopUpBuffer *LHComponent // optional if nil this is ignored
 
 // Physical outputs from this protocol with types
 
@@ -150,7 +150,7 @@ func init() {
 			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson0_Examples/MakeMasterMix_PCR/Mastermix_one.an",
 			Params: []component.ParamDesc{
 				{Name: "ComponentVolumesperReaction", Desc: "", Kind: "Parameters"},
-				{Name: "Components", Desc: "TopUpBuffer *wtype.LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
+				{Name: "Components", Desc: "TopUpBuffer *LHComponent // optional if nil this is ignored\n", Kind: "Inputs"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "Reactionspermastermix", Desc: "", Kind: "Parameters"},
 				{Name: "Mastermix", Desc: "", Kind: "Outputs"},

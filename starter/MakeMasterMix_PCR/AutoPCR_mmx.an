@@ -8,33 +8,33 @@ import (
 // Input parameters for this protocol (data)
 Parameters (
 	Projectname string
-	
+
 	// map of which reaction uses which template e.g. ["left homology arm"]:"templatename".
 	// A "default" may also be specified which will be used for any reaction which has no entry specified.
-	Reactiontotemplate map[string]string 
-	
+	Reactiontotemplate map[string]string
+
 	// map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer".
 	// A "default" may also be specified which will be used for any reaction which has no entry specified.
-	Reactiontoprimerpair map[string][2]string 
-	
+	Reactiontoprimerpair map[string][2]string
+
 	// Volume of template in each reaction
-	DefaultTemplateVol Volume 
-	
+	DefaultTemplateVol Volume
+
 	// Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	DefaultPrimerVolume Volume 
-	
+	DefaultPrimerVolume Volume
+
 	// Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
 	DefaultPolymeraseVolume Volume
-	
+
 	// Volume of mastermix to add to the reaction.
 	DefaultMasterMixVolume Volume
-	
-	// Select this if the primers have already been added to the mastermix. 
+
+	// Select this if the primers have already been added to the mastermix.
 	// If this is selected no primers will be added to any reactions.
 	// Should only be used if all reactions share the same primers.
 	PrimersalreadyAddedtoMasterMix bool
-	
-	// Select this if the polymerase has already been added to the mastermix. 
+
+	// Select this if the polymerase has already been added to the mastermix.
 	PolymeraseAlreadyaddedtoMastermix bool
 )
 
@@ -43,39 +43,38 @@ Data (
 	Errors []error // return an error message if an error is encountered
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	
+
 	// Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	FwdPrimertype *wtype.LHComponent
-	
+	FwdPrimertype *LHComponent
+
 	// Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
-	RevPrimertype *wtype.LHComponent
-	
+	RevPrimertype *LHComponent
+
 	// Actual Template type to use. e.g. dna_part, culture
-	Templatetype *wtype.LHComponent
-	
+	Templatetype *LHComponent
+
 	// Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.
 	// This input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
-	DefaultPolymerase *wtype.LHComponent
-	
+	DefaultPolymerase *LHComponent
+
 	// Use the MasterMixMaker element to make the mastermix and wire it in here.
-	MasterMix *wtype.LHComponent
-	
+	MasterMix *LHComponent
+
 	// Type of plate to use for the reaction.
 	// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
 	// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
-	Plate *wtype.LHPlate	
+	Plate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
 	// The PCR reaction products as a slice.
-	Reactions []*wtype.LHComponent
-	
+	Reactions []*LHComponent
+
 	// The PCR reaction products in the form of a map of components.
-	ReactionMap map[string]*wtype.LHComponent
+	ReactionMap map[string]*LHComponent
 )
 
 Requirements {
@@ -88,110 +87,109 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	// set up a counter to use as an index for increasing well position 
-	var counter int
-	
-	// set up some empty slices to fill as we iterate through the reactions
-	Reactions = make([]*wtype.LHComponent,0)
-	volumes := make([]wunit.Volume,0)
-	welllocations := make([]string,0)
-	// initialise map
-	ReactionMap = make(map[string]*wtype.LHComponent)
 
-	// To allow the use of specifying defaults in either the template map or the primer map, 
+	// set up a counter to use as an index for increasing well position
+	var counter int
+
+	// set up some empty slices to fill as we iterate through the reactions
+	Reactions = make([]*LHComponent, 0)
+	volumes := make([]Volume, 0)
+	welllocations := make([]string, 0)
+	// initialise map
+	ReactionMap = make(map[string]*LHComponent)
+
+	// To allow the use of specifying defaults in either the template map or the primer map,
 	// we first evaluate which map has more entries and make a slice of reactions to iterate through based on that.
-	var reactions []string 
-	
-	if len(Reactiontotemplate) >= len(Reactiontoprimerpair){
+	var reactions []string
+
+	if len(Reactiontotemplate) >= len(Reactiontoprimerpair) {
 		for reactionname, _ := range Reactiontotemplate {
-			reactions = append(reactions,reactionname)
+			reactions = append(reactions, reactionname)
 		}
-	}else {
+	} else {
 		for reactionname, _ := range Reactiontoprimerpair {
-			reactions = append(reactions,reactionname)
+			reactions = append(reactions, reactionname)
 		}
 	}
- 	
+
 	for _, reactionname := range reactions {
-		
+
 		// look up template from map
 		var template string
-		
-		if templateName, found := Reactiontotemplate[reactionname]; found{
+
+		if templateName, found := Reactiontotemplate[reactionname]; found {
 			template = templateName
-		}else if templateName, found := Reactiontotemplate["default"]; found{
-			template = templateName	
-		}else{
-			Errorf(`No template set for %s and no "default" primers set`,reactionname)
+		} else if templateName, found := Reactiontotemplate["default"]; found {
+			template = templateName
+		} else {
+			Errorf(`No template set for %s and no "default" primers set`, reactionname)
 		}
-			
+
 		// look up primers from map
 		var fwdPrimer string
 		var revPrimer string
-		
-		if primers, found := Reactiontoprimerpair[reactionname]; found{
-			fwdPrimer, revPrimer = primers[0], primers[1]
-		}else if primers, found := Reactiontoprimerpair["default"]; found{
-			fwdPrimer, revPrimer = primers[0], primers[1]
-		}else{
-			Errorf(`No primers set for %s and no "default" primers set`,reactionname)
-		}
-			
-	// use counter to find next available well position in plate
-	
-	var allwellpositionsforplate []string 
-	
-	allwellpositionsforplate =  Plate.AllWellPositions(wtype.BYCOLUMN)
-	
-	wellposition := allwellpositionsforplate[counter]
-		
-	// Run PCR_vol element
-	result := RunSteps(PCR_vol_mmx,
-        Parameters{
-        	MasterMixVolume: DefaultMasterMixVolume,
-			PrimersalreadyAddedtoMasterMix: PrimersalreadyAddedtoMasterMix,
-			PolymeraseAlreadyaddedtoMastermix: PolymeraseAlreadyaddedtoMastermix,
-			FwdPrimerName: fwdPrimer,
-			RevPrimerName: revPrimer,
-			TemplateName: template,
-	 		ReactionName: reactionname,
-	          FwdPrimerVol: DefaultPrimerVolume,
-	          RevPrimerVol: DefaultPrimerVolume,
-	         PolymeraseVolume:DefaultPolymeraseVolume,
-	          Templatevolume: DefaultTemplateVol,
-	          Numberofcycles: 1 ,
-	          InitDenaturationtime: wunit.NewTime(30,"s"),
-	          Denaturationtime: wunit.NewTime(5,"s"),
-	          Annealingtime: wunit.NewTime(10,"s"),
-	          AnnealingTemp: wunit.NewTemperature(72,"C"), // Should be calculated from primer and template binding
-	          Extensiontime: wunit.NewTime(60,"s"), // should be calculated from template length and polymerase rate
-	          Finalextensiontime: wunit.NewTime(180,"s"),
-				WellPosition: wellposition,
-     		}, Inputs{
-          		FwdPrimer:FwdPrimertype,
-          		RevPrimer: RevPrimertype,
-          		PCRPolymerase:DefaultPolymerase,
-          		MasterMix: MasterMix,
-          		Template: Templatetype,
-          		OutPlate: Plate,              
-                })
 
-	// add result to reactions slice
-    Reactions = append(Reactions, result.Outputs.Reaction)
-    volumes = append(volumes,result.Outputs.Reaction.Volume())
-	welllocations = append(welllocations,wellposition)
-	ReactionMap[reactionname]= result.Outputs.Reaction
-	
-	
-	// increase counter by 1 ready for next iteration of loop
-	counter++
-	
-    }
-	
+		if primers, found := Reactiontoprimerpair[reactionname]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else if primers, found := Reactiontoprimerpair["default"]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else {
+			Errorf(`No primers set for %s and no "default" primers set`, reactionname)
+		}
+
+		// use counter to find next available well position in plate
+
+		var allwellpositionsforplate []string
+
+		allwellpositionsforplate = Plate.AllWellPositions(wtype.BYCOLUMN)
+
+		wellposition := allwellpositionsforplate[counter]
+
+		// Run PCR_vol element
+		result := RunSteps(PCR_vol_mmx,
+			Parameters{
+				MasterMixVolume:                   DefaultMasterMixVolume,
+				PrimersalreadyAddedtoMasterMix:    PrimersalreadyAddedtoMasterMix,
+				PolymeraseAlreadyaddedtoMastermix: PolymeraseAlreadyaddedtoMastermix,
+				FwdPrimerName:                     fwdPrimer,
+				RevPrimerName:                     revPrimer,
+				TemplateName:                      template,
+				ReactionName:                      reactionname,
+				FwdPrimerVol:                      DefaultPrimerVolume,
+				RevPrimerVol:                      DefaultPrimerVolume,
+				PolymeraseVolume:                  DefaultPolymeraseVolume,
+				Templatevolume:                    DefaultTemplateVol,
+				Numberofcycles:                    1,
+				InitDenaturationtime:              wunit.NewTime(30, "s"),
+				Denaturationtime:                  wunit.NewTime(5, "s"),
+				Annealingtime:                     wunit.NewTime(10, "s"),
+				AnnealingTemp:                     wunit.NewTemperature(72, "C"), // Should be calculated from primer and template binding
+				Extensiontime:                     wunit.NewTime(60, "s"),        // should be calculated from template length and polymerase rate
+				Finalextensiontime:                wunit.NewTime(180, "s"),
+				WellPosition:                      wellposition,
+			}, Inputs{
+				FwdPrimer:     FwdPrimertype,
+				RevPrimer:     RevPrimertype,
+				PCRPolymerase: DefaultPolymerase,
+				MasterMix:     MasterMix,
+				Template:      Templatetype,
+				OutPlate:      Plate,
+			})
+
+		// add result to reactions slice
+		Reactions = append(Reactions, result.Outputs.Reaction)
+		volumes = append(volumes, result.Outputs.Reaction.Volume())
+		welllocations = append(welllocations, wellposition)
+		ReactionMap[reactionname] = result.Outputs.Reaction
+
+		// increase counter by 1 ready for next iteration of loop
+		counter++
+
+	}
+
 	// once all values of loop have been completed, export the plate contents as a csv file
-	Errors = append(Errors,wtype.ExportPlateCSV(Projectname+".csv", Plate,Projectname+"outputPlate", welllocations, Reactions, volumes) )
-	
+	Errors = append(Errors, wtype.ExportPlateCSV(Projectname+".csv", Plate, Projectname+"outputPlate", welllocations, Reactions, volumes))
+
 }
 
 // Run after controls and a steps block are completed to

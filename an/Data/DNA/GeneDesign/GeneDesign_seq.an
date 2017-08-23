@@ -3,92 +3,88 @@ protocol GeneDesign_seq
 import (
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/enzymes/lookup"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"strconv"
-
 )
 
 Parameters (
-	Parts []string // dna sequences as strings "ACTTGCGTC","GGTCCA"
-	Vector string // dna sequence as string
-	ConstructName string // name you want to give your construct
+	Parts []string               // dna sequences as strings "ACTTGCGTC","GGTCCA"
+	Vector string                // dna sequence as string
+	ConstructName string         // name you want to give your construct
 	RestrictionEnzymeName string // typeIIs restriction enzyme name
-	EndsAlreadyAdded bool // have the typeIIs assembly ends been added already? true/false
-	SynthesisProvider string // name of synthesis provider e.g. GenScript
-	ExporttoFastaFile bool // Whether or not you want to export the sequences generated to a fasta file
+	EndsAlreadyAdded bool        // have the typeIIs assembly ends been added already? true/false
+	SynthesisProvider string     // name of synthesis provider e.g. GenScript
+	ExporttoFastaFile bool       // Whether or not you want to export the sequences generated to a fasta file
 )
+
 Data (
 
 	// output parts with correct overhangs
-	PartsWithOverhangs []wtype.DNASequence
+	PartsWithOverhangs []DNASequence
 	SimulationStatus string
 	Validated bool
 	ValidationStatus string
 	PartsToOrder File
 )
 
-Inputs (
-)
+Inputs ()
 
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
 
 Setup {
-} 
+}
 
 Steps {
-	PartDNA := make([]wtype.DNASequence, 0)
-	
+	PartDNA := make([]DNASequence, 0)
+
 	// make DNASequence type from sequence
 	for i, part := range Parts {
-		DNA := wtype.MakeLinearDNASequence("part" + strconv.Itoa(i),part)
-		PartDNA = append(PartDNA,DNA)
+		DNA := wtype.MakeLinearDNASequence("part"+strconv.Itoa(i), part)
+		PartDNA = append(PartDNA, DNA)
 	}
-	
+
 	// make vector sequence
-	VectorSeq := wtype.MakePlasmidDNASequence("Vector",Vector)
+	VectorSeq := wtype.MakePlasmidDNASequence("Vector", Vector)
 
 	// Look up the restriction enzyme
 	EnzymeInf, err := lookup.TypeIIsLookup(RestrictionEnzymeName)
 	if err != nil {
 		Errorf(err.Error())
 	}
-	
+
 	// Add overhangs
 	if EndsAlreadyAdded {
 		PartsWithOverhangs = PartDNA
-	}else {
-	PartsWithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(PartDNA, VectorSeq, EnzymeInf)
+	} else {
+		PartsWithOverhangs = enzymes.MakeScarfreeCustomTypeIIsassemblyParts(PartDNA, VectorSeq, EnzymeInf)
 	}
-	
+
 	// validation
 	assembly := enzymes.Assemblyparameters{ConstructName, RestrictionEnzymeName, VectorSeq, PartsWithOverhangs}
 	SimulationStatus, _, _, _, _ = enzymes.Assemblysimulator(assembly)
-	
-	
+
 	// check if sequence meets requirements for synthesis
 	ValidationStatus, Validated = sequences.ValidateSynthesis(PartsWithOverhangs, Vector, SynthesisProvider)
-	
+
 	// export sequence to fasta
 	if ExporttoFastaFile {
-	PartsToOrder, _, err = export.FastaSerial(export.LOCAL,ConstructName, PartsWithOverhangs)
-	if err != nil {
-		Errorf(err.Error())
+		PartsToOrder, _, err = export.FastaSerial(export.LOCAL, ConstructName, PartsWithOverhangs)
+		if err != nil {
+			Errorf(err.Error())
+		}
 	}
-	}
-	
+
 }
-	
+
 Analysis {
-	
-} 
+
+}
 
 Validation {
 
 }
-

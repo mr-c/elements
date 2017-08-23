@@ -10,26 +10,23 @@ import (
 	"strings"
 
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-
 )
+
 // Input parameters for this protocol
 Parameters (
-	Seqsinorder[]wtype.DNASequence
+	Seqsinorder []DNASequence
 )
 
 // Data which is returned from this protocol
 Data (
-	Seq wtype.DNASequence
+	Seq DNASequence
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -42,24 +39,23 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	
-	
+
 	newSeq := Seqsinorder[0]
-	seqnames := make([]string,0)
+	seqnames := make([]string, 0)
 
 	for i, seq := range Seqsinorder {
-		if i!=0{
-		newSeq.Append(seq.Seq)
+		if i != 0 {
+			newSeq.Append(seq.Seq)
 		}
-		seqnames = append(seqnames,seq.Nm)
+		seqnames = append(seqnames, seq.Nm)
 	}
-	
-	newSeq.Nm = strings.Join(seqnames,"_")
-	
+
+	newSeq.Nm = strings.Join(seqnames, "_")
+
 	Seq = newSeq
-	
-	
+
 }
+
 // Actions to perform after steps block to analyze data
 Analysis {
 

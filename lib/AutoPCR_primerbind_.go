@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -64,14 +63,11 @@ func _AutoPCR_primerbindSteps(_ctx context.Context, _input *AutoPCR_primerbindIn
 			Finalextensiontime:   wunit.NewTime(180, "s"),
 			WellPosition:         wellposition,
 
-			FwdPrimer: _input.FwdPrimertype,
-			RevPrimer: _input.RevPrimertype,
-
-			PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-
-			Template: _input.Templatetype,
-
-			OutPlate: _input.Plate},
+			FwdPrimer:     _input.FwdPrimertype,
+			RevPrimer:     _input.RevPrimertype,
+			PCRPolymerase: execute.NewComponent(_ctx, "Q5Polymerase"),
+			Template:      _input.Templatetype,
+			OutPlate:      _input.Plate},
 		)
 
 		_output.Reactions = append(_output.Reactions, result.Outputs.Reaction)
@@ -147,7 +143,7 @@ type AutoPCR_primerbindInput struct {
 	FwdPrimertype        *wtype.LHComponent
 	Plate                *wtype.LHPlate
 	Projectname          string
-	Reactiontoprimerpair map[string][]string
+	Reactiontoprimerpair map[string][2]string
 	Reactiontotemplate   map[string]string
 	RevPrimertype        *wtype.LHComponent
 	Templatetype         *wtype.LHComponent

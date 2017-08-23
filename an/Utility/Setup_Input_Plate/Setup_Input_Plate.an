@@ -1,0 +1,216 @@
+// This protocol allows an input plate to be set up with a series of solutions on it according to the user's specification.
+protocol Setup_Input_Plate
+
+// Place golang packages to import here
+import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Parameters to this protocol
+Parameters (
+	// optional parameter to specify the well positions for a particular solution.
+	// e.g. "water": ["A1","B2"], will add water to wells A1 and B2.
+	// This will conflict with Replicates if both are used together and the number of replicates conflicts with the number of wells specified.
+	// An error will be returned in that situation.
+	SpecifyWellPositions map[string][]string
+
+	// If selected the solutions will be added by row (A1, A2, A3 ...), the default is by column (A1, B1, C1 ...).
+	// This will potentially conflict with the SpecifyWellPositions if both are used together.
+	// In that case the SpecifyWellPositions will take precedence.
+	ByRow bool
+
+	// Specify whether replicate samples are to be set up
+	Replicates map[string]int
+
+	// Specify the volumes per sample. If left blank the components must have a volume otherwise an error will occur.
+	// If the component has a volume and a volume is specified here the specified volume takes precedent.
+	Volumes map[string]Volume
+)
+
+// Output data of this protocol
+Data (
+	Sum float64
+)
+
+// Physical inputs to this protocol
+Inputs (
+
+	// input solutions to add to the plate.
+	Solutions []*LHComponent
+
+	// type of plate to add solutions to.
+	PlateType *LHPlate
+)
+
+// Physical outputs to this protocol
+Outputs (
+	SolutionsOnPlate []*LHComponent
+	PlateWithSolutions *LHPlate
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	PlateWithSolutions = PlateType.Dup()
+
+	var newlistofsolutions []*LHComponent
+
+	for i := range Solutions {
+		newlistofsolutions = append(newlistofsolutions, Solutions[i])
+	}
+
+	// first go through all solutions which have a well position explicitely specified
+	for solutionName, wells := range SpecifyWellPositions {
+
+		// find solution in the list of solutions
+		solution, err := findSolutionByName(Solutions, solutionName)
+
+		if err != nil {
+			Errorf(err.Error())
+		}
+
+		// find if volume has been specified
+		vol, found := Volumes[solutionName]
+
+		if !found {
+			vol, found = Volumes["default"]
+			if !found {
+				if solution.Volume().RawValue() == 0.0 {
+					Errorf("Solution %s has no volume and no volume or default volume specified in Volumes parameter", solution.Name())
+				} else {
+					vol = solution.Volume()
+				}
+			}
+		}
+
+		solution.SetVolume(vol)
+
+		replicates, found := Replicates[solutionName]
+
+		if !found {
+			replicates, found = Replicates["default"]
+			if !found {
+				replicates = len(wells)
+			}
+		}
+
+		if replicates != len(wells) {
+			Errorf("Wells %+v specified for %s and also %d replicates. The number of replicates must match number of wells or number of replicates will be set by number of wells if this is replicates not specified for this solution.", wells, solutionName, replicates)
+		}
+
+		// get all plate components and return into both a slice and a map
+		for _, wellcontents := range wells {
+
+			if PlateWithSolutions.WellMap()[wellcontents].Empty() {
+
+				PlateWithSolutions.WellMap()[wellcontents].WContents = solution
+				SolutionsOnPlate = append(SolutionsOnPlate, PlateWithSolutions.WellMap()[wellcontents].WContents)
+				break
+			} else {
+				Errorf("Solution %s specified to add to location %s but a sample %s is already present at that position.", solution.Name(), wellcontents, PlateWithSolutions.WellMap()[wellcontents].WContents.Name())
+			}
+		}
+		solution = solution.Dup()
+
+		newlistofsolutions, err = removeSolutionFromList(newlistofsolutions, solution.Name())
+
+		if err != nil {
+			Errorf(err.Error())
+		}
+	}
+
+	// now add the rest of the solutions
+	for _, solution := range newlistofsolutions {
+
+		vol, found := Volumes[solution.Name()]
+
+		if !found {
+			vol, found = Volumes["default"]
+			if !found {
+				if solution.Volume().RawValue() == 0.0 {
+					Errorf("Solution %s has no volume and no volume or default volume specified in Volumes parameter", solution.Name())
+				} else {
+					vol = solution.Volume()
+				}
+			}
+		}
+
+		solution.SetVolume(vol)
+
+		replicates, found := Replicates[solution.Name()]
+
+		if !found {
+			replicates, found = Replicates["default"]
+			if !found {
+				replicates = 1
+			}
+		}
+
+		for i := 0; i < replicates; i++ {
+
+			// get all plate components and return into both a slice and a map
+			for _, wellcontents := range PlateWithSolutions.AllWellPositions(ByRow) {
+
+				if PlateWithSolutions.WellMap()[wellcontents].Empty() {
+
+					PlateWithSolutions.WellMap()[wellcontents].WContents = solution
+					SolutionsOnPlate = append(SolutionsOnPlate, PlateWithSolutions.WellMap()[wellcontents].WContents)
+					break
+				}
+			}
+		}
+	}
+
+	SetInputPlate(PlateWithSolutions)
+}
+
+func findSolutionByName(solutions []*LHComponent, solutionName string) (solution *LHComponent, err error) {
+	for _, sol := range solutions {
+		if sol.Name() == solutionName {
+			return sol, nil
+		}
+	}
+	return solution, fmt.Errorf("solution %s not found in solutions", solutionName)
+}
+
+func removeSolutionFromList(solutions []*LHComponent, solutionName string) (newsolutions []*LHComponent, err error) {
+	var exclude int
+	for i, sol := range solutions {
+		if sol.Name() == solutionName {
+			exclude = i
+			break
+		}
+	}
+
+	for i, sol := range solutions {
+
+		if i != exclude {
+			newsolutions = append(newsolutions, sol)
+		}
+	}
+
+	if len(solutions) == len(newsolutions) {
+		err = fmt.Errorf("solution %s not found in solutions", solutionName)
+	}
+
+	return newsolutions, err
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

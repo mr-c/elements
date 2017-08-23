@@ -2,24 +2,23 @@
 protocol PipetteImage
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/search"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/microArch/factory"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	goimage "image"
 	"image/color"
 	"sort"
 	"strings"
 )
 
-
 // Input parameters for this protocol (data)
 Parameters (
-	VolumePerWell  Volume
-	Imagefilename string // name of image file or if using URL use this field to set the desired filename
-	UseURL bool // select this if getting the image from a URL
-	URL string // enter URL link to the image file here if applicable
+	VolumePerWell Volume
+	ImageFileName string //Desired name for the output image file
+	InputFile File       // Image File
+	URL string
+	UseURL bool
 	Palettename string
 	OnlythisColour string
 	Notthiscolour string
@@ -27,102 +26,118 @@ Parameters (
 	Rotate bool
 	AutoRotate bool
 	Subset bool
-	UseLiquidClass wtype.PolicyName
+	UseLiquidClass PolicyName
 	Subsetnames []string
 	CheckResizeAlgorithms bool
 )
 
 // Data which is returned from this protocol, and data types
 Data (
+	ResizedImage File
+	ResizedImages []*goimage.NRGBA
 	Numberofpixels int
 	UniqueComponents []string
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	ComponentType *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	 Pixels[]*wtype.LHComponent
+	Pixels []*LHComponent
 )
 
 Requirements {
-	
+
 }
 
 // Conditions to run on startup
 Setup {
-	
+
 }
 
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	// if image is from url, download
-	if UseURL {
-		err := download.File(URL, Imagefilename)
-		if err != nil{
-			Errorf(err.Error())
-		}
+
+	//--------------------------------------------------------------
+	//Globals
+	//--------------------------------------------------------------
+
+	var imgBase *goimage.NRGBA
+	var err error
+
+	//--------------------------------------------------------------
+	//Opening image
+	//--------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err = image.OpenFile(InputFile)
+	if err != nil {
+		Errorf(err.Error())
 	}
-	
+
+	//--------------------------------------------------------------
+	//Choosing palette
+	//--------------------------------------------------------------
+
 	// check that palette name is valid
 	_, ok := image.AvailablePalettes()[Palettename]
-	
+
 	if !ok {
 		var validpalettes []string
-		
+
 		for key, _ := range image.AvailablePalettes() {
-			validpalettes = append(validpalettes,key)
+			validpalettes = append(validpalettes, key)
 		}
-			
-			sort.Strings(validpalettes)
-		
-		Errorf("Palette", Palettename, "not available. Valid entries are: ",strings.Join(validpalettes,","))
+
+		sort.Strings(validpalettes)
+
+		Errorf("Palette %s not available. Valid entries are: %s", Palettename, strings.Join(validpalettes, ","))
 	}
-	
+
 	// make sub pallete if necessary
 	var chosencolourpalette color.Palette
-	
+
 	if Subset {
 		chosencolourpalette = image.MakeSubPallette(Palettename, Subsetnames)
-	}else {
+	} else {
 		chosencolourpalette = image.AvailablePalettes()[Palettename]
 	}
-	
-	
+
+	//--------------------------------------------------------------
+	//Image processing
+	//--------------------------------------------------------------
+
 	if CheckResizeAlgorithms {
-		image.CheckAllResizealgorithms(Imagefilename,OutPlate,Rotate,image.AllResampleFilters)
+		ResizedImages = image.CheckAllResizealgorithms(imgBase, OutPlate, Rotate, image.AllResampleFilters)
 	}
 	// resize image to fit dimensions of plate and change each pixel to match closest colour from chosen palette
 	// the output of this is a map of well positions to colours needed
-	positiontocolourmap, _,_ := image.ImagetoPlatelayout(Imagefilename, OutPlate, &chosencolourpalette,Rotate,AutoRotate) 
-	
+	positiontocolourmap, imgBase := image.ImagetoPlatelayout(imgBase, OutPlate, &chosencolourpalette, Rotate, AutoRotate)
+
 	colourtostringmap := image.AvailableComponentmaps()[Palettename]
-	
-	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light 
-	
+
+	// if the image will be printed using fluorescent proteins, 2 previews will be generated for the image (i) under UV light (ii) under visible light
+
 	if UVimage {
 		uvmap := image.AvailableComponentmaps()[Palettename]
 		visiblemap := image.Visibleequivalentmaps()[Palettename]
-		
+
 		if Subset {
-		uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
-		visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+			uvmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+			visiblemap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 		}
-		image.PrintFPImagePreview(Imagefilename,OutPlate, Rotate, visiblemap, uvmap)
+		image.PrintFPImagePreview(imgBase, OutPlate, Rotate, visiblemap, uvmap)
 	}
 
 	// get components from factory
-	componentmap := make(map[string]*wtype.LHComponent, 0)
-	
+	componentmap := make(map[string]*LHComponent, 0)
+
 	if Subset {
-	colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
+		colourtostringmap = image.MakeSubMapfromMap(colourtostringmap, Subsetnames)
 	}
 
 	for colourname, _ := range colourtostringmap {
@@ -130,76 +145,81 @@ Steps {
 		componentname := colourtostringmap[colourname]
 
 		// use template component instead
-		var componenttopick *wtype.LHComponent
-		
-		if ComponentType != nil{
-		componenttopick = ComponentType
-		} else { 
-		componenttopick = factory.GetComponentByType("Paint")
-		}
+		var componenttopick *LHComponent
+
+		componenttopick = NewComponent("Paint")
+
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick
 
 	}
-	//fmt.Println(componentmap)
 
-	solutions := make([]*wtype.LHComponent, 0)
+	solutions := make([]*LHComponent, 0)
 
 	counter := 0
-	UniqueComponents = make([]string,0)
+	UniqueComponents = make([]string, 0)
 
+	//---------------------------------------------------------------------
+	//Pipetting
+	//---------------------------------------------------------------------
 
-// loop through the position to colour map pipeting the correct coloured protein into each well
+	// loop through the position to colour map pipeting the correct coloured protein into each well
 	for locationkey, colour := range positiontocolourmap {
-		
+
 		component := componentmap[colourtostringmap[colour]]
 
 		// make sure liquid class is appropriate for cell culture in case this is not set elsewhere
-		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)//wtype.LTCulture
-		
+		component.Type, _ = wtype.LiquidTypeFromString(UseLiquidClass) //wtype.LTCulture
+
 		// if the option to only print a single colour is not selected then the pipetting actions for all colours (apart from if not this colour is not empty) will follow
-		if OnlythisColour !="" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
-	
-		if image.Colourcomponentmap[colour] == OnlythisColour{
-			
-			UniqueComponents = append(UniqueComponents,component.CName)
-			
-			counter = counter + 1
-	
-		pixelSample := mixer.Sample(component, VolumePerWell)
-	
-		solution := MixTo(OutPlate.Type, locationkey, 1,pixelSample)
-		
-		solutions = append(solutions, solution)
+		if OnlythisColour != "" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
+
+			if image.Colourcomponentmap[colour] == OnlythisColour {
+
+				UniqueComponents = append(UniqueComponents, component.CName)
+
+				counter = counter + 1
+
+				pixelSample := mixer.Sample(component, VolumePerWell)
+
+				solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+
+				solutions = append(solutions, solution)
 			}
-			
-		}else{
-			if component.CName !=Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/{
-				
-			UniqueComponents = append(UniqueComponents,component.CName)
-			
-			counter = counter + 1
-	
-		component.Type,_ = wtype.LiquidTypeFromString(UseLiquidClass)
-		pixelSample := mixer.Sample(component, VolumePerWell)
-	
-		solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
-		
-		solutions = append(solutions, solution)
-		}
+
+		} else {
+			if component.CName != Notthiscolour && component.CName != "transparent" /*&& !strings.Contains(locationkey,"x")&& !strings.Contains(locationkey,"X")*/ {
+
+				UniqueComponents = append(UniqueComponents, component.CName)
+
+				counter = counter + 1
+
+				component.Type, _ = wtype.LiquidTypeFromString(UseLiquidClass)
+				pixelSample := mixer.Sample(component, VolumePerWell)
+
+				solution := MixTo(OutPlate.Type, locationkey, 1, pixelSample)
+
+				solutions = append(solutions, solution)
+			}
 		}
 	}
 
 	UniqueComponents = search.RemoveDuplicates(UniqueComponents)
 	Pixels = solutions
-	
+
 	Numberofpixels = len(Pixels)
-	
+
+	//--------------------------------------------------------------
+	//Exporting resulting images
+	//--------------------------------------------------------------
+
+	ResizedImage, err = image.Export(imgBase, ImageFileName)
+	if err != nil {
+		Errorf(err.Error())
+	}
+
 }
-
-
-
 
 // Run after controls and a steps block are completed to
 // post process any data and provide downstream results
@@ -210,6 +230,5 @@ Analysis {
 // Optionally, destructive tests can be performed to validate results on a
 // dipstick basis
 Validation {
-	
-}
 
+}

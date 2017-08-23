@@ -13,8 +13,10 @@ import (
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/execute/executeutil"
 	"github.com/antha-lang/antha/inject"
+	"github.com/antha-lang/antha/inventory/testinventory"
 	"github.com/antha-lang/antha/target"
 	"github.com/antha-lang/antha/target/human"
+	"github.com/antha-lang/antha/workflowtest"
 )
 
 const (
@@ -33,7 +35,8 @@ func makeContext() (context.Context, error) {
 			return nil, err
 		}
 	}
-	return ctx, nil
+
+	return testinventory.NewContext(ctx), nil
 }
 
 func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) {
@@ -60,12 +63,17 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 				return
 			}
 		}
-		_, err := execute.Run(ctx, execute.Opt{
+		results, err := execute.Run(ctx, execute.Opt{
 			Workflow: input.Workflow,
 			Params:   input.Params,
 			Target:   tgt,
 			TransitionalReadLocalFiles: true,
 		})
+
+		if err == nil && input.Expected != nil {
+			err = workflowtest.CompareTestResults(results, *input.Expected)
+		}
+
 		errs <- err
 	}()
 
@@ -81,7 +89,6 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 	}
 
 	if err == nil {
-	} else if _, ok := err.(*execute.Error); ok {
 	} else {
 		t.Errorf("error running %s: %s", inputLabel(input), err)
 	}
@@ -164,7 +171,7 @@ func TestElementsWithExampleInputs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	inputs, err := findInputs("../../workflows", "workflows", "../../defaults", "defaults")
+	inputs, err := findInputs("an", "../../an", "../../workflows", "workflows", "../../defaults", "defaults")
 	if err != nil {
 		t.Fatal(err)
 	}

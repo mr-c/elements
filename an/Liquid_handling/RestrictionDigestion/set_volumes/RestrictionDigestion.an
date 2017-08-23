@@ -1,48 +1,47 @@
 protocol RestrictionDigestion
 
 import (
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	ReactionVolume 				Volume
-	BufferVol					Volume
-	DNAVol 						Volume
-	DNAName						string
-	EnzymeNames					[]string
-	BSAvol						Volume
-	
-//	StockReConcinUperml 		[]int
-//	DesiredConcinUperml	 		[]int
-	EnzVolumestoadd				[]Volume
-	
-	ReactionTemp 				Temperature
-	ReactionTime 				Time
-	InactivationTemp 			Temperature
-	InactivationTime 			Time
+	ReactionVolume Volume
+	BufferVol Volume
+	DNAVol Volume
+	DNAName string
+	EnzymeNames []string
+	BSAvol Volume
+
+	//	StockReConcinUperml 		[]int
+	//	DesiredConcinUperml	 		[]int
+	EnzVolumestoadd []Volume
+
+	ReactionTemp Temperature
+	ReactionTime Time
+	InactivationTemp Temperature
+	InactivationTime Time
 
 	//OutputReactionName			string
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	DNASolution 		*wtype.LHComponent
-	EnzSolutions 		[]*wtype.LHComponent
-	BSAoptional		 	*wtype.LHComponent
-	Buffer 				*wtype.LHComponent
-	Water  				*wtype.LHComponent
+	DNASolution *LHComponent
+	EnzSolutions []*LHComponent
+	BSAoptional *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
 
-	OutPlate 			*wtype.LHPlate
-	InPlate 			*wtype.LHPlate
+	OutPlate *LHPlate
+	InPlate *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -56,38 +55,39 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	samples := make([]*wtype.LHComponent, 0)
+	samples := make([]*LHComponent, 0)
 	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
 	samples = append(samples, waterSample)
 
 	bufferSample := mixer.Sample(Buffer, BufferVol)
 	samples = append(samples, bufferSample)
 
-	if BSAvol.Mvalue != 0 {bsaSample := mixer.Sample(BSAoptional, BSAvol)
-	samples = append(samples, bsaSample)
+	if BSAvol.Mvalue != 0 {
+		bsaSample := mixer.Sample(BSAoptional, BSAvol)
+		samples = append(samples, bsaSample)
 	}
-	
+
 	// change to fixing concentration(or mass) of dna per reaction
 	DNASolution.CName = DNAName
 	dnaSample := mixer.Sample(DNASolution, DNAVol)
 	samples = append(samples, dnaSample)
 
 	for k, enzyme := range EnzSolutions {
-		
+
 		// work out volume to add in L
-		
+
 		// e.g. 1 U / (10000 * 1000) * 0.000002
 		//volinL := DesiredUinreaction/(StockReConcinUperml*1000) * ReactionVolume.SIValue()
 		//volumetoadd := wunit.NewVolume(volinL,"L")
 		enzyme.CName = EnzymeNames[k]
-		text.Print("adding enzyme" + EnzymeNames[k], "to" + DNAName)
+		text.Print("adding enzyme"+EnzymeNames[k], "to"+DNAName)
 		enzSample := mixer.Sample(enzyme, EnzVolumestoadd[k])
 		enzSample.CName = EnzymeNames[k]
 		samples = append(samples, enzSample)
 	}
 
 	// incubate the reaction mixture
-	r1 := Incubate(MixInto(OutPlate, "",samples...), ReactionTemp, ReactionTime, false)
+	r1 := Incubate(MixInto(OutPlate, "", samples...), ReactionTemp, ReactionTime, false)
 	// inactivate
 	Reaction = Incubate(r1, InactivationTemp, InactivationTime, false)
 }

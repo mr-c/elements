@@ -1,8 +1,8 @@
 protocol FluorescenceMeasurement
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
@@ -16,12 +16,11 @@ Data (
 )
 
 Inputs (
-	SampleForReading *wtype.LHComponent
-	Diluent *wtype.LHComponent
+	SampleForReading *LHComponent
+	Diluent *LHComponent
 )
 
-Outputs (
-)
+Outputs ()
 
 Requirements {
 }
@@ -30,10 +29,10 @@ Setup {
 }
 
 Steps {
-	dilutionSample:=mixer.Sample(Diluent, DilutionVolume)
+	dilutionSample := mixer.Sample(Diluent, DilutionVolume)
 	Mix(SampleForReading, dilutionSample)
 	//dilutedSample:=Mix(SampleForReading, dilutionSample)
-//	FluorescenceMeasurement = ReadEM(dilutedSample, ExcitationWavelength, EmissionWavelength)
+	//	FluorescenceMeasurement = ReadEM(dilutedSample, ExcitationWavelength, EmissionWavelength)
 	FluorescenceMeasurement = 0.5
 }
 

@@ -7,19 +7,18 @@ import (
 
 // Input parameters for this protocol (data)
 Parameters (
-	Vols []wunit.Volume
+	Vols []Volume
 )
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Parts			[]*wtype.LHComponent
-	OutputPlateType		string
+	Parts []*LHComponent
+	OutputPlateType string
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	Reaction *wtype.LHComponent
+	Reaction *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -33,21 +32,21 @@ Setup {}
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	var m *wtype.LHComponent
+	var m *LHComponent
 
-	for k:=0;k<len(Vols);k++{
-		var s *wtype.LHComponent
-		if !Vols[k].IsZero(){
+	for k := 0; k < len(Vols); k++ {
+		var s *LHComponent
+		if !Vols[k].IsZero() {
 			s = mixer.Sample(Parts[k], Vols[k])
-			if m!=nil{
-			 m = Mix(m,s)
-			}else{
-			 m = MixTo(OutputPlateType, "", 1, s)
+			if m != nil {
+				m = Mix(m, s)
+			} else {
+				m = MixTo(OutputPlateType, "", 1, s)
 			}
 		}
 	}
 
-	Reaction = m 
+	Reaction = m
 }
 
 // Run after controls and a steps block are completed to

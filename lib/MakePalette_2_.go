@@ -3,7 +3,6 @@ package lib
 
 import (
 	"context"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/download"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/image"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
@@ -12,19 +11,20 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
+	goimage "image"
 	"image/color"
 	"strconv"
 )
 
 // Input parameters for this protocol (data)
 
-// name of image file or if using URL use this field to set the desired filename
-// select this if getting the image from a URL
-// enter URL link to the image file here if applicable
+// of each colour
+
+// option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.
+// Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.
+// The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.
 
 // Data which is returned from this protocol, and data types
-
-//Colournames []string
 
 // map of colour name (as index) to component name
 
@@ -45,23 +45,57 @@ func _MakePalette_2Setup(_ctx context.Context, _input *MakePalette_2Input) {
 // for every input
 func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _output *MakePalette_2Output) {
 
-	// if image is from url, download
-	if _input.UseURL {
-		err := download.File(_input.URL, _input.Imagefilename)
+	//-------------------------------------------------------------------------------------
+	//Globals
+	//-------------------------------------------------------------------------------------
+
+	//image and error placeholders
+
+	var imgBase *goimage.NRGBA
+	var err error
+	lowerThreshold := uint8(_input.LowerThreshold)
+
+	//-------------------------------------------------------------------------------------
+	//Open image
+	//-------------------------------------------------------------------------------------
+
+	//opening the image file
+	imgBase, err = image.OpenFile(_input.ImageFile)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
+
+	//-------------------------------------------------------------------------------------
+	//Image processing
+	//-------------------------------------------------------------------------------------
+
+	if _input.PosterizeImage {
+		imgBase, err = image.Posterize(imgBase, _input.PosterizeLevels)
 		if err != nil {
 			execute.Errorf(_ctx, err.Error())
 		}
 	}
 
-	if _input.PosterizeImage {
-		_, _input.Imagefilename = image.Posterize(_input.Imagefilename, _input.PosterizeLevels)
-	}
+	//-------------------------------------------------------------------------------------
+	//Palettes selection
+	//-------------------------------------------------------------------------------------
 
 	// make palette of colours from image
-	chosencolourpalette := image.MakeSmallPalleteFromImage(_input.Imagefilename, _input.OutPlate, _input.Rotate)
+	chosencolourpalette := image.MakeSmallPalleteFromImage(imgBase, _input.OutPlate, _input.Rotate)
 
 	// make a map of colour to well coordinates
-	positiontocolourmap, _, _ := image.ImagetoPlatelayout(_input.Imagefilename, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+	positiontocolourmap, plateImage := image.ImagetoPlatelayout(imgBase, _input.OutPlate, &chosencolourpalette, _input.Rotate, _input.AutoRotate)
+
+	//-------------------------------------------------------------------------------------
+	//Export processed image
+	//-------------------------------------------------------------------------------------
+
+	_output.ProcessedImage, err = image.Export(plateImage, _input.ImageFile.Name)
+
+	if err != nil {
+		execute.Errorf(_ctx, err.Error())
+	}
 
 	// remove duplicates
 	positiontocolourmap = image.RemoveDuplicatesValuesfromMap(positiontocolourmap)
@@ -73,6 +107,8 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 	for _, colour := range positiontocolourmap {
 
+		var coloursused []string
+
 		colourindex := chosencolourpalette.Index(colour)
 
 		if colour != nil {
@@ -81,7 +117,7 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 			var maxuint8 uint8 = 255
 
-			if cmyk.C <= _input.LowerThreshold && cmyk.Y <= _input.LowerThreshold && cmyk.M <= _input.LowerThreshold && cmyk.K <= _input.LowerThreshold {
+			if cmyk.C <= lowerThreshold && cmyk.Y <= lowerThreshold && cmyk.M <= lowerThreshold && cmyk.K <= lowerThreshold {
 
 				continue
 
@@ -90,9 +126,11 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				var solution *wtype.LHComponent
 				var componentVols []wunit.Volume
 
-				counter = counter + 1
+				counter++
 
-				if cmyk.C > _input.LowerThreshold {
+				if cmyk.C > lowerThreshold {
+
+					coloursused = append(coloursused, "cyan")
 
 					cyanvol := wunit.NewVolume(((float64(cmyk.C) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -114,7 +152,9 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 				}
 
-				if cmyk.Y > _input.LowerThreshold {
+				if cmyk.Y > lowerThreshold {
+
+					coloursused = append(coloursused, "yellow")
 
 					yellowvol := wunit.NewVolume(((float64(cmyk.Y) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -142,7 +182,10 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 				}
 
-				if cmyk.M > _input.LowerThreshold {
+				if cmyk.M > lowerThreshold {
+
+					coloursused = append(coloursused, "magenta")
+
 					magentavol := wunit.NewVolume(((float64(cmyk.M) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
 					if magentavol.RawValue() < 0.5 && magentavol.Unit().PrefixedSymbol() == "ul" {
@@ -169,7 +212,9 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 
 				}
 
-				if cmyk.K > _input.LowerThreshold {
+				if cmyk.K > lowerThreshold {
+
+					coloursused = append(coloursused, "black")
 
 					blackvol := wunit.NewVolume(((float64(cmyk.K) / float64(maxuint8)) * _input.VolumeForFullcolour.RawValue()), _input.VolumeForFullcolour.Unit().PrefixedSymbol())
 
@@ -200,19 +245,26 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 				// top up colour to 4 x volumeforfullcolour with white to make the correct shade
 
 				// calculate volume of white to add
-				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, 4), componentVols)
 
-				// mix with white sample
-				_input.White.Type = wtype.LTMegaMix
+				multiplier := len(coloursused)
 
-				whiteSample := mixer.Sample(_input.White, whitevol)
+				whitevol := wunit.SubtractVolumes(wunit.MultiplyVolume(_input.VolumeForFullcolour, float64(multiplier)), componentVols)
 
-				if solution != nil {
-					solution = execute.Mix(_ctx, solution, whiteSample)
-				} else if _input.NotThisColour == "white" {
-					// skip
-				} else {
-					solution = execute.MixNamed(_ctx, _input.PalettePlate.Type, "", "Palette", whiteSample)
+				if whitevol.GreaterThanRounded(wunit.NewVolume(0.0, "ul"), 1) {
+
+					// mix with white sample
+					_input.White.Type = wtype.LTMegaMix
+
+					whiteSample := mixer.Sample(_input.White, whitevol)
+
+					if solution != nil {
+						solution = execute.Mix(_ctx, solution, whiteSample)
+					} else if _input.NotThisColour == "white" {
+						// skip
+					} else {
+						solution = execute.MixNamed(_ctx, _input.PalettePlate.Type, "", "Palette", whiteSample)
+					}
+
 				}
 				// change name of component
 				originalname := solution.CName
@@ -232,7 +284,6 @@ func _MakePalette_2Steps(_ctx context.Context, _input *MakePalette_2Input, _outp
 	_output.Palette = chosencolourpalette
 	_output.ColourtoComponentMap = colourtoComponentMap
 
-	var err error
 	_output.PaletteFile, err = export.JSON(_output.Palette, "Palette.json")
 
 	if err != nil {
@@ -304,8 +355,8 @@ type MakePalette_2Input struct {
 	AutoRotate          bool
 	Black               *wtype.LHComponent
 	Cyan                *wtype.LHComponent
-	Imagefilename       string
-	LowerThreshold      uint8
+	ImageFile           wtype.File
+	LowerThreshold      int
 	Magenta             *wtype.LHComponent
 	NotThisColour       string
 	OutPlate            *wtype.LHPlate
@@ -313,8 +364,6 @@ type MakePalette_2Input struct {
 	PosterizeImage      bool
 	PosterizeLevels     int
 	Rotate              bool
-	URL                 string
-	UseURL              bool
 	VolumeForFullcolour wunit.Volume
 	White               *wtype.LHComponent
 	Yellow              *wtype.LHComponent
@@ -326,6 +375,7 @@ type MakePalette_2Output struct {
 	Numberofcolours      int
 	Palette              color.Palette
 	PaletteFile          wtype.File
+	ProcessedImage       wtype.File
 }
 
 type MakePalette_2SOutput struct {
@@ -334,6 +384,7 @@ type MakePalette_2SOutput struct {
 		Numberofcolours      int
 		Palette              color.Palette
 		PaletteFile          wtype.File
+		ProcessedImage       wtype.File
 	}
 	Outputs struct {
 		Colours []*wtype.LHComponent
@@ -347,28 +398,27 @@ func init() {
 			Desc: "Generates instructions to make a pallette of all colours in an image\n",
 			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/PipetteImage/PipetteImage/fromPalette/MakePalette_2.an",
 			Params: []component.ParamDesc{
-				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
+				{Name: "AutoRotate", Desc: "Option to automatically rotate the image based on the aspect ratio in order to maximise resolution on the plate.\n", Kind: "Parameters"},
 				{Name: "Black", Desc: "", Kind: "Inputs"},
 				{Name: "Cyan", Desc: "", Kind: "Inputs"},
-				{Name: "Imagefilename", Desc: "name of image file or if using URL use this field to set the desired filename\n", Kind: "Parameters"},
-				{Name: "LowerThreshold", Desc: "", Kind: "Parameters"},
+				{Name: "ImageFile", Desc: "", Kind: "Parameters"},
+				{Name: "LowerThreshold", Desc: "The threshold above which a colour will be pipetted out. The 8bit colour scale is used so the value must be between 0 and 255.\n", Kind: "Parameters"},
 				{Name: "Magenta", Desc: "", Kind: "Inputs"},
 				{Name: "NotThisColour", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},
 				{Name: "PalettePlate", Desc: "", Kind: "Inputs"},
 				{Name: "PosterizeImage", Desc: "", Kind: "Parameters"},
 				{Name: "PosterizeLevels", Desc: "", Kind: "Parameters"},
-				{Name: "Rotate", Desc: "", Kind: "Parameters"},
-				{Name: "URL", Desc: "enter URL link to the image file here if applicable\n", Kind: "Parameters"},
-				{Name: "UseURL", Desc: "select this if getting the image from a URL\n", Kind: "Parameters"},
-				{Name: "VolumeForFullcolour", Desc: "", Kind: "Parameters"},
+				{Name: "Rotate", Desc: "option to rotate the image by 90 degrees to force the image to be pipetted as either landscape or portrait.\n", Kind: "Parameters"},
+				{Name: "VolumeForFullcolour", Desc: "of each colour\n", Kind: "Parameters"},
 				{Name: "White", Desc: "", Kind: "Inputs"},
 				{Name: "Yellow", Desc: "", Kind: "Inputs"},
 				{Name: "Colours", Desc: "", Kind: "Outputs"},
 				{Name: "ColourtoComponentMap", Desc: "map of colour name (as index) to component name\n", Kind: "Data"},
 				{Name: "Numberofcolours", Desc: "", Kind: "Data"},
-				{Name: "Palette", Desc: "Colournames []string\n", Kind: "Data"},
+				{Name: "Palette", Desc: "", Kind: "Data"},
 				{Name: "PaletteFile", Desc: "", Kind: "Data"},
+				{Name: "ProcessedImage", Desc: "", Kind: "Data"},
 			},
 		},
 	}); err != nil {

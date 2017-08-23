@@ -7,7 +7,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -94,12 +93,12 @@ func _AutoPCR_GradientSteps(_ctx context.Context, _input *AutoPCR_GradientInput,
 
 				FwdPrimer:     _input.FwdPrimertype,
 				RevPrimer:     _input.RevPrimertype,
-				DNTPS:         factory.GetComponentByType("DNTPs"),
-				PCRPolymerase: factory.GetComponentByType("Q5Polymerase"),
-				Buffer:        factory.GetComponentByType("Q5buffer"),
-				Water:         factory.GetComponentByType("water"),
+				DNTPS:         execute.NewComponent(_ctx, "DNTPs"),
+				PCRPolymerase: execute.NewComponent(_ctx, "Q5Polymerase"),
+				Buffer:        execute.NewComponent(_ctx, "Q5buffer"),
+				Water:         execute.NewComponent(_ctx, "water"),
 				Template:      _input.Templatetype,
-				Additives:     []*wtype.LHComponent{factory.GetComponentByType("GCenhancer")},
+				Additives:     []*wtype.LHComponent{execute.NewComponent(_ctx, "GCenhancer")},
 				OutPlate:      _input.Plate},
 			)
 
@@ -177,7 +176,7 @@ type AutoPCR_GradientInput struct {
 	FwdPrimertype               *wtype.LHComponent
 	Plate                       *wtype.LHPlate
 	Projectname                 string
-	Reactiontoprimerpair        map[string][]string
+	Reactiontoprimerpair        map[string][2]string
 	Reactiontotemplate          map[string]string
 	RevPrimertype               *wtype.LHComponent
 	RowGradientRatherthanColumn bool

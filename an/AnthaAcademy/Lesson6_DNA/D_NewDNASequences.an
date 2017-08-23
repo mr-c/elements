@@ -6,13 +6,14 @@
 protocol NewDNASequences
 
 import (
-	"strings"
-	"strconv"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
 	inventory "github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Inventory"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/igem"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"strconv"
+	"strings"
 )
+
 // Input parameters for this protocol
 Parameters (
 	Seqsinorder []string
@@ -23,19 +24,16 @@ Parameters (
 
 // Data which is returned from this protocol
 Data (
-	Parts[]wtype.DNASequence
+	Parts []DNASequence
 	Status string
 	Warnings []string
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -48,74 +46,71 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	
+
 	// set warnings reported back to user to none initially
 	warnings := make([]string, 0)
-	
-	// make an empty array of DNA Sequences ready to fill
-	partsinorder := make([]wtype.DNASequence, 0)
 
-	var partDNA wtype.DNASequence
-	
+	// make an empty array of DNA Sequences ready to fill
+	partsinorder := make([]DNASequence, 0)
+
+	var partDNA DNASequence
 
 	Status = "all parts available"
 	for i, part := range Seqsinorder {
 		// check if biobrick part
 		if strings.Contains(part, "BBa_") {
-				nm := PartPrefix+"_"+"Part "+strconv.Itoa(i)+"_"+part
-				part = igem.GetSequence(part)
-			
+			nm := PartPrefix + "_" + "Part " + strconv.Itoa(i) + "_" + part
+			part = igem.GetSequence(part)
+
 			if Vectors {
-			partDNA = wtype.MakePlasmidDNASequence(nm, part)
-			}else{
-			partDNA = wtype.MakeLinearDNASequence(nm, part)
+				partDNA = wtype.MakePlasmidDNASequence(nm, part)
+			} else {
+				partDNA = wtype.MakeLinearDNASequence(nm, part)
 			}
 			// check if in inventory
 		} else if inventoryDNA, found := inventory.Partslist()[part]; found {
 			partDNA = inventoryDNA
-			
+
 			// else treat as DNA sequence and check
-			}else {
-				
+		} else {
+
 			if Vectors {
-			partDNA = wtype.MakePlasmidDNASequence(PartPrefix+"_"+"Part "+strconv.Itoa(i) , part)
-			}else{
-			partDNA = wtype.MakeLinearDNASequence(PartPrefix+"_"+"Part "+strconv.Itoa(i) , part)
+				partDNA = wtype.MakePlasmidDNASequence(PartPrefix+"_"+"Part "+strconv.Itoa(i), part)
+			} else {
+				partDNA = wtype.MakeLinearDNASequence(PartPrefix+"_"+"Part "+strconv.Itoa(i), part)
 			}
-			
-			
-		// test for illegal nucleotides
-		pass,illegals,_ := sequences.Illegalnucleotides(partDNA)
-		
-		if !pass {
-			var newstatus = make([]string,0)
-			for _,illegal := range illegals {
-				
-				newstatus =append(newstatus,PartPrefix+"_"+ "part: " + partDNA.Nm+" "+ partDNA.Seq + ": contains illegalnucleotides:"+ illegal.ToString())
+
+			// test for illegal nucleotides
+			pass, illegals, _ := sequences.Illegalnucleotides(partDNA)
+
+			if !pass {
+				var newstatus = make([]string, 0)
+				for _, illegal := range illegals {
+
+					newstatus = append(newstatus, PartPrefix+"_"+"part: "+partDNA.Nm+" "+partDNA.Seq+": contains illegalnucleotides:"+illegal.ToString())
+				}
+				warnings = append(warnings, strings.Join(newstatus, ""))
+				Errorf(strings.Join(newstatus, ""))
 			}
-			warnings = append(warnings,strings.Join(newstatus,""))
-			Errorf(strings.Join(newstatus,""))
+			if pass && BlastSeqswithNoName {
+				// run a blast search on the sequence to get the name
+				blastsearch := RunSteps(BlastSearch_wtype,
+					Parameters{
+						DNA: partDNA,
+					}, Inputs{})
+				partDNA.Nm = blastsearch.Data.AnthaSeq.Nm
+			}
+
 		}
-		if pass && BlastSeqswithNoName{
-			// run a blast search on the sequence to get the name
-			blastsearch := RunSteps(BlastSearch_wtype, 
-                Parameters{
-                	DNA: partDNA, 
-                }, Inputs{
-                      
-                })
-		partDNA.Nm = blastsearch.Data.AnthaSeq.Nm
-		}
-		
-		}
-		partsinorder = append(partsinorder,partDNA)
+		partsinorder = append(partsinorder, partDNA)
 	}
-	
+
 	Parts = partsinorder
-	
+
 	Warnings = warnings
-	
+
 }
+
 // Actions to perform after steps block to analyze data
 Analysis {
 

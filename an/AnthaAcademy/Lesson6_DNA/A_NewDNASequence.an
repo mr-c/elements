@@ -4,10 +4,11 @@ protocol NewDNASequence
 import (
 	"fmt"
 	//"math"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
+
 // Input parameters for this protocol
 Parameters (
 	DNA_seq string
@@ -15,24 +16,20 @@ Parameters (
 	Plasmid bool
 	Linear bool
 	SingleStranded bool
-	
 )
 
 // Data which is returned from this protocol
 Data (
-	DNA wtype.DNASequence
-	DNAwithORFs wtype.DNASequence
+	DNA DNASequence
+	DNAwithORFs DNASequence
 	Status string
 )
 
 // Physical inputs to this protocol
-Inputs (
-
-)
+Inputs ()
 
 // Physical outputs from this protocol
-Outputs (
-)
+Outputs ()
 
 Requirements {
 
@@ -45,42 +42,45 @@ Setup {
 
 // Core process of the protocol: steps to be performed for each input
 Steps {
-	
+
 	// != is go syntax for not equal to
 	if Plasmid != Linear {
-		
+
 		// equivalent to if Plasmid == true
-		if Plasmid  {
+		if Plasmid {
 			// different functions exist for making an antha DNA sequence based on the properties
-			DNA = wtype.MakePlasmidDNASequence(Gene_name,DNA_seq)
-					
-			}else if Linear {
-					
-				DNA = wtype.MakeLinearDNASequence(Gene_name,DNA_seq)
-					
-			} else if SingleStranded {
-					
-				DNA = wtype.MakeSingleStrandedDNASequence(Gene_name,DNA_seq)	
-					
-			} 
-		
-	// use FindallORFs from sequences library							
-	orfs := sequences.FindallORFs(DNA.Seq)
-	
-	// convert those orfs to features
-	features := sequences.ORFs2Features(orfs)
-	
-	// add annotations to sequence from features
-	DNAwithORFs = wtype.Annotate(DNA,features)
-	
-	Status = fmt.Sprintln(
-		text.Print("DNA_Seq: ",DNA_seq),
-		text.Print("ORFs: ", DNAwithORFs.Features),
-	)
-	
-}else {Status = fmt.Sprintln("correct conditions not met")}
+			DNA = wtype.MakePlasmidDNASequence(Gene_name, DNA_seq)
+
+		} else if Linear {
+
+			DNA = wtype.MakeLinearDNASequence(Gene_name, DNA_seq)
+
+		} else if SingleStranded {
+
+			DNA = wtype.MakeSingleStrandedDNASequence(Gene_name, DNA_seq)
+
+		}
+
+		// use FindallORFs from sequences library
+		orfs := sequences.FindallORFs(DNA.Seq)
+
+		// convert those orfs to features
+		features := sequences.ORFs2Features(orfs)
+
+		// add annotations to sequence from features
+		DNAwithORFs = wtype.Annotate(DNA, features)
+
+		Status = fmt.Sprintln(
+			text.Print("DNA_Seq: ", DNA_seq),
+			text.Print("ORFs: ", DNAwithORFs.Features),
+		)
+
+	} else {
+		Status = fmt.Sprintln("correct conditions not met")
+	}
 
 }
+
 // Actions to perform after steps block to analyze data
 Analysis {
 

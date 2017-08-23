@@ -8,7 +8,6 @@ import (
 	"github.com/antha-lang/antha/component"
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/inject"
-	"github.com/antha-lang/antha/microArch/factory"
 )
 
 // Input parameters for this protocol (data)
@@ -26,13 +25,13 @@ func _SynthesisSetup(_ctx context.Context, _input *SynthesisInput) {}
 
 func _SynthesisSteps(_ctx context.Context, _input *SynthesisInput, _output *SynthesisOutput) {
 	// Element with mock synthesises DNA. Converts DNA sequence type to LHComponent.
-	//var dna *wtype.LHComponent
+	//var dna *LHComponent
 	components := make([]*wtype.LHComponent, 0)
 
 	fmt.Println("Parts:", _input.PartsWithOverhangs)
 	for i, part := range _input.PartsWithOverhangs {
 
-		dna := factory.GetComponentByType("dna")
+		dna := execute.NewComponent(_ctx, "dna")
 		dna.CName = part.Nm
 		fmt.Println("dna:", i, dna)
 		components = append(components, dna)

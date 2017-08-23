@@ -39,6 +39,12 @@ import (
 
 // Physical outputs from this protocol with types
 
+// All solutions, original solutions + all dilutions made.
+
+// All dilutions made only.
+
+// All dilutions made only exported as a map using the solution name as key.
+
 func _SerialDilution_Conc_multiRequirements() {
 
 }
@@ -103,11 +109,17 @@ func _SerialDilution_Conc_multiSteps(_ctx context.Context, _input *SerialDilutio
 		// update wells used to carry on next set of dilutions to next available position
 		wellsused = result.Data.WellsUsedPostRun
 
-		// add all dilutions to output
+		// add all dilutions (original solution + dilutions) as output
 		for _, dilution := range result.Outputs.AllDilutions {
+			_output.InputsandDilutions = append(_output.AllDilutions, dilution)
+		}
+
+		// add dilutions to output
+		for _, dilution := range result.Outputs.Dilutions {
 			_output.AllDilutions = append(_output.AllDilutions, dilution)
 		}
-		_output.DilutionsByComponent[solution.CName] = result.Outputs.AllDilutions
+
+		_output.DilutionsByComponent[solution.CName] = result.Outputs.Dilutions
 	}
 
 	_output.WellsUsedPostRun = wellsused
@@ -187,6 +199,7 @@ type SerialDilution_Conc_multiInput struct {
 type SerialDilution_Conc_multiOutput struct {
 	AllDilutions         []*wtype.LHComponent
 	DilutionsByComponent map[string][]*wtype.LHComponent
+	InputsandDilutions   []*wtype.LHComponent
 	WellsUsedPostRun     int
 }
 
@@ -197,6 +210,7 @@ type SerialDilution_Conc_multiSOutput struct {
 	Outputs struct {
 		AllDilutions         []*wtype.LHComponent
 		DilutionsByComponent map[string][]*wtype.LHComponent
+		InputsandDilutions   []*wtype.LHComponent
 	}
 }
 
@@ -215,8 +229,9 @@ func init() {
 				{Name: "StartVolumeperDilution", Desc: "Specify a starting total volume per dilution, not accounting for the volume lost by using that component to make the next dilution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
 				{Name: "TargetConcentrations", Desc: "Specify target concentrations to make for each solution.\nA \"default\" may be specified which applies to all values with no explicit value set in this map.\n", Kind: "Parameters"},
 				{Name: "WellsAlreadyUsed", Desc: "Optionally start after a specified well position if wells are allready used in the plate.\n", Kind: "Parameters"},
-				{Name: "AllDilutions", Desc: "", Kind: "Outputs"},
-				{Name: "DilutionsByComponent", Desc: "", Kind: "Outputs"},
+				{Name: "AllDilutions", Desc: "All dilutions made only.\n", Kind: "Outputs"},
+				{Name: "DilutionsByComponent", Desc: "All dilutions made only exported as a map using the solution name as key.\n", Kind: "Outputs"},
+				{Name: "InputsandDilutions", Desc: "All solutions, original solutions + all dilutions made.\n", Kind: "Outputs"},
 				{Name: "WellsUsedPostRun", Desc: "", Kind: "Data"},
 			},
 		},

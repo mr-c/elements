@@ -1,31 +1,30 @@
 protocol Recovery
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
 Parameters (
-	Recoveryvolume wunit.Volume
+	Recoveryvolume Volume
 	Recoverytime wunit.Time // e.g. = 2 hours
 	Recoverytemp wunit.Temperature
-	TransformedcellVolume wunit.Volume
+	TransformedcellVolume Volume
 )
-
 
 // Data which is returned from this protocol, and data types
-Data (
-)
+Data ()
+
 // Physical Inputs to this protocol with types
 Inputs (
-	Transformedcells *wtype.LHComponent
-    Recoverymedium *wtype.LHComponent
+	Transformedcells *LHComponent
+	Recoverymedium *LHComponent
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	RecoveredCells *wtype.LHComponent
+	RecoveredCells *LHComponent
 )
 
 Requirements {
@@ -38,15 +37,15 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	transformedcellsComp := mixer.Sample(Transformedcells,TransformedcellVolume)
-	
+
+	transformedcellsComp := mixer.Sample(Transformedcells, TransformedcellVolume)
+
 	recoverymixture := mixer.Sample(Recoverymedium, Recoveryvolume)
 
 	recoverymix2 := Mix(transformedcellsComp, recoverymixture)
-	
-	RecoveredCells = Incubate (recoverymix2,  Recoverytemp, Recoverytime, true)
-	
+
+	RecoveredCells = Incubate(recoverymix2, Recoverytemp, Recoverytime, true)
+
 }
 
 // Run after controls and a steps block are completed to

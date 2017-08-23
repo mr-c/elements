@@ -1,14 +1,13 @@
 protocol Paintmix
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 
 // Input parameters for this protocol (data)
 Parameters (
-	Colour1vol  Volume
+	Colour1vol Volume
 	Colour2vol Volume
 	Numberofcopies int
 )
@@ -18,17 +17,16 @@ Data (
 	Status string
 )
 
-
 // Physical Inputs to this protocol with types
 Inputs (
-	Colour1 *wtype.LHComponent
-	Colour2 *wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	Colour1 *LHComponent
+	Colour2 *LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs from this protocol with types
 Outputs (
-	NewColours []*wtype.LHComponent
+	NewColours []*LHComponent
 )
 
 Requirements {
@@ -41,22 +39,21 @@ Setup {
 // The core process for this protocol, with the steps to be performed
 // for every input
 Steps {
-	
-	reactions := make([]*wtype.LHComponent,0)
-	
-	
+
+	reactions := make([]*LHComponent, 0)
+
 	for i := 0; i < Numberofcopies; i++ {
-		eachreaction := make([]*wtype.LHComponent, 0)
+		eachreaction := make([]*LHComponent, 0)
 		col1Sample := mixer.Sample(Colour1, Colour1vol)
-		eachreaction = append(eachreaction,col1Sample)
+		eachreaction = append(eachreaction, col1Sample)
 		col2Sample := mixer.Sample(Colour2, Colour2vol)
-		eachreaction = append(eachreaction,col2Sample)
+		eachreaction = append(eachreaction, col2Sample)
 		reaction := MixInto(OutPlate, "", eachreaction...)
-		reactions = append(reactions,reaction)
-		
+		reactions = append(reactions, reaction)
+
 	}
 	NewColours = reactions
-	
+
 }
 
 // Run after controls and a steps block are completed to

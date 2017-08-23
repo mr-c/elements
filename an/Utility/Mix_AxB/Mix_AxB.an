@@ -4,9 +4,8 @@ protocol Mix_AxB
 
 // Place golang packages to import here
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
-
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Parameters to this protocol
@@ -16,19 +15,18 @@ Parameters (
 )
 
 // Output data of this protocol
-Data (
-)
+Data ()
 
 // Physical inputs to this protocol
 Inputs (
-	SampleAs []*wtype.LHComponent
-	SampleBs []*wtype.LHComponent
-	OutPlate *wtype.LHPlate
+	SampleAs []*LHComponent
+	SampleBs []*LHComponent
+	OutPlate *LHPlate
 )
 
 // Physical outputs to this protocol
 Outputs (
-	MixedComponents []*wtype.LHComponent
+	MixedComponents []*LHComponent
 )
 
 // Conditions to run on startup
@@ -38,44 +36,44 @@ Setup {
 
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	
-	for _, componentA := range SampleAs{
-		
-		var sampleA *wtype.LHComponent
+
+	for _, componentA := range SampleAs {
+
+		var sampleA *LHComponent
 		var sampleVol Volume
- 		
-		if vol, found := SampleAVolumes[componentA.CName];found{
- 			sampleVol = vol
- 		}else if vol, found := SampleAVolumes["default"];found{
- 			sampleVol = vol
- 		}
-		
-		if sampleVol.RawValue() > 0.0 {			
- 			sampleA = mixer.Sample(componentA,sampleVol)			
- 		}else{
- 			sampleA = mixer.SampleAll(componentA)
- 		}
-				
-		for _, componentB := range SampleBs{
-			var sampleB *wtype.LHComponent
+
+		if vol, found := SampleAVolumes[componentA.CName]; found {
+			sampleVol = vol
+		} else if vol, found := SampleAVolumes["default"]; found {
+			sampleVol = vol
+		}
+
+		if sampleVol.RawValue() > 0.0 {
+			sampleA = mixer.Sample(componentA, sampleVol)
+		} else {
+			sampleA = mixer.SampleAll(componentA)
+		}
+
+		for _, componentB := range SampleBs {
+			var sampleB *LHComponent
 			var sampleVol Volume
-	 		
-			if vol, found := SampleBVolumes[componentB.CName];found{
-	 			sampleVol = vol
-	 		}else if vol, found := SampleBVolumes["default"];found{
-	 			sampleVol = vol
-	 		}
-			
-			if sampleVol.RawValue() > 0.0 {			
-	 			sampleB = mixer.Sample(componentB,sampleVol)			
-	 		}else{
-	 			sampleB = mixer.SampleAll(componentB)
-	 		}
-			mixedComponent := MixInto(OutPlate,"", sampleA, sampleB)
+
+			if vol, found := SampleBVolumes[componentB.CName]; found {
+				sampleVol = vol
+			} else if vol, found := SampleBVolumes["default"]; found {
+				sampleVol = vol
+			}
+
+			if sampleVol.RawValue() > 0.0 {
+				sampleB = mixer.Sample(componentB, sampleVol)
+			} else {
+				sampleB = mixer.SampleAll(componentB)
+			}
+			mixedComponent := MixInto(OutPlate, "", sampleA, sampleB)
 			MixedComponents = append(MixedComponents, mixedComponent)
 		}
 	}
-	
+
 }
 
 // Run after controls and a steps block are completed to post process any data

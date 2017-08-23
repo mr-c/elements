@@ -39,7 +39,11 @@ func _PrimerDesign_coverfullsequenceSetup(_ctx context.Context, _input *PrimerDe
 func _PrimerDesign_coverfullsequenceSteps(_ctx context.Context, _input *PrimerDesign_coverfullsequenceInput, _output *PrimerDesign_coverfullsequenceOutput) {
 	var plasmid wtype.DNASequence
 
-	plasmids, _ := parser.DNAFileToDNASequence(_input.DNASeqfile)
+	plasmids, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
+
+	if err != nil {
+		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())
+	}
 
 	if len(plasmids) > 0 {
 		plasmid = plasmids[0]

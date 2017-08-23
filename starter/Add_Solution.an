@@ -1,0 +1,106 @@
+// Protocol Add_Solution allows for a new LHComponent (liquid handling component) description to be made when it does not exist in the LHComponent library.
+// The element takes a user defined name, stock concentration and LHPolicy to apply to the NewSolution variable.
+// The NewSolution output can be wired into elements as an input so that new LHComponents
+// dont need to be made and populated into the library before an element can be used
+protocol Add_Solution
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Parameters to this protocol
+Parameters (
+	Name string                      // Name of new LHComponent.
+	StockConcentration Concentration // Stock concentration being used; if none is specified it will not set a concentration.
+	UseLHPolicy PolicyName           // If empty defaults to PostMix
+)
+
+// Output data of this protocol
+Data (
+	Status string          // Outputs a string to the terminal window saying what the new LHComponent is called, which LHcomponent it is based off of, the concentration of this component and the LHPolicy that should be used when handling this component.
+	NewSolutionName string // Outputs the NewSolution name as a string
+)
+
+// Physical inputs to this protocol
+Inputs ()
+
+// Physical outputs to this protocol
+Outputs (
+	NewSolution *LHComponent // This is the NewSolution output that can be wired into another element and be used straight away without having to input it into the LHComponent library
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	//Initialise variable err with type error
+	var err error
+
+	TemplateComponent := NewComponent("water")
+
+	//Store the TemplateComponent name into a variable for text output at the end of the run in Status
+	templateComponentName := TemplateComponent.CName
+
+	//Initialise NewComponent variable with the LHComponent properties of the TemplateComponent
+
+	NewSolution = TemplateComponent
+
+	//Sets the name of the NewSolution to the user specified Name parameter.
+	//If name parameter is empty set to Name of TemplateComponent
+	if Name != "" {
+		NewSolution.CName = Name
+	} else {
+		NewSolution.CName = TemplateComponent.CName
+	}
+
+	//Sets the Concentration of the NewSolution to user specified StockConcentration
+	//If left blank it defaults to the TemplateComponent concentration
+	//If left blank and there is no concentration associated with TemplateComponent it will not set a concentration
+	//Instead will provide a string of 0mM to be output in variable Status
+	var NewSolutionConc string
+	if StockConcentration.RawValue() > 0.0 {
+		NewSolution.SetConcentration(StockConcentration)
+		NewSolutionConc = NewSolution.Concentration().ToString()
+	} else if TemplateComponent.HasConcentration() {
+		NewSolution.SetConcentration(TemplateComponent.Concentration())
+		NewSolutionConc = NewSolution.Concentration().ToString()
+	} else {
+		NewSolutionConc = "0mM"
+	}
+
+	//Sets the user defined LHPolicy in UseLHPolicy to use for the NewSolution
+	//If an unkown LHPolicy is provided by the user an error will be generated
+	//If left blank it defaults to the TemplateComponent LHPolicy type
+	if UseLHPolicy != "" {
+		NewSolution.Type, err = wtype.LiquidTypeFromString(UseLHPolicy)
+		if err != nil {
+			Errorf(err.Error())
+		}
+	} else {
+		NewSolution.Type = TemplateComponent.Type
+	}
+
+	//Provides a string output describing the new LHComponent
+	Status = NewSolution.CName + " LHComponent created based on " + templateComponentName + " LHComponent, with a concentration of " + NewSolutionConc + " using the  " + NewSolution.GetType() + " LHPolicy"
+
+	//Outputs the new LHComponent name in Data
+	NewSolutionName = NewSolution.CName
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}

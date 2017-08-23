@@ -1,8 +1,8 @@
 protocol DOEMediaPrep
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 Parameters (
@@ -13,18 +13,17 @@ Parameters (
 	OutputPlateType string
 )
 
-Data (
-)
+Data ()
 
 Inputs (
-	YeastExtract *wtype.LHComponent
-	Tryptone *wtype.LHComponent
-	Glycerol *wtype.LHComponent
-	BaseMedium *wtype.LHComponent
+	YeastExtract *LHComponent
+	Tryptone *LHComponent
+	Glycerol *LHComponent
+	BaseMedium *LHComponent
 )
 
 Outputs (
-	GrowthMedium *wtype.LHComponent
+	GrowthMedium *LHComponent
 )
 
 Requirements {
@@ -34,13 +33,13 @@ Setup {
 }
 
 Steps {
-	medsample:=mixer.SampleForTotalVolume(BaseMedium, TotalVolume)
-	medinplate:=MixTo(OutputPlateType,"", 1 ,medsample)
-	yesample:=mixer.SampleForConcentration(YeastExtract, YeastExtractConc)
-	ye_med:=Mix(medinplate, yesample)
-	trysample:=mixer.SampleForConcentration(Tryptone, TryptoneConc)
-	try_ye_med:=Mix(ye_med, trysample)
-	glysample:=mixer.SampleForConcentration(Glycerol, GlycerolConc)
+	medsample := mixer.SampleForTotalVolume(BaseMedium, TotalVolume)
+	medinplate := MixTo(OutputPlateType, "", 1, medsample)
+	yesample := mixer.SampleForConcentration(YeastExtract, YeastExtractConc)
+	ye_med := Mix(medinplate, yesample)
+	trysample := mixer.SampleForConcentration(Tryptone, TryptoneConc)
+	try_ye_med := Mix(ye_med, trysample)
+	glysample := mixer.SampleForConcentration(Glycerol, GlycerolConc)
 	GrowthMedium = Mix(try_ye_med, glysample)
 }
 

@@ -68,7 +68,7 @@ func _SDSprepSteps(_ctx context.Context, _input *SDSprepInput, _output *SDSprepO
 	//Methods 2.Make a sample of two things creating a list
 	//	Step 1b
 
-	//	sample	    := make([]wtype.LHComponent, 0)
+	//	sample	    := make([]LHComponent, 0)
 
 	//	bufferPart  := mixer.Sample(Buffer, BufferVolume)
 	//	sample	     = append([]samples, bufferSample)

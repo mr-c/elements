@@ -1,10 +1,10 @@
 protocol DiluteBuffer
 
 import (
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"fmt"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/buffers"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
 // Input parameters for this protocol (data)
@@ -18,15 +18,14 @@ Parameters (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	Bufferstock		*wtype.LHComponent
-	Diluent			*wtype.LHComponent
-	OutPlate 		*wtype.LHPlate
+	Bufferstock *LHComponent
+	Diluent *LHComponent
+	OutPlate *LHPlate
 )
-
 
 // Physical outputs from this protocol with types
 Outputs (
-	Buffer 			*wtype.LHComponent
+	Buffer *LHComponent
 )
 
 // Data which is returned from this protocol, and data types
@@ -35,10 +34,10 @@ Data (
 	FinalConcentration Concentration
 	OriginalDiluentVolume Volume
 )
+
 // Input Requirement specification
 Requirements {
-	
-	
+
 }
 
 // Conditions to run on startup
@@ -50,19 +49,19 @@ Steps {
 	//Bufferstockvolume := wunit.NewVolume((FinalVolume.SIValue() * FinalConcentration.SIValue()/Bufferstockconc.SIValue()),"l")
 	var err error
 	FinalConcentration, err = buffers.Dilute(Bufferstock.CName, Bufferstockconc, BufferVolumeAdded, Diluent.CName, DiluentVolume)
-        if err != nil {
-                panic(err)
-        }
-		
-	Buffer = MixInto(OutPlate,"",
-	mixer.Sample(Bufferstock,BufferVolumeAdded),
-	mixer.Sample(Diluent,DiluentVolume))
+	if err != nil {
+		panic(err)
+	}
 
-	Status = fmt.Sprintln( "Buffer stock volume = ", BufferVolumeAdded.ToString(), "of", Bufferstock.CName,
-	"was added to ", DiluentVolume.ToString(), "of", Diluent.CName,
-	"to make ", BufferVolumeAdded.SIValue() + DiluentVolume.SIValue(), "L", "of", Buffername,
-	"Buffer stock conc =",FinalConcentration.ToString())
-		
+	Buffer = MixInto(OutPlate, "",
+		mixer.Sample(Bufferstock, BufferVolumeAdded),
+		mixer.Sample(Diluent, DiluentVolume))
+
+	Status = fmt.Sprintln("Buffer stock volume = ", BufferVolumeAdded.ToString(), "of", Bufferstock.CName,
+		"was added to ", DiluentVolume.ToString(), "of", Diluent.CName,
+		"to make ", BufferVolumeAdded.SIValue()+DiluentVolume.SIValue(), "L", "of", Buffername,
+		"Buffer stock conc =", FinalConcentration.ToString())
+
 	OriginalDiluentVolume = DiluentVolume
 
 }
@@ -77,8 +76,8 @@ Analysis {
 // dipstick basis
 Validation {
 }
+
 /*
 type Mole struct {
 	number float64
 }*/
-
