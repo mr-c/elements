@@ -3,7 +3,6 @@ protocol Wash
 
 // Place golang packages to import here
 import (
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
@@ -66,11 +65,15 @@ Steps {
 	//loop through up to desired number of washes
 	for j := 0; j < NumberOfWashes; j++ {
 
+		//duplicate washbuffer sample
+		refreshWashBuffer := WashBuffer.Dup()
+		WashPlate.Welltype.Add(refreshWashBuffer)
+
 		//range through the input samples and add wash buffer to each
 		for i, _ := range SamplesToWash {
 
 			//sample washbuffer at specified volume
-			washBufferSample := mixer.Sample(WashBuffer, WashVolume)
+			washBufferSample := mixer.Sample(refreshWashBuffer, WashVolume)
 
 			//assign LHpolicy to wash sample (PostMix or NeedToMix)
 			washBufferSample.Type, err = wtype.LiquidTypeFromString(mixPolicy)
@@ -85,9 +88,6 @@ Steps {
 			samples = append(samples, washSamples)
 
 		}
-
-		fmt.Printf("Samples slice %s", samples)
-		fmt.Printf("SamplesPlate information, %s", SamplesPlate.Welltype.WContents)
 
 		//range through slice of washe solutions from previous loop to remove
 		for k, _ := range samples {

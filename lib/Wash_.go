@@ -6,7 +6,6 @@ import
 // Place golang packages to import here
 (
 	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -51,11 +50,16 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 	//loop through up to desired number of washes
 	for j := 0; j < _input.NumberOfWashes; j++ {
 
+		//duplicate washbuffer sample
+		refreshWashBuffer := _input.WashBuffer.Dup()
+
+		_input.WashPlate.Welltype.Add(refreshWashBuffer)
+
 		//range through the input samples and add wash buffer to each
 		for i := range _input.SamplesToWash {
 
 			//sample washbuffer at specified volume
-			washBufferSample := mixer.Sample(_input.WashBuffer, _input.WashVolume)
+			washBufferSample := mixer.Sample(refreshWashBuffer, _input.WashVolume)
 
 			//assign LHpolicy to wash sample (PostMix or NeedToMix)
 			washBufferSample.Type, err = wtype.LiquidTypeFromString(mixPolicy)
@@ -70,9 +74,6 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 			samples = append(samples, washSamples)
 
 		}
-
-		fmt.Printf("Samples slice %s", samples)
-		fmt.Printf("SamplesPlate information, %s", _input.SamplesPlate.Welltype.WContents)
 
 		//range through slice of washe solutions from previous loop to remove
 		for k := range samples {

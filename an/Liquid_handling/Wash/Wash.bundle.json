@@ -8,7 +8,7 @@
   "parameters": {
     "Process1": {
       "WashVolume": "30ul",
-    	"NumberOfWashes": 1,
+    	"NumberOfWashes": 2,
     	"WashMixing": true,
     	"IncubationBetweenWash": false,
     	"IncubationTime": "0",
@@ -106,7 +106,7 @@
         "position_1",
         "position_7"
     ],
-    "executionPlannerVersion": "ep2",
+    "executionPlannerVersion": "ep3",
     "maxPlates": 4.5,
     "maxWells": 278,
     "modelEvaporation": false,
