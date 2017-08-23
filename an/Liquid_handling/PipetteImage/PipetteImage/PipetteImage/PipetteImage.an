@@ -41,7 +41,6 @@ Data (
 
 // Physical Inputs to this protocol with types
 Inputs (
-	ComponentType *LHComponent
 	OutPlate *LHPlate
 )
 
@@ -96,7 +95,7 @@ Steps {
 
 		sort.Strings(validpalettes)
 
-		Errorf("Palette", Palettename, "not available. Valid entries are: ", strings.Join(validpalettes, ","))
+		Errorf("Palette %s not available. Valid entries are: %s", Palettename, strings.Join(validpalettes, ","))
 	}
 
 	// make sub pallete if necessary
@@ -148,11 +147,8 @@ Steps {
 		// use template component instead
 		var componenttopick *LHComponent
 
-		if ComponentType != nil {
-			componenttopick = ComponentType
-		} else {
-			componenttopick = NewComponent("Paint")
-		}
+		componenttopick = NewComponent("Paint")
+
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick

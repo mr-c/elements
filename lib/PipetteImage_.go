@@ -74,7 +74,7 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 
 		sort.Strings(validpalettes)
 
-		execute.Errorf(_ctx, "Palette", _input.Palettename, "not available. Valid entries are: ", strings.Join(validpalettes, ","))
+		execute.Errorf(_ctx, "Palette %s not available. Valid entries are: %s", _input.Palettename, strings.Join(validpalettes, ","))
 	}
 
 	// make sub pallete if necessary
@@ -126,11 +126,8 @@ func _PipetteImageSteps(_ctx context.Context, _input *PipetteImageInput, _output
 		// use template component instead
 		var componenttopick *wtype.LHComponent
 
-		if _input.ComponentType != nil {
-			componenttopick = _input.ComponentType
-		} else {
-			componenttopick = execute.NewComponent(_ctx, "Paint")
-		}
+		componenttopick = execute.NewComponent(_ctx, "Paint")
+
 		componenttopick.CName = componentname
 
 		componentmap[componentname] = componenttopick
@@ -265,7 +262,6 @@ type PipetteImageElement struct {
 type PipetteImageInput struct {
 	AutoRotate            bool
 	CheckResizeAlgorithms bool
-	ComponentType         *wtype.LHComponent
 	ImageFileName         string
 	InputFile             wtype.File
 	Notthiscolour         string
@@ -311,7 +307,6 @@ func init() {
 			Params: []component.ParamDesc{
 				{Name: "AutoRotate", Desc: "", Kind: "Parameters"},
 				{Name: "CheckResizeAlgorithms", Desc: "", Kind: "Parameters"},
-				{Name: "ComponentType", Desc: "", Kind: "Inputs"},
 				{Name: "ImageFileName", Desc: "Desired name for the output image file\n", Kind: "Parameters"},
 				{Name: "InputFile", Desc: "Image File\n", Kind: "Parameters"},
 				{Name: "Notthiscolour", Desc: "", Kind: "Parameters"},
