@@ -73,7 +73,6 @@
       ],
     	"SamplesPlate": "pcrplate_skirted_riser20",
     	"WashBuffer": "SDSbuffer",
-      "WastePlate": "DWST12",
       "WashPlate": "DWST12"
     }
   },
@@ -106,7 +105,7 @@
         "position_1",
         "position_7"
     ],
-    "executionPlannerVersion": "ep3",
+    "executionPlannerVersion": "ep2",
     "maxPlates": 4.5,
     "maxWells": 278,
     "modelEvaporation": false,

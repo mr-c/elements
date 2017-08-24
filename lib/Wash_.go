@@ -35,7 +35,13 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 	var err error
 	var mixPolicy wtype.PolicyName
 
+	WastePlate := execute.NewPlate(_ctx, "reservoir")
 	var wastedBufferFromSamples []*wtype.LHComponent
+
+	//var samplesSlice []string = MakeSlice(SamplesToWash)
+
+	_input.WashBuffer.SetVolume(wunit.NewVolume(4000, "ul"))
+	_input.WashPlate.Welltype.Add(_input.WashBuffer)
 
 	//determine if WashMixing is selected, and if so, assign LHPolicy to PostMix
 	if _input.WashMixing {
@@ -50,25 +56,24 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 	//loop through up to desired number of washes
 	for j := 0; j < _input.NumberOfWashes; j++ {
 
-		//duplicate washbuffer sample
-		refreshWashBuffer := _input.WashBuffer.Dup()
-
-		_input.WashPlate.Welltype.Add(refreshWashBuffer)
-
 		//range through the input samples and add wash buffer to each
 		for i := range _input.SamplesToWash {
 
 			//sample washbuffer at specified volume
-			washBufferSample := mixer.Sample(refreshWashBuffer, _input.WashVolume)
+			washBufferSample := mixer.Sample(_input.WashBuffer, _input.WashVolume)
 
 			//assign LHpolicy to wash sample (PostMix or NeedToMix)
 			washBufferSample.Type, err = wtype.LiquidTypeFromString(mixPolicy)
+
+			if err != nil {
+				execute.Errorf(_ctx, "LHPolicy %s invalid: %s", mixPolicy, err.Error())
+			}
 
 			//update position to correspond to counter
 			position := samplesWells[i]
 
 			//add wash buffer into samples
-			washSamples := execute.MixInto(_ctx, _input.SamplesPlate, position, washBufferSample)
+			washSamples := execute.MixNamed(_ctx, _input.SamplesPlate.Type, position, "WashPlate", washBufferSample)
 
 			//add wash solutions to slice for subsequent removal
 			samples = append(samples, washSamples)
@@ -79,7 +84,7 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 		for k := range samples {
 
 			//determine volume to be removed by adding WashVolume and adding 20ul excess
-			newWashSolutionVolume := wunit.AddVolumes([]wunit.Volume{_input.WashVolume, wunit.NewVolume(20, "ul")})
+			newWashSolutionVolume := wunit.AddVolumes([]wunit.Volume{_input.WashVolume, wunit.NewVolume(0, "ul")})
 
 			//position := samplesWells[k]
 
@@ -91,7 +96,7 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 		}
 
 		//transfer used wash buffer to WastePlate
-		wasteDisposal := execute.MixInto(_ctx, _input.WastePlate, "A1", wastedBufferFromSamples...)
+		wasteDisposal := execute.MixNamed(_ctx, WastePlate.Type, "A1", "WastePlate", wastedBufferFromSamples...)
 
 		//setup slice to add wasted wash buffer
 		var wastedBuffer []*wtype.LHComponent
@@ -107,6 +112,13 @@ func _WashSteps(_ctx context.Context, _input *WashInput, _output *WashOutput) {
 	_output.Errors = err
 	_output.ProcessedSamples = samples
 
+}
+
+func MakeSlice(v []*wtype.LHComponent) (Names []string) {
+	for _, x := range v {
+		Names = append(Names, x.CName)
+	}
+	return Names
 }
 
 // Run after controls and a steps block are completed to post process any data
@@ -180,7 +192,6 @@ type WashInput struct {
 	WashMixing            bool
 	WashPlate             *wtype.LHPlate
 	WashVolume            wunit.Volume
-	WastePlate            *wtype.LHPlate
 }
 
 type WashOutput struct {
@@ -216,7 +227,6 @@ func init() {
 				{Name: "WashMixing", Desc: "", Kind: "Parameters"},
 				{Name: "WashPlate", Desc: "", Kind: "Inputs"},
 				{Name: "WashVolume", Desc: "", Kind: "Parameters"},
-				{Name: "WastePlate", Desc: "", Kind: "Inputs"},
 				{Name: "Errors", Desc: "", Kind: "Data"},
 				{Name: "ProcessedSamples", Desc: "", Kind: "Outputs"},
 				{Name: "WasteBuffer", Desc: "", Kind: "Outputs"},
