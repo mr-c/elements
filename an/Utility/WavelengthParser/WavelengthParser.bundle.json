@@ -1,0 +1,26 @@
+{
+  "processes": {
+    "Process1": {
+      "component": "WavelengthParser"
+    }
+  },
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "A": 2.99,
+      "B": -1,
+      "ComponentA": "water",
+      "ComponentB": "dna",
+      "Option": false,
+      "String": "Example",
+      "StringArray": [
+        "A",
+        "B",
+        "C"
+      ],
+      "VolumeA": "1ul",
+      "VolumeB": "2ul"
+    }
+  },
+  "config": null
+}

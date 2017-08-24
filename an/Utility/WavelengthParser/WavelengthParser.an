@@ -1,0 +1,180 @@
+// Protocol WavelengthParser performs something.
+protocol WavelengthParser
+
+// Place golang packages to import here
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+)
+
+// Parameters to this protocol
+Parameters (
+	MarsResultsFileXLSX File
+	InputPlateLayout File
+	OutputFileName string
+	Wavelength int
+	Sheetnumber int
+	BlankCorrect bool
+	BlankWell string
+	UseScript int //optional
+
+// Output data of this protocol
+Data (
+	RawData []TimecourseData
+	BlankedData []TimecourseData
+	OutPutFile File
+	Warnings []error
+)
+
+// Physical inputs to this protocol
+Inputs (
+)
+
+// Physical outputs to this protocol
+Outputs (
+)
+
+// Conditions to run on startup
+Setup {
+
+}
+
+// The core process for this protocol. These steps are executed for each input.
+Steps {
+
+	var err error
+	var warnings []error
+
+	if Wavelength == 0 {
+		Wavelength = 600
+	}
+
+	if OutputFileName == "" {
+		OutputFileName = "Output"
+	}
+
+	data, err := MarsResultsFileXLSX.ReadAll()
+
+	if err != nil {
+		Errof("Error in reading MARS file %s: %s", MarsResultsFileXLSX.Name, err.Error())
+	}
+
+	var plateReaderData dataset.FluorescenceTimeCourseData
+
+	plateReaderData, err := ParseMarsXLSXBinary(data, SheetNumber)
+
+	if err != nil {
+		warnings = append(warnings, err)
+		Errorf(err.Error())
+	}
+
+	data, err := InputPlateLayout.ReadAll()
+
+	if err != nil {
+		Errof("Error in reading InputPlateLayout file %s: %s", InputPlateLayout.Name, err.Error())
+	}
+
+	readingValues := make([][]float64, 0)
+	var yBlank []float64
+
+	if len(BlankWell) == 0 && BlankCorrect {
+		Errorf("Cannot Blank correct if no blank well is specified")
+	}
+
+	if len(BlankWell) > 0 && BlankCorrect {
+
+		_, yBlank, err := plateReaderData.TimeCourse(BlankWell, Wavelength, Wavelength, UseScript)
+
+		if err != nil {
+			warnings = append(warnings, err)
+			Errorf(err.Error())
+		}
+	}
+
+	var runs []doe.Run
+
+	odvalues := make([][]float64, 0)
+
+	for k, run = range runs {
+
+		well, err := runs[k].GetAdditionalInfo("Location")
+		if err != nil {
+			warnings = append(warnings, err)
+			Errorf(err.Error())
+		}
+
+		_, y, err := plateReaderData.TimeCourse(well.(string), Excitation, Emission, UseScript)
+		if err != nil {
+			warnings = append(warnings, err)
+			Errorf(err.Error())
+		}
+
+
+			for i := range y {
+
+				if y[i] > 1.0 {
+					var readingError readingOutOfRange
+
+					readingError.Well = well.(string)
+					readingError.Reading = y[i]
+					readingError.ErrorMessage = fmt.Sprintf("Reading %f out of range (> 1.0) for Well %s", readingError.Reading, readingError.Well)
+					warnings = append(warnings, readingError)
+					break
+				}
+			}
+
+			maxReading, _ := Max(y)
+			readingValues = append(readingValues, y)
+
+
+			run = doe.AddNewResponseFieldandValue(run, "Maximum Wavelength Reading", maxReading)
+			run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
+	}
+
+
+}
+
+func Max(data []float64) (max float64, index int) {
+
+	for i, value := range data {
+		if i == 0 {
+			max = value
+			index = i
+		} else if value > max {
+			max = value
+			index = i
+		}
+	}
+	return
+}
+
+type readingOutOfRange struct {
+	Well           string
+	TimeinNanoSecs time.Duration
+	Reading        float64
+	ErrorMessage   string
+}
+
+type TimecourseData struct {
+	TimeinNanoSecs       []time.Duration //wunit.Time
+	OD                   []float64
+	Fluorophore          []float64
+	dFluorophoreperS     []float64
+	MaxFluorophore       float64
+	AverageFluorophore   float64
+	TMaxFluorophore      float64
+	TMaxdFluorophoreperS float64
+}
+
+// Run after controls and a steps block are completed to post process any data
+// and provide downstream results
+Analysis {
+
+}
+
+// A block of tests to perform to validate that the sample was processed
+// correctly. Optionally, destructive tests can be performed to validate
+// results on a dipstick basis
+Validation {
+
+}
