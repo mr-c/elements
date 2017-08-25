@@ -7,12 +7,12 @@
   "connections": null,
   "parameters": {
     "Process1": {
-      "WashVolume": "30ul",
+      "WashVolume": "100ul",
     	"NumberOfWashes": 2,
-    	"WashMixing": true,
+    	"WashMixing": false,
     	"IncubationBetweenWash": false,
-    	"IncubationTime": "0",
-    	"IncubationTemperature": "0",
+    	"IncubationTime": "0.0s",
+    	"IncubationTemperature": "37C",
       "SamplesToWash": [
       ],
     	"SamplesPlate": "pcrplate_skirted_riser20",
@@ -20,7 +20,8 @@
       "WashPlate": "DWST12"
     }
   },
-  "config": {  "inputPlateTypes": [],
+  "Config": {
+    "inputPlateTypes": [],
     "outputPlateTypes": [],
     "driverSpecificInputPreferences": [
         "position_4",
@@ -55,5 +56,7 @@
     "modelEvaporation": false,
     "outputSort": false,
     "residualVolumeWeight": 1,
-    "useDriverTipTracking": true}
+    "useDriverTipTracking": false
+  },
+    "version": "1.2.0"
 }
