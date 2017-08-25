@@ -1,116 +1,107 @@
 // Protocol Wash performs a wash step
 protocol Wash
-
 // Place golang packages to import here
 import (
-	"github.com/antha-lang/antha/antha/anthalib/mixer"
-	"github.com/antha-lang/antha/antha/anthalib/wtype"
+    "github.com/antha-lang/antha/antha/anthalib/mixer"
+    "github.com/antha-lang/antha/antha/anthalib/wtype"
 )
-
 // Parameters to this protocol
 Parameters (
-	WashVolume Volume
-	NumberOfWashes int
-	WashMixing bool
-	IncubationBetweenWash bool
-	IncubationTime Time
-	IncubationTemperature Temperature
+    WashVolume Volume
+    NumberOfWashes int
+    WashMixing bool
+    IncubationBetweenWash bool
+    IncubationTime Time
+    IncubationTemperature Temperature
 )
-
 // Output data of this protocol
 Data (
-	Errors error
+    Errors error
 )
-
 // Physical inputs to this protocol
 Inputs (
-	SamplesToWash []*LHComponent
-	SamplesPlate *LHPlate
-	WashBuffer *LHComponent
-	WashPlate *LHPlate
+    SamplesToWash []*LHComponent //requires inputplate with components and volumes to be parsed in using ParsePlate
+    SamplesPlate *LHPlate
+    WashBuffer *LHComponent
+    WashPlate *LHPlate
 )
-
 // Physical outputs to this protocol
 Outputs (
-	ProcessedSamples []*LHComponent
-	WasteBuffer []*LHComponent
+    ProcessedSamples []*LHComponent
+    WasteBuffer []*LHComponent
 )
-
 // Conditions to run on startup
 Setup {
 }
-
 // The core process for this protocol. These steps are executed for each input.
 Steps {
-	//setup some variables for use during the protocol
-	var samples []*LHComponent
-	var err error
-	var mixPolicy PolicyName
-	WastePlate := NewPlate("reservoir")
-	var wastedBufferFromSamples []*LHComponent
-	//var samplesSlice []string = MakeSlice(SamplesToWash)
-	//WashBuffer.SetVolume(wunit.NewVolume(4000, "ul"))
-	//WashPlate.Welltype.Add(WashBuffer)
-	//determine if WashMixing is selected, and if so, assign LHPolicy to PostMix
-	if WashMixing {
-		mixPolicy = "PostMix"
-	} else {
-		mixPolicy = "DoNotMix"
-	}
-	//get plate info from input plate and was
-	//var samplesWells []string = SamplesPlate.AllWellPositions(wtype.BYCOLUMN)
-	//loop through up to desired number of washes
-	for j := 0; j < NumberOfWashes; j++ {
-		samples = make([]*LHComponent, 0, len(SamplesToWash))
-		wastedBufferFromSamples = make([]*LHComponent, 0, len(SamplesToWash))
-		//range through the input samples and add wash buffer to each
-		for i := range SamplesToWash {
-			//sample washbuffer at specified volume
-			washBufferSample := mixer.Sample(WashBuffer, WashVolume)
-			//assign LHpolicy to wash sample (PostMix or NeedToMix)
-			washBufferSample.Type, err = wtype.LiquidTypeFromString(mixPolicy)
-			if err != nil {
-				Errorf("LHPolicy %s invalid: %s", mixPolicy, err.Error())
-			}
-			//update position to correspond to counter
-			//position := samplesWells[i]
-			//add wash buffer into samples
-			//washSamples := MixNamed(SamplesPlate.Type, position, "WashPlate", washBufferSample)
-			washSamples := Mix(SamplesToWash[i], washBufferSample)
-			//add wash solutions to slice for subsequent removal
-			samples = append(samples, washSamples)
-		}
-		//range through slice of washe solutions from previous loop to remove
-		for k := range samples {
-			//determine volume to be removed by adding WashVolume and adding 20ul excess
-			newWashSolutionVolume := wunit.AddVolumes([]Volume{WashVolume, wunit.NewVolume(-5.5, "ul")})
-			//position := samplesWells[k]
-			//remove wash buffer at updated volume
-			washBufferRemoval := mixer.Sample(samples[k], newWashSolutionVolume)
-			samples[k] = Mix(samples[k]) // proposed solution, add this silently in compile step
-			// similarly can update ids for other cmps
-			wastedBufferFromSamples = append(wastedBufferFromSamples, washBufferRemoval)
-			SamplesToWash[k] = samples[k]
-		}
-		//transfer used wash buffer to WastePlate
-		wasteDisposal := MixNamed(WastePlate.Type, "", "WastePlate", wastedBufferFromSamples...)
-		//setup slice to add wasted wash buffer
-		var wastedBuffer []*LHComponent
-		//add wasted wash buffer to slice
-		wastedBuffer = append(wastedBuffer, wasteDisposal)
-		//update outputs
-		WasteBuffer = wastedBuffer
-	}
-	//update outputs
-	Errors = err
-	ProcessedSamples = samples
+    //setup some variables for use during the protocol
+    var samples []*LHComponent
+    var err error
+    var mixPolicy PolicyName
+    WastePlate := NewPlate("reservoir")
+    var wastedBufferFromSamples []*LHComponent
+    //var samplesSlice []string = MakeSlice(SamplesToWash)
+    //WashBuffer.SetVolume(wunit.NewVolume(4000, "ul"))
+    //WashPlate.Welltype.Add(WashBuffer)
+    //determine if WashMixing is selected, and if so, assign LHPolicy to PostMix
+    if WashMixing {
+        mixPolicy = "PostMix"
+    } else {
+        mixPolicy = "DoNotMix"
+    }
+    //get plate info from input plate and was
+    //var samplesWells []string = SamplesPlate.AllWellPositions(wtype.BYCOLUMN)
+    //loop through up to desired number of washes
+    for j := 0; j < NumberOfWashes; j++ {
+        samples = make([]*LHComponent, 0, len(SamplesToWash))
+        wastedBufferFromSamples = make([]*LHComponent, 0, len(SamplesToWash))
+        //range through the input samples and add wash buffer to each
+        for i := range SamplesToWash {
+            //sample washbuffer at specified volume
+            washBufferSample := mixer.Sample(WashBuffer, WashVolume)
+            //assign LHpolicy to wash sample (PostMix or NeedToMix)
+            washBufferSample.Type, err = wtype.LiquidTypeFromString(mixPolicy)
+            if err != nil {
+                Errorf("LHPolicy %s invalid: %s", mixPolicy, err.Error())
+            }
+            //update position to correspond to counter
+            //position := samplesWells[i]
+            //add wash buffer into samples
+            //washSamples := MixNamed(SamplesPlate.Type, position, "WashPlate", washBufferSample)
+            washSamples := Mix(SamplesToWash[i], washBufferSample)
+            //add wash solutions to slice for subsequent removal
+            samples = append(samples, washSamples)
+        }
+        //range through slice of washe solutions from previous loop to remove
+        for k := range samples {
+            //determine volume to be removed by adding WashVolume and adding 20ul excess
+            newWashSolutionVolume := wunit.AddVolumes([]Volume{WashVolume, wunit.NewVolume(-5.5, "ul")})
+            //position := samplesWells[k]
+            //remove wash buffer at updated volume
+            washBufferRemoval := mixer.Sample(samples[k], newWashSolutionVolume)
+            samples[k] = Mix(samples[k]) // proposed solution, add this silently in compile step
+            // similarly can update ids for other cmps
+            wastedBufferFromSamples = append(wastedBufferFromSamples, washBufferRemoval)
+            SamplesToWash[k] = samples[k]
+        }
+        //transfer used wash buffer to WastePlate
+        wasteDisposal := MixNamed(WastePlate.Type, "", "WastePlate", wastedBufferFromSamples...)
+        //setup slice to add wasted wash buffer
+        var wastedBuffer []*LHComponent
+        //add wasted wash buffer to slice
+        wastedBuffer = append(wastedBuffer, wasteDisposal)
+        //update outputs
+        WasteBuffer = wastedBuffer
+    }
+    //update outputs
+    Errors = err
+    ProcessedSamples = samples
 }
-
 // Run after controls and a steps block are completed to post process any data
 // and provide downstream results
 Analysis {
 }
-
 // A block of tests to perform to validate that the sample was processed
 // correctly. Optionally, destructive tests can be performed to validate
 // results on a dipstick basis
