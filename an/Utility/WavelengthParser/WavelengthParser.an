@@ -32,10 +32,12 @@ Data (
 )
 
 // Physical inputs to this protocol
-Inputs ()
+Inputs (
+)
 
 // Physical outputs to this protocol
-Outputs ()
+Outputs (
+)
 
 // Conditions to run on startup
 Setup {
@@ -53,7 +55,7 @@ Steps {
 	}
 
 	if OutputFileName == "" {
-		OutputFileName = "Output"
+		OutputFileName = "Output.xlsx"
 	}
 
 	data, err := MarsResultsFileXLSX.ReadAll()
@@ -64,6 +66,10 @@ Steps {
 
 	var plateReaderData dataset.AbsorbanceData
 
+	if PlateReaderFileType == "" {
+		PlateReaderFileType = "Mars"
+	}
+
 	plateReaderData, err = parse.ParseMarsXLSXBinary(data, SheetNumber)
 
 	if err != nil {
@@ -71,19 +77,30 @@ Steps {
 		Errorf(err.Error())
 	}
 
-	data, err = InputPlateLayout.ReadAll()
+	//ParsePlate
+	result := RunSteps (ParsePlate, Parameters {
+		InputCSVfile: InputPlateLayout
+	}
+	)
+
+	inputPlateFile := result.Outputs.PlatewithComponents
+	err = result.Outputs.Error
 
 	if err != nil {
 		Errorf("Error in reading InputPlateLayout file %s: %s", InputPlateLayout.Name, err.Error())
 	}
 
-	var runs []doe.Run
+	var componentsMap = make(map[string]*LHComponent)
 
-	runs, err = doe.RunsFromDXDesignContents
+	for _, inputPlateContents := range inputPlateFile.AllWellPositions(wtype.BYCOLUMN) {
+				component := inputPlateFile.WellMap()[inputPlateContents]
+				componentsMap = append(componentsMap, component)
+	}
 
-	readingValues := make([]float64, 0)
-	var yBlank []float64
-	var reading float64
+	readingValues := make([]wavelengthReading, 0)
+	var yBlank []wavelengthReading
+	var reading wavelengthReading
+
 
 	if len(BlankWell) == 0 && BlankCorrect {
 		Errorf("Cannot Blank correct if no blank well is specified")
@@ -97,6 +114,12 @@ Steps {
 			Errorf(err.Error())
 		}
 	}
+
+
+	//Blank correct function on interac AbsorbanceData
+
+	//blankCorrectInterface := plateReaderData.BlankCorrect()
+
 
 	for k, run := range runs {
 
@@ -117,43 +140,46 @@ Steps {
 
 		rawData.OD = copySlice(y)
 
-		for i := range y {
+			for i := range y {
 
-			if y[i] > 1.0 {
-				var readingError readingOutOfRange
-				readingError.Well = well.(string)
-				readingError.Reading = y[i]
-				readingError.ErrorMessage = fmt.Sprintf("Reading %f out of range (> 1.0) for Well %s", readingError.Reading, readingError.Well)
-				break
-			}
+				if y[i] > 1.0 {
+					var readingError readingOutOfRange
+					readingError.Well = well.(string)
+					readingError.Reading = y[i]
+					readingError.ErrorMessage = fmt.Sprintf("Reading %f out of range (> 1.0) for Well %s", readingError.Reading, readingError.Well)
+					break
+				}
 			//}
 
-			//	for i := range y {
-			if BlankCorrect {
-				if y[i]-yBlank[i] < 0 {
+		//	for i := range y {
+				if BlankCorrect {
+					if y[i] - yBlank[i] < 0 {
 
-					var blankError readingOutOfRange
-					blankError.Well = well.(string)
-					blankError.Reading = y[i] - yBlank[i]
-					blankError.ErrorMessage = fmt.Sprintf("Blank corrected reading %f out of range (< 1.0) got Well %s", blankError.Reading, blankError.Well)
+						var blankError readingOutOfRange
+						blankError.Well = well.(string)
+						blankError.Reading = y[i] - yBlank[i]
+						blankError.ErrorMessage = fmt.Sprintf("Blank corrected reading %f out of range (< 1.0) got Well %s", blankError.Reading, blankError.Well)
+					}
+					reading = y[i] - yBlank[i]
+				} else {
+					reading = y[i]
 				}
-				reading = y[i] - yBlank[i]
-			} else {
-				reading = y[i]
+
+				readingValues = append(readingValues, reading)
 			}
 
-			readingValues = append(readingValues, reading)
-		}
 
-		maxReading, _ := Max(y)
+			maxReading, _ := Max(y)
 
-		run = doe.AddNewResponseFieldandValue(run, "Maximum Wavelength Reading", maxReading)
-		run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
+			run = doe.AddNewResponseFieldandValue(run, "Maximum Wavelength Reading", maxReading)
+			run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
 
-		RawData = append(RawData, rawData)
-		BlankedData = append(BlankedData, blankCorrectedData)
+			RawData = append(RawData, rawData)
+			BlankedData = append(BlankedData, blankCorrectedData)
+
 
 	}
+
 
 }
 
@@ -171,12 +197,18 @@ func Max(data []float64) (max float64, index int) {
 	return
 }
 
-func copySlice(f []float64) []float64 {
-	var nf []float64
-	for j := range f {
-		nf = append(nf, f[j])
-	}
-	return nf
+func copySlice (f []float64) []float64 {
+		var nf []float64
+		for j := range f {
+			nf = append(nf, f[j])
+		}
+		return nf
+}
+
+type wavelengthReading struct {
+	Well		string
+	Blank		float64
+	Reading	float64
 }
 
 type readingOutOfRange struct {
@@ -184,7 +216,7 @@ type readingOutOfRange struct {
 	TimeinNanoSecs time.Duration
 	Reading        float64
 	ErrorMessage   string
-	Error          error
+	Error					 error
 }
 
 type TimecourseData struct {
