@@ -3,8 +3,8 @@ protocol ImportMultipleDNASequence
 
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"path/filepath"
@@ -47,7 +47,7 @@ Steps {
 		Errorf("The file format of %s is not supported. Please use file of format .fasta for this element.", SequenceFile.Name)
 	}
 
-	seqs, err := parser.DNAFileToDNASequence(SequenceFile)
+	seqs, err := parse.DNAFileToDNASequence(SequenceFile)
 
 	if err != nil {
 		Errorf("The file %s could not be imported. Error: %s ", SequenceFile.Name, err.Error())

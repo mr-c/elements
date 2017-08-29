@@ -4,9 +4,9 @@ protocol PrimerDesign_sequence_your_neighbours
 
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse/genbank"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -102,7 +102,7 @@ Steps {
 			Errorf(err.Error())
 		}
 
-		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
+		sequence, _ := genbank.GenbankContentsToAnnotatedSeq(data)
 
 		primer1, primer2 := oligos.MakeOutwardFacingPrimers(sequence, Maxgc, Minlength, Maxlength, Mintemp, Maxtemp, allprimerstrings, PermittednucleotideOverlapBetweenPrimers)
 
@@ -197,7 +197,7 @@ Validation {
 			Errorf(err.Error())
 		}
 
-		sequence, _ := parser.GenbankContentsToAnnotatedSeq(data)
+		sequence, _ := genbank.GenbankContentsToAnnotatedSeq(data)
 
 		for _, primer := range AllPrimers {
 

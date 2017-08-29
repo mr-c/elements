@@ -5,8 +5,8 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
@@ -39,7 +39,7 @@ func _PrimerDesign_coverfullsequenceSetup(_ctx context.Context, _input *PrimerDe
 func _PrimerDesign_coverfullsequenceSteps(_ctx context.Context, _input *PrimerDesign_coverfullsequenceInput, _output *PrimerDesign_coverfullsequenceOutput) {
 	var plasmid wtype.DNASequence
 
-	plasmids, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
+	plasmids, err := parse.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if err != nil {
 		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())

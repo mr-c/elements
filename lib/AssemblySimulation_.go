@@ -22,7 +22,7 @@ func _AssemblySimulationSteps(_ctx context.Context, _input *AssemblySimulationIn
 	assembly := enzymes.Assemblyparameters{"Simulated", _input.RE, _input.VectorSeq, _input.PartsWithOverhangs}
 
 	// Simulation
-	_output.SimulationStatus, _output.NumberofSuccessfulAssemblies, _output.RestrictionSitesFound, _output.SimulatedSequence, _output.Warnings = enzymes.Assemblysimulator(assembly)
+	_output.SimulationStatus, _output.NumberofSuccessfulAssemblies, _output.RestrictionSitesFound, _output.SimulatedSequences, _output.Warnings = enzymes.Assemblysimulator(assembly)
 
 }
 
@@ -91,7 +91,7 @@ type AssemblySimulationInput struct {
 type AssemblySimulationOutput struct {
 	NumberofSuccessfulAssemblies int
 	RestrictionSitesFound        []enzymes.Restrictionsites
-	SimulatedSequence            wtype.DNASequence
+	SimulatedSequences           []wtype.DNASequence
 	SimulationStatus             string
 	Validated                    bool
 	ValidationStatus             string
@@ -102,7 +102,7 @@ type AssemblySimulationSOutput struct {
 	Data struct {
 		NumberofSuccessfulAssemblies int
 		RestrictionSitesFound        []enzymes.Restrictionsites
-		SimulatedSequence            wtype.DNASequence
+		SimulatedSequences           []wtype.DNASequence
 		SimulationStatus             string
 		Validated                    bool
 		ValidationStatus             string
@@ -125,7 +125,7 @@ func init() {
 				{Name: "VectorSeq", Desc: "", Kind: "Parameters"},
 				{Name: "NumberofSuccessfulAssemblies", Desc: "", Kind: "Data"},
 				{Name: "RestrictionSitesFound", Desc: "", Kind: "Data"},
-				{Name: "SimulatedSequence", Desc: "", Kind: "Data"},
+				{Name: "SimulatedSequences", Desc: "", Kind: "Data"},
 				{Name: "SimulationStatus", Desc: "", Kind: "Data"},
 				{Name: "Validated", Desc: "", Kind: "Data"},
 				{Name: "ValidationStatus", Desc: "", Kind: "Data"},

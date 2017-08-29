@@ -15,7 +15,7 @@ import (
 )
 
 //"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
+//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 
 // Input parameters for this protocol
 
