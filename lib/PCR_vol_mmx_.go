@@ -105,31 +105,32 @@ func _PCR_vol_mmxSteps(_ctx context.Context, _input *PCR_vol_mmxInput, _output *
 	meltingTemp := enzymes.DNApolymerasetemps[polymerase]["meltingtemp"]
 
 	// initial Denaturation
-
-	r1 := execute.Incubate(_ctx, reaction, meltingTemp, _input.InitDenaturationtime, false)
+	execute.Incubate(_ctx, reaction, meltingTemp, _input.InitDenaturationtime, false)
 
 	for i := 0; i < _input.Numberofcycles; i++ {
 
 		// Denature
 
-		r1 = execute.Incubate(_ctx, r1, meltingTemp, _input.Denaturationtime, false)
+		execute.Incubate(_ctx, reaction, meltingTemp, _input.Denaturationtime, false)
 
 		// Anneal
-		r1 = execute.Incubate(_ctx, r1, _input.AnnealingTemp, _input.Annealingtime, false)
+		execute.Incubate(_ctx, reaction, _input.AnnealingTemp, _input.Annealingtime, false)
 
 		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
 
 		// Extend
-		r1 = execute.Incubate(_ctx, r1, extensionTemp, _input.Extensiontime, false)
+		execute.Incubate(_ctx, reaction, extensionTemp, _input.Extensiontime, false)
 
 	}
 	// Final Extension
-	r1 = execute.Incubate(_ctx, r1, extensionTemp, _input.Finalextensiontime, false)
+	execute.Incubate(_ctx, reaction, extensionTemp, _input.Finalextensiontime, false)
 
 	// all done
-	_output.Reaction = r1
+	_output.Reaction = reaction //r1
 
 	_output.Reaction.CName = _input.ReactionName
+
+	//Reaction = Prompt(Reaction, "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
 }
 
 // Run after controls and a steps block are completed to

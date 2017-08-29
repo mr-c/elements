@@ -133,31 +133,32 @@ Steps {
 	meltingTemp := enzymes.DNApolymerasetemps[polymerase]["meltingtemp"]
 
 	// initial Denaturation
-
-	r1 := Incubate(reaction, meltingTemp, InitDenaturationtime, false)
+	Incubate(reaction, meltingTemp, InitDenaturationtime, false)
 
 	for i := 0; i < Numberofcycles; i++ {
 
 		// Denature
 
-		r1 = Incubate(r1, meltingTemp, Denaturationtime, false)
+		Incubate(reaction, meltingTemp, Denaturationtime, false)
 
 		// Anneal
-		r1 = Incubate(r1, AnnealingTemp, Annealingtime, false)
+		Incubate(reaction, AnnealingTemp, Annealingtime, false)
 
 		//extensiontime := TargetTemplatelengthinBP/PCRPolymerase.RateBPpers // we'll get type issues here so leave it out for now
 
 		// Extend
-		r1 = Incubate(r1, extensionTemp, Extensiontime, false)
+		Incubate(reaction, extensionTemp, Extensiontime, false)
 
 	}
 	// Final Extension
-	r1 = Incubate(r1, extensionTemp, Finalextensiontime, false)
+	Incubate(reaction, extensionTemp, Finalextensiontime, false)
 
 	// all done
-	Reaction = r1
+	Reaction = reaction //r1
 
 	Reaction.CName = ReactionName
+
+	//Reaction = Prompt(Reaction, "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
 }
 
 // Run after controls and a steps block are completed to
