@@ -7,22 +7,18 @@
   "connections": null,
   "parameters": {
     "Process1": {
-      "MarsResultsFileXLSX": {
-      "name": "",
-      "bytes": {
-        "bytes": ""
-      },
-      "InputPlateLayout": {
-      "name": "",
-      "bytes": {
-        "bytes": ""
-      },
-      "OutputFileName": "OutPutFile",
-      "Wavelength": 600,
-      "SheetNumber": 0,
-      "BlankCorrect": true,
-      "BlankWell": "A1",
-      "UseScript": 0
+      "MarsResultsFileXLSX"" "File",
+    	"OutputFileName": "string",
+    	"Wavelength": 600,
+    	"SheetNumber": 0,
+    	"BlankCorrect": true,
+    	"BlankWells": [
+
+      ],
+    	"UseScript": 1,
+    	"PlateReaderFileType": "string",
+    	"ReadingTypeinMarsFile": "string",
+      "InputPlateLayout": "pcrplate_skirted_riser20"
     }
   },
   "config": null

@@ -4,40 +4,40 @@ protocol WavelengthParser
 // Place golang packages to import here
 import (
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/doe"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/export"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/platereader/dataset/parse"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
-	"time"
 )
 
 // Parameters to this protocol
 Parameters (
 	MarsResultsFileXLSX File
-	InputPlateLayout File
 	OutputFileName string
 	Wavelength int
 	SheetNumber int
 	BlankCorrect bool
-	BlankWell string
+	BlankWells []string
 	UseScript int //optional
+	PlateReaderFileType string
+	ReadingTypeinMarsFile string
 )
 
 // Output data of this protocol
 Data (
-	RawData []TimecourseData
-	BlankedData []TimecourseData
+	RawData map[string]float64
+	BlankedData map[string]float64
 	OutPutFile File
-	Warnings []error
+	Warnings []Warning
 )
 
 // Physical inputs to this protocol
 Inputs (
+	InputPlateLayout *LHPlate
 )
 
 // Physical outputs to this protocol
-Outputs (
-)
+Outputs ()
 
 // Conditions to run on startup
 Setup {
@@ -70,164 +70,81 @@ Steps {
 		PlateReaderFileType = "Mars"
 	}
 
-	plateReaderData, err = parse.ParseMarsXLSXBinary(data, SheetNumber)
+	if PlateReaderFileType == "Mars" {
+		plateReaderData, err = parse.ParseMarsXLSXBinary(data, SheetNumber)
+		if err != nil {
+			Warnings = append(Warnings, wtype.NewWarning(err.Error()))
+			Errorf(err.Error())
+		}
+	} else if PlateReaderFileType == "SpectraMax" {
+		plateReaderData, err = parse.ParseSpectraMaxData(data)
+		if err != nil {
+			Warnings = append(Warnings, wtype.NewWarning(err.Error()))
+			Errorf(err.Error())
+		}
+	}
 
+	//if len input plate zero
+
+	//if err != nil {
+	//Errorf("Error in reading InputPlateLayout file %s: %s", InputPlateLayout.Name, err.Error())
+	//}
+
+	componentsMap := make(map[string]*LHComponent)
+
+	for _, well := range InputPlateLayout.AllWellPositions(wtype.BYCOLUMN) {
+		if !InputPlateLayout.WellMap()[well].Empty() {
+			component := InputPlateLayout.WellMap()[well].WContents //is empty for error
+			componentsMap[well] = component
+		}
+	}
+
+	blankValues := make([]float64, 0)
+	var blankValue float64
+
+	if len(BlankWells) == 0 && BlankCorrect {
+		Errorf("Cannot Blank correct if no blank well is specified")
+	}
+
+	if len(BlankWells) > 0 && BlankCorrect {
+		for i := range BlankWells {
+			blankValue, err = plateReaderData.AbsorbanceReading(BlankWells[i], Wavelength, ReadingTypeinMarsFile)
+			if err != nil {
+				Errorf(fmt.Sprint("Blank sample not found at position ", BlankWells[i], ": ", err.Error()))
+			}
+		}
+		blankValues = append(blankValues, blankValue)
+	}
+
+	for well, _ := range componentsMap {
+
+		if len(BlankWells) > 0 && BlankCorrect {
+			blankCorrected, err := plateReaderData.BlankCorrect([]string{well}, BlankWells, Wavelength, ReadingTypeinMarsFile)
+			if err != nil {
+				warnings = append(warnings, err)
+				Errorf(err.Error())
+			}
+			BlankedData[well] = blankCorrected
+		}
+		rawData, err := plateReaderData.AbsorbanceReading(well, Wavelength, ReadingTypeinMarsFile)
+		if err != nil {
+			warnings = append(warnings, err)
+			Errorf(err.Error())
+		}
+		RawData[well] = rawData
+	}
+	var csv [][]string
+	var headers []string = []string{"Well", "SampleName", "BlankedReading"}
+	csv = append(csv, headers)
+	for well, data := range BlankedData {
+		var data []string = []string{well, componentsMap[well].CName, fmt.Sprint(data)}
+		csv = append(csv, data)
+	}
+	OutPutFile, err = export.CSV(csv, OutputFileName)
 	if err != nil {
 		warnings = append(warnings, err)
 		Errorf(err.Error())
 	}
-
-	//ParsePlate
-	result := RunSteps (ParsePlate, Parameters {
-		InputCSVfile: InputPlateLayout
-	}
-	)
-
-	inputPlateFile := result.Outputs.PlatewithComponents
-	err = result.Outputs.Error
-
-	if err != nil {
-		Errorf("Error in reading InputPlateLayout file %s: %s", InputPlateLayout.Name, err.Error())
-	}
-
-	var componentsMap = make(map[string]*LHComponent)
-
-	for _, inputPlateContents := range inputPlateFile.AllWellPositions(wtype.BYCOLUMN) {
-				component := inputPlateFile.WellMap()[inputPlateContents]
-				componentsMap = append(componentsMap, component)
-	}
-
-	readingValues := make([]wavelengthReading, 0)
-	var yBlank []wavelengthReading
-	var reading wavelengthReading
-
-
-	if len(BlankWell) == 0 && BlankCorrect {
-		Errorf("Cannot Blank correct if no blank well is specified")
-	}
-
-	if len(BlankWell) > 0 && BlankCorrect {
-		_, yBlank, err = plateReaderData.TimeCourse(BlankWell, Wavelength, Wavelength, UseScript)
-
-		if err != nil {
-			warnings = append(warnings, err)
-			Errorf(err.Error())
-		}
-	}
-
-
-	//Blank correct function on interac AbsorbanceData
-
-	//blankCorrectInterface := plateReaderData.BlankCorrect()
-
-
-	for k, run := range runs {
-
-		var rawData TimecourseData
-		var blankCorrectedData TimecourseData
-
-		well, err := runs[k].GetAdditionalInfo("Location")
-		if err != nil {
-			warnings = append(warnings, err)
-			Errorf(err.Error())
-		}
-
-		_, y, err := plateReaderData.TimeCourse(well.(string), Wavelength, Wavelength, UseScript)
-		if err != nil {
-			warnings = append(warnings, err)
-			Errorf(err.Error())
-		}
-
-		rawData.OD = copySlice(y)
-
-			for i := range y {
-
-				if y[i] > 1.0 {
-					var readingError readingOutOfRange
-					readingError.Well = well.(string)
-					readingError.Reading = y[i]
-					readingError.ErrorMessage = fmt.Sprintf("Reading %f out of range (> 1.0) for Well %s", readingError.Reading, readingError.Well)
-					break
-				}
-			//}
-
-		//	for i := range y {
-				if BlankCorrect {
-					if y[i] - yBlank[i] < 0 {
-
-						var blankError readingOutOfRange
-						blankError.Well = well.(string)
-						blankError.Reading = y[i] - yBlank[i]
-						blankError.ErrorMessage = fmt.Sprintf("Blank corrected reading %f out of range (< 1.0) got Well %s", blankError.Reading, blankError.Well)
-					}
-					reading = y[i] - yBlank[i]
-				} else {
-					reading = y[i]
-				}
-
-				readingValues = append(readingValues, reading)
-			}
-
-
-			maxReading, _ := Max(y)
-
-			run = doe.AddNewResponseFieldandValue(run, "Maximum Wavelength Reading", maxReading)
-			run = doe.AddNewResponseFieldandValue(run, "Runorder", k)
-
-			RawData = append(RawData, rawData)
-			BlankedData = append(BlankedData, blankCorrectedData)
-
-
-	}
-
-
-}
-
-func Max(data []float64) (max float64, index int) {
-
-	for i, value := range data {
-		if i == 0 {
-			max = value
-			index = i
-		} else if value > max {
-			max = value
-			index = i
-		}
-	}
-	return
-}
-
-func copySlice (f []float64) []float64 {
-		var nf []float64
-		for j := range f {
-			nf = append(nf, f[j])
-		}
-		return nf
-}
-
-type wavelengthReading struct {
-	Well		string
-	Blank		float64
-	Reading	float64
-}
-
-type readingOutOfRange struct {
-	Well           string
-	TimeinNanoSecs time.Duration
-	Reading        float64
-	ErrorMessage   string
-	Error					 error
-}
-
-type TimecourseData struct {
-	TimeinNanoSecs       []time.Duration //wunit.Time
-	OD                   []float64
-	Fluorophore          []float64
-	dFluorophoreperS     []float64
-	MaxFluorophore       float64
-	AverageFluorophore   float64
-	TMaxFluorophore      float64
-	TMaxdFluorophoreperS float64
 }
 
 // Run after controls and a steps block are completed to post process any data
