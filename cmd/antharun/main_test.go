@@ -98,6 +98,10 @@ func addBytes(param json.RawMessage) (fileWithbytes json.RawMessage, err error) 
 	}
 	err = json.Unmarshal(bts, &file)
 
+	if err != nil {
+		return
+	}
+
 	contents, err := ioutil.ReadFile(file.Name)
 
 	if err != nil {
@@ -164,12 +168,14 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 
 			outPath, _ := oldRepoToNew(input.Dir)
 
+			originalPath, _ := multiElementPath(input.Dir)
+
 			var bundleName string
 
-			var overwriteExistingFiles bool = true
+			var overwriteExistingFiles bool //= true
 
 			if len(bundleProcesses) > 1 {
-				bundleName = filepath.Join(outPath, "multi-element-bundles", strings.Join(bundleProcesses, "_"), strings.Join(bundleProcesses, "_")+".bundle.json")
+				bundleName = filepath.Join(outPath, originalPath, strings.Join(bundleProcesses, "_"), strings.Join(bundleProcesses, "_")+".bundle.json")
 			} else {
 				bundleName = filepath.Join(outPath, bundleProcesses[0], bundleProcesses[0]+".bundle.json")
 			}
@@ -301,6 +307,20 @@ func findInputs(basePaths ...string) ([]*executeutil.TestInput, error) {
 	return inputs, nil
 }
 
+var (
+	anthaExamples = []string{
+		"../../antha-lang/elements/an", "../../../../antha-lang/elements/an", /* "../../../../antha-lang/elements/workflows", "../../antha-lang/elements/workflows", "../../../../antha-lang/elements/defaults", "../../antha-lang/elements/defaults"*/
+	}
+
+	synthaceExamples = []string{
+		"an",
+		"../../examples",
+		"examples",
+		"../../defaults",
+		"defaults",
+	}
+)
+
 func TestElementsWithExampleInputs(t *testing.T) {
 	flag.Parse()
 
@@ -309,7 +329,7 @@ func TestElementsWithExampleInputs(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	inputs, err := findInputs("an", "../../an", "../../workflows", "workflows", "../../defaults", "defaults")
+	inputs, err := findInputs(anthaExamples...)
 	if err != nil {
 		t.Fatal(err)
 	}
