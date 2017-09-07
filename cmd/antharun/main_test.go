@@ -2,13 +2,19 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
+
+	//"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/AnthaPath"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
 
 	"github.com/antha-lang/antha/execute"
 	"github.com/antha-lang/antha/execute/executeutil"
@@ -39,6 +45,83 @@ func makeContext() (context.Context, error) {
 	return testinventory.NewContext(ctx), nil
 }
 
+/// relevant to copying defaults over to repos.antha.com
+//var path string = anthapath.Path()
+
+var reposPath string = "/Users/theukshowdown/go/src/repos.antha.com/antha-ninja/elements-westeros/"
+
+var anthalangElementsExamples string = "/Users/theukshowdown/go/src/github.com/antha-lang/"
+
+var synthaceElementsExamples string = "/Users/theukshowdown/go/src/github.com/Synthace/"
+
+func oldRepoToNew(path string) (outPath string, err error) {
+
+	if strings.Contains(path, "antha-lang/elements") {
+		return filepath.Join(reposPath, "antha-lang-elements"), nil
+	} else if strings.Contains(path, "Synthace/elements") {
+		return filepath.Join(reposPath, "synthace-elements"), nil
+	}
+
+	return reposPath, fmt.Errorf("unexpected path %s", path)
+}
+
+func multiElementPath(path string) (outPath string, err error) {
+
+	if strings.Contains(path, "antha-lang/elements") {
+		return filepath.Join(reposPath, "antha-lang-elements", strings.Trim(path, anthalangElementsExamples)), nil
+	} else if strings.Contains(path, "Synthace/elements") {
+		return filepath.Join(reposPath, "synthace-elements", strings.Trim(path, synthaceElementsExamples)), nil
+	}
+
+	return reposPath, fmt.Errorf("unexpected path %s", path)
+}
+
+func addBytesToFiles(params map[string]map[string]json.RawMessage) map[string]map[string]json.RawMessage {
+	for _, param := range params {
+		for key, value := range param {
+			if newFile, err := addBytes(value); err == nil {
+				param[key] = newFile
+			}
+		}
+	}
+	return params
+}
+
+func addBytes(param json.RawMessage) (fileWithbytes json.RawMessage, err error) {
+
+	var file wtype.File
+
+	bts, err := param.MarshalJSON()
+
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(bts, &file)
+
+	contents, err := ioutil.ReadFile(file.Name)
+
+	if err != nil {
+		return
+	}
+
+	err = file.WriteAll(contents)
+
+	if err != nil {
+		return
+	}
+
+	marshalled, err := json.Marshal(file)
+
+	if err != nil {
+		return
+	}
+
+	err = fileWithbytes.UnmarshalJSON(marshalled)
+
+	return
+}
+
+// use this to copy bundles over into correct folders
 func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInput) {
 	defer func() {
 		if res := recover(); res != nil {
@@ -70,6 +153,59 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 			TransitionalReadLocalFiles: true,
 		})
 
+		// This code is added to copy bundle files as defaults
+		if err == nil {
+			var bundleProcesses []string
+			for _, v := range input.Workflow.Processes {
+				bundleProcesses = append(bundleProcesses, v.Component)
+			}
+
+			sort.Strings(bundleProcesses)
+
+			outPath, _ := oldRepoToNew(input.Dir)
+
+			var bundleName string
+
+			var overwriteExistingFiles bool = true
+
+			if len(bundleProcesses) > 1 {
+				bundleName = filepath.Join(outPath, "multi-element-bundles", strings.Join(bundleProcesses, "_"), strings.Join(bundleProcesses, "_")+".bundle.json")
+			} else {
+				bundleName = filepath.Join(outPath, bundleProcesses[0], bundleProcesses[0]+".bundle.json")
+			}
+
+			if overwriteExistingFiles {
+				input.ExportBundle(bundleName)
+			} else if _, err := os.Stat(bundleName); !os.IsNotExist(err) {
+
+				fmt.Printf("file %s already exists so appending name", bundleName)
+				// 9 example files permitted per process
+				for i := 2; i < 10; i++ {
+					if len(bundleProcesses) > 1 {
+						bundleName = filepath.Join(outPath, "multi-element-bundles", strings.Join(bundleProcesses, "_"), strings.Join(bundleProcesses, "_")+fmt.Sprint("_", i)+".bundle.json")
+					} else {
+						bundleName = filepath.Join(outPath, bundleProcesses[0], bundleProcesses[0]+fmt.Sprint("_", i)+".bundle.json")
+					}
+
+					if _, err := os.Stat(bundleName); os.IsNotExist(err) {
+						input.ExportBundle(bundleName)
+						break
+					}
+				}
+
+			} else {
+				input.ExportBundle(bundleName)
+			}
+
+			if len(bundleProcesses) == 1 {
+				parametersName := filepath.Join(outPath, bundleProcesses[0], "metadata.json")
+
+				if _, err := os.Stat(parametersName); os.IsNotExist(err) {
+					input.ExportDefaults(parametersName)
+				}
+			}
+		}
+
 		if err == nil && input.Expected != nil {
 			err = workflowtest.CompareTestResults(results, *input.Expected)
 		}
@@ -93,6 +229,8 @@ func runTestInput(t *testing.T, ctx context.Context, input *executeutil.TestInpu
 		t.Errorf("error running %s: %s", inputLabel(input), err)
 	}
 }
+
+//
 
 func inputLabel(input *executeutil.TestInput) string {
 	if len(input.BundlePath) != 0 {
