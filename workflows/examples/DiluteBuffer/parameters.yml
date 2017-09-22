@@ -1,8 +1,0 @@
-Parameters:
-  DiluteBuffer:
-    BufferVolumeAdded: 1ul
-    Bufferstock: PEG
-    Bufferstockconc: 0.006M/l
-    Diluent: water
-    DiluentVolume: 45ul
-    OutPlate: pcrplate_with_cooler

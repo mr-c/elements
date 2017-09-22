@@ -1,0 +1,9 @@
+{
+  "defaults": {
+    "LiquidVolume": "100ul",
+    "Liquidname": "Evian",
+    "OutPlate": "pcrplate_skirted_riser40",
+    "Startingsolution": "water"
+  },
+  "name": "Transfer"
+}

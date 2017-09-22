@@ -1,0 +1,27 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "Evaporationrate": {
+      "Airvelocity": "0m/s",
+      "Executiontime": "4h",
+      "Liquid": "fluorescein",
+      "Pa": "102000Pa",
+      "Platetype": "pcrplate_skirted",
+      "Relativehumidity": 0.31,
+      "Temp": "31.4C",
+      "Volumeperwell": "100ul"
+    }
+  },
+  "processes": {
+    "Evaporationrate": {
+      "component": "Evaporationrate"
+    }
+  }
+}

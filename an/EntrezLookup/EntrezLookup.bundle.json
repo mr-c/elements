@@ -1,0 +1,44 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "fasta": {
+      "Database": "nucleotide",
+      "Filename": "EF208560.fasta",
+      "ID": "EF208560",
+      "MaxReturns": 1,
+      "ReturnType": "fasta"
+    },
+    "genbank": {
+      "Database": "nucleotide",
+      "Filename": "accD.gb",
+      "ID": "opuntia[ORGN] accD",
+      "MaxReturns": 1,
+      "ReturnType": "gb"
+    },
+    "xml": {
+      "Database": "nucleotide",
+      "Filename": "file.xml",
+      "ID": "opuntia[ORGN] accD",
+      "MaxReturns": 1,
+      "ReturnType": "xml"
+    }
+  },
+  "processes": {
+    "fasta": {
+      "component": "EntrezLookup"
+    },
+    "genbank": {
+      "component": "EntrezLookup"
+    },
+    "xml": {
+      "component": "EntrezLookup"
+    }
+  }
+}

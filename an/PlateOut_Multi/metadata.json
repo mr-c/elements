@@ -1,0 +1,22 @@
+{
+  "defaults": {
+    "AgarPlate": "falcon6wellAgar_bioshake",
+    "IncubationTemp": "37C",
+    "IncubationTime": "57600s",
+    "NumberofReplicates": 1,
+    "PlateOutLiquidPolicy": "plateout",
+    "PlateOutVolumes": {
+      "default": [
+        "50ul",
+        "100ul"
+      ]
+    },
+    "TransformedCells": [
+      "neb5compcells",
+      "protoplasts",
+      "culture"
+    ],
+    "WellsAlreadyUsed": 0
+  },
+  "name": "PlateOut_Multi"
+}

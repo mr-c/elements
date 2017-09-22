@@ -1,0 +1,32 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Names": [
+        "MOPS",
+        "PIPES",
+        "MES",
+        "TB"
+      ],
+      "StockConcentrations": {
+        "MOPS": "50mM",
+        "default": "0mM"
+      },
+      "UseLHPolicy": {
+        "default": "water"
+      }
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "Add_Solution_Multi"
+    }
+  }
+}

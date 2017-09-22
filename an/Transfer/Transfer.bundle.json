@@ -1,0 +1,23 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "newparams": {
+      "LiquidVolume": "100ul",
+      "Liquidname": "Evian",
+      "OutPlate": "pcrplate_skirted_riser40",
+      "Startingsolution": "water"
+    }
+  },
+  "processes": {
+    "newparams": {
+      "component": "Transfer"
+    }
+  }
+}

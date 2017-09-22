@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "ByRow": false,
+    "NumberofAliquots": 3,
+    "OutPlate": "nunc1536_riser",
+    "SolutionVolume": "4000ul",
+    "Solutions": [
+      "water",
+      "fluorescein"
+    ],
+    "VolumePerAliquot": "5ul"
+  },
+  "name": "AliquotTo"
+}

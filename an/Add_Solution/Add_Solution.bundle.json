@@ -1,0 +1,22 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Name": "MOPS",
+      "StockConcentration": "50mM",
+      "UseLHPolicy": "water"
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "Add_Solution"
+    }
+  }
+}

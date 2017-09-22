@@ -1,0 +1,33 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "OutPlate": "greiner384",
+      "SampleAVolumes": {
+        "default": "20ul"
+      },
+      "SampleAs": [
+        "water",
+        "tartrazine"
+      ],
+      "SampleBVolumes": {
+        "default": "3ul"
+      },
+      "SampleBs": [
+        "dna"
+      ]
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "Mix_AxB"
+    }
+  }
+}

@@ -1,6 +1,0 @@
-Parameters:
-  StockBuffer:
-    Diluent: water
-    MassAddedinG: 0.01538g
-    Moleculename: glucose
-    TotalVolume: 100ml

@@ -1,0 +1,29 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "StockBuffer": {
+      "Diluent": "DMSO",
+      "ExtraInstructions": [
+        "Aliquot and Store away from light"
+      ],
+      "Molecule": "X-Glucuro",
+      "MoleculeDensity": "1000kg/m^3",
+      "StorageTemperature": "-20C",
+      "TargetConc": "100mg/ml",
+      "TotalVolume": "10ml",
+      "Vessel": "1L_DuranBottle"
+    }
+  },
+  "processes": {
+    "StockBuffer": {
+      "component": "MakeStockBuffer2"
+    }
+  }
+}

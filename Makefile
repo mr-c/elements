@@ -1,8 +1,8 @@
 SHELL=/bin/bash
 
-AN_DIRS=an starter
+AN_DIRS=an
 AN_OUT=lib
-INPUT_DIRS=workflows starter defaults
+INPUT_DIRS=an
 PACKAGE=github.com/antha-lang/elements
 
 # Compile after downloading dependencies

@@ -1,0 +1,14 @@
+{
+  "defaults": {
+    "ByRow": false,
+    "ChangeSolutionName": "",
+    "NumberOfReplicatePlates": 3,
+    "NumberofAliquots": 8,
+    "OutPlate": "pcrplate_with_cooler",
+    "PreMix": false,
+    "Solution": "water",
+    "SolutionVolume": "4000ul",
+    "VolumePerAliquot": "25ul"
+  },
+  "name": "Aliquot"
+}

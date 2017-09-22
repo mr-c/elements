@@ -1,0 +1,27 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "Assaysetup": {
+      "Buffer": "water",
+      "Enzyme": "T4Ligase",
+      "EnzymeVolume": "1ul",
+      "NumberofReactions": 1,
+      "OutPlate": "pcrplate_skirted",
+      "Substrate": "CutsmartBuffer",
+      "SubstrateVolume": "2ul",
+      "TotalVolume": "10ul"
+    }
+  },
+  "processes": {
+    "Assaysetup": {
+      "component": "Assaysetup"
+    }
+  }
+}

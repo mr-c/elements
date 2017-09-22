@@ -1,0 +1,54 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [
+    {
+      "source": {
+        "port": "Sample",
+        "process": "sample"
+      },
+      "target": {
+        "port": "Solution",
+        "process": "sampleAll"
+      }
+    }
+  ],
+  "parameters": {
+    "sample": {
+      "SampleVolume": "15ul",
+      "Solution": "water"
+    },
+    "sampleAll": {
+      "Sampleall": true
+    },
+    "sampleTotal": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "150ul"
+    },
+    "samplealone": {
+      "SampleVolume": "20ul",
+      "Solution": "water"
+    }
+  },
+  "processes": {
+    "sample": {
+      "component": "Sample"
+    },
+    "sampleAll": {
+      "component": "SampleAll"
+    },
+    "sampleTotal": {
+      "component": "SampleForTotalVolume"
+    },
+    "samplealone": {
+      "component": "Sample"
+    }
+  }
+}

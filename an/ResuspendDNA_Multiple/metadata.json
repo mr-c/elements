@@ -1,0 +1,27 @@
+{
+  "defaults": {
+    "DNAPlate": "greiner384_riser",
+    "Diluent": "water",
+    "PartLocationsMap": {
+      "A": "A1",
+      "B": "B1"
+    },
+    "PartMassMap": {
+      "A": "98.17ug",
+      "B": "289.96ug"
+    },
+    "PartMolecularWeightMap": {
+      "A": 10057.57,
+      "B": 15057.57
+    },
+    "PartPlateMap": {
+      "default": "DNAPlate"
+    },
+    "Parts": [
+      "A",
+      "B"
+    ],
+    "TargetConc": "2000ng/ul"
+  },
+  "name": "ResuspendDNA_Multiple"
+}

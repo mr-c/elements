@@ -1,0 +1,25 @@
+{
+  "defaults": {
+    "AddPrefix": "",
+    "AddSuffix": "TTTTTTTTTT",
+    "InputSequences": [
+      {
+        "jm": "RBS_1",
+        "plasmid": false,
+        "seq": "AATCTCATATCTCAAATATAAGCCGGATCATATG"
+      },
+      {
+        "jm": "RBS_2",
+        "plasmid": false,
+        "seq": "AATCTCATAGATCAAATATAAGGAGGATCATATG"
+      },
+      {
+        "jm": "RBS_3",
+        "plasmid": false,
+        "seq": "AATCTCATATATCAAATATAGGGTGGATCATATG"
+      }
+    ],
+    "ProjectName": "Add_Ends_To_RBS_Project"
+  },
+  "name": "Append_Prepend_DNASequence"
+}

@@ -1,0 +1,13 @@
+{
+  "defaults": {
+    "Buffer": "water",
+    "Enzyme": "T4Ligase",
+    "EnzymeVolume": "1ul",
+    "NumberofReactions": 5,
+    "OutPlate": "pcrplate_skirted_riser20",
+    "Substrate": "dna_part",
+    "SubstrateVolume": "2ul",
+    "TotalVolume": "10ul"
+  },
+  "name": "SetupReactions_onebyone"
+}

@@ -1,0 +1,19 @@
+{
+  "defaults": {
+    "OutPlate": "greiner384",
+    "SampleAVolumes": {
+      "default": "20ul"
+    },
+    "SampleAs": [
+      "water",
+      "tartrazine"
+    ],
+    "SampleBVolumes": {
+      "default": "3ul"
+    },
+    "SampleBs": [
+      "dna"
+    ]
+  },
+  "name": "Mix_AxB"
+}

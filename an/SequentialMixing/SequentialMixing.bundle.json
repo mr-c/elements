@@ -1,0 +1,25 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "SerialDilute": {
+      "Diluent": "water",
+      "DilutionFactor": 10,
+      "NumberOfDilutions": 16,
+      "OutPlate": "DSW96_riser20",
+      "Solution": "tartrazine",
+      "TotalVolumeperDilution": "100ul"
+    }
+  },
+  "processes": {
+    "SerialDilute": {
+      "component": "SequentialMixing"
+    }
+  }
+}

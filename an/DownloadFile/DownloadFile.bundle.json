@@ -1,0 +1,21 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "Imagefilename": "antha.png",
+      "URL": "http://blogs.plos.org/synbio/files/2015/12/a-logo-color-416.png"
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "DownloadFile"
+    }
+  }
+}

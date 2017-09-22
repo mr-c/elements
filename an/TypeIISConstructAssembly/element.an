@@ -1,0 +1,106 @@
+protocol TypeIISConstructAssembly
+
+import (
+	"fmt"
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+	ReactionVolume Volume
+	PartVols []Volume
+	PartNames []string
+	VectorVol Volume
+	BufferVol Volume
+	AtpVol Volume
+	ReVol Volume
+	LigVol Volume
+
+	ReactionTemp Temperature
+	ReactionTime Time
+	InactivationTemp Temperature
+	InactivationTime Time
+
+	OutputReactionName string
+)
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Parts []*LHComponent
+	Vector *LHComponent
+	RestrictionEnzyme *LHComponent
+	Buffer *LHComponent
+	Water *LHComponent
+	Ligase *LHComponent
+	Atp *LHComponent
+	OutPlate *LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Reaction *LHComponent
+)
+
+// Data which is returned from this protocol, and data types
+Data ()
+
+Requirements {}
+
+// Conditions to run on startup
+Setup {}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+	samples := make([]*LHComponent, 0)
+	waterSample := mixer.SampleForTotalVolume(Water, ReactionVolume)
+	samples = append(samples, waterSample)
+
+	bufferSample := mixer.Sample(Buffer, BufferVol)
+	samples = append(samples, bufferSample)
+
+	atpSample := mixer.Sample(Atp, AtpVol)
+	samples = append(samples, atpSample)
+
+	//vectorSample := mixer.Sample(Vector, VectorVol)
+	vectorSample := mixer.Sample(Vector, VectorVol)
+	samples = append(samples, vectorSample)
+
+	for k, part := range Parts {
+		fmt.Println("creating dna part num ", k, " comp ", part.CName, " renamed to ", PartNames[k], " vol ", PartVols[k])
+		partSample := mixer.Sample(part, PartVols[k])
+		partSample.CName = PartNames[k]
+		samples = append(samples, partSample)
+	}
+
+	reSample := mixer.Sample(RestrictionEnzyme, ReVol)
+	samples = append(samples, reSample)
+
+	ligSample := mixer.Sample(Ligase, LigVol)
+	samples = append(samples, ligSample)
+
+	out1 := MixInto(OutPlate, "", samples...)
+
+	// incubate the reaction mixture
+	out2 := Incubate(out1, IncubateOpt{
+		Temp: ReactionTemp,
+		Time: ReactionTime,
+	})
+	// inactivate
+	Reaction = Incubate(out2, IncubateOpt{
+		Temp: InactivationTemp,
+		Time: InactivationTime,
+	})
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+}

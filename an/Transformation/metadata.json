@@ -1,0 +1,12 @@
+{
+  "defaults": {
+    "CompetentCellvolumeperassembly": "50ul",
+    "OutPlate": "pcrplate_skirted_bioshake_96well_adaptor",
+    "Postplasmidtemp": "2C",
+    "Postplasmidtime": "300s",
+    "Reaction": "dna_part",
+    "Reactionvolume": "10ul",
+    "ReadyCompCells": "neb5compcells"
+  },
+  "name": "Transformation"
+}

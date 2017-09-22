@@ -1,0 +1,11 @@
+{
+  "defaults": {
+    "Recoverymedium": "LB",
+    "Recoverytemp": "25C",
+    "Recoverytime": "57600s",
+    "Recoveryvolume": "500ul",
+    "TransformedcellVolume": "50ul",
+    "Transformedcells": "neb5compcells"
+  },
+  "name": "Recovery"
+}

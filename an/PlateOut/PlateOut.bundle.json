@@ -1,0 +1,28 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "AgarPlate": "falcon6wellAgar",
+      "AgarPlateNumber": 1,
+      "IncubationTemp": "37C",
+      "IncubationTime": "57600s",
+      "NumberofReplicates": 2,
+      "PlateOutLiquidPolicy": "plateout",
+      "PlateOutVolume": "100ul",
+      "TransformedCells": "neb5compcells",
+      "WellsAlreadyUsed": 0
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "PlateOut"
+    }
+  }
+}

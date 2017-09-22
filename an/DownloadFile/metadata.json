@@ -1,0 +1,7 @@
+{
+  "defaults": {
+    "Imagefilename": "antha.png",
+    "URL": "http://blogs.plos.org/synbio/files/2015/12/a-logo-color-416.png"
+  },
+  "name": "DownloadFile"
+}

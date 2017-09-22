@@ -1,0 +1,23 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "sampleTotal": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "150ul"
+    }
+  },
+  "processes": {
+    "sampleTotal": {
+      "component": "SampleForTotalVolume"
+    }
+  }
+}

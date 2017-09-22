@@ -7,7 +7,6 @@ import
 // the mixer package is required to use the Sample function
 (
 	"context"
-	"fmt"
 	"github.com/antha-lang/antha/antha/anthalib/mixer"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -42,16 +41,9 @@ func _ResuspendDNASetup(_ctx context.Context, _input *ResuspendDNAInput) {
 
 func _ResuspendDNASteps(_ctx context.Context, _input *ResuspendDNAInput, _output *ResuspendDNAOutput) {
 
-	targetconcgperL := _input.TargetConc.GramPerL(_input.MolecularWeight).SIValue()
+	targetConcGperL := _input.TargetConc.GramPerL(_input.MolecularWeight)
 
-	dnamassG := _input.DNAMass.SIValue()
-
-	if _input.DNAMass.Unit().BaseSIUnit() == "kg" {
-		dnamassG = dnamassG * 1000
-		_output.Warnings = append(_output.Warnings, fmt.Sprintln("Base Unit correction; Base unit of mass = ", _input.DNAMass.Unit().BaseSIUnit(), " therfore multiplying by 1000 to convert to grams"))
-	}
-
-	volumetoadd := wunit.NewVolume(dnamassG/targetconcgperL, "L")
+	volumetoadd := wunit.NewVolume(_input.DNAMass.SIValue()/targetConcGperL.SIValue(), "l")
 
 	diluentSample := mixer.Sample(_input.Diluent, volumetoadd)
 
@@ -154,7 +146,7 @@ func init() {
 		Constructor: ResuspendDNANew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol for resuspending freeze dried DNA with a diluent\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/ResuspendDNA/ResuspendDNA.an",
+			Path: "src/github.com/antha-lang/elements/an/ResuspendDNA/element.an",
 			Params: []component.ParamDesc{
 				{Name: "DNAMass", Desc: "Mass of DNA to Resuspend\n", Kind: "Parameters"},
 				{Name: "DNAPlate", Desc: "Type of plate DNA sample is on.\n", Kind: "Inputs"},

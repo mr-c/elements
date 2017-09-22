@@ -1,0 +1,18 @@
+{
+  "defaults": {
+    "Names": [
+      "MOPS",
+      "PIPES",
+      "MES",
+      "TB"
+    ],
+    "StockConcentrations": {
+      "MOPS": "50mM",
+      "default": "0mM"
+    },
+    "UseLHPolicy": {
+      "default": "water"
+    }
+  },
+  "name": "Add_Solution_Multi"
+}

@@ -1,0 +1,44 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentsA": [
+        "dna",
+        "dna",
+        "dna",
+        "dna"
+      ],
+      "ComponentsB": [
+        "water",
+        "water",
+        "water",
+        "water"
+      ],
+      "OutPlate": "pcrplate_skirted_riser20",
+      "VolumesA": [
+        "5ul",
+        "1ul",
+        "5ul",
+        "10ul"
+      ],
+      "VolumesB": [
+        "10ul",
+        "1ul",
+        "2ul",
+        "5ul"
+      ]
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "MixAplusBtoNewPlate"
+    }
+  }
+}

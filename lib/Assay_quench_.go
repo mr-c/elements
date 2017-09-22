@@ -36,11 +36,21 @@ func _Assay_quenchSteps(_ctx context.Context, _input *Assay_quenchInput, _output
 	substrate := mixer.Sample(_input.Substrate, _input.SubstrateVolume)
 	enzyme := mixer.Sample(_input.Enzyme, _input.EnzymeVolume)
 
-	// MixTo(platetype string, address string, platenum int, components ...*LHComponent)
+	reaction := execute.MixTo(_ctx, _input.OutPlate, "", 1, substrate)
 
-	reaction := execute.MixTo(_ctx, _input.OutPlate, "", 1, substrate, enzyme)
+	reaction = execute.Mix(_ctx, reaction, enzyme)
 
-	finishedreaction := execute.Incubate(_ctx, reaction, _input.ReactionTemp, _input.ReactionTime, true)
+	var finishedreaction *wtype.LHComponent
+
+	if _input.ShakerRate.SIValue() == 0 && _input.ReactionTemp.LessThan(wunit.NewTemperature(27, "C")) {
+		finishedreaction = reaction
+	} else {
+		finishedreaction = execute.Incubate(_ctx, reaction, execute.IncubateOpt{
+			Temp:      _input.ReactionTemp,
+			Time:      _input.ReactionTime,
+			ShakeRate: _input.ShakerRate,
+		})
+	}
 
 	quench := mixer.Sample(_input.Quenchingagent, _input.QuenchingagentVolume)
 
@@ -115,6 +125,7 @@ type Assay_quenchInput struct {
 	QuenchingagentVolume wunit.Volume
 	ReactionTemp         wunit.Temperature
 	ReactionTime         wunit.Time
+	ShakerRate           wunit.Rate
 	Substrate            *wtype.LHComponent
 	SubstrateVolume      wunit.Volume
 }
@@ -136,7 +147,7 @@ func init() {
 		Constructor: Assay_quenchNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/AssaySetUp/QuenchedReaction.an",
+			Path: "src/github.com/antha-lang/elements/an/Assay_quench/element.an",
 			Params: []component.ParamDesc{
 				{Name: "Enzyme", Desc: "", Kind: "Inputs"},
 				{Name: "EnzymeVolume", Desc: "", Kind: "Parameters"},
@@ -145,6 +156,7 @@ func init() {
 				{Name: "QuenchingagentVolume", Desc: "", Kind: "Parameters"},
 				{Name: "ReactionTemp", Desc: "", Kind: "Parameters"},
 				{Name: "ReactionTime", Desc: "", Kind: "Parameters"},
+				{Name: "ShakerRate", Desc: "", Kind: "Parameters"},
 				{Name: "Substrate", Desc: "", Kind: "Inputs"},
 				{Name: "SubstrateVolume", Desc: "", Kind: "Parameters"},
 				{Name: "QuenchedReaction", Desc: "", Kind: "Outputs"},

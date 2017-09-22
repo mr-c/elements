@@ -1,0 +1,23 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "StockBuffer": {
+      "Diluent": "water",
+      "MassAddedinG": "0.01538g",
+      "Moleculename": "glucose",
+      "TotalVolume": "100ml"
+    }
+  },
+  "processes": {
+    "StockBuffer": {
+      "component": "MakeStockBuffer"
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "defaults": {
+    "SampleVolume": "15ul",
+    "Solution": "neb5compcells"
+  },
+  "name": "Sample"
+}

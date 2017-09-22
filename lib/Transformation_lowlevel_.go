@@ -22,9 +22,6 @@ import (
 
 // Physical Inputs to this protocol with types
 
-//RecoveryPlate *LHPlate
-//CompcellPlate *LHPlate
-
 // Physical outputs from this protocol with types
 
 func _Transformation_lowlevelRequirements() {
@@ -55,7 +52,10 @@ func _Transformation_lowlevelSteps(_ctx context.Context, _input *Transformation_
 
 	// wait
 	for _, transformationmix := range transformations {
-		incubated := execute.Incubate(_ctx, transformationmix, _input.Postplasmidtemp, _input.Postplasmidtime, false)
+		incubated := execute.Incubate(_ctx, transformationmix, execute.IncubateOpt{
+			Temp: _input.Postplasmidtemp,
+			Time: _input.Postplasmidtime,
+		})
 		incubatedtransformations = append(incubatedtransformations, incubated)
 	}
 
@@ -67,7 +67,12 @@ func _Transformation_lowlevelSteps(_ctx context.Context, _input *Transformation_
 
 	// recovery
 	for _, mix := range recoverymixes {
-		incubated := execute.Incubate(_ctx, mix, _input.Recoverytemp, _input.Recoverytime, true)
+		rate, _ := wunit.NewRate(60, "/min")
+		incubated := execute.Incubate(_ctx, mix, execute.IncubateOpt{
+			Temp:      _input.Recoverytemp,
+			Time:      _input.Recoverytime,
+			ShakeRate: rate,
+		})
 		_output.Transformedcells = append(_output.Transformedcells, incubated)
 	}
 
@@ -159,7 +164,7 @@ func init() {
 		Constructor: Transformation_lowlevelNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/Transformation/Transformation_lowlevel.an",
+			Path: "src/github.com/antha-lang/elements/an/Transformation_lowlevel/element.an",
 			Params: []component.ParamDesc{
 				{Name: "Postplasmidtemp", Desc: "", Kind: "Parameters"},
 				{Name: "Postplasmidtime", Desc: "", Kind: "Parameters"},

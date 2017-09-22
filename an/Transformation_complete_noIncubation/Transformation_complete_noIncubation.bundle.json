@@ -1,0 +1,34 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "Transformation_1": {
+      "AgarPlate": "falcon6wellAgar",
+      "CompetentCellPlate": "pcrplate_with_cooler",
+      "CompetentCells": "neb5compcells",
+      "MinimumCompetentCellVolume": "50ul",
+      "Plateoutvolume": "100ul",
+      "Postplasmidtemp": "2C",
+      "Postplasmidtime": "300s",
+      "Preplasmidtemp": "2C",
+      "Preplasmidtime": "300s",
+      "Reaction": "dna_part",
+      "Reactionvolume": "1ul",
+      "Recoverymedium": "LB",
+      "Recoverytemp": "25C",
+      "Recoverytime": "57600s",
+      "Recoveryvolume": "500ul"
+    }
+  },
+  "processes": {
+    "Transformation_1": {
+      "component": "Transformation_complete_noIncubation"
+    }
+  }
+}

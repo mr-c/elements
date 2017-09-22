@@ -1,0 +1,39 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "AddPrefix": "",
+      "AddSuffix": "TTTTTTTTTT",
+      "InputSequences": [
+        {
+          "jm": "RBS_1",
+          "plasmid": false,
+          "seq": "AATCTCATATCTCAAATATAAGCCGGATCATATG"
+        },
+        {
+          "jm": "RBS_2",
+          "plasmid": false,
+          "seq": "AATCTCATAGATCAAATATAAGGAGGATCATATG"
+        },
+        {
+          "jm": "RBS_3",
+          "plasmid": false,
+          "seq": "AATCTCATATATCAAATATAGGGTGGATCATATG"
+        }
+      ],
+      "ProjectName": "Add_Ends_To_RBS_Project"
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "Append_Prepend_DNASequence"
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": {
+    "DriverOutputFileName": "",
+    "DriverSpecificInputPreferences": null,
+    "DriverSpecificOutputPreferences": null,
+    "DriverSpecificTipPreferences": null,
+    "DriverSpecificTipWastePreferences": null,
+    "DriverSpecificWashPreferences": null,
+    "InputPlateData": null,
+    "InputPlateType": [
+      "pcrplate_skirted_riser"
+    ],
+    "InputPlates": null,
+    "LegacyVolume": false,
+    "MaxPlates": null,
+    "MaxWells": null,
+    "ModelEvaporation": false,
+    "OutputPlateType": [
+      "greiner384_riser"
+    ],
+    "OutputPlates": null,
+    "OutputSort": false,
+    "PlanningVersion": "",
+    "PrintInstructions": false,
+    "ResidualVolumeWeight": null,
+    "TipType": null,
+    "UseDriverTipTracking": false
+  },
+  "connections": [
+    {
+      "source": {
+        "port": "Sample",
+        "process": "sample"
+      },
+      "target": {
+        "port": "Solution",
+        "process": "sampleAll"
+      }
+    }
+  ],
+  "parameters": {
+    "sample": {
+      "SampleVolume": "15ul",
+      "Solution": "water"
+    },
+    "sampleAll": {
+      "Sampleall": true
+    },
+    "sampleTotal": {
+      "Diluent": "water",
+      "Solution": "neb5compcells",
+      "SolutionVolume": "15ul",
+      "TotalVolume": "150ul"
+    },
+    "samplealone": {
+      "SampleVolume": "20ul",
+      "Solution": "water"
+    }
+  },
+  "processes": {
+    "sample": {
+      "component": "Sample"
+    },
+    "sampleAll": {
+      "component": "SampleAll"
+    },
+    "sampleTotal": {
+      "component": "SampleForTotalVolume"
+    },
+    "samplealone": {
+      "component": "Sample"
+    }
+  }
+}

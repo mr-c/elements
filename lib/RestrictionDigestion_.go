@@ -64,9 +64,15 @@ func _RestrictionDigestionSteps(_ctx context.Context, _input *RestrictionDigesti
 	}
 
 	// incubate the reaction mixture
-	r1 := execute.Incubate(_ctx, execute.MixInto(_ctx, _input.OutPlate, "", samples...), _input.ReactionTemp, _input.ReactionTime, false)
+	r1 := execute.Incubate(_ctx, execute.MixInto(_ctx, _input.OutPlate, "", samples...), execute.IncubateOpt{
+		Temp: _input.ReactionTemp,
+		Time: _input.ReactionTime,
+	})
 	// inactivate
-	_output.Reaction = execute.Incubate(_ctx, r1, _input.InactivationTemp, _input.InactivationTime, false)
+	_output.Reaction = execute.Incubate(_ctx, r1, execute.IncubateOpt{
+		Temp: _input.InactivationTemp,
+		Time: _input.InactivationTime,
+	})
 }
 
 // Run after controls and a steps block are completed to
@@ -138,7 +144,6 @@ type RestrictionDigestionInput struct {
 	EnzSolutions     []*wtype.LHComponent
 	EnzVolumestoadd  []wunit.Volume
 	EnzymeNames      []string
-	InPlate          *wtype.LHPlate
 	InactivationTemp wunit.Temperature
 	InactivationTime wunit.Time
 	OutPlate         *wtype.LHPlate
@@ -165,7 +170,7 @@ func init() {
 		Constructor: RestrictionDigestionNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/RestrictionDigestion/set_volumes/RestrictionDigestion.an",
+			Path: "src/github.com/antha-lang/elements/an/RestrictionDigestion/element.an",
 			Params: []component.ParamDesc{
 				{Name: "BSAoptional", Desc: "", Kind: "Inputs"},
 				{Name: "BSAvol", Desc: "", Kind: "Parameters"},
@@ -177,7 +182,6 @@ func init() {
 				{Name: "EnzSolutions", Desc: "", Kind: "Inputs"},
 				{Name: "EnzVolumestoadd", Desc: "\tStockReConcinUperml \t\t[]int\n\tDesiredConcinUperml\t \t\t[]int\n", Kind: "Parameters"},
 				{Name: "EnzymeNames", Desc: "", Kind: "Parameters"},
-				{Name: "InPlate", Desc: "", Kind: "Inputs"},
 				{Name: "InactivationTemp", Desc: "", Kind: "Parameters"},
 				{Name: "InactivationTime", Desc: "", Kind: "Parameters"},
 				{Name: "OutPlate", Desc: "", Kind: "Inputs"},

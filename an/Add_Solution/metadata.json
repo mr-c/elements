@@ -1,0 +1,8 @@
+{
+  "defaults": {
+    "Name": "MOPS",
+    "StockConcentration": "50mM",
+    "UseLHPolicy": "water"
+  },
+  "name": "Add_Solution"
+}

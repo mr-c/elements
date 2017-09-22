@@ -1,0 +1,23 @@
+{
+  "defaults": {
+    "LiquidTypes": [
+      "water",
+      "NeedToMix",
+      "DispenseAboveLiquid"
+    ],
+    "LiquidVolumes": [
+      "19ul",
+      "100ul"
+    ],
+    "Liquidname": "tartrazine",
+    "OutPlates": [
+      "pcrplate_skirted",
+      "pcrplate_skirted_riser20",
+      "pcrplate_skirted_riser40",
+      "pcrplate_skirted_bioshake_standard_adaptor"
+    ],
+    "Startingsolution": "tartrazine",
+    "TestName": "pcrplate+postrefactor"
+  },
+  "name": "PlateTest"
+}

@@ -1,0 +1,17 @@
+{
+  "defaults": {
+    "ByRow": false,
+    "Diluent": "water",
+    "OutPlate": "DSW96_riser",
+    "Solution": "tartrazine",
+    "StartVolumeperDilution": "100ul",
+    "StockConcentration": "10mg/ml",
+    "TargetConcentrations": [
+      "10mg/ml",
+      "1mg/ml",
+      "0.5mg/ml",
+      "0.0025mg/ml"
+    ]
+  },
+  "name": "SerialDilution_forConcentration"
+}

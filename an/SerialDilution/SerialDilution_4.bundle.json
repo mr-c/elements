@@ -1,0 +1,29 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "SerialDilute": {
+      "ByRow": false,
+      "Diluent": "water",
+      "DilutionFactor": 10,
+      "DilutionPlateName": "DilutionPlate",
+      "NumberOfDilutions": 16,
+      "OutPlate": "pcrplate_skirted_riser20",
+      "RemoveExcessSolution": true,
+      "Solution": "tartrazine",
+      "TotalVolumeperDilution": "100ul",
+      "WellsAlreadyUsed": 0
+    }
+  },
+  "processes": {
+    "SerialDilute": {
+      "component": "SerialDilution"
+    }
+  }
+}

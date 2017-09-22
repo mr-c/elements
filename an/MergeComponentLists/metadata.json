@@ -1,0 +1,11 @@
+{
+  "defaults": {
+    "ComponentsA": [
+      "water"
+    ],
+    "ComponentsB": [
+      "dna"
+    ]
+  },
+  "name": "MergeComponentLists"
+}
