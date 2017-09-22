@@ -1,0 +1,15 @@
+{
+  "Parameters": {
+    "AliquotParams": {
+      "ByRow": true,
+      "NumberofAliquots": 50,
+      "OutPlate": "greiner384_riser20",
+      "SolutionVolume": "4000ul",
+      "Solutions": [
+        "water",
+        "fluorescein"
+      ],
+      "VolumePerAliquot": "5ul"
+    }
+  }
+}

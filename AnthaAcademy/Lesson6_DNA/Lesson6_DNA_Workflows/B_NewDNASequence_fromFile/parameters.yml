@@ -1,0 +1,22 @@
+Parameters:
+  fasta:
+    Gene_name: TheUnkownSequence
+    Plasmid: false
+    SequenceFile:
+      host_file:
+        filename: test.fasta
+      name: test.fasta
+  gdx:
+    Gene_name: TheUnkownSequence
+    Plasmid: false
+    SequenceFile:
+      host_file:
+        filename: test.gdx
+      name: test.gdx
+  genbank:
+    Gene_name: TheUnkownSequence
+    Plasmid: false
+    SequenceFile:
+      host_file:
+        filename: test.gb
+      name: test.gb

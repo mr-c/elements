@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "Assaysetup": {
+      "component": "ReactionSetUp"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+Parameters:
+  "1":
+    MyUnit: ul
+    MyValue: 15
+  1copy:
+    MyUnit: ul
+    MyValue: 15
+  two:
+    MyUnit: l
+    MyValue: 0.15

@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "MMX": {
+      "component": "Mastermix_one"
+    }
+  }
+}

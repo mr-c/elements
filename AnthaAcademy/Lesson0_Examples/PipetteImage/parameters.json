@@ -1,0 +1,66 @@
+{
+  "Parameters": {
+    "MakePalette1": {
+      "AutoRotate": true,
+      "Black": "Black",
+      "Cyan": "Cyan",
+      "ImageFile": {
+        "host_file": {
+          "filename": "taylor.png"
+        },
+        "name": "taylor.png"
+      },
+      "LowerThreshold": 50,
+      "Magenta": "Magenta",
+      "OutPlate": "pcrplate_skirted_riser20",
+      "PalettePlate": "pcrplate_skirted_riser20",
+      "PosterizeImage": true,
+      "PosterizeLevels": 2,
+      "Rotate": false,
+      "VolumeForFullcolour": "70ul",
+      "White": "whiteFabricDye",
+      "Yellow": "Yellow_ink"
+    },
+    "Pipette1": {
+      "AutoRotate": true,
+      "ImageFile": {
+        "host_file": {
+          "filename": "taylor.png"
+        },
+        "name": "taylor.png"
+      },
+      "LiquidType": "water",
+      "LowerThreshold": 50,
+      "NotthisColour": "white",
+      "OnlythisColour": "",
+      "OutPlate": "Agarplateforpicking768_riser20",
+      "PosterizeImage": true,
+      "PosterizeLevels": 2,
+      "Rotate": false,
+      "VolumePerWell": "1ul"
+    }
+  },
+  "config": {
+    "DriverSpecificInputPreferences": [
+      "position_4"
+    ],
+    "DriverSpecificOutputPreferences": [
+      "position_7",
+      "position_8"
+    ],
+    "DriverSpecificTipPreferences": [
+      "position_9",
+      "position_6",
+      "position_5",
+      "position_3",
+      "position_2"
+    ],
+    "DriverSpecificTipWastePreferences": [
+      "position_1"
+    ],
+    "InputPlateType": [
+      "DWST12_riser20"
+    ],
+    "OutputSort": false
+  }
+}

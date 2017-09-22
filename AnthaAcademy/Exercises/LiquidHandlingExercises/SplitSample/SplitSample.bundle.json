@@ -1,0 +1,64 @@
+{
+  "config": {
+    "InputPlateType": [
+      "greiner384_riser"
+    ],
+    "OutputPlateType": [
+      "greiner384_riser"
+    ]
+  },
+  "connections": [
+    {
+      "src": {
+        "port": "ComponentA",
+        "process": "Process1"
+      },
+      "tgt": {
+        "port": "InputSolution",
+        "process": "Process2"
+      }
+    }
+  ],
+  "parameters": {
+    "Process1": {
+      "InputSolution": "TB",
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "100ul",
+      "VolumeB": "20ul",
+      "WellA": "",
+      "WellB": ""
+    },
+    "Process2": {
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "1ul",
+      "VolumeB": "200ul",
+      "WellA": "",
+      "WellB": ""
+    },
+    "Process3": {
+      "InputSolution": "dna",
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "0.5ul",
+      "VolumeB": "2ul",
+      "WellA": "",
+      "WellB": ""
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "SplitSample"
+    },
+    "Process2": {
+      "component": "SplitSample"
+    },
+    "Process3": {
+      "component": "SplitSample"
+    }
+  }
+}
