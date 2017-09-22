@@ -4,8 +4,8 @@ package lib
 import (
 	"context"
 	"fmt"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -48,7 +48,7 @@ func _ImportMultipleDNASequenceSteps(_ctx context.Context, _input *ImportMultipl
 		execute.Errorf(_ctx, "The file format of %s is not supported. Please use file of format .fasta for this element.", _input.SequenceFile.Name)
 	}
 
-	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
+	seqs, err := parse.DNAFileToDNASequence(_input.SequenceFile)
 
 	if err != nil {
 		execute.Errorf(_ctx, "The file %s could not be imported. Error: %s ", _input.SequenceFile.Name, err.Error())
