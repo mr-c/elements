@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "Enzyme": "T4Ligase",
+    "EnzymeVolume": "3ul",
+    "OutPlate": "pcrplate_skirted",
+    "Quenchingagent": "water",
+    "QuenchingagentVolume": "14ul",
+    "ReactionTemp": "25C",
+    "ReactionTime": "300s",
+    "ShakerRate": "100/min",
+    "Substrate": "dna_part",
+    "SubstrateVolume": "3ul"
+  },
+  "name": "Assay_quench"
+}

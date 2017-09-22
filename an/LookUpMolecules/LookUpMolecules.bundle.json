@@ -1,0 +1,30 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "LookUpMolecule": {
+      "Compoundlist": [
+        "Water",
+        "Potassium Acetate",
+        "Tris Acetate",
+        "Magnesium Acetate",
+        "Paclitaxel"
+      ],
+      "OverRideDefaultConcentration": {
+        "Paclitaxel": "1mM",
+        "default": "1M/l"
+      }
+    }
+  },
+  "processes": {
+    "LookUpMolecule": {
+      "component": "LookUpMolecules"
+    }
+  }
+}

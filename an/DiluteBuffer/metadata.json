@@ -1,0 +1,11 @@
+{
+  "defaults": {
+    "BufferVolumeAdded": "1ul",
+    "Bufferstock": "tartrazine",
+    "Bufferstockconc": "0.006M/l",
+    "Diluent": "water",
+    "DiluentVolume": "45ul",
+    "OutPlate": "pcrplate_with_cooler"
+  },
+  "name": "DiluteBuffer"
+}

@@ -1,0 +1,29 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "RemoveRestrictionSites": {
+      "EnzymeforRestrictionmapping": "BsaI",
+      "PreserveTranslatedseq": true,
+      "RemoveifnotinORF": true,
+      "RestrictionsitetoAvoid": [
+        "SacI"
+      ],
+      "Sequence": {
+        "Jm": "test",
+        "Seq": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGGGGGGGGGGAGCTCGGGGGGGGGGGGGGGGGGGGGGGGG"
+      }
+    }
+  },
+  "processes": {
+    "RemoveRestrictionSites": {
+      "component": "RemoveRestrictionSites_wtype"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "ComponentsA": [
+        "water"
+      ],
+      "ComponentsB": [
+        "dna"
+      ]
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "MergeComponentLists"
+    }
+  }
+}

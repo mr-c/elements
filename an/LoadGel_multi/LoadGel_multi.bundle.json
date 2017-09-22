@@ -1,0 +1,35 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "LoadGel1": {
+      "GelPlate": "EPAGE48",
+      "InPlate": "pcrplate_with_cooler",
+      "LoadVolume": "10ul",
+      "Protein": "Load",
+      "SampleNames": [
+        "Marker",
+        "NegativeControl",
+        "GFP",
+        "RFP",
+        "YFP",
+        "CFP",
+        "OFP"
+      ],
+      "Water": "water",
+      "WaterName": "dH2O",
+      "WaterVolume": "10ul"
+    }
+  },
+  "processes": {
+    "LoadGel1": {
+      "component": "LoadGel_multi"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [
+    {
+      "source": {
+        "port": "MyVolume",
+        "process": "1stprocess"
+      },
+      "target": {
+        "port": "MyVolume",
+        "process": "2ndprocess"
+      }
+    }
+  ],
+  "parameters": {
+    "1stprocess": {
+      "MyUnit": "ul",
+      "MyValue": 15
+    },
+    "2ndprocess": {
+      "MyConc": "100ng/ul",
+      "MyMass": "100ng",
+      "MyMoles": "0.001M",
+      "MyTemperature": "37C",
+      "MyTime": "60s"
+    }
+  },
+  "processes": {
+    "1stprocess": {
+      "component": "Units_New"
+    },
+    "2ndprocess": {
+      "component": "Units_ToString"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "StockBuffer": {
+      "AdditionalInstructions": [
+        "Microwave before use and rest for 5 minutes before using"
+      ],
+      "Diluent": "water",
+      "LiqComponentFinalConcentrations": {
+        "Apramycin": "50mg/L",
+        "X-glc": "10g/L"
+      },
+      "LiqComponentStockConcentrations": {
+        "Apramycin": "50mg/ml",
+        "X-glc": "100g/L"
+      },
+      "LiqComponents": [
+        "Apramycin",
+        "X-glc"
+      ],
+      "Name": "Agar Overlay",
+      "PH_setPoint": 7,
+      "PH_setPointTemp": "23C",
+      "PH_tolerance": 0.1,
+      "SolidComponentDensities": {
+        "Agar": "1000kg/m^3"
+      },
+      "SolidComponentFinalConcentrations": {
+        "Agar": "3g/L"
+      },
+      "SolidComponents": [
+        "Agar"
+      ],
+      "SterilisationMethod": "Autoclave",
+      "Sterilise": true,
+      "TotalVolume": "1ml",
+      "Vessel": "DSW24"
+    }
+  },
+  "processes": {
+    "StockBuffer": {
+      "component": "MakeMedia"
+    }
+  }
+}

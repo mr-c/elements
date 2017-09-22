@@ -57,9 +57,15 @@ func _TypeIISConstructAssemblySteps(_ctx context.Context, _input *TypeIISConstru
 	out1 := execute.MixInto(_ctx, _input.OutPlate, "", samples...)
 
 	// incubate the reaction mixture
-	out2 := execute.Incubate(_ctx, out1, _input.ReactionTemp, _input.ReactionTime, false)
+	out2 := execute.Incubate(_ctx, out1, execute.IncubateOpt{
+		Temp: _input.ReactionTemp,
+		Time: _input.ReactionTime,
+	})
 	// inactivate
-	_output.Reaction = execute.Incubate(_ctx, out2, _input.InactivationTemp, _input.InactivationTime, false)
+	_output.Reaction = execute.Incubate(_ctx, out2, execute.IncubateOpt{
+		Temp: _input.InactivationTemp,
+		Time: _input.InactivationTime,
+	})
 }
 
 // Run after controls and a steps block are completed to
@@ -125,7 +131,6 @@ type TypeIISConstructAssemblyInput struct {
 	AtpVol             wunit.Volume
 	Buffer             *wtype.LHComponent
 	BufferVol          wunit.Volume
-	InPlate            *wtype.LHPlate
 	InactivationTemp   wunit.Temperature
 	InactivationTime   wunit.Time
 	LigVol             wunit.Volume
@@ -162,13 +167,12 @@ func init() {
 		Constructor: TypeIISConstructAssemblyNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/TypeIIsAssembly/TypeIISConstructAssembly/TypeIISConstructAssembly.an",
+			Path: "src/github.com/antha-lang/elements/an/TypeIISConstructAssembly/element.an",
 			Params: []component.ParamDesc{
 				{Name: "Atp", Desc: "", Kind: "Inputs"},
 				{Name: "AtpVol", Desc: "", Kind: "Parameters"},
 				{Name: "Buffer", Desc: "", Kind: "Inputs"},
 				{Name: "BufferVol", Desc: "", Kind: "Parameters"},
-				{Name: "InPlate", Desc: "", Kind: "Inputs"},
 				{Name: "InactivationTemp", Desc: "", Kind: "Parameters"},
 				{Name: "InactivationTime", Desc: "", Kind: "Parameters"},
 				{Name: "LigVol", Desc: "", Kind: "Parameters"},

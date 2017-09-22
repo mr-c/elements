@@ -1,0 +1,49 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [
+    {
+      "source": {
+        "port": "Aliquots",
+        "process": "PreProcess"
+      },
+      "target": {
+        "port": "SolutionBs",
+        "process": "Process1"
+      }
+    }
+  ],
+  "parameters": {
+    "PreProcess": {
+      "ChangeSolutionName": "",
+      "NumberOfReplicatePlates": 1,
+      "NumberofAliquots": 8,
+      "OutPlate": "pcrplate_with_cooler",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
+    },
+    "Process1": {
+      "SampleVolumes": {
+        "default": "1ul"
+      },
+      "SolutionAs": [
+        "dna"
+      ]
+    }
+  },
+  "processes": {
+    "PreProcess": {
+      "component": "Aliquot"
+    },
+    "Process1": {
+      "component": "MixAtoB_multi"
+    }
+  }
+}

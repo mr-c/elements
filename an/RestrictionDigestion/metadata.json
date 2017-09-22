@@ -1,0 +1,28 @@
+{
+  "defaults": {
+    "BSAoptional": "DNAsolution",
+    "BSAvol": "0ul",
+    "Buffer": "CutsmartBuffer",
+    "BufferVol": "2ul",
+    "DNAName": "vector1",
+    "DNASolution": "DNAsolution",
+    "DNAVol": "1ul",
+    "EnzSolutions": [
+      "restrictionenzyme"
+    ],
+    "EnzVolumestoadd": [
+      "1ul"
+    ],
+    "EnzymeNames": [
+      "Nco1"
+    ],
+    "InactivationTemp": "65C",
+    "InactivationTime": "10s",
+    "OutPlate": "pcrplate_skirted_bioshake_96well_adaptor",
+    "ReactionTemp": "37C",
+    "ReactionTime": "3600s",
+    "ReactionVolume": "20ul",
+    "Water": "water"
+  },
+  "name": "RestrictionDigestion"
+}

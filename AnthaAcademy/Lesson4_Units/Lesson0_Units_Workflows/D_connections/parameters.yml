@@ -1,0 +1,10 @@
+Parameters:
+  1stprocess:
+    MyUnit: ul
+    MyValue: 15
+  2ndprocess:
+    MyConc: 100ng/ul
+    MyMass: 100ng
+    MyMoles: 0.001M
+    MyTemperature: 37C
+    MyTime: 60s

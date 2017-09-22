@@ -1,0 +1,239 @@
+// Perform multiple PCR reactions with common default parameters using a mastermix
+protocol PCR_ValidateSequences_Multi
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+	Projectname string
+
+	// map of which reaction uses which template e.g. ["left homology arm"]:"templatename".
+	// A "default" may also be specified which will be used for any reaction which has no entry specified.
+	Reactiontotemplate map[string]DNASequence
+
+	// map of which reaction uses which primer pair e.g. ["left homology arm"]:"fwdprimer","revprimer".
+	// A "default" may also be specified which will be used for any reaction which has no entry specified.
+	Reactiontoprimerpair map[string][2]DNASequence
+
+	// Default behaviour will randomise the output order of pcr reactions.
+	// To specify an order add the list of PCRReactions here in order here.
+	SpecifyReactionOrder []string
+
+	// Volume of template in each reaction
+	DefaultTemplateVol Volume
+
+	// Volume of each primer to add. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+	DefaultPrimerVolume Volume
+
+	// Volume of polymerase enzyme to add per reaction. Will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
+	DefaultPolymeraseVolume Volume
+
+	// Volume of mastermix to add to the reaction.
+	DefaultMasterMixVolume Volume
+
+	// Total volume for a single reaction; the reaction will be topped up with TopUpSolution (usually water) to reach this volume.
+	TotalReactionVolume Volume
+
+	// Select this if the primers have already been added to the mastermix.
+	// If this is selected no primers will be added to any reactions.
+	// Should only be used if all reactions share the same primers.
+	PrimersalreadyAddedtoMasterMix bool
+
+	// Select this if the polymerase has already been added to the mastermix.
+	PolymeraseAlreadyaddedtoMastermix bool
+)
+
+// Data which is returned from this protocol, and data types
+Data (
+	ThermoCycleConditionsUsed map[string]string // a reaction by reaction description of all sets of conditions suggested for each reaction.
+	Amplicons map[string]DNASequence            // amplicon expected for each reaction
+	Errors []error                              // return an error message if an error is encountered
+)
+
+// Physical Inputs to this protocol with types
+Inputs (
+
+	// Actual FWD primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+	FwdPrimertype *LHComponent
+
+	// Actual REV primer component type to use. e.g. dna_part. Will only be used if PrimersalreadyAddedtoMasterMix is not selected.
+	RevPrimertype *LHComponent
+
+	// Actual Template type to use. e.g. dna_part, culture
+	Templatetype *LHComponent
+
+	// Valid options are Q5Polymerase and Taq. To make a custom Polymerase use the NewLHComponent element and wire in here.
+	// This input will only be used if PolymeraseAlreadyaddedtoMastermix is not selected.
+	DefaultPolymerase *LHComponent
+
+	// Use the MasterMixMaker element to make the mastermix and wire it in here.
+	MasterMix *LHComponent
+
+	// Buffer to use to top up the reaction to TotalReactionVolume. Typical solution for this would be water.
+	TopUpSolution *LHComponent
+
+	// Type of plate to use for the reaction.
+	// Recommended plates: 96well plate (pcrplate_skirted) (Bio-Rad, 96 well hard shell skirted plate, Cat No #HSP9901)
+	// 96 well semi-skirted pcr plate (pcrplate) (Bio-Rad)
+	Plate *LHPlate
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	// The PCR reaction products as a slice.
+	Reactions []*LHComponent
+
+	// The PCR reaction products in the form of a map of components.
+	ReactionMap map[string]*LHComponent
+)
+
+Requirements {
+}
+
+// Conditions to run on startup
+Setup {
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+
+	// set up a counter to use as an index for increasing well position
+	var counter int
+
+	// set up some empty slices to fill as we iterate through the reactions
+	Reactions = make([]*LHComponent, 0)
+	volumes := make([]Volume, 0)
+	welllocations := make([]string, 0)
+	// initialise map
+	ReactionMap = make(map[string]*LHComponent)
+
+	// To allow the use of specifying defaults in either the template map or the primer map,
+	// we first evaluate which map has more entries and make a slice of reactions to iterate through based on that.
+	var reactions []string
+
+	if len(SpecifyReactionOrder) == 0 {
+		if len(Reactiontotemplate) >= len(Reactiontoprimerpair) {
+			for reactionname, _ := range Reactiontotemplate {
+				reactions = append(reactions, reactionname)
+			}
+		} else {
+			for reactionname, _ := range Reactiontoprimerpair {
+				reactions = append(reactions, reactionname)
+			}
+		}
+	} else {
+		if len(Reactiontotemplate) >= len(Reactiontoprimerpair) && len(SpecifyReactionOrder) == len(Reactiontotemplate) {
+			for _, reaction := range SpecifyReactionOrder {
+				if _, found := Reactiontotemplate[reaction]; !found {
+					Errorf("Reaction %s specified in SpecifyReactionOrder but not present in the Reactiontotemplate which sets the reaction list.", reaction)
+				}
+			}
+			reactions = SpecifyReactionOrder
+		} else if len(Reactiontotemplate) <= len(Reactiontoprimerpair) && len(SpecifyReactionOrder) == len(Reactiontoprimerpair) {
+			for _, reaction := range SpecifyReactionOrder {
+				if _, found := Reactiontoprimerpair[reaction]; !found {
+					Errorf("Reaction %s specified in SpecifyReactionOrder but not present in Reactiontoprimerpair which sets the reaction list.", reaction)
+				}
+			}
+			reactions = SpecifyReactionOrder
+		} else {
+			Errorf("Reaction order specified but the number of PCRReactions (%d) in this list differs to the length of both Reactiontotemplate map (%d) and Reactiontoprimerpair map (%d). Please ensure the list is equal to one of these (the other may contain defaults) or remove the SpecifyReactionOrder list. ", len(SpecifyReactionOrder), len(Reactiontotemplate), len(Reactiontoprimerpair))
+		}
+	}
+
+	for _, reactionname := range reactions {
+
+		// look up template from map
+		var template DNASequence
+
+		if templateSeq, found := Reactiontotemplate[reactionname]; found {
+			template = templateSeq
+		} else if templateSeq, found := Reactiontotemplate["default"]; found {
+			template = templateSeq
+		} else {
+			Errorf(`No template set for %s and no "default" primers set`, reactionname)
+		}
+
+		// look up primers from map
+		var fwdPrimer DNASequence
+		var revPrimer DNASequence
+
+		if primers, found := Reactiontoprimerpair[reactionname]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else if primers, found := Reactiontoprimerpair["default"]; found {
+			fwdPrimer, revPrimer = primers[0], primers[1]
+		} else {
+			Errorf(`No primers set for %s and no "default" primers set`, reactionname)
+		}
+
+		// use counter to find next available well position in plate
+
+		var allwellpositionsforplate []string
+
+		allwellpositionsforplate = Plate.AllWellPositions(wtype.BYCOLUMN)
+
+		wellposition := allwellpositionsforplate[counter]
+
+		// Run PCR_vol element
+		result := RunSteps(PCR_mmx_ValidateSequences,
+			Parameters{
+				MasterMixVolume:                   DefaultMasterMixVolume,
+				PrimersalreadyAddedtoMasterMix:    PrimersalreadyAddedtoMasterMix,
+				PolymeraseAlreadyaddedtoMastermix: PolymeraseAlreadyaddedtoMastermix,
+				FwdPrimerSeq:                      fwdPrimer,
+				RevPrimerSeq:                      revPrimer,
+				TemplateSequence:                  template,
+				ReactionName:                      reactionname,
+				FwdPrimerVol:                      DefaultPrimerVolume,
+				RevPrimerVol:                      DefaultPrimerVolume,
+				PolymeraseVolume:                  DefaultPolymeraseVolume,
+				Templatevolume:                    DefaultTemplateVol,
+				NumberOfCycles:                    30,
+				InitDenaturationTime:              wunit.NewTime(30, "s"),
+				DenaturationTime:                  wunit.NewTime(5, "s"),
+				AnnealingTime:                     wunit.NewTime(10, "s"),
+				FinalExtensionTime:                wunit.NewTime(180, "s"),
+				OptionalWellPosition:              wellposition,
+				TotalReactionVolume:               TotalReactionVolume,
+			}, Inputs{
+				FwdPrimer:      FwdPrimertype,
+				RevPrimer:      RevPrimertype,
+				PCRPolymerase:  DefaultPolymerase,
+				MasterMix:      MasterMix,
+				Template:       Templatetype,
+				ReactionBuffer: TopUpSolution,
+				OutPlate:       Plate,
+			})
+
+		// add result to reactions slice
+		Reactions = append(Reactions, result.Outputs.Reaction)
+		volumes = append(volumes, result.Outputs.Reaction.Volume())
+		welllocations = append(welllocations, wellposition)
+		ReactionMap[reactionname] = result.Outputs.Reaction
+		Amplicons[reactionname] = result.Data.Amplicon
+		ThermoCycleConditionsUsed[reactionname] = result.Data.ThermoCycleConditionsUsed
+		// increase counter by 1 ready for next iteration of loop
+		counter++
+
+	}
+
+	//MixerPrompt(Reactions[0], "Put Reactions in ThermoCylcer and return to deck once PCR has finished if running DNA_Gel")
+
+	// once all values of loop have been completed, export the plate contents as a csv file
+	Errors = append(Errors, wtype.ExportPlateCSV(Projectname+".csv", Plate, Projectname+"outputPlate", welllocations, Reactions, volumes))
+
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+}

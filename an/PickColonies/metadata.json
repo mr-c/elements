@@ -1,0 +1,11 @@
+{
+  "defaults": {
+    "ColonyLocations": [
+      "A1"
+    ],
+    "ColonyVolume": "5ul",
+    "Colonytype": "water",
+    "OutPlatewithMedia": "Agarplateforpicking384_riser"
+  },
+  "name": "PickColonies"
+}

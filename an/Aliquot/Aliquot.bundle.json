@@ -1,0 +1,27 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "AliquotParams": {
+      "ChangeSolutionName": "",
+      "NumberOfReplicatePlates": 1,
+      "NumberofAliquots": 8,
+      "OutPlate": "DSW96_riser20",
+      "PreMix": false,
+      "Solution": "water",
+      "SolutionVolume": "10000ul",
+      "VolumePerAliquot": "1ml"
+    }
+  },
+  "processes": {
+    "AliquotParams": {
+      "component": "Aliquot"
+    }
+  }
+}

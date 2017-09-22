@@ -1,0 +1,25 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "DiluteBuffer": {
+      "BufferVolumeAdded": "1ul",
+      "Bufferstock": "tartrazine",
+      "Bufferstockconc": "0.006M/l",
+      "Diluent": "water",
+      "DiluentVolume": "45ul",
+      "OutPlate": "pcrplate_with_cooler"
+    }
+  },
+  "processes": {
+    "DiluteBuffer": {
+      "component": "DiluteBuffer"
+    }
+  }
+}

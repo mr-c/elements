@@ -255,7 +255,7 @@ func init() {
 		Constructor: PlotSpreadsheetNew,
 		Desc: component.ComponentDesc{
 			Desc: "Protocol PlotSpreadsheet creates a plot from a spreadsheet\n",
-			Path: "src/github.com/antha-lang/elements/an/Data/plotdata/PlotSpreadsheet/PlotSpreadsheet.an",
+			Path: "src/github.com/antha-lang/elements/an/PlotSpreadsheet/element.an",
 			Params: []component.ParamDesc{
 				{Name: "PlotFormat", Desc: "Output plot format. Supported values are eps, jpg, jpeg, pdf, png,\ntif and tiff. Default is png.\n", Kind: "Parameters"},
 				{Name: "PlotHeight", Desc: "Plot height with units. Default is \"10cm\".\n", Kind: "Parameters"},

@@ -1,0 +1,84 @@
+// Protocol for resuspending freeze dried DNA with a diluent
+protocol ResuspendDNA
+
+// we need to import the wtype package to use the LHComponent type
+// the mixer package is required to use the Sample function
+import (
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+
+	// Mass of DNA to Resuspend
+	DNAMass Mass
+
+	// Target concentration to resuspend to
+	TargetConc Concentration
+
+	// Molecular weight of the DNA
+	MolecularWeight float64
+
+	// Well location of DNA
+	Well string
+
+	// Plate location of DNA
+	PlateName string
+
+	// If no Policy is specified the default policy will be MegaMix which mixes the sample 10 times.
+	OverRideLiquidPolicy PolicyName
+)
+
+Data (
+	Warnings []string
+)
+
+Inputs (
+
+	// Diluent to use to resuspend the DNA
+	Diluent *LHComponent
+
+	// Type of plate DNA sample is on.
+	DNAPlate *LHPlate
+)
+
+Outputs (
+	ResuspendedDNA *LHComponent
+)
+
+Requirements {
+}
+
+Setup {
+}
+
+Steps {
+
+	targetConcGperL := TargetConc.GramPerL(MolecularWeight)
+
+	volumetoadd := wunit.NewVolume(DNAMass.SIValue()/targetConcGperL.SIValue(), "l")
+
+	diluentSample := mixer.Sample(Diluent, volumetoadd)
+
+	if OverRideLiquidPolicy == "" {
+		OverRideLiquidPolicy = "MegaMix"
+	}
+
+	var err error
+
+	diluentSample.Type, err = wtype.LiquidTypeFromString(OverRideLiquidPolicy)
+
+	if err != nil {
+		Errorf(err.Error())
+	}
+
+	ResuspendedDNA = MixNamed(DNAPlate.Type, Well, PlateName, diluentSample)
+
+}
+
+Analysis {
+}
+
+Validation {
+}

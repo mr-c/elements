@@ -1,0 +1,27 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "Assaysetup": {
+      "Buffer": "water",
+      "Enzyme": "T4Ligase",
+      "EnzymeVolume": "1ul",
+      "NumberofReactions": 5,
+      "OutPlate": "pcrplate_skirted_riser20",
+      "Substrate": "dna_part",
+      "SubstrateVolume": "2ul",
+      "TotalVolume": "10ul"
+    }
+  },
+  "processes": {
+    "Assaysetup": {
+      "component": "SetupReactions_onebyone"
+    }
+  }
+}

@@ -86,7 +86,7 @@ func _NewDNASequencesSteps(_ctx context.Context, _input *NewDNASequencesInput, _
 			}
 			if pass && _input.BlastSeqswithNoName {
 				// run a blast search on the sequence to get the name
-				blastsearch := BlastSearch_wtypeRunSteps(_ctx, &BlastSearch_wtypeInput{DNA: partDNA})
+				blastsearch := BlastSearchRunSteps(_ctx, &BlastSearchInput{DNA: partDNA})
 				partDNA.Nm = blastsearch.Data.AnthaSeq.Nm
 			}
 
@@ -184,7 +184,7 @@ func init() {
 		Constructor: NewDNASequencesNew,
 		Desc: component.ComponentDesc{
 			Desc: "Demo protocol of how to create an array of dna types from parsing user inputs of various types\nscenarios handled:\nBiobrick IDS\nraw sequence\ninventory lookup\n",
-			Path: "src/github.com/antha-lang/elements/an/AnthaAcademy/Lesson6_DNA/D_NewDNASequences.an",
+			Path: "src/github.com/antha-lang/elements/an/NewDNASequences/element.an",
 			Params: []component.ParamDesc{
 				{Name: "BlastSeqswithNoName", Desc: "", Kind: "Parameters"},
 				{Name: "PartPrefix", Desc: "", Kind: "Parameters"},

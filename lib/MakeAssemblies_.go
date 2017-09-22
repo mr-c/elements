@@ -35,7 +35,6 @@ import (
 // Ligase to use
 // ATP to use
 // Output plate
-// Input plate
 
 // List of assembled parts
 
@@ -62,8 +61,7 @@ func _MakeAssembliesSteps(_ctx context.Context, _input *MakeAssembliesInput, _ou
 			Water:             _input.Water,
 			Ligase:            _input.Ligase,
 			Atp:               _input.Atp,
-			OutPlate:          _input.OutPlate,
-			InPlate:           _input.InPlate},
+			OutPlate:          _input.OutPlate},
 		)
 		_output.Reactions = append(_output.Reactions, result.Outputs.Reaction)
 	}
@@ -127,7 +125,6 @@ type MakeAssembliesInput struct {
 	AtpVol             wunit.Volume
 	Buffer             *wtype.LHComponent
 	BufferVol          wunit.Volume
-	InPlate            *wtype.LHPlate
 	InactivationTemp   wunit.Temperature
 	InactivationTime   wunit.Time
 	LigVol             wunit.Volume
@@ -164,13 +161,12 @@ func init() {
 		Constructor: MakeAssembliesNew,
 		Desc: component.ComponentDesc{
 			Desc: "Assemble multiple assemblies using TypeIIs construct assembly\n",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/TypeIIsAssembly/MakeAssemblies/MakeAssemblies.an",
+			Path: "src/github.com/antha-lang/elements/an/MakeAssemblies/element.an",
 			Params: []component.ParamDesc{
 				{Name: "Atp", Desc: "ATP to use\n", Kind: "Inputs"},
 				{Name: "AtpVol", Desc: "ATP volume\n", Kind: "Parameters"},
 				{Name: "Buffer", Desc: "Buffer to use\n", Kind: "Inputs"},
 				{Name: "BufferVol", Desc: "Buffer volume\n", Kind: "Parameters"},
-				{Name: "InPlate", Desc: "Input plate\n", Kind: "Inputs"},
 				{Name: "InactivationTemp", Desc: "Inactivation temperature\n", Kind: "Parameters"},
 				{Name: "InactivationTime", Desc: "Inactivation time\n", Kind: "Parameters"},
 				{Name: "LigVol", Desc: "Ligase volume\n", Kind: "Parameters"},

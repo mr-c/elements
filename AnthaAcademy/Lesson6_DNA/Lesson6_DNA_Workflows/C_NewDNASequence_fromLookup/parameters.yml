@@ -1,0 +1,16 @@
+Parameters:
+  BiobrickSequence:
+    BiobrickID: true
+    DNAID: true
+    EntrezID: false
+    ID: BBa_E0040
+  BiobrickSequenceRecursive:
+    BiobrickID: true
+    DNAID: true
+    EntrezID: false
+    ID: BBa_K314110
+  EntrezSequence:
+    BiobrickID: false
+    DNAID: true
+    EntrezID: true
+    ID: EF208560

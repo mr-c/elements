@@ -1,0 +1,7 @@
+{
+  "defaults": {
+    "ComponentA": "water",
+    "ComponentB": "dna"
+  },
+  "name": "Mix"
+}

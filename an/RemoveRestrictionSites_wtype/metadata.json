@@ -1,0 +1,15 @@
+{
+  "defaults": {
+    "EnzymeforRestrictionmapping": "BsaI",
+    "PreserveTranslatedseq": true,
+    "RemoveifnotinORF": true,
+    "RestrictionsitetoAvoid": [
+      "SacI"
+    ],
+    "Sequence": {
+      "Jm": "test",
+      "Seq": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGGGGGGGGGGGGGGGGGGGGGGGGGAGCTCGGGGGGGGGGGGGGGGGGGGGGGGG"
+    }
+  },
+  "name": "RemoveRestrictionSites_wtype"
+}

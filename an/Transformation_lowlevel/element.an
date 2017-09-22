@@ -1,0 +1,100 @@
+protocol Transformation_lowlevel
+
+import (
+	"github.com/antha-lang/antha/antha/anthalib/mixer"
+	"github.com/antha-lang/antha/antha/anthalib/wtype"
+)
+
+// Input parameters for this protocol (data)
+Parameters (
+	//CompetentCellvolumeperassembly Volume //= 50.(uL)
+	Reactionvolume Volume
+	Postplasmidtime Time
+	Postplasmidtemp Temperature
+	Recoverytime Time
+	Recoverytemp Temperature
+	//Coolplatepositions []string
+	//HotplatePositions []string
+	//RecoveryPositions []string
+
+)
+
+// Data which is returned from this protocol, and data types
+Data ()
+
+// Physical Inputs to this protocol with types
+Inputs (
+	Reactions []*LHComponent
+	ReadyCompCells []*LHComponent
+	RecoveryMediaAliquots []*LHComponent
+)
+
+// Physical outputs from this protocol with types
+Outputs (
+	Transformedcells []*LHComponent
+)
+
+Requirements {
+}
+
+// Conditions to run on startup
+Setup {
+}
+
+// The core process for this protocol, with the steps to be performed
+// for every input
+Steps {
+
+	// declare variables for use later
+	var transformations []*LHComponent
+	var incubatedtransformations []*LHComponent
+	var recoverymixes []*LHComponent
+
+	// add dna to competent cell aliquots
+	for i, reaction := range Reactions {
+		DNAsample := mixer.Sample(reaction, Reactionvolume)
+
+		transformationmix := Mix(ReadyCompCells[i], DNAsample)
+
+		transformations = append(transformations, transformationmix)
+
+	}
+
+	// wait
+	for _, transformationmix := range transformations {
+		incubated := Incubate(transformationmix, IncubateOpt{
+			Temp: Postplasmidtemp,
+			Time: Postplasmidtime,
+		})
+		incubatedtransformations = append(incubatedtransformations, incubated)
+	}
+
+	// add to recovery media
+	for j, transformation := range incubatedtransformations {
+		recovery := Mix(RecoveryMediaAliquots[j], transformation)
+		recoverymixes = append(recoverymixes, recovery)
+	}
+
+	// recovery
+	for _, mix := range recoverymixes {
+		rate, _ := wunit.NewRate(60, "/min")
+		incubated := Incubate(mix, IncubateOpt{
+			Temp:      Recoverytemp,
+			Time:      Recoverytime,
+			ShakeRate: rate,
+		})
+		Transformedcells = append(Transformedcells, incubated)
+	}
+
+}
+
+// Run after controls and a steps block are completed to
+// post process any data and provide downstream results
+Analysis {
+}
+
+// A block of tests to perform to validate that the sample was processed correctly
+// Optionally, destructive tests can be performed to validate results on a
+// dipstick basis
+Validation {
+}

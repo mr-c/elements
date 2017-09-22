@@ -1,9 +1,0 @@
-Parameters:
-  addplate:
-    InputCSVfile:
-      host_file:
-        filename: inputplate.csv
-  transfer:
-    LiquidVolume: 10ul
-    Liquidname: testliquid
-    Startingsolution: 10g/Lglycerol

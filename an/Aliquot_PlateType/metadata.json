@@ -1,0 +1,10 @@
+{
+  "defaults": {
+    "NumberofAliquots": 8,
+    "OutPlatetype": "pcrplate_with_cooler",
+    "Solution": "fluorescein",
+    "SolutionVolume": "4000ul",
+    "VolumePerAliquot": "25ul"
+  },
+  "name": "Aliquot_PlateType"
+}

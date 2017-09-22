@@ -1,0 +1,8 @@
+{
+  "connections": [],
+  "processes": {
+    "SerialDilute": {
+      "component": "SequentialMixing"
+    }
+  }
+}

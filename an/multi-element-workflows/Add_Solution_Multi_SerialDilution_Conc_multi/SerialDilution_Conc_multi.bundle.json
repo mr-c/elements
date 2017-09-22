@@ -1,0 +1,65 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [
+    {
+      "source": {
+        "port": "NewSolutions",
+        "process": "Process0"
+      },
+      "target": {
+        "port": "SolutionsWithConcentrations",
+        "process": "Process1"
+      }
+    }
+  ],
+  "parameters": {
+    "Process0": {
+      "Names": [
+        "Glucose",
+        "Glycerol"
+      ],
+      "StockConcentrations": {
+        "default": "100g/L"
+      },
+      "UseLHPolicy": {
+        "default": ""
+      }
+    },
+    "Process1": {
+      "ByRow": false,
+      "Diluent": "water",
+      "OutPlate": "DSW96_riser",
+      "StartVolumeperDilution": {
+        "default": "100ul"
+      },
+      "TargetConcentrations": {
+        "Glucose": [
+          "10g/L",
+          "1g/L",
+          "0.1g/L",
+          "0.01g/L"
+        ],
+        "default": [
+          "20g/L",
+          "2g/L",
+          "0.2g/L"
+        ]
+      },
+      "WellsAlreadyUsed": 0
+    }
+  },
+  "processes": {
+    "Process0": {
+      "component": "Add_Solution_Multi"
+    },
+    "Process1": {
+      "component": "SerialDilution_Conc_multi"
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "BiobrickSequence": {
+      "BiobrickID": true,
+      "DNAID": true,
+      "EntrezID": false,
+      "ID": "BBa_E0040"
+    },
+    "BiobrickSequenceRecursive": {
+      "BiobrickID": true,
+      "DNAID": true,
+      "EntrezID": false,
+      "ID": "BBa_K314110"
+    },
+    "EntrezSequence": {
+      "BiobrickID": false,
+      "DNAID": true,
+      "EntrezID": true,
+      "ID": "EF208560"
+    }
+  },
+  "processes": {
+    "BiobrickSequence": {
+      "component": "NewDNASequence_fromLookup"
+    },
+    "BiobrickSequenceRecursive": {
+      "component": "NewDNASequence_fromLookup"
+    },
+    "EntrezSequence": {
+      "component": "NewDNASequence_fromLookup"
+    }
+  }
+}

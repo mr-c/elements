@@ -1,0 +1,89 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": {
+    "DriverOutputFileName": "",
+    "DriverSpecificInputPreferences": null,
+    "DriverSpecificOutputPreferences": null,
+    "DriverSpecificTipPreferences": null,
+    "DriverSpecificTipWastePreferences": null,
+    "DriverSpecificWashPreferences": null,
+    "InputPlateData": null,
+    "InputPlateType": [
+      "greiner384_riser"
+    ],
+    "InputPlates": null,
+    "LegacyVolume": false,
+    "MaxPlates": null,
+    "MaxWells": null,
+    "ModelEvaporation": false,
+    "OutputPlateType": [
+      "greiner384_riser"
+    ],
+    "OutputPlates": null,
+    "OutputSort": false,
+    "PlanningVersion": "",
+    "PrintInstructions": false,
+    "ResidualVolumeWeight": null,
+    "TipType": null,
+    "UseDriverTipTracking": false
+  },
+  "connections": [
+    {
+      "source": {
+        "port": "ComponentA",
+        "process": "Process1"
+      },
+      "target": {
+        "port": "InputSolution",
+        "process": "Process2"
+      }
+    }
+  ],
+  "parameters": {
+    "Process1": {
+      "InputSolution": "TB",
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "100ul",
+      "VolumeB": "20ul",
+      "WellA": "",
+      "WellB": ""
+    },
+    "Process2": {
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "1ul",
+      "VolumeB": "200ul",
+      "WellA": "",
+      "WellB": ""
+    },
+    "Process3": {
+      "InputSolution": "dna",
+      "PlateNameA": "PlateA",
+      "PlateNameB": "PlateA",
+      "Platetype": "greiner384_riser20",
+      "VolumeA": "0.5ul",
+      "VolumeB": "2ul",
+      "WellA": "",
+      "WellB": ""
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "SplitSample"
+    },
+    "Process2": {
+      "component": "SplitSample"
+    },
+    "Process3": {
+      "component": "SplitSample"
+    }
+  }
+}

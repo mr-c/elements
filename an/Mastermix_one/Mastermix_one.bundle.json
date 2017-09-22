@@ -1,0 +1,33 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "MMX": {
+      "ComponentVolumesperReaction": [
+        "5ul",
+        "1ul",
+        "5ul",
+        "10ul"
+      ],
+      "Components": [
+        "GCenhancer",
+        "DNTPs",
+        "Q5buffer",
+        "water"
+      ],
+      "OutPlate": "pcrplate_skirted_riser20",
+      "Reactionspermastermix": 1
+    }
+  },
+  "processes": {
+    "MMX": {
+      "component": "Mastermix_one"
+    }
+  }
+}

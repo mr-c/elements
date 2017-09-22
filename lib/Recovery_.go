@@ -37,7 +37,12 @@ func _RecoverySteps(_ctx context.Context, _input *RecoveryInput, _output *Recove
 
 	recoverymix2 := execute.Mix(_ctx, transformedcellsComp, recoverymixture)
 
-	_output.RecoveredCells = execute.Incubate(_ctx, recoverymix2, _input.Recoverytemp, _input.Recoverytime, true)
+	rate, _ := wunit.NewRate(60, "/min")
+	_output.RecoveredCells = execute.Incubate(_ctx, recoverymix2, execute.IncubateOpt{
+		Temp:      _input.Recoverytemp,
+		Time:      _input.Recoverytime,
+		ShakeRate: rate,
+	})
 
 }
 
@@ -125,7 +130,7 @@ func init() {
 		Constructor: RecoveryNew,
 		Desc: component.ComponentDesc{
 			Desc: "",
-			Path: "src/github.com/antha-lang/elements/an/Liquid_handling/Transformation/Recovery.an",
+			Path: "src/github.com/antha-lang/elements/an/Recovery/element.an",
 			Params: []component.ParamDesc{
 				{Name: "Recoverymedium", Desc: "", Kind: "Inputs"},
 				{Name: "Recoverytemp", Desc: "", Kind: "Parameters"},

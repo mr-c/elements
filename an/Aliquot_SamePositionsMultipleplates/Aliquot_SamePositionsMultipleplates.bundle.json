@@ -1,0 +1,30 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": [],
+  "parameters": {
+    "AliquotParams4": {
+      "NumberofPlates": 3,
+      "OutPlate": "pcrplate_with_cooler",
+      "Positions": [
+        "A1",
+        "B1",
+        "C1",
+        "D1"
+      ],
+      "Solution": "fluorescein",
+      "SolutionVolume": "4000ul",
+      "VolumePerAliquot": "25ul"
+    }
+  },
+  "processes": {
+    "AliquotParams4": {
+      "component": "Aliquot_SamePositionsMultipleplates"
+    }
+  }
+}

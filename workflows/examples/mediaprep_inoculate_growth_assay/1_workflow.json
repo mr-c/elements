@@ -1,8 +1,0 @@
-{
-  "Connections": [],
-  "Processes": {
-    "MediaPrep1": {
-      "Component": "DOEMediaPrep"
-    }
-  }
-}

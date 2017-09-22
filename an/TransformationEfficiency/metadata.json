@@ -1,0 +1,22 @@
+{
+  "defaults": {
+    "ColonyCount": 10,
+    "ControlColonyCount": 100,
+    "ControlDNA": {
+      "jm": "controlsequence",
+      "plasmid": true,
+      "seq": "GCTCTTCAACCTAATATATACCTCTTAATTTTtactagATGCCAACACAATTAACATCTCAATCAAGGTAAATGCTTTTTGCTTTTTTTGCAAAAAATTTATTTGCTTtcgcatctttttgtaccTATAATGTGTGGAaaaggagttttttagttaccttaattgaaataaacgaaataaaaactcgcctagtaAAAATTAAGAGGTATATATTA"
+    },
+    "ControlDNAMass": "10ng",
+    "ControlPlateOutVolume": "50ul",
+    "DNA": {
+      "jm": "Device2_sapI_tp901flankedP7",
+      "plasmid": true,
+      "seq": "GCTCTTCAACCTAATATATACCTCTTAATTTTtactagATGCCAACACAATTAACATCTCAATCAAGGTAAATGCTTTTTGCTTTTTTTGCAAAAAATTTATTTGCTTtcgcatctttttgtaccTATAATGTGTGGAaaaggagttttttagttaccttaattgaaataaacgaaataaaaactcgcctagtaAAAATTAAGAGGTATATATTA"
+    },
+    "DNAMass": "5ng",
+    "PlateOutVolume": "50ul",
+    "TransformationName": "TestProtocol"
+  },
+  "name": "TransformationEfficiency"
+}

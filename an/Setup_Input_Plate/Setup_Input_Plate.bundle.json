@@ -1,0 +1,37 @@
+{
+  "CompareInstructions": false,
+  "CompareOutputs": false,
+  "ComparisonOptions": "",
+  "Results": {
+    "MixTaskResults": null
+  },
+  "config": null,
+  "connections": null,
+  "parameters": {
+    "Process1": {
+      "PlateType": "pcrplate_skirted_riser20",
+      "Replicates": {
+        "default": 3
+      },
+      "Solutions": [
+        "water",
+        "dna"
+      ],
+      "SpecifyWellPositions": {
+        "water": [
+          "A1",
+          "A2",
+          "A3"
+        ]
+      },
+      "Volumes": {
+        "default": "20ul"
+      }
+    }
+  },
+  "processes": {
+    "Process1": {
+      "component": "Setup_Input_Plate"
+    }
+  }
+}

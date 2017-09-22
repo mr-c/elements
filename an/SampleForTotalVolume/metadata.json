@@ -1,0 +1,9 @@
+{
+  "defaults": {
+    "Diluent": "water",
+    "Solution": "neb5compcells",
+    "SolutionVolume": "15ul",
+    "TotalVolume": "150ul"
+  },
+  "name": "SampleForTotalVolume"
+}

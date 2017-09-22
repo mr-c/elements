@@ -1,0 +1,10 @@
+{
+  "defaults": {
+    "NumberofAliquots": 96,
+    "OutPlate": "SRWFB96_riser20",
+    "Solution": "mediaonculture",
+    "SolutionVolume": "20ml",
+    "VolumePerAliquot": "200ul"
+  },
+  "name": "Aliquot_SpecificPlate"
+}

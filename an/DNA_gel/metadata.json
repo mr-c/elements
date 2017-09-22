@@ -1,0 +1,27 @@
+{
+  "defaults": {
+    "DNAGel": "EGEL48",
+    "GelLoadingMixingPolicy": "load",
+    "Ladder": "1kb DNA Ladder",
+    "LadderVolume": "10ul",
+    "LoadingDye": "blue",
+    "LoadingDyeInSample": false,
+    "LoadingDyeMixingPolicy": "NeedToMix",
+    "LoadingDyeVolume": {
+      "default": "5ul"
+    },
+    "MixPlate": "greiner384_riser20",
+    "OptimisePlateUsage": false,
+    "Reactions": [
+      "dna",
+      "dna",
+      "dna"
+    ],
+    "Replicates": 1,
+    "SampleVolume": {
+      "default": "5ul"
+    },
+    "Water": "water"
+  },
+  "name": "DNA_gel"
+}
