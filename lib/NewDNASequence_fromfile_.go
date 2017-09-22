@@ -4,8 +4,8 @@ package lib
 import (
 	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -34,7 +34,7 @@ func _NewDNASequence_fromfileSetup(_ctx context.Context, _input *NewDNASequence_
 // Core process of the protocol: steps to be performed for each input
 func _NewDNASequence_fromfileSteps(_ctx context.Context, _input *NewDNASequence_fromfileInput, _output *NewDNASequence_fromfileOutput) {
 
-	seqs, err := parse.DNAFileToDNASequence(_input.SequenceFile)
+	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
 	if err != nil {
 		execute.Errorf(_ctx, err.Error())
 	}

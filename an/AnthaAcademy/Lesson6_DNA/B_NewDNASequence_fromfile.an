@@ -3,8 +3,8 @@ protocol NewDNASequence_fromfile
 
 import (
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
@@ -43,7 +43,7 @@ Setup {
 // Core process of the protocol: steps to be performed for each input
 Steps {
 
-	seqs, err := parse.DNAFileToDNASequence(SequenceFile)
+	seqs, err := parser.DNAFileToDNASequence(SequenceFile)
 	if err != nil {
 		Errorf(err.Error())
 	}
