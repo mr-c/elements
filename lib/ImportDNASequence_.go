@@ -4,8 +4,8 @@ package lib
 import (
 	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/text"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
@@ -43,7 +43,7 @@ func _ImportDNASequenceSetup(_ctx context.Context, _input *ImportDNASequenceInpu
 func _ImportDNASequenceSteps(_ctx context.Context, _input *ImportDNASequenceInput, _output *ImportDNASequenceOutput) {
 	//Use function DNAFileToDNASequence to read in file. The function determines
 	//which file type was given as input and returns the DNA sequence as type DNASequence
-	seqs, err := parse.DNAFileToDNASequence(_input.SequenceFile)
+	seqs, err := parser.DNAFileToDNASequence(_input.SequenceFile)
 	if err != nil {
 		execute.Errorf(_ctx, "The file could not be imported. Please check if file format supported or if file empty")
 	}

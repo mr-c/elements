@@ -5,8 +5,8 @@ package lib
 import (
 	"context"
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 	"github.com/antha-lang/antha/antha/anthalib/wunit"
 	"github.com/antha-lang/antha/component"
@@ -46,7 +46,7 @@ func _PrimerDesign_coverRegionSteps(_ctx context.Context, _input *PrimerDesign_c
 	var plasmid wtype.DNASequence
 	var allprimers []oligos.Primer
 
-	seqs, err := parse.DNAFileToDNASequence(_input.DNASeqfile)
+	seqs, err := parser.DNAFileToDNASequence(_input.DNASeqfile)
 
 	if err != nil {
 		execute.Errorf(_ctx, "The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())

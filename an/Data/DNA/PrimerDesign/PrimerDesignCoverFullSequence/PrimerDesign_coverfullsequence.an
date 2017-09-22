@@ -4,8 +4,8 @@ protocol PrimerDesign_coverfullsequence
 
 import (
 	"fmt"
+	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/Parser"
 	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/oligos"
-	"github.com/antha-lang/antha/antha/AnthaStandardLibrary/Packages/sequences/parse"
 	"github.com/antha-lang/antha/antha/anthalib/wtype"
 )
 
@@ -48,7 +48,7 @@ Setup {
 Steps {
 	var plasmid DNASequence
 
-	plasmids, err := parse.DNAFileToDNASequence(DNASeqfile)
+	plasmids, err := parser.DNAFileToDNASequence(DNASeqfile)
 
 	if err != nil {
 		Errorf("The sequence file could not be imported. Please check if file format supported or if file empty: %s", err.Error())
