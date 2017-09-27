@@ -68,5 +68,5 @@ antharun --help
 ```
 
 ## Academy
-Go to the [Antha Academy](https://github.com/antha-lang/elements/tree/master/an/AnthaAcademy) page to be guided through how to use antha in more detail.
+Go to the [Antha Academy](https://github.com/antha-lang/elements/tree/master/AnthaAcademy) page to be guided through how to use antha in more detail.
 
